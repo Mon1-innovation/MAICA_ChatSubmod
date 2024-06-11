@@ -31,14 +31,14 @@ class ChatBotInterface():
         pass
 
     # 发送消息，同时接受消息到一个Queue队列
-    # 消息的格式：('renpy表情', 'message')
+    # Queue队列消息的格式：('renpy表情', 'message')
     def chat(self, message):
-        pass
+        raise Exception("该类未实现chat()")
 
     # 删除conversation
     def del_conversation(self):
-        pass
+        raise Exception("该类未实现del_conversation()")
 
     # 从message_list获取消息，如果已经阅读完已经生成的句子，但是还在生成返回WRITING,如果已经结束生成并且全部阅读完毕返回END(同时清空),如果有异常则抛出异常
     def get_message(self):
-        pass
+        raise Exception("该类未实现get_message()")
