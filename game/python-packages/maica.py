@@ -1,6 +1,28 @@
 from bot_interface import *
+import logging
+
+import logging
+
+logger = logging.getLogger()
+logger.setLevel('DEBUG')
+BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
+chlr = logging.StreamHandler() # 输出到控制台的handler
+chlr.setFormatter(formatter)
+chlr.setLevel('INFO')  # 也可以不设置，不设置就默认用logger的level
+fhlr = logging.FileHandler('example.log')
+fhlr.setFormatter(formatter)
+logger.addHandler(chlr)
+logger.addHandler(fhlr)
+logger.info('this is info')
 
 class MaicaAi(ChatBotInterface):
+    class MaicaAiModel:
+        maica_main = "maica_main"
+        maica_main_nostream = "maica_main_nostream"
+        maica_core = "maica_core"
+        maica_core_nostream = "maica_core_nostream"
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
@@ -46,17 +68,13 @@ class MaicaAi(ChatBotInterface):
         TOKEN_MAX_EXCEEDED = MAIKA_PREFIX + 204
         # session > 24000token
         TOKEN_24000_EXCEEDED = MAIKA_PREFIX + 200
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import padding
-    from cryptography.hazmat.primitives.hashes import SHA1
-    from cryptography.hazmat.primitives.asymmetric import rsa
     import json
     import base64
     import asyncio
     import websocket
     
     url = "wss://maicadev.monika.love/websocket"
-    public_key_pem = b"""
+    public_key_pem = """\
 -----BEGIN RSA PUBLIC KEY-----
 MIIBCgKCAQEA2IHJQAPwWuynuivzvu/97/EbN+ttYoNmJyvu9RC/M9CHXCi1Emgc
 /KIluhzfJesBU/E/TX/xeuwURuGcyhIBk0qmba8GOADVjedt1OHcP6DJQJwu6+Bp
@@ -66,13 +84,16 @@ l3tCkUjgHS+RhNtksuynpwm84Mg1MlbgU5s5alXKmAqQTTJ2IG61PHtrrCTVQA9M
 t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 -----END RSA PUBLIC KEY-----
 """
-    public_key = serialization.load_pem_public_key(public_key_pem)
+    public_key = None
     ciphertext = None
-    chat_session = 0
+    chat_session = 1
     wss_session = None
 
-    model = "maica_main"
-    sf_extraction = True
+    user_acc = ""
+
+    model = MaicaAiModel.maica_core
+
+    sf_extraction = False
     # 待发送消息队列
     senddata_queue = Queue()
     _received = ""
@@ -80,64 +101,83 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def __init__(self, account, pwd, token = "") -> None:
         super().__init__(account, pwd, token)
-        import json, websocket
+        import json, base64
+        from Crypto.Cipher import PKCS1_OAEP
+        from Crypto.PublicKey import RSA
+        self.public_key = RSA.import_key(self.public_key_pem)
+        cipher = PKCS1_OAEP.new(self.public_key)
         # 加密
         data = {
             "username":account,
             "password":pwd
         }
         self.token = token
-        message = json.dumps(data).encode('utf-8')
-        self.ciphertext = self.public_key.encrypt(
-            message,
-            self.padding.OAEP(
-                mgf=self.padding.MGF1(algorithm=self.SHA1()),
-                algorithm=self.SHA1(),
-                label=None
-            )
-        )
+        if token == "":
+            message = json.dumps(data, ensure_ascii=False).encode('utf-8')
+            print(message)
+            self.ciphertext = base64.b64encode(cipher.encrypt(message))
+        else:
+            self.ciphertext = token
 
     def init_connect(self):
+        import threading
+        threading.Thread(target=self._init_connect).start()
+
+    def _init_connect(self):
+        print("_init_connect")
         import websocket
-        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_close=None)
+        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message)
         self.status = self.MaicaAiStatus.WAIT_AUTH
-        if self.wss_session:
-            raise Exception("websocket 创建失败")
+        if self.wss_session.run_forever():
+            raise RuntimeError("websocket 已关闭")
+    
     def _on_open(self, wsapp):
+        logger.info("_on_open")
         import time, threading
         def send_message():
             import json
             while True:
+                logger.info(self.status)
+                time.sleep(1)
+                # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
+                    message = json.dumps({"chat_session":self.chat_session, "query":self.senddata_queue.get()}, ensure_ascii=False)
+                    print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                     self.wss_session.send(
-                        json.dumps({"chat_session":self.chat_session, "query":self.senddata_queue.get()})
-                    )
+                        message
+                    )   
                     self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                # 身份验证
                 elif self.status == self.MaicaAiStatus.WAIT_AUTH:
-                    # 如果token空
+                    self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
                     self.wss_session.send(self.ciphertext)
-                    self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN
+                    logger.info(self.status)
+                # 连接已建立，选择模型
                 elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                     self.wss_session.send(
                         json.dumps({"model":self.model, "sf_extraction":self.sf_extraction})
                     )
-                    self.status == self.MaicaAiStatus.WAIT_MODEL_INFOMATION
+                    self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
+                # 要求重置model
                 elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
                     self.wss_session.send(
                         json.dumps({"chat_session":self.chat_session, "purge":True})
                     )
                     self.status = self.MaicaAiStatus.SESSION_RESETED
                     self.wss_session.close()
+                    break
                 
 
         threading.Thread(target=send_message).start()
     _pos = 0
     def _on_message(self, wsapp, message):
+        logger.info(f"_on_message {message}")
         import json
         data = json.loads(message)
-
+        logger.info("_on_message:")
+        # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
-            if data['status'] != "ok":
+            if data['status'] != "session_created":
                 self.status = self.MaicaAiStatus.TOKEN_FAILED
                 self.wss_session.close()
             else:
@@ -159,13 +199,29 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if not is_a_talk(self._received[self._pos:]) and len(self._received)- 1 - self._pos > 2:
                     self.message_list.put(("1eua", self._received[self._pos:]))
                 self._pos = 0
-                self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
+                self.status = self.MaicaAiStatus.MESSAGE_DONE
                 
     def chat(self, message):
         if self.status != self.MaicaAiStatus.MESSAGE_WAIT_INPUT:
             raise RuntimeError("Maica 当前未准备好接受消息")
         self.senddata_queue.put(message)
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
+
+
+    def upload_save(self, dict):
+        import requests, json
+        res = requests.post(
+            "https://maicadev.monika.love/api/savefile",
+            data = json.dumps(
+                {
+                    "access_token": self.ciphertext.decode(),
+                    "chat_session": self.chat_session,
+                    "content": dict
+                },
+                ensure_ascii=False
+            )
+        )
+        print(res.content)
 
 
         
