@@ -101,6 +101,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def __init__(self, account, pwd, token = "") -> None:
         super().__init__(account, pwd, token)
+        self._gen_token(account, pwd, token)
+
+    def _gen_token(self, account, pwd, token):
         import json, base64
         from Crypto.Cipher import PKCS1_OAEP
         from Crypto.PublicKey import RSA
@@ -190,19 +193,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             if data['status'] == "continue":
                 self._received = self._received + data['content']
-                if not is_a_talk(self._received[self._pos:]):
-                    pass
-                else:
-                    self.message_list.put(("1eua", self._received[self._pos:]))
-                    self._pos = len(self._received)
+                isnum = is_a_talk(self._received[self._pos:])
+                if isnum:
+                    self.message_list.put(("1eua", self._received[self._pos:self._pos + isnum]))
+                    print(self._received[self._pos:self._pos + isnum])
+                    self._pos = self._pos + isnum
             if data['status'] == "streaming_done":
                 if not is_a_talk(self._received[self._pos:]) and len(self._received)- 1 - self._pos > 2:
                     self.message_list.put(("1eua", self._received[self._pos:]))
+                    print(self._received[self._pos:])
                 self._pos = 0
+                self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
                 
     def chat(self, message):
-        if self.status != self.MaicaAiStatus.MESSAGE_WAIT_INPUT:
+        if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica 当前未准备好接受消息")
         self.senddata_queue.put(message)
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
@@ -214,14 +219,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "https://maicadev.monika.love/api/savefile",
             data = json.dumps(
                 {
-                    "access_token": self.ciphertext.decode(),
+                    "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
                     "content": dict
                 },
                 ensure_ascii=False
             )
         )
-        print(res.content)
+        print(res.content.decode())
 
 
         

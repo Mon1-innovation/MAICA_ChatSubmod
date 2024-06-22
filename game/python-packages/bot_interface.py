@@ -8,12 +8,17 @@ def is_multiple(n, base):
         return True
     else:  # 其他情况下，n不是base的倍数
         return False
-    
+signal = ['。', '！', '~', ".", "!", "?"]
 def is_a_talk(strs):
-    signal = ['。', '！', '~', '：']
-    for i in signal:
-        if i in strs:
-            return True
+    if '...' in strs:
+        return strs.find('...') + 1
+    
+    length = len(strs)
+    for index in range(length):
+        for s in signal:
+            if strs[index:index+len(s)] == s:
+                return index + 1
+    return 0
 
 from queue import Queue
 # 接口类
