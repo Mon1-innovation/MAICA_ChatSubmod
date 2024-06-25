@@ -11,7 +11,7 @@ def is_multiple(n, base):
 signal = ['。', '！', '~', ".", "!", "?"]
 def is_a_talk(strs):
     if '...' in strs:
-        return strs.find('...') + 1
+        return strs.find('...') + len("...")
     
     length = len(strs)
     for index in range(length):
