@@ -17,12 +17,12 @@ logger.addHandler(chlr)
 logger.addHandler(fhlr)
 logger.info('this is info')
 
+
+
 class MaicaAi(ChatBotInterface):
     class MaicaAiModel:
         maica_main = "maica_main"
-        maica_main_nostream = "maica_main_nostream"
         maica_core = "maica_core"
-        maica_core_nostream = "maica_core_nostream"
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
@@ -72,6 +72,7 @@ class MaicaAi(ChatBotInterface):
     import base64
     import asyncio
     import websocket
+    import random
     
     url = "wss://maicadev.monika.love/websocket"
     public_key_pem = """\
@@ -84,24 +85,32 @@ l3tCkUjgHS+RhNtksuynpwm84Mg1MlbgU5s5alXKmAqQTTJ2IG61PHtrrCTVQA9M
 t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 -----END RSA PUBLIC KEY-----
 """
-    public_key = None
-    ciphertext = None
-    chat_session = 1
-    wss_session = None
+    def_modelconfig = {
+        "top_p":[0.1, 1.0, 0.7],
+        "temperature":[0.0, 1.0, 0.4],
+        "max_tokens":[0, 128, None],
+        "frequency_penalty":[0.0, 1.0, 0.0],
+        "presence_penalty":[0.0, 1.0, 0.0],
+        "seed":[0, 999, None]
+    }
 
-    user_acc = ""
-
-    model = MaicaAiModel.maica_core
-
-    sf_extraction = False
-    # 待发送消息队列
-    senddata_queue = Queue()
-    _received = ""
-    status = MaicaAiStatus.NOT_READY
 
     def __init__(self, account, pwd, token = "") -> None:
         super().__init__(account, pwd, token)
+        self.public_key = None
+        self.ciphertext = None
+        self.chat_session = 1
+        self.wss_session = None
+        self.user_acc = ""
+        self.model = self.MaicaAiModel.maica_core
+        self.sf_extraction = False
+        self.stream_output = True
+        # 待发送消息队列
+        self.senddata_queue = Queue()
+        self._received = ""
+        self.status = self.MaicaAiStatus.NOT_READY
         self._gen_token(account, pwd, token)
+        self.modelconfig = {}
 
     def _gen_token(self, account, pwd, token):
         import json, base64
@@ -133,7 +142,22 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.WAIT_AUTH
         if self.wss_session.run_forever():
             raise RuntimeError("websocket 已关闭")
-    
+        
+    # 检查参数合法性
+    def _check_modelconfig(self):
+        for i in self.def_modelconfig:
+            if i in self.modelconfig:
+                if i in ("max_tokens", "seed"):
+                    if type(self.modelconfig[i]) != int:
+                        int(self.modelconfig[i])
+                if self.modelconfig[i] not in (self.def_modelconfig[i][0], self.def_modelconfig[i][1]):
+                    if self.def_modelconfig[i][3] == None:
+                        del self.modelconfig[i]
+                    else:
+                        self.modelconfig[i] = self.def_modelconfig[i][3]
+            
+
+            
     def _on_open(self, wsapp):
         logger.info("_on_open")
         import time, threading
@@ -144,7 +168,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 time.sleep(1)
                 # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                    message = json.dumps({"chat_session":self.chat_session, "query":self.senddata_queue.get()}, ensure_ascii=False)
+                    message = json.dumps({"chat_session":self.chat_session, "query":self.senddata_queue.get()}, ensure_ascii=False) 
+                    self._check_modelconfig()
+                    message |= self.modelconfig
                     print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                     self.wss_session.send(
                         message
@@ -158,7 +184,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 # 连接已建立，选择模型
                 elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                     self.wss_session.send(
-                        json.dumps({"model":self.model, "sf_extraction":self.sf_extraction})
+                        json.dumps({"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output})
                     )
                     self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                 # 要求重置model

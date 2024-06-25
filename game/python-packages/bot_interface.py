@@ -21,6 +21,12 @@ def is_a_talk(strs):
     return 0
 
 from queue import Queue
+
+class AiException(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+    def __str__(self) -> str:
+        return super().__str__()
 # 接口类
 class ChatBotInterface():
     WRITING = 1
@@ -47,3 +53,4 @@ class ChatBotInterface():
     # 从message_list获取消息，如果已经阅读完已经生成的句子，但是还在生成返回WRITING,如果已经结束生成并且全部阅读完毕返回END(同时清空),如果有异常则抛出异常
     def get_message(self):
         raise Exception("该类未实现get_message()")
+
