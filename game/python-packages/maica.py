@@ -68,6 +68,36 @@ class MaicaAi(ChatBotInterface):
         TOKEN_MAX_EXCEEDED = MAIKA_PREFIX + 204
         # session > 24000token
         TOKEN_24000_EXCEEDED = MAIKA_PREFIX + 200
+
+        _descriptions = {
+            NOT_READY: "未准备好",
+            WAIT_AUTH: "账户信息已准备好，准备令牌验证",
+            WAIT_SERVER_TOKEN: "等待令牌验证结果",
+            WAIT_USE_TOKEN: "传入令牌",
+            SESSION_CREATED: "令牌已传入，session已开启，应该选择模型了",
+            WAIT_MODEL_INFOMATION: "等待模型信息",
+            MESSAGE_WAIT_INPUT: "maica 已准备好，等待玩家输入",
+            MESSAGE_WAIT_SEND: "已输入消息，等待消息发送",
+            MESSAGE_WAITING_RESPONSE: "已发送消息，等待MAICA回应",
+            MESSAGE_DONE: "MAICA 已经输出完毕",
+            REQUEST_RESET_SESSION: "请求重置session",
+            SESSION_RESETED: "session已重置，websocket已关闭",
+            REQUEST_PING: "请求心跳包",
+            TOKEN_FAILED: "令牌验证失败",
+            MODEL_NOT_FOUND: "选择的 model 不正确",
+            TOKEN_MAX_EXCEEDED:"session 已超过 32768 token, 可能有部分对话已被删除",
+            TOKEN_24000_EXCEEDED:"session 已超过 24000 token"
+        }
+        @classmethod
+        def get_description(cls, code):
+            return cls._descriptions.get(code, f"未知状态码: {code}")
+        
+        @classmethod
+        def add_status_code(cls, name, code, description):
+            if code in cls._descriptions:
+                raise ValueError(f"状态码 {code} 已存在，不能重复添加。")
+            cls._descriptions[code] = description
+            setattr(cls, f"{name}", code)
     import json
     import base64
     import asyncio
@@ -139,6 +169,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         print("_init_connect")
         import websocket
         self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message)
+        self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
         if self.wss_session.run_forever():
             raise RuntimeError("websocket 已关闭")
@@ -149,12 +180,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if i in self.modelconfig:
                 if i in ("max_tokens", "seed"):
                     if type(self.modelconfig[i]) != int:
-                        int(self.modelconfig[i])
-                if self.modelconfig[i] not in (self.def_modelconfig[i][0], self.def_modelconfig[i][1]):
-                    if self.def_modelconfig[i][3] == None:
+                        logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {round(self.modelconfig[i])}")
+                        self.modelconfig[i] = round(self.modelconfig[i])
+                if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
+                    if self.def_modelconfig[i][2] == None:
+                        logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> deleted")
                         del self.modelconfig[i]
                     else:
-                        self.modelconfig[i] = self.def_modelconfig[i][3]
+                        logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {self.def_modelconfig[i][2]}")
+                        self.modelconfig[i] = self.def_modelconfig[i][2]
             
 
             
@@ -164,13 +198,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         def send_message():
             import json
             while True:
-                logger.info(self.status)
+                
                 time.sleep(1)
                 # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                    message = json.dumps({"chat_session":self.chat_session, "query":self.senddata_queue.get()}, ensure_ascii=False) 
+                    dict = {"chat_session":self.chat_session, "query":self.senddata_queue.get()}
                     self._check_modelconfig()
-                    message |= self.modelconfig
+                    dict |= self.modelconfig
+                    message = json.dumps(dict, ensure_ascii=False) 
                     print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                     self.wss_session.send(
                         message
@@ -195,6 +230,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     self.status = self.MaicaAiStatus.SESSION_RESETED
                     self.wss_session.close()
                     break
+
+                if self.wss_session.keep_running == False:
+                    logger.info("wss连接已关闭")
+                    break
+
                 
 
         threading.Thread(target=send_message).start()
@@ -203,7 +243,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.info(f"_on_message {message}")
         import json
         data = json.loads(message)
-        logger.info("_on_message:")
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
             if data['status'] != "session_created":
@@ -211,6 +250,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.wss_session.close()
             else:
                 self.status = self.MaicaAiStatus.SESSION_CREATED
+        if self.status == self.MaicaAiStatus.SESSION_CREATED:
+            if data["status"] == "nickname":
+                self.user_acc = data["content"]
+                logger.info(f"以身份 {self.user_acc} 登录")
         elif self.status == self.MaicaAiStatus.WAIT_MODEL_INFOMATION:
             if data['status'] != "ok":
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
@@ -222,12 +265,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 isnum = is_a_talk(self._received[self._pos:])
                 if isnum:
                     self.message_list.put(("1eua", self._received[self._pos:self._pos + isnum]))
-                    print(self._received[self._pos:self._pos + isnum])
+                    print("Server:",self._received[self._pos:self._pos + isnum])
                     self._pos = self._pos + isnum
             if data['status'] == "streaming_done":
-                if not is_a_talk(self._received[self._pos:]) and len(self._received)- 1 - self._pos > 2:
+                if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
                     self.message_list.put(("1eua", self._received[self._pos:]))
-                    print(self._received[self._pos:])
+                    print("Server:",self._received[self._pos:])
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
