@@ -16,6 +16,7 @@ with open(r"E:\GithubKu\MAICA_ChatSubmod\game\Submods\MAICA_ChatSubmod\emotion_s
         line = i.split(":")
         line[1] = line[1].strip()
         sen[line[0]] = line[1]
+emotion_analyze.add_emoteeffectdata(sen)
 with open(r"E:\GithubKu\MAICA_ChatSubmod\game\Submods\MAICA_ChatSubmod\emotion.txt", "r", encoding="utf-8") as e:
     for i in e.readlines():
         line = i.split(":")

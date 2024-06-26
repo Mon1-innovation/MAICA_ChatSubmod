@@ -1,4 +1,5 @@
 from bot_interface import *
+import emotion_analyze
 import logging
 
 import logging
@@ -127,6 +128,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def __init__(self, account, pwd, token = "") -> None:
         super().__init__(account, pwd, token)
+        self.MoodStatus = emotion_analyze.MoodStatus()
         self.public_key = None
         self.ciphertext = None
         self.chat_session = 1
@@ -264,12 +266,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._received = self._received + data['content']
                 isnum = is_a_talk(self._received[self._pos:])
                 if isnum:
-                    self.message_list.put(("1eua", self._received[self._pos:self._pos + isnum]))
+                    raw_message = self._received[self._pos:self._pos + isnum]
+                    res = self.MoodStatus.analyze(raw_message)
+                    self.message_list.put((self.MoodStatus.get_emote(), res))
                     print("Server:",self._received[self._pos:self._pos + isnum])
                     self._pos = self._pos + isnum
             if data['status'] == "streaming_done":
                 if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
-                    self.message_list.put(("1eua", self._received[self._pos:]))
+                    raw_message = self._received[self._pos:]
+                    res = self.MoodStatus.analyze(raw_message)
+                    self.message_list.put((self.MoodStatus.get_emote(), res))
                     print("Server:",self._received[self._pos:])
                 self._pos = 0
                 self._received = ""
@@ -278,7 +284,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica 当前未准备好接受消息")
-        self.senddata_queue.put(message)
+        
+        self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
 
