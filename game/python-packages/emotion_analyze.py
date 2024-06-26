@@ -17,7 +17,7 @@ def add_emoteeffectdata(dict):
 class MoodStatus(object):
     
     
-    def __init__(self) -> None:
+    def __init__(self):
         self.EmotionalStatus = {}
         self.init_emotional_status()
         self.EmotionalStatus["微笑"]=1
@@ -26,7 +26,7 @@ class MoodStatus(object):
         for i in EMOTE_DICT:
             if i not in self.EmotionalStatus:
                 self.EmotionalStatus[i] = 0.0
-    def analyze(self, message:str):
+    def analyze(self, message):
         import re
         # 正则表达式模式
         pattern = r'\[(.*?)\]'
@@ -38,7 +38,7 @@ class MoodStatus(object):
         for match in matches:
             if match in self.EmotionalStatus:
                 # 如果匹配内容在字典的键中，去除匹配的字符串
-                result = message.replace(f'[{match}]', '')
+                result = message.replace('[{}]'.format(match), '')
         result
     # 增加心情值
     def add_emotional(self, emote, value=3.0):
@@ -66,6 +66,8 @@ class MoodStatus(object):
         del emotes["sentiment"]
 
         def select_code(data, ratio):
+            if ratio > 1:
+                ratio = 1
             import random
             # 按键排序
             keys = sorted(data.keys())
@@ -80,7 +82,7 @@ class MoodStatus(object):
             return random.choice(data[keys[0]])
         
 
-        return select_code(emotes, )
+        return select_code(emotes, max_value / MAX_EMOTE_EFFECT)
 
         
 

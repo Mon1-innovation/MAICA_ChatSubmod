@@ -1,7 +1,37 @@
 WRITING = 1
 END = 0
 import ast
- 
+import sys
+
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    from queue import Queue
+else:
+    class Queue(object):
+        def __init__(self):
+            self.items = []
+    
+        def put(self, item):
+            """将元素加入队列"""
+            self.items.append(item)
+    
+        def get(self):
+            """从队列中取出元素"""
+            if not self.is_empty():
+                return self.items.pop(0)
+            else:
+                raise IndexError("get from empty queue")
+    
+        def is_empty(self):
+            """检查队列是否为空"""
+            return len(self.items) == 0
+    
+        def size(self):
+            """返回队列的大小"""
+            return len(self.items)
+
 chinese_to_english_punctuation = {
     '，': ', ',
     '。': '. ',
@@ -70,12 +100,12 @@ def is_a_talk(strs):
                 return index + 1
     return 0
 
-from queue import Queue
+
 
 class AiException(Exception):
-    def __init__(self, *args: object) -> None:
+    def __init__(self, *args):
         super().__init__(*args)
-    def __str__(self) -> str:
+    def __str__(self):
         return super().__str__()
 # 接口类
 class ChatBotInterface():
@@ -88,7 +118,7 @@ class ChatBotInterface():
     full_message = ""
 
     # 账密/token登录
-    def __init__(self, account, pwd, token) -> None:
+    def __init__(self, account, pwd, token):
         pass
 
     # 发送消息，同时接受消息到一个Queue队列
