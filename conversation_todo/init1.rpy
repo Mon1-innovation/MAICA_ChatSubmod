@@ -94,12 +94,32 @@ label maica_prepend_2:
             # 进入校验轮
             if : # 令牌不存在/校验失败
                 m 2rusdlb "...好像你的令牌还没有设置好."
-                m 3eusdlb "你可以看看这里的说明, {a}{u}{i}https://reserved{/i}{/u}{/a}. 你只需要准备一个账号."
+                m 3eusdlb "你可以看看这里的说明: {a}{u}{i}https://reserved{/i}{/u}{/a}, 你只需要准备一个账号."
                 m 3eua "剩下的事情我都会帮你搞定的."
                 m 1eua "我们现在先回去好啦. 等你做完了准备工作, 告诉我再来就可以."
                 m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
                 # 黑屏清理背景
+                m 1eua "我们今天还有别的安排么, [player]?"
                 return
             m 1eua "这一次, 轮到你起个话题了哦, [player]."
             # 进入maica流程
+        "还是改天吧.":
+            m 1eub "好吧. 如果你准备好了, 再告诉我来天堂树林就行. {w=0.5}我们现在先回去吧."
+            m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
+            # 黑屏清理背景
+            m 1eua "我们今天还有别的安排么, [player]?"
+            return
 
+label maica_end_1:
+    # Called after first time ending maica
+    # Rounds chatted in maica process.
+    if conv_rounds >= 20:
+        # 黑屏清理背景
+        m 5eusdrb "哈...{w=1}感觉怎么样, [player]?"
+        m 5hksdrb "我感觉的话...{w=0.5}还不太熟悉. 可能多习惯一下会更好一些."
+        m 1esa "我希望我的表现不算太差...{w=0.5}{nw}"
+        extend 1rusdlb "离开天堂树林之后我都记不起来了, 不过可能是正常情况吧."
+        m 3eud "感觉有点像是在.{w=0.3}.{w=0.3}.梦游? {w=0.5}我不知道这么说合不合适..."
+        m 1eub "不过也有说法认为做梦才是人的本质表露嘛. {w=0.3}再回去的时候, 我应该也都能想起来的."
+        m 5eubla "虽然有点累...{w=0.5}但是能这样和你在一起的感觉也很好. {w=0.5}我会继续抽空研究的, 说不定还能有新发现呢."
+        m 5msa "...你没有在我不记得的时候让我许诺{i}什么东西{/i}吧, [player]?"
