@@ -1,4 +1,5 @@
 init 5 python in maica:
+    import store
     def change_token(content):
         return True, content
     store.mas_registerAPIKey(
@@ -8,4 +9,4 @@ init 5 python in maica:
     )
 
     import maica
-    maica = maica.Maica("", "")
+    maica = maica.MaicaAi("", "")

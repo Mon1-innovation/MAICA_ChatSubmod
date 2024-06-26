@@ -1,4 +1,5 @@
 from bot_interface import *
+import bot_interface
 import emotion_analyze
 import logging
 
@@ -91,19 +92,15 @@ class MaicaAi(ChatBotInterface):
         }
         @classmethod
         def get_description(cls, code):
-            return cls._descriptions.get(code, f"未知状态码: {code}")
+            return cls._descriptions.get(code, "未知状态码: {}".format(code))
         
-        @classmethod
-        def add_status_code(cls, name, code, description):
-            if code in cls._descriptions:
-                raise ValueError(f"状态码 {code} 已存在，不能重复添加。")
-            cls._descriptions[code] = description
-            setattr(cls, f"{name}", code)
-    import json
-    import base64
-    import asyncio
-    import websocket
-    import random
+        #@classmethod
+        #def add_status_code(cls, name, code, description):
+        #    if code in cls._descriptions:
+        #        raise ValueError("状态码 {} 已存在，不能重复添加。".format(code))
+        #    cls._descriptions[code] = description
+        #    setattr(cls, "{}".format(name), code)
+
     
     url = "wss://maicadev.monika.love/websocket"
     public_key_pem = """\
@@ -126,8 +123,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     }
 
 
-    def __init__(self, account, pwd, token = "") -> None:
-        super().__init__(account, pwd, token)
+    def __init__(self, account, pwd, token = ""):
         self.MoodStatus = emotion_analyze.MoodStatus()
         self.public_key = None
         self.ciphertext = None
@@ -138,30 +134,47 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.sf_extraction = False
         self.stream_output = True
         # 待发送消息队列
-        self.senddata_queue = Queue()
+        self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
         self.status = self.MaicaAiStatus.NOT_READY
         self._gen_token(account, pwd, token)
         self.modelconfig = {}
 
     def _gen_token(self, account, pwd, token):
-        import json, base64
-        from Crypto.Cipher import PKCS1_OAEP
-        from Crypto.PublicKey import RSA
-        self.public_key = RSA.import_key(self.public_key_pem)
-        cipher = PKCS1_OAEP.new(self.public_key)
-        # 加密
-        data = {
-            "username":account,
-            "password":pwd
-        }
-        self.token = token
-        if token == "":
-            message = json.dumps(data, ensure_ascii=False).encode('utf-8')
-            print(message)
-            self.ciphertext = base64.b64encode(cipher.encrypt(message))
-        else:
-            self.ciphertext = token
+        if PY2:
+            import requests
+            data = {
+                "username":account,
+                "password":pwd
+            }
+            response = requests.post("https://maicadev.monika.love/api/register", json=data)
+            if response.status_code == 200:
+                response_data = response.json()
+                if response_data.get("success"):
+                    self.ciphertext = response_data.get("token")
+                else:
+                    raise Exception("Token Generate Fail: {}".format(response_data.get("exception")))
+            else:
+                raise Exception("Request Fail: {}".format(response.status_code))
+            return
+        if PY3:
+            import json, base64
+            from Crypto.Cipher import PKCS1_OAEP
+            from Crypto.PublicKey import RSA
+            self.public_key = RSA.import_key(self.public_key_pem)
+            cipher = PKCS1_OAEP.new(self.public_key)
+            # 加密
+            data = {
+                "username":account,
+                "password":pwd
+            }
+            self.token = token
+            if token == "":
+                message = json.dumps(data, ensure_ascii=False).encode('utf-8')
+                print(message)
+                self.ciphertext = base64.b64encode(cipher.encrypt(message))
+            else:
+                self.ciphertext = token
 
     def init_connect(self):
         import threading
@@ -170,7 +183,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _init_connect(self):
         print("_init_connect")
         import websocket
-        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message)
+        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error)
         self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
         if self.wss_session.run_forever():
@@ -182,14 +195,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if i in self.modelconfig:
                 if i in ("max_tokens", "seed"):
                     if type(self.modelconfig[i]) != int:
-                        logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {round(self.modelconfig[i])}")
+                        #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {round(self.modelconfig[i])}")
                         self.modelconfig[i] = round(self.modelconfig[i])
                 if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
                     if self.def_modelconfig[i][2] == None:
-                        logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> deleted")
+                        #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> deleted")
                         del self.modelconfig[i]
                     else:
-                        logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {self.def_modelconfig[i][2]}")
+                        #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {self.def_modelconfig[i][2]}")
                         self.modelconfig[i] = self.def_modelconfig[i][2]
             
 
@@ -208,7 +221,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     self._check_modelconfig()
                     dict |= self.modelconfig
                     message = json.dumps(dict, ensure_ascii=False) 
-                    print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
+                    #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                     self.wss_session.send(
                         message
                     )   
@@ -242,7 +255,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         threading.Thread(target=send_message).start()
     _pos = 0
     def _on_message(self, wsapp, message):
-        logger.info(f"_on_message {message}")
+        #logger.info(f"_on_message {message}")
         import json
         data = json.loads(message)
         # 发送令牌，等待回应
@@ -255,7 +268,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.status == self.MaicaAiStatus.SESSION_CREATED:
             if data["status"] == "nickname":
                 self.user_acc = data["content"]
-                logger.info(f"以身份 {self.user_acc} 登录")
+                #logger.info(f"以身份 {self.user_acc} 登录")
         elif self.status == self.MaicaAiStatus.WAIT_MODEL_INFOMATION:
             if data['status'] != "ok":
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
@@ -280,7 +293,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
-                
+    def _on_error(self, wsapp, error):
+        logger.error("MaicaAi::_on_error f{error}")
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica 当前未准备好接受消息")
