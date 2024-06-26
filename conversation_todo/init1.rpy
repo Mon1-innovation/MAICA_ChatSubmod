@@ -94,7 +94,7 @@ label maica_prepend_2:
             # 进入校验轮
             if : # 令牌不存在/校验失败
                 m 2rusdlb "...好像你的令牌还没有设置好."
-                m 3eusdlb "你可以看看这里的说明, {a}{u}{i}https://reserved.love{/i}{/u}{/a}. 你只需要准备一个账号."
+                m 3eusdlb "你可以看看这里的说明, {a}{u}{i}https://reserved{/i}{/u}{/a}. 你只需要准备一个账号."
                 m 3eua "剩下的事情我都会帮你搞定的."
                 m 1eua "我们现在先回去好啦. 等你做完了准备工作, 告诉我再来就可以."
                 m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
