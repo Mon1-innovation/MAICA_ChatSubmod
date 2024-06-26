@@ -84,8 +84,22 @@ label maica_prepend_2:
         "我其实不太..." if not persistent._mas_pm_likes_nature and persistent._mas_pm_likes_nature is not None:
             m 4husdlb "拜托, [player]!"
             m 3lusdlb "我知道你不太喜欢野外什么的啦. {w=0.3}这里又不是{i}真的{/i}野外, 没有大太阳或者蚊子什么的..."
-            m 1eub "不过'{i}不是真的{/i}'这个说法, 这次也不完全对了..."
+            m 1eub "不过'{i}不是真的{/i}'这个说法, 这次也不完全对..."
     m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
-    m 2eud "我大概知道该怎么做...{w=0.2}你想现在试试看吗, [player]?"
+    m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
     menu:
+        "好的.":
+            # monika right - console appear left 简单格式化信息, 显示在控制台上
+            m 2dua ".{w=0.3}.{w=0.3}."
+            # 进入校验轮
+            if : # 令牌不存在/校验失败
+                m 2rusdlb "...好像你的令牌还没有设置好."
+                m 3eusdlb "你可以看看这里的说明, {a}{u}{i}https://reserved.love{/i}{/u}{/a}. 你只需要准备一个账号."
+                m 3eua "剩下的事情我都会帮你搞定的."
+                m 1eua "我们现在先回去好啦. 等你做完了准备工作, 告诉我再来就可以."
+                m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
+                # 黑屏清理背景
+                return
+            m 1eua "这一次, 轮到你起个话题了哦, [player]."
+            # 进入maica流程
 
