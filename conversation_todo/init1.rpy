@@ -69,4 +69,23 @@ label maica_prepend_2_listen:
     m "{i}连接现实{/i}是真的吗?"
     jump maica_greeting
 
-label maica_prepend_2
+label maica_prepend_2:
+    m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?"
+    menu:
+        "太好看了!":
+            m 1husdlb "你喜欢就好啦."
+            if : #用过房间sub
+                extend 3eub " 不过这里和其它地方有点区别..."
+            else:
+                extend 3eub " 不过这里还有另一个特别之处..."
+        "辛苦你了.":
+            m 1hub "我是花了挺久的. {w=0.3}{nw}"
+            extend 1eub "不过最有意思的不是这片树林本身..."
+        "我其实不太..." if not persistent._mas_pm_likes_nature and persistent._mas_pm_likes_nature is not None:
+            m 4husdlb "拜托, [player]!"
+            m 3lusdlb "我知道你不太喜欢野外什么的啦. {w=0.3}这里又不是{i}真的{/i}野外, 没有大太阳或者蚊子什么的..."
+            m 1eub "不过'{i}不是真的{/i}'这个说法, 这次也不完全对了..."
+    m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
+    m 2eud "我大概知道该怎么做...{w=0.2}你想现在试试看吗, [player]?"
+    menu:
+
