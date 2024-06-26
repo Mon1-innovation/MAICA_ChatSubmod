@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 EMOTE_DICT = {}
 EMOTE_EFFECT = {}
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from bot_interface import *
 import bot_interface
 import emotion_analyze
@@ -72,27 +74,30 @@ class MaicaAi(ChatBotInterface):
         TOKEN_24000_EXCEEDED = MAIKA_PREFIX + 200
 
         _descriptions = {
-            NOT_READY: "未准备好",
-            WAIT_AUTH: "账户信息已准备好，准备令牌验证",
-            WAIT_SERVER_TOKEN: "等待令牌验证结果",
-            WAIT_USE_TOKEN: "传入令牌",
-            SESSION_CREATED: "令牌已传入，session已开启，应该选择模型了",
-            WAIT_MODEL_INFOMATION: "等待模型信息",
-            MESSAGE_WAIT_INPUT: "maica 已准备好，等待玩家输入",
-            MESSAGE_WAIT_SEND: "已输入消息，等待消息发送",
-            MESSAGE_WAITING_RESPONSE: "已发送消息，等待MAICA回应",
-            MESSAGE_DONE: "MAICA 已经输出完毕",
-            REQUEST_RESET_SESSION: "请求重置session",
-            SESSION_RESETED: "session已重置，websocket已关闭",
-            REQUEST_PING: "请求心跳包",
-            TOKEN_FAILED: "令牌验证失败",
-            MODEL_NOT_FOUND: "选择的 model 不正确",
-            TOKEN_MAX_EXCEEDED:"session 已超过 32768 token, 可能有部分对话已被删除",
-            TOKEN_24000_EXCEEDED:"session 已超过 24000 token"
+            NOT_READY: u"未准备好",
+            WAIT_AUTH: u"账户信息已确认，令牌验证中",
+            WAIT_SERVER_TOKEN: u"等待令牌验证结果",
+            WAIT_USE_TOKEN: u"传入令牌",
+            SESSION_CREATED: u"令牌已传入，session已开启，应该选择模型了",
+            WAIT_MODEL_INFOMATION: u"等待模型信息",
+            MESSAGE_WAIT_INPUT: u"maica 已准备好，等待玩家输入",
+            MESSAGE_WAIT_SEND: u"已输入消息，等待消息发送",
+            MESSAGE_WAITING_RESPONSE: u"已发送消息，等待MAICA回应",
+            MESSAGE_DONE: u"MAICA 已经输出完毕",
+            REQUEST_RESET_SESSION: u"请求重置session",
+            SESSION_RESETED: u"session已重置，websocket已关闭",
+            REQUEST_PING: u"请求心跳包",
+            TOKEN_FAILED: u"令牌验证失败",
+            MODEL_NOT_FOUND: u"选择的 model 不正确",
+            TOKEN_MAX_EXCEEDED:u"session 已超过 32768 token, 可能有部分对话已被删除",
+            TOKEN_24000_EXCEEDED:u"session 已超过 24000 token"
         }
         @classmethod
         def get_description(cls, code):
-            return cls._descriptions.get(code, "未知状态码: {}".format(code))
+            description = cls._descriptions.get(code, "未知状态码: {}".format(code))
+            if isinstance(description, str):
+                return description.decode('utf-8')
+            return description
         
         #@classmethod
         #def add_status_code(cls, name, code, description):
@@ -137,7 +142,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
         self.status = self.MaicaAiStatus.NOT_READY
-        self._gen_token(account, pwd, token)
+        self._gen_token(account, pwd, token) if account != "" and pwd != "" else ""
         self.modelconfig = {}
 
     def _gen_token(self, account, pwd, token):
