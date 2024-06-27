@@ -15,15 +15,60 @@ init -989 python:
             update_dir="",
             attachment_id=None
         )
-init -5 python:
-    _maica_LoginPhone = ""
+init 10 python:
+    _maica_LoginAcc = ""
     _maica_LoginPw = ""
     def maica_login_ok():
-        if _maica_LoginPhone == "" or _maica_LoginPw == "":
+        if _maica_LoginAcc == "" or _maica_LoginPw == "":
             return renpy.show_screen("maica_message", message = "账号/密码为空")
         if not result:
             renpy.show_screen("maica_message", message = "登录失败! 请检查账号密码是否正确!")
         renpy.hide_screen("maica_login")
+
+    def upload_persistent_dict():
+        persistent2 = persistent
+        persistent2.__dict__['_seen_ever'].clear()
+        persistent2.__dict__['_mas_event_init_lockdb'].clear()
+        persistent2.__dict__['_changed'].clear()
+        persistent2.__dict__['_mas_event_init_lockdb'].clear()
+        persistent2.__dict__['event_database'].clear()
+        persistent2.__dict__['farewell_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['_mas_apology_database'].clear()
+        persistent2.__dict__['_mas_compliments_database'].clear()
+        persistent2.__dict__['_mas_fun_facts_database'].clear()
+        persistent2.__dict__['_mas_mood_database'].clear()
+        persistent2.__dict__['_mas_songs_database'].clear()
+        persistent2.__dict__['_mas_story_database'].clear()
+        persistent2.__dict__['_mas_affection_backups'] = None
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['greeting_database'].clear()
+        persistent2.__dict__['mas_playername'] = store.player
+        if persistent._mas_player_bday:
+            persistent2.__dict__['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
+        persistent2.__dict__['mas_affection'] = store._mas_getAffection()
+        del persistent2.__dict__['_preferences']
+        for i in persistent2.__dict__:
+            try:
+                json.dumps(persistent2.__dict__[i])
+            except:
+                try:
+                    persistent2.__dict__[i] = str(persistent2.__dict__[i])
+                except:
+                    persistent2.__dict__[i] = "REMOVED"
+        res = store.maica.maica.upload_save(persistent2.__dict__[i])
+        renpy.notify(res.get("success", "上传失败!"))
+
+    def reset_session():
+        store.maica.maica.reset_chat_session()
+        renpt.notify("已重置，请重新连接MAICA服务器")
+            
+
 screen maica_setting_pane():
     python:
         import store.maica as maica
@@ -42,16 +87,25 @@ screen maica_setting_pane():
             xoffset -10
             style "main_menu_version"
         
-        if maica.maica.status == maica.maica.MaicaAiStatus.NOT_READY:
-            textbutton ("输入账号密码")
+        if maica.maica.status == maica.maica.MaicaAiStatus.NOT_READY or True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
+            textbutton ("> 生成令牌")
                 
-            textbutton ("使用令牌连接")
+            textbutton ("> 使用令牌连接")
+
+            
         else:
+            textbutton ("上传存档信息"):
+                action Function(upload_persistent_dict)
+
             textbutton ("重置当前对话")
 
-            textbutton ("注销当前DCC账号")
+            textbutton ("导出当前对话")
 
-            textbutton ("设置")
+            textbutton ("退出当前DCC账号")
+    
+        textbutton ("> MAICA Chat设置 *部分选项需要重新连接")
+
+            
         
 
 
@@ -69,7 +123,7 @@ screen maica_login():
 
             hbox:
                 textbutton "输入 DCC 账号用户名":
-                    action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginPhone")
+                    action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginAcc")
             hbox:
                 textbutton "输入 DCC 账号密码":
                     action Show("maica_login_input",message = "请输入DCC 账号密码",returnto = "_maica_LoginPw")

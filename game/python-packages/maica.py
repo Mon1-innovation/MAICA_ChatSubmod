@@ -74,10 +74,10 @@ class MaicaAi(ChatBotInterface):
         TOKEN_24000_EXCEEDED = MAIKA_PREFIX + 200
 
         _descriptions = {
-            NOT_READY: u"未准备好",
-            WAIT_AUTH: u"账户信息已确认，令牌验证中",
+            NOT_READY: u"未准备好, 等待配置账户信息",
+            WAIT_AUTH: u"账户信息已确认，连接MAICA服务器验证中",
             WAIT_SERVER_TOKEN: u"等待令牌验证结果",
-            WAIT_USE_TOKEN: u"传入令牌",
+            WAIT_USE_TOKEN: u"等待传入令牌",
             SESSION_CREATED: u"令牌已传入，session已开启，应该选择模型了",
             WAIT_MODEL_INFOMATION: u"等待模型信息",
             MESSAGE_WAIT_INPUT: u"maica 已准备好，等待玩家输入",
@@ -129,6 +129,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
 
     def __init__(self, account, pwd, token = ""):
+        import threading
+        self.multi_lock = threading.RLock()
         self.MoodStatus = emotion_analyze.MoodStatus()
         self.public_key = None
         self.ciphertext = None
@@ -187,12 +189,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _init_connect(self):
         print("_init_connect")
+        if not self.multi_lock.acquire(1.0):
+            return logger.warning("Maica::_init_connect 试图创建多个连接")
         import websocket
         self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error)
         self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
-        if self.wss_session.run_forever():
-            raise RuntimeError("websocket 已关闭")
+        self.wss_session.run_forever()
+        self.multi_lock.release()
+        
         
     # 检查参数合法性
     def _check_modelconfig(self):
@@ -298,8 +303,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
+                self.MoodStatus.reset()
     def _on_error(self, wsapp, error):
-        logger.error("MaicaAi::_on_error f{error}")
+        logger.error("MaicaAi::_on_error {}".format(error))
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica 当前未准备好接受消息")
@@ -321,7 +327,19 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 ensure_ascii=False
             )
         )
-        print(res.content.decode())
+        return res.json()
+    
+    def reset_chat_session(self):
+        import json
+        self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
+        self.wss_session.send(
+            json.dumps({"chat_session":self.chat_session, "purge":True})
+        )
+        self.status = self.MaicaAiStatus.SESSION_RESETED
+        self.wss_session.close()
+
+    def close_wss_session(self):
+        self.wss_session.close()
 
 
         
