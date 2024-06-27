@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 WRITING = 1
 END = 0
 import ast

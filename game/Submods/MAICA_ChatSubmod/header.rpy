@@ -9,7 +9,7 @@ init -990 python:
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
         store.sup_utils.SubmodUpdater(
-            submod="MAICA ChatSubmod",
+            submod="MAICA Chat",
             user_name="Mon1_Innovation",
             repository_name="MAICA_ChatSubmod",
             update_dir="",
@@ -26,28 +26,32 @@ init -5 python:
         renpy.hide_screen("maica_login")
 screen maica_setting_pane():
     python:
-        from store.maica_sub import maica as ai
-        stat = "未连接" if not ai.wss_session else "已连接" if ai.wss_session.keep_running else "已断开"
+        import store.maica as maica
+        stat = "未连接" if not maica.maica.wss_session else "已连接" if maica.maica.wss_session.keep_running else "已断开"
     vbox:
         xmaximum 800
         xfill True
         style_prefix "check"
 
-        text "> MAICA 通信状态:[ai.status]|[ai.MaicaAiStatus.get_description(ai.status)]"
-        text "> Websocket:[stat]"
+        text "> MAICA 通信状态:[maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]":
+            xalign 1.0 yalign 0.0
+            xoffset -10
+            style "main_menu_version"
+        text "> Websocket:[stat]":
+            xalign 1.0 yalign 0.0
+            xoffset -10
+            style "main_menu_version"
         
-        if ai.status == ai.MaicaAiStatus.NOT_READY:
-            text ("输入账号密码"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
-            text ("使用令牌连接")
+        if maica.maica.status == maica.maica.MaicaAiStatus.NOT_READY:
+            textbutton ("输入账号密码")
+                
+            textbutton ("使用令牌连接")
         else:
-            text ("重置当前对话")
+            textbutton ("重置当前对话")
 
-            text ("注销当前DCC账号")
+            textbutton ("注销当前DCC账号")
 
-            text ("设置")
+            textbutton ("设置")
         
 
 

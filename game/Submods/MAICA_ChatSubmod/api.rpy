@@ -9,4 +9,7 @@ init 5 python in maica:
     )
 
     import maica
-    maica = maica.MaicaAi("", "")
+    maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+
+    #set: store.mas_api_keys.api_keys |= {"Maica_Token":token}
+    # store.mas_api_keys.save_keys()
