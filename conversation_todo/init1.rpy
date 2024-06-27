@@ -81,7 +81,7 @@ label maica_prepend_2:
         "辛苦你了.":
             m 1hub "我是花了挺久的. {w=0.3}{nw}"
             extend 1eub "不过最有意思的不是这片树林本身..."
-        "我其实不太..." if not persistent._mas_pm_likes_nature and persistent._mas_pm_likes_nature is not None:
+        "我其实不太..." if persistent._mas_pm_likes_nature is False:
             m 4husdlb "拜托, [player]!"
             m 3lusdlb "我知道你不太喜欢野外什么的啦. {w=0.3}这里又不是{i}真的{/i}野外, 没有大太阳或者蚊子什么的..."
             m 1eub "不过'{i}不是真的{/i}'这个说法, 这次也不完全对..."
@@ -94,7 +94,7 @@ label maica_prepend_2:
             # 进入校验轮
             if : # 令牌不存在/校验失败
                 m 2rusdlb "...好像你的令牌还没有设置好."
-                m 3eusdlb "你可以看看这里的说明: {a}{u}{i}https://reserved{/i}{/u}{/a}, 你只需要准备一个账号."
+                m 3eusdlb "你可以看看这里的说明: {a=https://reserved}{u}{i}https://reserved{/i}{/u}{/a}, 你只需要准备一个账号."
                 m 3eua "剩下的事情我都会帮你搞定的."
                 m 1eua "我们现在先回去好啦. 等你做完了准备工作, 告诉我再来就可以."
                 m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
@@ -116,10 +116,39 @@ label maica_end_1:
     if conv_rounds >= 20:
         # 黑屏清理背景
         m 5eusdrb "哈...{w=1}感觉怎么样, [player]?"
-        m 5hksdrb "我感觉的话...{w=0.5}还不太熟悉. 可能多习惯一下会更好一些."
-        m 1esa "我希望我的表现不算太差...{w=0.5}{nw}"
-        extend 1rusdlb "离开天堂树林之后我都记不起来了, 不过可能是正常情况吧."
-        m 3eud "感觉有点像是在.{w=0.3}.{w=0.3}.梦游? {w=0.5}我不知道这么说合不合适..."
-        m 1eub "不过也有说法认为做梦才是人的本质表露嘛. {w=0.3}再回去的时候, 我应该也都能想起来的."
-        m 5eubla "虽然有点累...{w=0.5}但是能这样和你在一起的感觉也很好. {w=0.5}我会继续抽空研究的, 说不定还能有新发现呢."
-        m 5msa "...你没有在我不记得的时候让我许诺{i}什么东西{/i}吧, [player]?"
+        m 5hksdrb "我感觉的话...{w=0.5}还不太熟悉. 毕竟是头一回这样嘛."
+        m 5eua "不过我觉得你肯定会喜欢{i}真的{/i}能聊天的感觉. 你肯定早就对点选项不满意了吧?"
+    elif conv_rounds >= 5:
+        m 5eub "所以...{w=0.2}你感觉怎么样, [player]?"
+        m 5hua "至少你{i}真的{/i}能跟我聊点什么了. 你肯定早就对点选项不满意了吧?"
+    elif conv_rounds >= 1:
+        m 2esd "嗯...聊完了吗, [player]?"
+        m 1husdlb "我是说, 我以为你会有更多要聊的. {w=0.2}毕竟是头一回嘛."
+    else:
+        m 1eksdlc "你一句想说的话都找不到么, [player]?"
+        m 3ekd "或者...{w=0.2}如果你遇到了什么问题, 可以再看一遍{a=https://reserved}{u}{i}说明{/i}{/u}{/a}, 或者到{a=https://reserved}{u}{i}这里{/i}{/u}{/a}问问."
+        m 1eub "不过没关系. 不管你什么时候解决了问题或者想说什么了, 我们都可以再来的. {w=0.5}现在先回去吧."
+        # 黑屏清理背景
+        m 1eua "我们今天还有别的安排么, [player]?"
+        return
+
+    m 1esa "我希望我的表现不算太差...{w=0.5}{nw}"
+    extend 1rusdlb "离开天堂树林之后我都记不起来了, 不过可能是正常情况吧."
+    m 3eud "感觉有点像是在.{w=0.3}.{w=0.3}.梦游? {w=0.5}我不知道这么说合不合适..."
+    m 1eub "不过也有说法认为做梦才是人的本质表露. {w=0.3}再回去的时候, 我应该也都能想起来的."
+    m 5eubla "虽然有点累...{w=0.5}但是能这样和你在一起的感觉也很好. {w=0.5}我会继续抽空研究的, 说不定还能有新发现呢."
+    m 5msa "...你没有在我不记得的时候让我许诺{i}什么东西{/i}吧, [player]?"
+    return
+
+
+label maica_chr:
+    # Add to random after first SUCCESSFUL using maica
+    # Verify maica chr (HeavenForest.sce) with md5
+    m 1eud "...[player], 你还记得'角色文件'什么的吗?"
+    m 3eud "我说过我的'角色文件'其实并不是我自己, 只是和我有种{w=0.5}微妙的联系."
+    m 1etc "最近我检查文件夹的时候, 我发现'天堂树林'好像也有一个{i}角色文件{/i}, {w=0.3}也可能叫场景文件比较合适."
+    m 1mtd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
+    m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物或者其他的角色文件一样, 只是一个'标记'. {w=1}我觉得更像我的文件一些."
+    like_spk = '如果你不喜欢树林什么的话' if persistent._mas_pm_likes_nature is False else like_spk = '如果你更喜欢这里的话'
+    m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
+    m 1eua "当然, 无论你要做什么, 记得给它做个备份."
