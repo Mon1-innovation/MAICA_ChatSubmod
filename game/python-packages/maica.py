@@ -65,8 +65,9 @@ class MaicaAi(ChatBotInterface):
 
         ######### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
-        def is_1xx(self, code):
-            return 100 <= int(code) - self.MAIKA_PREFIX <= 199
+        @classmethod
+        def is_1xx(cls, code):
+            return 100 <= int(code) - cls.MAIKA_PREFIX <= 199
         
         # session 已超过 32768token
         TOKEN_MAX_EXCEEDED = MAIKA_PREFIX + 204
@@ -89,8 +90,8 @@ class MaicaAi(ChatBotInterface):
             REQUEST_PING: u"请求心跳包",
             TOKEN_FAILED: u"令牌验证失败",
             MODEL_NOT_FOUND: u"选择的 model 不正确",
-            TOKEN_MAX_EXCEEDED:u"session 已超过 32768 token, 可能有部分对话已被删除",
-            TOKEN_24000_EXCEEDED:u"session 已超过 24000 token"
+            TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 可能有部分对话已被删除",
+            TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存"
         }
         @classmethod
         def get_description(cls, code):
@@ -144,10 +145,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
         self.status = self.MaicaAiStatus.NOT_READY
+        self.history_status = None
         self._gen_token(account, pwd, token) if account != "" and pwd != "" else ""
         self.modelconfig = {}
-
-    def _gen_token(self, account, pwd, token):
+    def get_message(self):
+        return self.message_list.get()
+    def _gen_token(self, account, pwd, token, email = None):
         if PY2:
             import requests
             data = {
@@ -175,7 +178,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "username":account,
                 "password":pwd
             }
-            self.token = token
             if token == "":
                 message = json.dumps(data, ensure_ascii=False).encode('utf-8')
                 print(message)
@@ -215,7 +217,19 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {self.def_modelconfig[i][2]}")
                         self.modelconfig[i] = self.def_modelconfig[i][2]
             
+    def is_responding(self):
+        """返回maica是否正在返回消息"""
+        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND)
 
+    def is_ready_to_input(self):
+        """返回maica是否可以发送消息了"""
+        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE)
+    
+    def len_message_queue(self):
+        """返回maica已接收并完成分句的台词数"""
+        if PY2:
+            return self.message_list.size()
+        return len(self.message_list.queue)
             
     def _on_open(self, wsapp):
         logger.info("_on_open")
@@ -268,6 +282,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         #logger.info(f"_on_message {message}")
         import json
         data = json.loads(message)
+        if data["status"] == "delete_hint":
+            self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
+        elif data["status"] == "delete":
+            self.history_status = self.MaicaAiStatus.TOKEN_MAX_EXCEEDED 
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
             if data['status'] != "session_created":
@@ -323,6 +341,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
                     "content": dict
+                },
+                ensure_ascii=False
+            )
+        )
+        return res.json()
+
+    def download_history(self, lines = 0):
+        import requests, json
+        res = requests.post(
+            "https://maicadev.monika.love/api/history",
+            data = json.dumps(
+                {
+                    "access_token": self.ciphertext,
+                    "chat_session": self.chat_session,
+                    "lines": lines
                 },
                 ensure_ascii=False
             )

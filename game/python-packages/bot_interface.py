@@ -33,6 +33,9 @@ else:
         def size(self):
             """返回队列的大小"""
             return len(self.items)
+        
+        def __len__(self):
+            return self.size()
 
 chinese_to_english_punctuation = {
     '，': ', ',
@@ -132,7 +135,7 @@ class ChatBotInterface():
     def del_conversation(self):
         raise Exception("该类未实现del_conversation()")
 
-    # 从message_list获取消息，如果已经阅读完已经生成的句子，但是还在生成返回WRITING,如果已经结束生成并且全部阅读完毕返回END(同时清空),如果有异常则抛出异常
+    # 从message_list获取消息('renpy表情', 'message')，如果已经阅读完已经生成的句子，但是还在生成返回WRITING,如果已经结束生成并且全部阅读完毕返回END(同时清空),如果有异常则抛出异常
     def get_message(self):
         raise Exception("该类未实现get_message()")
 

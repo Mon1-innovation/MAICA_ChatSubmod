@@ -18,6 +18,11 @@ init -989 python:
 init 10 python:
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
+    def _maica_clear():
+        _maica_LoginAcc = ""
+        _maica_LoginPw = ""
+        store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
+
     def maica_login_ok():
         if _maica_LoginAcc == "" or _maica_LoginPw == "":
             return renpy.show_screen("maica_message", message = "账号/密码为空")
@@ -88,20 +93,24 @@ screen maica_setting_pane():
             style "main_menu_version"
         
         if maica.maica.status == maica.maica.MaicaAiStatus.NOT_READY or True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
-            textbutton ("> 生成令牌")
+            textbutton ("> 生成令牌"):
+                action Show("maica_login")
                 
-            textbutton ("> 使用令牌连接")
+            textbutton ("> 使用已保存令牌连接"):
+                action Function(store.maica.maica.init_connect)
 
             
         else:
             textbutton ("上传存档信息"):
                 action Function(upload_persistent_dict)
 
-            textbutton ("重置当前对话")
+            textbutton ("重置当前对话"):
+                action Function(reset_session)
 
             textbutton ("导出当前对话")
 
-            textbutton ("退出当前DCC账号")
+            textbutton ("退出当前DCC账号"):
+                action Function(store.maica.maica.close_wss_session)
     
         textbutton ("> MAICA Chat设置 *部分选项需要重新连接")
 
@@ -124,14 +133,21 @@ screen maica_login():
             hbox:
                 textbutton "输入 DCC 账号用户名":
                     action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginAcc")
+                text "或"
+                textbutton "输入 DCC 账号邮箱"
+
             hbox:
                 textbutton "输入 DCC 账号密码":
                     action Show("maica_login_input",message = "请输入DCC 账号密码",returnto = "_maica_LoginPw")
             hbox:
                 text ""
             hbox:
-                textbutton "保存信息":
-                    action Function()
+                textbutton "连接至Maica生成令牌" if renpy.version_tuple[0] < 8 else "生成令牌":
+                    action [
+                        Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
+                        Function(_maica_clear), 
+                        Hide("maica_login")
+                        ]
 
 screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input")):
     #登录输入账户窗口, 也用来用作通用的输入窗口

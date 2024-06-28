@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from bot_interface import PY2, PY3
+
 EMOTE_DICT = {}
 EMOTE_EFFECT = {}
 
@@ -18,12 +20,16 @@ def set_emotedata(dict):
     EMOTE_DICT = dict
 def add_emotedata(dict):
     global EMOTE_DICT
+    if PY2:
+        return EMOTE_DICT.update(dict)
     EMOTE_DICT |= dict
 
 # EMOTE_EFFECT: 心情相关度
 # 请查看emotion_influence.json
 def add_emoteeffectdata(dict):
     global EMOTE_EFFECT
+    if PY2:
+        return EMOTE_EFFECT.update(dict)
     EMOTE_EFFECT |= dict
 
 class MoodStatus(object):
