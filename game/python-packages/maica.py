@@ -62,7 +62,8 @@ class MaicaAi(ChatBotInterface):
         TOKEN_FAILED = 13400
         # 选择的 model 不正确
         MODEL_NOT_FOUND = 13401
-
+        # wss异常关闭
+        WSS_CLOSED_UNEXCEPTED = 13402
         ######### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -91,14 +92,13 @@ class MaicaAi(ChatBotInterface):
             TOKEN_FAILED: u"令牌验证失败",
             MODEL_NOT_FOUND: u"选择的 model 不正确",
             TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 可能有部分对话已被删除",
-            TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存"
+            TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话可能已删除过",
+            WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看log以获取详细信息"
         }
         @classmethod
         def get_description(cls, code):
-            description = cls._descriptions.get(code, "未知状态码: {}".format(code))
-            if isinstance(description, str):
-                return description.decode('utf-8')
-            return description
+            return cls._descriptions.get(code, "未知状态码: {}".format(code))
+            
         
         #@classmethod
         #def add_status_code(cls, name, code, description):
@@ -137,6 +137,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.ciphertext = None
         self.chat_session = 1
         self.wss_session = None
+        self.wss_thread = None
         self.user_acc = ""
         self.model = self.MaicaAiModel.maica_core
         self.sf_extraction = False
@@ -191,7 +192,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _init_connect(self):
         print("_init_connect")
-        if not self.multi_lock.acquire(1.0):
+        if not self.multi_lock.acquire(1):
             return logger.warning("Maica::_init_connect 试图创建多个连接")
         import websocket
         self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error)
@@ -237,7 +238,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         def send_message():
             import json
             while True:
-                
+                if self.wss_session.keep_running == False:
+                    logger.info("wss连接已关闭")
+                    break
                 time.sleep(1)
                 # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
@@ -269,14 +272,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     self.status = self.MaicaAiStatus.SESSION_RESETED
                     self.wss_session.close()
                     break
-
-                if self.wss_session.keep_running == False:
-                    logger.info("wss连接已关闭")
-                    break
-
-                
-
-        threading.Thread(target=send_message).start()
+        self.wss_thread = threading.Thread(target=send_message)
+        self.wss_thread.start()
     _pos = 0
     def _on_message(self, wsapp, message):
         #logger.info(f"_on_message {message}")
@@ -324,6 +321,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.MoodStatus.reset()
     def _on_error(self, wsapp, error):
         logger.error("MaicaAi::_on_error {}".format(error))
+        self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
+        self.close_wss_session()
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica 当前未准备好接受消息")
@@ -373,6 +372,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def close_wss_session(self):
         self.wss_session.close()
+        self.wss_session.keep_running = False
+        self.wss_thread._stop()
 
 
         
