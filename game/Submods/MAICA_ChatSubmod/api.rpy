@@ -1,6 +1,7 @@
 init 5 python in maica:
     import store
     import maica, os, emotion_analyze
+    maica.basedir = os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod")
     
     maica.logger = store.mas_submod_utils.submod_log
     data = {}

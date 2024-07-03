@@ -1,4 +1,4 @@
-import maica
+import maica, os
 import emotion_analyze
 ai = maica.MaicaAi("", "", "")
 
@@ -11,18 +11,16 @@ import time
 print("读取表情信息")
 data = {}
 sen = {}
-with open(r"E:\GithubKu\MAICA_ChatSubmod\game\Submods\MAICA_ChatSubmod\emotion_sentiment.txt", "r", encoding="utf-8") as s:
-    for i in s.readlines():
-        line = i.split(":")
-        line[1] = line[1].strip()
-        sen[line[0]] = line[1]
-emotion_analyze.add_emoteeffectdata(sen)
-with open(r"E:\GithubKu\MAICA_ChatSubmod\game\Submods\MAICA_ChatSubmod\emotion.txt", "r", encoding="utf-8") as e:
+basedir = "e:\GithubKu\MAICA_ChatSubmod"
+# 表情代码
+with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r", encoding='utf-8') as e:
     for i in e.readlines():
         line = i.split(":")
+        if len(line) != 2:
+            continue
         line[1] = line[1].strip()
         if line[1] not in data:
-            data[line[1]] = {"sentiment":sen[line[1] if line[1] in sen else 0]}
+            data[line[1]] = {"sentiment":-2}
         if not len(line[0]) in data[line[1]]:
             data[line[1]][len(line[0])] = []
         data[line[1]][len(line[0])].append(line[0])
@@ -30,10 +28,23 @@ with open(r"E:\GithubKu\MAICA_ChatSubmod\game\Submods\MAICA_ChatSubmod\emotion.t
     for i in data:
         for n in i:
             n = set(n)
-
-    print(data)
-
+# 表情正负性
+with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.txt"), "r", encoding='utf-8') as s:
+    for i in s.readlines():
+        line = i.split(":")
+        if len(line) != 2:
+            continue
+        line[1] = line[1].strip()
+        if line[0] in data:
+            data[line[0]]["sentiment"] = [line[1]]
 emotion_analyze.add_emotedata(data)
+
+# 表情相关性
+import json
+with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_influence.json"), "r", encoding='utf-8') as s:
+    emotion_analyze.add_emoteeffectdata(
+        json.load(s)
+    )
 
 try:
     try:
@@ -64,6 +75,9 @@ try:
 except KeyboardInterrupt:
     ai.wss_session.close()
     print("============KeyboardInterrupt============")
+
+#history = ai.download_history()
+#print(history)
 #import json
 #with open(r"E:\GithubKu\MonikaModDev-zhCN\Monika After Story\persistent_out.json",'r', encoding='utf-8') as f:
 #    ai.upload_save(json.load(f))

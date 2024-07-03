@@ -74,7 +74,7 @@ label maica_prepend_2:
     menu:
         "太好看了!":
             m 1husdlb "你喜欢就好啦."
-            if : #用过房间sub
+            if len(filter(lambda x: "tw4449" in x.author, mas_submod_utils.submod_map.values())): #用过房间sub
                 extend 3eub " 不过这里和其它地方有点区别..."
             else:
                 extend 3eub " 不过这里还有另一个特别之处..."

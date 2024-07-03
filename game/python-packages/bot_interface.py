@@ -5,6 +5,22 @@ END = 0
 import ast
 import sys
 
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
+chlr = logging.StreamHandler() # 输出到控制台的handler
+chlr.setFormatter(formatter)
+chlr.setLevel(logging.DEBUG)  # 也可以不设置，不设置就默认用logger的level
+fhlr = logging.FileHandler('example.log')
+fhlr.setFormatter(formatter)
+logger.addHandler(chlr)
+logger.addHandler(fhlr)
+logger.info('正在使用logging')
+
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
@@ -77,7 +93,7 @@ def key_replace(*args):
                 case_data = str(case_data).replace(key_, str(value))  # 替换指定的关键词
             try:
                 ast.literal_eval(case_data)  # 尝试将替换后的字符串解析为对应数据类型
-            except SyntaxError:  # 如果解析失败，则将字符串加入到case_list中
+            except Exception:  # 如果解析失败，则将字符串加入到case_list中
                 case_list.append(case_data)
             else:  # 如果解析成功，则将解析后的结果加入到case_list中
                 case_list.append(ast.literal_eval(case_data))

@@ -25,7 +25,7 @@ init -990 python:
     #所有图片大小必须为1280*720
     #建议使用PS处理透明图层
     #####白天##### 
-    sub_day = "heaven_forest.png" #晴天*必填
+    sub_day = "heaven_forest.jpg" #晴天*必填
     sub_rain = "" #雨天
     sub_overcast = "" #多云
     sub_snow = "" #雪天

@@ -3,23 +3,8 @@
 from bot_interface import *
 import bot_interface
 import emotion_analyze
-import logging
 
-import logging
 
-logger = logging.getLogger()
-logger.setLevel('DEBUG')
-BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
-DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
-chlr = logging.StreamHandler() # 输出到控制台的handler
-chlr.setFormatter(formatter)
-chlr.setLevel('INFO')  # 也可以不设置，不设置就默认用logger的level
-fhlr = logging.FileHandler('example.log')
-fhlr.setFormatter(formatter)
-logger.addHandler(chlr)
-logger.addHandler(fhlr)
-logger.info('this is info')
 
 
 
@@ -127,7 +112,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         "presence_penalty":[0.0, 1.0, 0.0],
         "seed":[0, 999, None]
     }
-
+    stat = {}
 
     def __init__(self, account, pwd, token = ""):
         import threading
@@ -149,6 +134,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.history_status = None
         self._gen_token(account, pwd, token) if account != "" and pwd != "" else ""
         self.modelconfig = {}
+        self.reset_stat()
+    def reset_stat(self):
+        self.stat = {
+            "message_count":0
+        }
     def get_message(self):
         return self.message_list.get()
     def _gen_token(self, account, pwd, token, email = None):
@@ -182,7 +172,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if token == "":
                 message = json.dumps(data, ensure_ascii=False).encode('utf-8')
                 print(message)
-                self.ciphertext = base64.b64encode(cipher.encrypt(message))
+                self.ciphertext = base64.b64encode(cipher.encrypt(message)).decode('utf-8')
             else:
                 self.ciphertext = token
 
@@ -244,7 +234,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 time.sleep(1)
                 # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                    dict = {"chat_session":self.chat_session, "query":self.senddata_queue.get()}
+                    dict = {"chat_session":self.chat_session, "query":self.senddata_queue.get().strip()}
+                    logger.debug(dict)
                     self._check_modelconfig()
                     dict |= self.modelconfig
                     message = json.dumps(dict, ensure_ascii=False) 
@@ -306,14 +297,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
                     res = self.MoodStatus.analyze(raw_message)
-                    self.message_list.put((self.MoodStatus.get_emote(), res))
+                    self.message_list.put((self.MoodStatus.get_emote(), res.strip()))
                     print("Server:",self._received[self._pos:self._pos + isnum])
                     self._pos = self._pos + isnum
             if data['status'] == "streaming_done":
                 if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
                     raw_message = self._received[self._pos:]
                     res = self.MoodStatus.analyze(raw_message)
-                    self.message_list.put((self.MoodStatus.get_emote(), res))
+                    self.message_list.put((self.MoodStatus.get_emote(), res.strip()))
                     print("Server:",self._received[self._pos:])
                 self._pos = 0
                 self._received = ""
@@ -328,6 +319,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             raise RuntimeError("Maica 当前未准备好接受消息")
         
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
+        self.stat['message_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
 
@@ -346,7 +338,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         )
         return res.json()
 
-    def download_history(self, lines = 0):
+    def get_history(self, lines = 0):
         import requests, json
         res = requests.post(
             "https://maicadev.monika.love/api/history",

@@ -142,12 +142,20 @@ screen maica_login():
             hbox:
                 text ""
             hbox:
-                textbutton "连接至Maica生成令牌" if renpy.version_tuple[0] < 8 else "生成令牌":
-                    action [
-                        Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
-                        Function(_maica_clear), 
-                        Hide("maica_login")
-                        ]
+                if renpy.version_tuple[0] < 8:
+                    textbutton "连接至Maica生成令牌":
+                        action [
+                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
+                            Function(_maica_clear), 
+                            Hide("maica_login")
+                            ]
+                else:
+                    textbutton "生成令牌":
+                        action [
+                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
+                            Function(_maica_clear), 
+                            Hide("maica_login")
+                            ]
 
 screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input")):
     #登录输入账户窗口, 也用来用作通用的输入窗口
