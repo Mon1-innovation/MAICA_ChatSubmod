@@ -14,14 +14,19 @@ def init_storage():
         storage = json.loads(emops.read())
     return storage
 
-def get_sequence_emo(strength, emotion, excepted=''):
+def init_sentiment():
+    with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
+        sentiment = json.loads(emost.read())
+    return sentiment
+
+def get_sequence_emo(strength, emotion, excepted=[]):
     # emotion = selector[emotion]
-    # excepted = "last used emocode like eka"
+    # excepted = rejected emos, like last used: ['eka']
     weight_sel = []
     weight_accum = 0
     for emotion_code in emotion:
         key = emotion_code.keys()[0]
-        if key != excepted:
+        if not key in excepted:
             power = emotion_code[key]
             weight = math.exp(-(power - strength)**2/2)
             weight_accum += weight
@@ -35,5 +40,7 @@ def get_sequence_emo(strength, emotion, excepted=''):
     emo_final_power = init_storage()[emo_final]
     # Notice this is a low-performance way! Consider adding a pure dict addressing all emocodes with their power
     # emo_final_power = [x for x in emotion if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
+    # emo_final_power is returned for affecting accumulation
+    # emo_final like 'eka', emo_final_power like 0.6
     return emo_final, emo_final_power
 
