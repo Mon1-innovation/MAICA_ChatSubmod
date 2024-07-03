@@ -9,7 +9,7 @@ def first_init():
         selector = json.loads(emos.read())
     return selector
 
-def get_sequence(strength, emotion):
+def get_sequence_emo(strength, emotion):
     # emotion = selector[emotion]
     weight_sel = []
     weight_accum = 0
@@ -25,5 +25,7 @@ def get_sequence(strength, emotion):
     weight_sel.sort(key=sort_by_val)
     seq = weight.sel.index(pointer)
     emo_final = weight_sel[seq + 1].keys()[0]
-    return emo_final
+    # Notice this is a low-performance way! Consider adding a pure dict addressing all emocodes with their power
+    emo_final_power = [x for x in emotion if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
+    return emo_final, emo_final_power
 
