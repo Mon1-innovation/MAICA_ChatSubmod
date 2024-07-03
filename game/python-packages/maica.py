@@ -235,20 +235,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 time.sleep(1)
                 # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                    try:
-                        dict = {"chat_session":self.chat_session, "query":self.senddata_queue.get().strip()}
-                        logger.debug(dict)
-                        self._check_modelconfig()
-                        dict.update(self.modelconfig)
-                        message = json.dumps(dict, ensure_ascii=False) 
-                        #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
-                        self.wss_session.send(
-                            message
-                        )   
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-                    except Exception as e:
-                        logger.error(e)
-                        raise e
+                    if PY2:
+                        message = self.senddata_queue.get().decode().strip()
+                    else:
+                        message = self.senddata_queue.get().strip()
+                    dict = {"chat_session":self.chat_session, "query":message}
+                    logger.debug(dict)
+                    self._check_modelconfig()
+                    dict.update(self.modelconfig)
+                    message = json.dumps(dict, ensure_ascii=False) 
+                    #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
+                    self.wss_session.send(
+                        message
+                    )   
+                    self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+
                 # 身份验证
                 elif self.status == self.MaicaAiStatus.WAIT_AUTH:
                     self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
