@@ -185,7 +185,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.multi_lock.acquire(1):
             return logger.warning("Maica::_init_connect 试图创建多个连接")
         import websocket
-        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error)
+        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
+                                                  , on_close=self._on_close)
         self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
         self.wss_session.run_forever()
@@ -234,16 +235,20 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 time.sleep(1)
                 # 消息已进入队列，等待发送
                 if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                    dict = {"chat_session":self.chat_session, "query":self.senddata_queue.get().strip()}
-                    logger.debug(dict)
-                    self._check_modelconfig()
-                    dict |= self.modelconfig
-                    message = json.dumps(dict, ensure_ascii=False) 
-                    #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
-                    self.wss_session.send(
-                        message
-                    )   
-                    self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                    try:
+                        dict = {"chat_session":self.chat_session, "query":self.senddata_queue.get().strip()}
+                        logger.debug(dict)
+                        self._check_modelconfig()
+                        dict.update(self.modelconfig)
+                        message = json.dumps(dict, ensure_ascii=False) 
+                        #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
+                        self.wss_session.send(
+                            message
+                        )   
+                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                    except Exception as e:
+                        logger.error(e)
+                        raise e
                 # 身份验证
                 elif self.status == self.MaicaAiStatus.WAIT_AUTH:
                     self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
@@ -267,7 +272,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_thread.start()
     _pos = 0
     def _on_message(self, wsapp, message):
-        #logger.info(f"_on_message {message}")
+        logger.debug("_on_message: {}".format(message))
         import json
         data = json.loads(message)
         if data["status"] == "delete_hint":
@@ -314,6 +319,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.error("MaicaAi::_on_error {}".format(error))
         self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
         self.close_wss_session()
+
+    def _on_close(self, wsapp, close_status_code, close_msg):
+        if close_status_code or close_msg:
+            logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
+        
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica 当前未准备好接受消息")
@@ -365,7 +375,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def close_wss_session(self):
         self.wss_session.close()
         self.wss_session.keep_running = False
-        self.wss_thread._stop()
 
 
         

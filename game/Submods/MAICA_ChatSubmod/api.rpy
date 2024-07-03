@@ -6,9 +6,10 @@ init 5 python in maica:
     maica.logger = store.mas_submod_utils.submod_log
     data = {}
     def change_token(content):
-        if maica.keep_running:
+        if store.maica.maica.wss_session is not None and store.maica.maica.wss_session.keep_running:
             return False, "MAICA 仍在连接中, 请先断开连接"
-        maica = maica.MaicaAi("", "", content)
+        store.maica.maica.ciphertext = content.strip()
+        renpy.notify("请在子模组界面使用已保存的令牌重新连接")
         return True, content
     store.mas_registerAPIKey(
         "Maica_Token",

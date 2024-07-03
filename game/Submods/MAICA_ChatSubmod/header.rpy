@@ -19,8 +19,8 @@ init 10 python:
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
     def _maica_clear():
-        _maica_LoginAcc = ""
-        _maica_LoginPw = ""
+        store._maica_LoginAcc = ""
+        store._maica_LoginPw = ""
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
 
     def maica_login_ok():
@@ -78,6 +78,7 @@ screen maica_setting_pane():
     python:
         import store.maica as maica
         stat = "未连接" if not maica.maica.wss_session else "已连接" if maica.maica.wss_session.keep_running else "已断开"
+        store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
     vbox:
         xmaximum 800
         xfill True
@@ -92,7 +93,7 @@ screen maica_setting_pane():
             xoffset -10
             style "main_menu_version"
         
-        if maica.maica.status == maica.maica.MaicaAiStatus.NOT_READY or True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
+        if True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
             textbutton ("> 生成令牌"):
                 action Show("maica_login")
                 
