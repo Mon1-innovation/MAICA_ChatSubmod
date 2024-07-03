@@ -1,0 +1,6 @@
+{
+    "//": "This is a sample and this line is a comment",
+    "//": "Pretty much same content as emotion_selector.json but in a different format to save computing",
+    "eka": 0.5,
+    "eua": 0.6
+}
