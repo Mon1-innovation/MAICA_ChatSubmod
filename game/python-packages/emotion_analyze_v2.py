@@ -74,7 +74,7 @@ def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
             weight_sel.extend({key: weight_accum})
-    rand = random.random() / weight_accum
+    rand = random.random() * weight_accum
     pointer = {"placeholder": rand}
     weight_sel.insert(0, pointer)
     weight_sel.sort(key=sort_by_val)
