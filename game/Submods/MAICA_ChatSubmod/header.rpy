@@ -71,7 +71,11 @@ init 10 python:
 
     def reset_session():
         store.maica.maica.reset_chat_session()
-        renpt.notify("已重置，请重新连接MAICA服务器")
+        renpy.notify("已重置，请重新连接MAICA服务器")
+    def output_chat_history():
+        with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
+            f.write(store.maica.maica.get_history())
+        renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt")
             
 
 screen maica_setting_pane():

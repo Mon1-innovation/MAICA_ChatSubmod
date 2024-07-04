@@ -22,6 +22,7 @@ label maica_talking:
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                     continue    
                 mes = ai.get_message()
+                store.mas_submod_utils.submod_log.debug("label maica_talking::mes: {}".format(mes))
                 renpy.show("monika {}".format(mes[0]))
                 renpy.say(m, mes[1])
                 

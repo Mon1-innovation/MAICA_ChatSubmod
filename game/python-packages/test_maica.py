@@ -3,7 +3,7 @@
 
 import maica, os
 import emotion_analyze
-ai = maica.MaicaAi("SirrrrrrrrrrrrrP", "vrBB3vmWY7RuknK", "")
+ai = maica.MaicaAi("", "", "")
 print(ai.ciphertext)
 ai.sf_extraction = True
 ai.model = ai.MaicaAiModel.maica_main

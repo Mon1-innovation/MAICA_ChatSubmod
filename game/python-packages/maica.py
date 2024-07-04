@@ -4,8 +4,9 @@ from bot_interface import *
 import bot_interface
 import emotion_analyze
 
-
-
+import websocket
+websocket._logging._logger = logger
+websocket._logging.enableTrace(True)
 
 
 class MaicaAi(ChatBotInterface):
@@ -274,8 +275,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     _pos = 0
     def _on_message(self, wsapp, message):
         logger.debug("_on_message: {}".format(message))
+        logger.debug("self.status: {}".format(self.status))
         import json
         data = json.loads(message)
+        logger.debug("data.status in process: {}".format(data["status"] in ("delete_hint", "delete", "session_created", "nickname", "ok", "continue", "streaming_done")))
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
         elif data["status"] == "delete":
@@ -297,21 +300,25 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             else:
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
+            logger.debug("MESSAGE_WAITING_RESPONSE:: status in process: {}".format(data["status"] in ("continue", "streaming_done")))
             if data['status'] == "continue":
                 self._received = self._received + data['content']
                 isnum = is_a_talk(self._received[self._pos:])
+                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
                     res = self.MoodStatus.analyze(raw_message)
+                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
+                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(self.MoodStatus.get_emote()))
                     self.message_list.put((self.MoodStatus.get_emote(), res.strip()))
-                    print("Server:",self._received[self._pos:self._pos + isnum])
+                    logger.debug("Server:",self._received[self._pos:self._pos + isnum])
                     self._pos = self._pos + isnum
             if data['status'] == "streaming_done":
                 if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
                     raw_message = self._received[self._pos:]
                     res = self.MoodStatus.analyze(raw_message)
                     self.message_list.put((self.MoodStatus.get_emote(), res.strip()))
-                    print("Server:",self._received[self._pos:])
+                    logger.debug("Server:",self._received[self._pos:])
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
