@@ -1,3 +1,16 @@
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_prepend_1",
+            prompt="你的现实?",
+            random=True,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_prepend_1:
 # Add this to random waiting list since submod installation. affection NORMAL at least to trigger.
     m 1eub "嗨, [player]..."
@@ -17,8 +30,49 @@ label maica_prepend_1:
     extend 3eub " 可能还需要点什么. {w=0.2}我应该会抽空仔细检查一下它的."
     m 1hub "我知道这应该是你找来给我的, [player]. {w=0.1}你还是那么贴心!"
     m 1eua "等我理清了眉目, 我会让你知道的."
+    return "no_unlock|derandom"
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="maica_greeting",
+            prompt="maica敲门",
+            unlocked=True,
+            conditional="store.seen_event('maica_prepend_1')"
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+        code="GRE"
+    )
 label maica_greeting:
+        #Set up dark mode
+
+    # Progress the filter here so that the greeting uses the correct styles
+    $ mas_progressFilter()
+
+    if persistent._mas_auto_mode_enabled:
+        $ mas_darkMode(mas_current_background.isFltDay())
+    else:
+        $ mas_darkMode(not persistent._mas_dark_mode_enabled)
+
+    # couple of things:
+    # 1 - if you quit here, monika doesnt know u here
+    $ mas_enable_quit()
+
+    # all UI elements stopped
+    $ mas_RaiseShield_core()
+
+    # 3 - keymaps not set (default)
+    # 4 - overlays hidden (skip visual)
+    # 5 - music is off (skip visual)
+
+    scene black
+
+    
+
     $ _opendoor_text = "...轻轻地推开了门."
 # Isn't really an open door event. guess shall not add afflos here
 # Add this greeting to waiting list after maica_prepend_1 was triggered. affection AFFECTIONATE at least to trigger.
@@ -37,6 +91,7 @@ label maica_greeting:
 
 
     m 1eua ""
+    return
 
 label maica_prepend_2_open:
     #点亮房间, 窗外背景替换heaven_forest.jpg
@@ -50,24 +105,34 @@ label maica_prepend_2_open:
     m "稍等一下, 我把桌椅找来.{w=0.3}.{w=0.3}."
     #monika + desk in
     jump maica_prepend_2
+    return
 
 
 label maica_prepend_2_knock:
     m "谁呀~"
     menu:
         "是我.":
+            $ mas_disable_quit()
             m "终于等到你啦, [player]!"
             m "我正想给你准备一点特别惊喜的, 你来得正好. {w=0.5}稍等片刻.{w=0.3}.{w=0.3}."
+            
             #点亮房间, 窗外背景替换heaven_forest.jpg
+            $ mas_changeBackground(heaven_forest)
+            $ monika_chr.reset_outfit(False)
+            $ monika_chr.wear_acs(mas_acs_ribbon_def)
+            show monika 1hub at l21 zorder MAS_MONIKA_Z
             #monika + desk in
             m 1hub "锵锵~"
             jump maica_prepend_2
+    return
 
 label maica_prepend_2_listen:
+    
     m "这样.{w=0.3}.{w=0.3}.就好了. {w=0.5}呼, 没有我想得那么难."
     m "看起来真不错, 我可以一整天都待在这里. {w=0.5}不过..."
     m "{i}连接现实{/i}是真的吗?"
     jump maica_greeting
+    return
 
 label maica_prepend_2:
     m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?"
@@ -92,7 +157,7 @@ label maica_prepend_2:
             # monika right - console appear left 简单格式化信息, 显示在控制台上
             m 2dua ".{w=0.3}.{w=0.3}."
             # 进入校验轮
-            if : # 令牌不存在/校验失败
+            if not store.maica.maica.wss_session: # 令牌不存在/校验失败
                 m 2rusdlb "...好像你的令牌还没有设置好."
                 m 3eusdlb "你可以看看这里的说明: {a=https://reserved}{u}{i}https://reserved{/i}{/u}{/a}, 你只需要准备一个账号."
                 m 3eua "剩下的事情我都会帮你搞定的."
@@ -102,13 +167,14 @@ label maica_prepend_2:
                 m 1eua "我们今天还有别的安排么, [player]?"
                 return
             m 1eua "这一次, 轮到你起个话题了哦, [player]."
-            # 进入maica流程
+            call maica_talking
         "还是改天吧.":
             m 1eub "好吧. 如果你准备好了, 再告诉我来天堂树林就行. {w=0.5}我们现在先回去吧."
             m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
-            # 黑屏清理背景
+            jump clear_all
             m 1eua "我们今天还有别的安排么, [player]?"
             return
+    return
 
 label maica_end_1:
     # Called after first time ending maica
@@ -129,6 +195,7 @@ label maica_end_1:
         m 3ekd "或者...{w=0.2}如果你遇到了什么问题, 可以再看一遍{a=https://reserved}{u}{i}说明{/i}{/u}{/a}, 或者到{a=https://reserved}{u}{i}这里{/i}{/u}{/a}问问."
         m 1eub "不过没关系. 不管你什么时候解决了问题或者想说什么了, 我们都可以再来的. {w=0.5}现在先回去吧."
         # 黑屏清理背景
+        jump clear_all
         m 1eua "我们今天还有别的安排么, [player]?"
         return
 
@@ -152,3 +219,8 @@ label maica_chr:
     like_spk = '如果你不喜欢树林什么的话' if persistent._mas_pm_likes_nature is False else like_spk = '如果你更喜欢这里的话'
     m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
+    return
+
+
+label clear_all:
+    call spaceroom()

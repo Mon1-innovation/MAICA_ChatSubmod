@@ -148,7 +148,7 @@ image heaven_forest_snow_ss = DetectBg(sub_snow_ss,"n")
 ### 如果你没有装饰,注释到这里.
 
 init -1 python:
-    heaven_forest_Furnished_spaceroom3 = MASFilterableBackground(
+    heaven_forest = MASFilterableBackground(
         submod_roomid,
         submod_roomname,
         MASFilterWeatherMap(

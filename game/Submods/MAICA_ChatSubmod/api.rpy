@@ -2,7 +2,7 @@ init 5 python in maica:
     import store
     import maica, os, emotion_analyze
     maica.basedir = os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod")
-    
+    store.persistent.maica_stat = {}
     maica.logger = store.mas_submod_utils.submod_log
     data = {}
     def change_token(content):
@@ -17,6 +17,7 @@ init 5 python in maica:
         on_change=change_token
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    maica.stat = store.persistent.maica_stat.copy()
 
 
     basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"

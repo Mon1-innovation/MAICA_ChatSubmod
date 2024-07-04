@@ -1,5 +1,5 @@
 import os, json, math, random
-
+from bot_interface import PY2, PY3, logger
 def sort_by_val(ele):
     key = ele.keys()[0]
     return ele[key]
@@ -18,8 +18,36 @@ def init_sentiment():
     with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
         sentiment = json.loads(emost.read())
     return sentiment
+class EmoSelector:
+    def __init__(self, selector, storage, sentiment):
+        self.selector = selector
+        self.storage = storage
+        self.sentiment = sentiment
+        self.main_strength = 0.0
+        self.repeat_strength = 0.0
+        self.pre_mood = ""
+        self.emote = ""
 
-def get_sequence_emo(strength, emotion, excepted=[]):
+
+    def analyze(self, message):
+        import re
+        # 正则表达式模式
+        pattern = r'\[(.*?)\]'
+
+        # 查找所有匹配的内容
+        matches = re.findall(pattern, message)
+
+        # 处理每个匹配的内容
+        for match in matches:
+            # 如果匹配内容在字典的键中，去除匹配的字符串
+            message = message.replace('[{}]'.format(match), '')
+        return message
+
+    def process_strength(self, emote):
+        res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage)
+
+
+def get_sequence_emo(strength, emotion, storage, excepted=[]):
     # emotion = selector[emotion]
     # excepted = rejected emos, like last used: ['eka']
     weight_sel = []
@@ -37,7 +65,7 @@ def get_sequence_emo(strength, emotion, excepted=[]):
     weight_sel.sort(key=sort_by_val)
     seq = weight.sel.index(pointer)
     emo_final = weight_sel[seq + 1].keys()[0]
-    emo_final_power = init_storage()[emo_final]
+    emo_final_power = [x for x in storage if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
     # Notice this is a low-performance way! Consider adding a pure dict addressing all emocodes with their power
     # emo_final_power = [x for x in emotion if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
     # emo_final_power is returned for affecting accumulation
