@@ -12,9 +12,10 @@ class EmoSelector:
         self.selector = selector
         self.storage = storage
         self.sentiment = sentiment
+        self.affection = 100
         self.main_strength = 0.0
         self.repeat_strength = 0.0
-        self.pre_mood = "微笑"
+        self.pre_mood = u"微笑"
         self.emote = ""
         self.pre_pos = 0
     def get_emote(self):
@@ -28,7 +29,8 @@ class EmoSelector:
 
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
-
+        m = 0.3
+        emo = self.pre_mood
         # 处理每个匹配的内容
         for match in matches:
             # 如果匹配内容在字典的键中，去除匹配的字符串
@@ -37,18 +39,19 @@ class EmoSelector:
             message = message.replace('[{}]'.format(match), '')
             if match == u"很开心":
                 match = u"开心"
-            self.pre_mood = match
-            self.process_strength(match)
-        if matches == []:
-            self.process_strength(self.pre_mood)
+            
+            m = 0.7
+            emo = match
+        self.process_strength(emo, m)
+        self.pre_mood = emo
         return message
 
     def process_strength(self, emote, multi=0.7):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage)
-        self.main_strength += multi * self.sentiment[emote] * 0.2 * res[1]
+        self.main_strength = self.main_strength + (multi * self.sentiment[emote] * res[1])
         self.emote = res[0]
-        if self.emote == emote:
-            self.repeat_strength += 0.2
+        if self.pre_mood == emote:
+            self.repeat_strength += 0.2 
         else:
             self.repeat_strength = 0
         self._fix_strength()

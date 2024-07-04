@@ -5,7 +5,7 @@ basedir = "E:\GithubKu\MAICA_ChatSubmod"
 def init_selector():
     selector = {}
     power={}
-    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r") as emos:
+    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r", encoding="utf-8") as emos:
         for item in emos.readlines():
             if item[0] == "#":
                 continue
@@ -15,19 +15,19 @@ def init_selector():
                 selector[i[1]]=[]
             selector[i[1]].append({i[0]: float(i[2])})
             power[i[0]] = float(i[2])
-        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_selector.json"), "w") as emos:
+        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_selector.json"), "w", encoding="utf-8") as emos:
             emos.write(json.dumps(selector, ensure_ascii=False))
-        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "w") as emos:
+        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "w", encoding="utf-8") as emos:
             emos.write(json.dumps(power, ensure_ascii=False))
     return selector
 
 def init_storage():
-    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r") as emops:
+    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r", encoding="utf-8") as emops:
         storage = json.loads(emops.read())
     return storage
 
 def init_sentiment():
-    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
+    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r", encoding="utf-8") as emost:
         sentiment = json.loads(emost.read())
     return sentiment
 
@@ -35,6 +35,19 @@ selector = emotion_analyze_v2.EmoSelector(init_selector(), init_storage(), init_
 selector.selector = init_selector()
 selector.storage = init_storage()
 selector.sentiment = init_sentiment()
-
+selector.affection = 500
 selector.analyze("[很开心]")
+
 print(selector.get_emote())
+print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+
+selector.analyze("")
+print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+selector.analyze("")
+print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+selector.analyze("")
+print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+selector.analyze("[厌恶]")
+print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+selector.analyze("")
+print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))

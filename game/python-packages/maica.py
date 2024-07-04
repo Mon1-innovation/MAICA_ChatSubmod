@@ -83,7 +83,7 @@ class MaicaAi(ChatBotInterface):
         }
         @classmethod
         def get_description(cls, code):
-            return cls._descriptions.get(code, "未知状态码: {}".format(code))
+            return cls._descriptions.get(code, u"未知状态码: {}".format(code))
             
         
         #@classmethod
@@ -188,7 +188,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _init_connect(self):
         print("_init_connect")
         if not self.multi_lock.acquire(1):
-            return logger.warning("Maica::_init_connect 试图创建多个连接")
+            return logger.warning("Maica::_init_connect try to create multi connection")
         import websocket
         self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
                                                   , on_close=self._on_close)
@@ -204,14 +204,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if i in self.modelconfig:
                 if i in ("max_tokens", "seed"):
                     if type(self.modelconfig[i]) != int:
-                        #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {round(self.modelconfig[i])}")
+                        logger.warning("modelconfig {} is invaild: reset {} -> {}".format(i, self.modelconfig[i], round(self.modelconfig[i])))
                         self.modelconfig[i] = round(self.modelconfig[i])
                 if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
                     if self.def_modelconfig[i][2] == None:
-                        #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> deleted")
+                        logger.warning("modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
                         del self.modelconfig[i]
                     else:
-                        #logger.warning(f"参数 {i} 不合法, 调整 {self.modelconfig[i]} -> {self.def_modelconfig[i][2]}")
+                        logger.warning("modelconfig {} is invaild: reset  {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
                         self.modelconfig[i] = self.def_modelconfig[i][2]
             
     def is_responding(self):
@@ -235,7 +235,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             import json
             while True:
                 if self.wss_session.keep_running == False:
-                    logger.info("wss连接已关闭")
+                    logger.info("websocket is closed")
                     break
                 time.sleep(1)
                 # 消息已进入队列，等待发送
@@ -353,7 +353,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
-            raise RuntimeError("Maica 当前未准备好接受消息")
+            raise RuntimeError("Maica not ready to chat")
         
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
         self.stat['message_count'] += 1
