@@ -8,6 +8,7 @@ def init_selector():
             if item[0] == "#":
                 continue
             i = item.strip().split(":")
+            i[0]=i[0][1:]
             if i[1] not in selector:
                 selector[i[1]]=[]
             selector[i[1]].append({i[0]: float(i[2])})
