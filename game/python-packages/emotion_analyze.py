@@ -59,10 +59,11 @@ class MoodStatus(object):
 
         # 处理每个匹配的内容
         for match in matches:
-            if match in self.EmotionalStatus:
-                # 如果匹配内容在字典的键中，去除匹配的字符串
-                message = message.replace('[{}]'.format(match), '')
-                self.add_emotional(match)
+            if match not in self.EmotionalStatus:
+                logger.warning("MoodStatus::analyze {} not in EmotionalStatus".format(match))
+            # 如果匹配内容在字典的键中，去除匹配的字符串
+            message = message.replace('[{}]'.format(match), '')
+            self.add_emotional(match)
 
         return message
     # 增加心情值
@@ -89,10 +90,10 @@ class MoodStatus(object):
     
     # 获取表情
     def get_emote(self):
+        return "1eua"
         max_key = max(self.EmotionalStatus, key=self.EmotionalStatus.get)
         max_value = self.EmotionalStatus[max_key]
-
-        emotes = EMOTE_DICT[max_key].copy()
+        emotes = EMOTE_DICT[max_key].copy() 
         del emotes["sentiment"]
 
         def select_code(data, ratio):
