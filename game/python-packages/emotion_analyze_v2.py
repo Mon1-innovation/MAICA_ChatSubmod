@@ -4,20 +4,7 @@ def sort_by_val(ele):
     key = ele.keys()[0]
     return ele[key]
 
-def init_selector():
-    with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "emotion_selector.json"), "r") as emos:
-        selector = json.loads(emos.read())
-    return selector
 
-def init_storage():
-    with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r") as emops:
-        storage = json.loads(emops.read())
-    return storage
-
-def init_sentiment():
-    with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
-        sentiment = json.loads(emost.read())
-    return sentiment
 class EmoSelector:
     def __init__(self, selector, storage, sentiment):
         self.selector = selector
@@ -27,7 +14,10 @@ class EmoSelector:
         self.repeat_strength = 0.0
         self.pre_mood = ""
         self.emote = ""
-
+        self.pre_pos = 0
+    def get_emote(self):
+        self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
+        return "{}{}".format(get_pos() ,self.emote)
 
     def analyze(self, message):
         import re
@@ -41,10 +31,33 @@ class EmoSelector:
         for match in matches:
             # 如果匹配内容在字典的键中，去除匹配的字符串
             message = message.replace('[{}]'.format(match), '')
+            if match == "很开心":
+                match = "开心"
+            self.pre_mood = match
+            self.process_strength(match)
+        if matches == []:
+            self.process_strength(self.pre_mood)
         return message
 
-    def process_strength(self, emote):
+    def process_strength(self, emote, multi=0.7):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage)
+        self.main_strength += multi * self.sentiment[emote] * 0.2 * res[1]
+        self.emote.join(res[0])
+        if self.emote == emote:
+            self.repeat_strength += 0.2
+        else:
+            self.repeat_strength = 0
+        self._fix_strength()
+
+    def _fix_strength(self):
+        if self.repeat_strength > 1.0:
+            self.repeat_strength = 1.0
+        if self.repeat_strength < 0.0:
+            self.repeat_strength = 0.0
+        if self.main_strength > 1.0:
+            self.main_strength = 1.0
+        if self.main_strength < 0.0:
+            self.main_strength = 0.0
 
 
 def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0):
