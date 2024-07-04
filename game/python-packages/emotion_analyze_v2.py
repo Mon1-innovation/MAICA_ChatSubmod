@@ -1,7 +1,7 @@
 import os, json, math, random
 from bot_interface import PY2, PY3, logger
 def sort_by_val(ele):
-    key = ele.keys()[0]
+    key = list(ele.keys())[0]
     return ele[key]
 
 
@@ -68,9 +68,9 @@ def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0
     weight_sel = []
     weight_accum = 0
     for emotion_code in emotion:
-        key = emotion_code.keys()[0]
+        key = list(emotion_code.keys())[0]
         if not key in excepted:
-            power = emotion_code[key]
+            power = float(emotion_code[key])
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
             weight_sel.extend({key: weight_accum})
@@ -79,8 +79,8 @@ def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0
     weight_sel.insert(0, pointer)
     weight_sel.sort(key=sort_by_val)
     seq = weight.sel.index(pointer)
-    emo_final = weight_sel[seq + 1].keys()[0]
-    emo_final_power = [x for x in storage if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
+    emo_final = list(weight_sel[seq + 1].keys())[0]
+    emo_final_power = list([x for x in storage if {i: j for i, j in x.items() if i == emo_final}][0].keys())[0]
     # Notice this is a low-performance way! Consider adding a pure dict addressing all emocodes with their power
     # emo_final_power = [x for x in emotion if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
     # emo_final_power is returned for affecting accumulation
