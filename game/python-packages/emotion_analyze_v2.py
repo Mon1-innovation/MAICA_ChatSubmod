@@ -8,11 +8,12 @@ def sort_by_val(ele):
 
 
 class EmoSelector:
-    def __init__(self, selector, storage, sentiment):
+    def __init__(self, selector, storage, sentiment, eoc=None):
         self.selector = selector
         self.storage = storage
         self.sentiment = sentiment
         self.affection = 100
+        self.eoc = eoc
         self.main_strength = 0.0
         self.repeat_strength = 0.0
         self.pre_mood = u"微笑"
@@ -48,7 +49,7 @@ class EmoSelector:
 
     def process_strength(self, emote, multi=0.7):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage)
-        self.main_strength = self.main_strength + (multi * self.sentiment[emote] * res[1])
+        self.main_strength += multi * self.sentiment[emote] * 0.2 * res[1]
         self.emote = res[0]
         if self.pre_mood == emote:
             self.repeat_strength += 0.2 
@@ -70,15 +71,24 @@ class EmoSelector:
             self.main_strength = 0.0
 
 
-def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0):
+def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralization=1.0):
     # strength = total accumulated emotion tendency
     # emotion = selector[emotion]
     # excepted = rejected emos, like last used: ['eka']
     # centralization = higher for lower randomness
     weight_sel = []
     weight_accum = 0
+    eoc_sig = 0
+    if eoc:
+        for emotion_eoc_checked in excepted:
+            if not eoc[emotion_eoc_checked]:
+                eoc_sig += 1
+    # if eoc then filter eyes-closed emotions
+    # if eoc list not given, fall back automatically to non-filter mode
     for emotion_code in emotion:
         key = list(emotion_code.keys())[0]
+        if eoc_sig and not eoc[key]:
+            continue
         if not key in excepted:
             power = float(emotion_code[key])
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
