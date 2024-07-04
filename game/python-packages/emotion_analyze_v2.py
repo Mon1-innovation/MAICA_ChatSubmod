@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os, json, math, random
 from bot_interface import PY2, PY3, logger
 def sort_by_val(ele):
@@ -12,7 +14,7 @@ class EmoSelector:
         self.sentiment = sentiment
         self.main_strength = 0.0
         self.repeat_strength = 0.0
-        self.pre_mood = ""
+        self.pre_mood = "微笑"
         self.emote = ""
         self.pre_pos = 0
     def get_emote(self):
@@ -30,9 +32,11 @@ class EmoSelector:
         # 处理每个匹配的内容
         for match in matches:
             # 如果匹配内容在字典的键中，去除匹配的字符串
+            if match == "player":
+                continue
             message = message.replace('[{}]'.format(match), '')
-            if match == "很开心":
-                match = "开心"
+            if match == u"很开心":
+                match = u"开心"
             self.pre_mood = match
             self.process_strength(match)
         if matches == []:
@@ -48,7 +52,10 @@ class EmoSelector:
         else:
             self.repeat_strength = 0
         self._fix_strength()
-
+    def reset(self):
+        self.pre_mood = "微笑"
+        self.main_strength = 0.0
+        self.repeat_strength = 0.0
     def _fix_strength(self):
         if self.repeat_strength > 1.0:
             self.repeat_strength = 1.0
@@ -88,7 +95,11 @@ def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0
     # emo_final like 'eka', emo_final_power like 0.6
     return emo_final, emo_final_power
 
-def get_pos(strength=0.0, last=random.randint(1, 7)):
+import random
+
+def get_pos(strength=0.0, last=None):
+    if last is None:
+        last = random.randint(1, 7)
     # Use every step. doesn't always switch pose
     # strength = 0.0~1.0
     # last = 1~7
@@ -99,78 +110,80 @@ def get_pos(strength=0.0, last=random.randint(1, 7)):
     # 5 leaning
     # 6 down
     # 7 down left point right
-    match last:
-        case 1:
-            # pos1 is a calm pose. Tends to switch away and to point for stronger emotions
-            match random.random():
-                case f if 0 <= f < 0.5 - 0.2 * strength:
-                    next_pos = 1
-                case f if 0.5 - 0.2 * strength <= f < 0.7 - 0.25 * strength:
-                    next_pos = 5
-                case f if 0.7 - 0.25 * strength <= f < 0.85 - 0.2 * strength:
-                    next_pos = random.choice([2,2,6])
-                case f if 0.85 - 0.2 * strength <= f < 1:
-                    next_pos = random.choice([3,3,3,3,3,4,7])
-        case 2:
-            # pos2 is a calm pose. Tends to switch away and to point for stronger emotions
-            match random.random():
-                case f if 0 <= f < 0.5 - 0.2 * strength:
-                    next_pos = 2
-                case f if 0.5 - 0.2 * strength <= f < 0.75 - 0.25 * strength:
-                    next_pos = 5
-                case f if 0.75 - 0.25 * strength <= f < 0.85 - 0.2 * strength:
-                    next_pos = random.choice([1,1,6])
-                case f if 0.85 - 0.2 * strength <= f < 1:
-                    next_pos = random.choice([3,3,4,4,7])
-        case 3:
-            # pos3 is a pointing pose. Tends to keep or to point for stronger emotions
-            match random.random():
-                case f if 0 <= f < 0.1 + 0.3 * strength:
-                    next_pos = 3
-                case f if 0.1 + 0.3 * strength <= f < 0.1 + 0.7 * strength:
-                    next_pos = 4
-                case f if 0.1 + 0.7 * strength <= f < 0.9 - 0.1 * strength:
-                    next_pos = random.choice([1,1,1,1,1,2,4,5,6])
-                case f if 0.9 - 0.1 * strength <= f < 1:
-                    next_pos = 7
-        case 4:
-            # pos4 is a tiring pose. Tends to switch away
-            match random.random():
-                case f if 0 <= f < 0.1 + 0.1 * strength:
-                    next_pos = 4
-                case f if 0.1 + 0.1 * strength <= f < 0.1 + 0.7 * strength:
-                    next_pos = random.choice([3,7])
-                case f if 0.1 + 0.7 * strength <= f < 0.9:
-                    next_pos = random.choice([2,2,5,5,6])
-                case f if 0.9 <= f < 1:
-                    next_pos = 1
-        case 5:
-            # pos5 is a relaxing pose. Tends to switch away and to point for stronger emotions
-            match random.random():
-                case f if 0 <= f < 0.7 - 0.4 * strength:
-                    next_pos = 5
-                case f if 0.7 - 0.4 * strength <= f < 0.7 + 0.1 * strength:
-                    next_pos = random.choice([3,4,7])
-                case f if 0.7 + 0.1 * strength <= f < 0.9:
-                    next_pos = 1
-                case f if 0.9 <= f < 1:
-                    next_pos = random.choice([2,2,6])
-        case 6:
-            # pos6 seldom happens
-            match random.random():
-                case f if 0 <= f < 0.5 - 0.4 * strength:
-                    next_pos = 6
-                case f if 0.5 - 0.4 * strength <= f < 0.6 - 0.1 * strength:
-                    next_pos = random.choice([3,4,4,7,7])
-                case f if 0.6 - 0.1 * strength <= f < 1:
-                    next_pos = random.choice([1,1,1,2,2,2,5])
-        case 7:
-            # pos7 seldom happens
-            match random.random():
-                case f if 0 <= f < 0.1 + 0.4 * strength:
-                    next_pos = 7
-                case f if 0.1 + 0.4 * strength <= f < 0.6 + 0.3 * strength:
-                    next_pos = random.choice([1,1,2,2,2,5,5])
-                case f if 0.6 + 0.3 * strength <= f < 1:
-                    next_pos = 6
+    
+    f = random.random()
+
+    if last == 1:
+        # pos1 is a calm pose. Tends to switch away and to point for stronger emotions
+        if 0 <= f < 0.5 - 0.2 * strength:
+            next_pos = 1
+        elif 0.5 - 0.2 * strength <= f < 0.7 - 0.25 * strength:
+            next_pos = 5
+        elif 0.7 - 0.25 * strength <= f < 0.85 - 0.2 * strength:
+            next_pos = random.choice([2, 2, 6])
+        elif 0.85 - 0.2 * strength <= f < 1:
+            next_pos = random.choice([3, 3, 3, 3, 3, 4, 7])
+
+    elif last == 2:
+        # pos2 is a calm pose. Tends to switch away and to point for stronger emotions
+        if 0 <= f < 0.5 - 0.2 * strength:
+            next_pos = 2
+        elif 0.5 - 0.2 * strength <= f < 0.75 - 0.25 * strength:
+            next_pos = 5
+        elif 0.75 - 0.25 * strength <= f < 0.85 - 0.2 * strength:
+            next_pos = random.choice([1, 1, 6])
+        elif 0.85 - 0.2 * strength <= f < 1:
+            next_pos = random.choice([3, 3, 4, 4, 7])
+
+    elif last == 3:
+        # pos3 is a pointing pose. Tends to keep or to point for stronger emotions
+        if 0 <= f < 0.1 + 0.3 * strength:
+            next_pos = 3
+        elif 0.1 + 0.3 * strength <= f < 0.1 + 0.7 * strength:
+            next_pos = 4
+        elif 0.1 + 0.7 * strength <= f < 0.9 - 0.1 * strength:
+            next_pos = random.choice([1, 1, 1, 1, 1, 2, 4, 5, 6])
+        elif 0.9 - 0.1 * strength <= f < 1:
+            next_pos = 7
+
+    elif last == 4:
+        # pos4 is a tiring pose. Tends to switch away
+        if 0 <= f < 0.1 + 0.1 * strength:
+            next_pos = 4
+        elif 0.1 + 0.1 * strength <= f < 0.1 + 0.7 * strength:
+            next_pos = random.choice([3, 7])
+        elif 0.1 + 0.7 * strength <= f < 0.9:
+            next_pos = random.choice([2, 2, 5, 5, 6])
+        elif 0.9 <= f < 1:
+            next_pos = 1
+
+    elif last == 5:
+        # pos5 is a relaxing pose. Tends to switch away and to point for stronger emotions
+        if 0 <= f < 0.7 - 0.4 * strength:
+            next_pos = 5
+        elif 0.7 - 0.4 * strength <= f < 0.7 + 0.1 * strength:
+            next_pos = random.choice([3, 4, 7])
+        elif 0.7 + 0.1 * strength <= f < 0.9:
+            next_pos = 1
+        elif 0.9 <= f < 1:
+            next_pos = random.choice([2, 2, 6])
+
+    elif last == 6:
+        # pos6 seldom happens
+        if 0 <= f < 0.5 - 0.4 * strength:
+            next_pos = 6
+        elif 0.5 - 0.4 * strength <= f < 0.6 - 0.1 * strength:
+            next_pos = random.choice([3, 4, 4, 7, 7])
+        elif 0.6 - 0.1 * strength <= f < 1:
+            next_pos = random.choice([1, 1, 1, 2, 2, 2, 5])
+
+    elif last == 7:
+        # pos7 seldom happens
+        if 0 <= f < 0.1 + 0.4 * strength:
+            next_pos = 7
+        elif 0.1 + 0.4 * strength <= f < 0.6 + 0.3 * strength:
+            next_pos = random.choice([1, 1, 2, 2, 2, 5, 5])
+        elif 0.6 + 0.3 * strength <= f < 1:
+            next_pos = 6
+    
     return next_pos

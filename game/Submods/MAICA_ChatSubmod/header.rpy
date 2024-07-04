@@ -112,7 +112,8 @@ screen maica_setting_pane():
             textbutton ("重置当前对话"):
                 action Function(reset_session)
 
-            textbutton ("导出当前对话")
+            textbutton ("导出当前对话"):
+                action Function(output_chat_history)
 
             textbutton ("退出当前DCC账号"):
                 action Function(store.maica.maica.close_wss_session)

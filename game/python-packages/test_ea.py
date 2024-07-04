@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import emotion_analyze_v2, os, json
 basedir = "E:\GithubKu\MAICA_ChatSubmod"
 def init_selector():
     selector = {}
     power={}
-    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r", encoding='utf-8') as emos:
+    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r") as emos:
         for item in emos.readlines():
             if item[0] == "#":
                 continue
@@ -20,12 +22,12 @@ def init_selector():
     return selector
 
 def init_storage():
-    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r", encoding='utf-8') as emops:
+    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r") as emops:
         storage = json.loads(emops.read())
     return storage
 
 def init_sentiment():
-    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r", encoding='utf-8') as emost:
+    with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
         sentiment = json.loads(emost.read())
     return sentiment
 

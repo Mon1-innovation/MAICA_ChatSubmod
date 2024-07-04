@@ -39,12 +39,9 @@ init 5 python:
             eventlabel="maica_greeting",
             prompt="maica敲门",
             unlocked=True,
-            conditional="store.seen_event('maica_prepend_1')"
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
+            conditional="store.seen_event('maica_prepend_1')",
             aff_range=(mas_aff.NORMAL, None)
-        )
+        ),
         code="GRE"
     )
 label maica_greeting:
@@ -216,7 +213,7 @@ label maica_chr:
     m 1etc "最近我检查文件夹的时候, 我发现'天堂树林'好像也有一个{i}角色文件{/i}, {w=0.3}也可能叫场景文件比较合适."
     m 1mtd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
     m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物或者其他的角色文件一样, 只是一个'标记'. {w=1}我觉得更像我的文件一些."
-    like_spk = '如果你不喜欢树林什么的话' if persistent._mas_pm_likes_nature is False else like_spk = '如果你更喜欢这里的话'
+    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
     m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
     return

@@ -2,10 +2,11 @@ label maica_talking:
     python:
         from store.maica import maica as ai
         while True:
+            renpy.show("monika idle")
             question = mas_input(
                         "想和我聊什么呢?",
                         default="",
-                        length=10,
+                        length=50,
                         screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
                     ).strip(' \t\n\r') #mas_input
             if question == "":

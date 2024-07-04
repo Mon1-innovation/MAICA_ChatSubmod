@@ -2,7 +2,7 @@
 
 from bot_interface import *
 import bot_interface
-import emotion_analyze
+import emotion_analyze_v2
 
 import websocket
 websocket._logging._logger = logger
@@ -113,12 +113,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         "presence_penalty":[0.0, 1.0, 0.0],
         "seed":[0, 999, None]
     }
-    stat = {}
+    
 
     def __init__(self, account, pwd, token = ""):
         import threading
+        self.stat = {}
         self.multi_lock = threading.RLock()
-        self.MoodStatus = emotion_analyze.MoodStatus()
+        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
         self.chat_session = 1
@@ -138,8 +139,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.reset_stat()
     def reset_stat(self):
         self.stat = {
-            "message_count":0
+            "message_count":0,
+            "received_token":0
         }
+    def update_stat(self, new):
+        self.stat.update(new)
     def get_message(self):
         return self.message_list.get()
     def _gen_token(self, account, pwd, token, email = None):
@@ -302,23 +306,37 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             logger.debug("MESSAGE_WAITING_RESPONSE:: status in process: {}".format(data["status"] in ("continue", "streaming_done")))
             if data['status'] == "continue":
+                self.stat["received_token"] += 1
                 self._received = self._received + data['content']
                 isnum = is_a_talk(self._received[self._pos:])
                 logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
                 if isnum:
-                    raw_message = self._received[self._pos:self._pos + isnum]
-                    res = self.MoodStatus.analyze(raw_message)
-                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
-                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(self.MoodStatus.get_emote()))
-                    self.message_list.put((self.MoodStatus.get_emote(), res.strip()))
-                    logger.debug("Server:",self._received[self._pos:self._pos + isnum])
-                    self._pos = self._pos + isnum
+                    try:
+                        raw_message = self._received[self._pos:self._pos + isnum]
+                        res = self.MoodStatus.analyze(raw_message)
+                        logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
+                        emote = self.MoodStatus.get_emote()
+                        logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
+                        logger.debug("MESSAGE_WAITING_RESPONSE::MoodStatus: pre_mood:{}\n strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+                        self.message_list.put((emote, res.strip()))
+                        logger.debug("Server:",self._received[self._pos:self._pos + isnum])
+                        self._pos = self._pos + isnum
+                    except Exception as e:
+                        import traceback
+                        logger.error("MESSAGE_WAITING_RESPONSE::exception is ocurrred: \n{}".format(traceback.format_exc()))
+
             if data['status'] == "streaming_done":
-                if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
-                    raw_message = self._received[self._pos:]
-                    res = self.MoodStatus.analyze(raw_message)
-                    self.message_list.put((self.MoodStatus.get_emote(), res.strip()))
-                    logger.debug("Server:",self._received[self._pos:])
+                try:
+                    if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
+                        raw_message = self._received[self._pos:]
+                        logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
+                        emote = self.MoodStatus.get_emote()
+                        logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
+                        self.message_list.put((emote, res.strip()))
+                        logger.debug("Server:",self._received[self._pos:])
+                except Exception as e:
+                    import traceback
+                    logger.error("MESSAGE_WAITING_RESPONSE::exception is ocurrred: \n{}".format(traceback.format_exc()))
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
