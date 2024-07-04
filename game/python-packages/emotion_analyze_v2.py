@@ -17,7 +17,7 @@ class EmoSelector:
         self.pre_pos = 0
     def get_emote(self):
         self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
-        return "{}{}".format(get_pos() ,self.emote)
+        return "{}{}".format(get_pos(self.main_strength, self.pre_pos), self.emote)
 
     def analyze(self, message):
         import re
@@ -42,7 +42,7 @@ class EmoSelector:
     def process_strength(self, emote, multi=0.7):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage)
         self.main_strength += multi * self.sentiment[emote] * 0.2 * res[1]
-        self.emote.join(res[0])
+        self.emote = res[0]
         if self.emote == emote:
             self.repeat_strength += 0.2
         else:

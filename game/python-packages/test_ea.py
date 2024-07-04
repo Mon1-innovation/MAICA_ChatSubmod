@@ -1,5 +1,5 @@
 import emotion_analyze_v2, os, json
-basedir = "D:\MAICA_ChatSubmod"
+basedir = "E:\GithubKu\MAICA_ChatSubmod"
 def init_selector():
     selector = {}
     power={}
