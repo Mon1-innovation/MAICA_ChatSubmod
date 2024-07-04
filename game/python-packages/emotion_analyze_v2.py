@@ -19,16 +19,18 @@ def init_sentiment():
         sentiment = json.loads(emost.read())
     return sentiment
 
-def get_sequence_emo(strength, emotion, excepted=[]):
+def get_sequence_emo(strength, emotion, excepted=[], centralization=1.0):
+    # strength = total accumulated emotion tendency
     # emotion = selector[emotion]
     # excepted = rejected emos, like last used: ['eka']
+    # centralization = higher for lower randomness
     weight_sel = []
     weight_accum = 0
     for emotion_code in emotion:
         key = emotion_code.keys()[0]
         if not key in excepted:
             power = emotion_code[key]
-            weight = math.exp(-(power - strength)**2/2)
+            weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
             weight_sel.extend({key: weight_accum})
     rand = random.random() * weight_accum
