@@ -42,4 +42,10 @@ init 5 python in maica:
     maica.MoodStatus.storage = init_storage()
     maica.MoodStatus.sentiment = init_sentiment()
 
+    @store.mas_submod_utils.functionplugin("_quit")
+    def clear_maica():
+        maica.close_wss_session()
+        persistent.maica_stat = maica.maica_stat.copy()
+        save_persistent()
+
     
