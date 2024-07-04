@@ -73,14 +73,15 @@ def get_sequence_emo(strength, emotion, storage, excepted=[], centralization=1.0
             power = float(emotion_code[key])
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
-            weight_sel.extend({key: weight_accum})
+            weight_sel.append({key: weight_accum})
     rand = random.random() * weight_accum
     pointer = {"placeholder": rand}
     weight_sel.insert(0, pointer)
     weight_sel.sort(key=sort_by_val)
-    seq = weight.sel.index(pointer)
+    seq = weight_sel.index(pointer)
     emo_final = list(weight_sel[seq + 1].keys())[0]
-    emo_final_power = list([x for x in storage if {i: j for i, j in x.items() if i == emo_final}][0].keys())[0]
+    emo_final_power = storage[emo_final]
+    #emo_final_power = list([x for x in storage if {i: j for i, j in x.items() if i == emo_final}][0].keys())[0]
     # Notice this is a low-performance way! Consider adding a pure dict addressing all emocodes with their power
     # emo_final_power = [x for x in emotion if {i: j for i, j in x.items() if i == emo_final}][0].keys()[0]
     # emo_final_power is returned for affecting accumulation
