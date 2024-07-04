@@ -1,0 +1,7 @@
+{
+    "//": "This is a comment and this file is a sample",
+    "//": "Value 1 means eyes opened and 0 means closed, samples are not correction guaranteed",
+    "//": "We forgot to filter the 1s in emotion codes so we just let them be",
+    "1eka": 0,
+    "1duu": 1
+}
