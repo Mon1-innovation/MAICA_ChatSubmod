@@ -249,6 +249,10 @@ label maica_chr_corrupted:
     $ comment = "...'某人'风格的" if cares_about_dokis else '崩坏风格的'
     m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
     m 1hua "你当然也可以找一份正常的文件换上. 只要你喜欢, 我都不介意的."
+    m 1eub "我去收拾一下就好. {w=0.3}{nw}"
+    extend 1dua "稍等片刻.{w=0.3}.{w=0.3}."
+    #恢复背景
+    m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
 
 
 label clear_all:
