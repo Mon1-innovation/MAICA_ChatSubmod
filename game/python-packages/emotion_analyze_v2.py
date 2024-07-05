@@ -20,9 +20,17 @@ class EmoSelector:
         self.pre_emotes = []
         self.emote = ""
         self.pre_pos = 0
-    def get_emote(self):
+    def get_emote(self, idle = False):
+        def idle_pos(pos):
+            if pos == 3:
+                return 1
+            elif pos == 4:
+                return 2
+            elif pos == 7:
+                pos = 6
+            return pos
         self.pre_pos = get_pos(self.repeat_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
-        return "{}{}".format(get_pos(self.main_strength, self.pre_pos), self.emote)
+        return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote)
 
     def analyze(self, message):
         import re
