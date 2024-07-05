@@ -129,6 +129,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.model = self.MaicaAiModel.maica_core
         self.sf_extraction = False
         self.stream_output = True
+        self.update_screen_func = None
         # 待发送消息队列
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
@@ -137,6 +138,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._gen_token(account, pwd, token) if account != "" and pwd != "" else ""
         self.modelconfig = {}
         self.reset_stat()
+        self.auto_reconnect = False
     def reset_stat(self):
         self.stat = {
             "message_count":0,
@@ -186,7 +188,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         threading.Thread(target=self._init_connect).start()
 
     def _init_connect(self):
-        print("_init_connect")
+        logger.debug("_init_connect")
         if not self.multi_lock.acquire(1):
             return logger.warning("Maica::_init_connect try to create multi connection")
         import websocket
@@ -279,6 +281,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     _pos = 0
     def _on_message(self, wsapp, message):
         logger.debug("_on_message: {}".format(message))
+        
         logger.debug("self.status: {}".format(self.status))
         import json
         data = json.loads(message)
@@ -297,7 +300,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.status == self.MaicaAiStatus.SESSION_CREATED:
             if data["status"] == "nickname":
                 self.user_acc = data["content"]
-                #logger.info(f"以身份 {self.user_acc} 登录")
+                logger.info("以身份 {} 登录".format(self.user_acc))
         elif self.status == self.MaicaAiStatus.WAIT_MODEL_INFOMATION:
             if data['status'] != "ok":
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
@@ -342,6 +345,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
                 self.MoodStatus.reset()
+        if self.update_screen_func:
+            self.update_screen_func(0)
     def _on_error(self, wsapp, error):
         logger.error("MaicaAi::_on_error {}".format(error))
         self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
@@ -370,7 +375,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "chat_session": self.chat_session,
                     "content": dict
                 },
-                ensure_ascii=False
             )
         )
         return res.json()
@@ -385,7 +389,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "chat_session": self.chat_session,
                     "lines": lines
                 },
-                ensure_ascii=False
             )
         )
         return res.json()
