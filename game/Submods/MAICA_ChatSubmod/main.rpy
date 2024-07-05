@@ -2,7 +2,7 @@ label maica_talking:
     python:
         from store.maica import maica as ai
         while True:
-            renpy.show("monika idle")
+            renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             question = mas_input(
                         "想和我聊什么呢?",
                         default="",

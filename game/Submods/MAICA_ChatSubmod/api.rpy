@@ -17,6 +17,7 @@ init 5 python in maica:
         on_change=change_token
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    #maica.update_screen_func = renpy.pause
     if store.persistent.maica_stat is None:
         store.persistent.maica_stat = maica.stat.copy()
     else:    
@@ -44,8 +45,14 @@ init 5 python in maica:
 
     @store.mas_submod_utils.functionplugin("_quit")
     def clear_maica():
+        maica.auto_reconnect = False
         maica.close_wss_session()
         persistent.maica_stat = maica.maica_stat.copy()
         save_persistent()
+    #@store.mas_submod_utils.functionplugin("ch30_preloop")
+    #def start_maica():
+    #    if store.mas_getAPIKey("Maica_Token") == "":
+    #        return
+    #    maica.init_connect()
 
     

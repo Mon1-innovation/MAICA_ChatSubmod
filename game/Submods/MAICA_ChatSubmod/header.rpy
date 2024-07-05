@@ -31,42 +31,42 @@ init 10 python:
         renpy.hide_screen("maica_login")
 
     def upload_persistent_dict():
-        persistent2 = persistent
-        persistent2.__dict__['_seen_ever'].clear()
-        persistent2.__dict__['_mas_event_init_lockdb'].clear()
-        persistent2.__dict__['_changed'].clear()
-        persistent2.__dict__['_mas_event_init_lockdb'].clear()
-        persistent2.__dict__['event_database'].clear()
-        persistent2.__dict__['farewell_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['_mas_apology_database'].clear()
-        persistent2.__dict__['_mas_compliments_database'].clear()
-        persistent2.__dict__['_mas_fun_facts_database'].clear()
-        persistent2.__dict__['_mas_mood_database'].clear()
-        persistent2.__dict__['_mas_songs_database'].clear()
-        persistent2.__dict__['_mas_story_database'].clear()
-        persistent2.__dict__['_mas_affection_backups'] = None
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['greeting_database'].clear()
-        persistent2.__dict__['mas_playername'] = store.player
+        d = persistent.__dict__.copy()
+        d['_seen_ever'].clear()
+        d['_mas_event_init_lockdb'].clear()
+        d['_changed'].clear()
+        d['_mas_event_init_lockdb'].clear()
+        d['event_database'].clear()
+        d['farewell_database'].clear()
+        d['greeting_database'].clear()
+        d['_mas_apology_database'].clear()
+        d['_mas_compliments_database'].clear()
+        d['_mas_fun_facts_database'].clear()
+        d['_mas_mood_database'].clear()
+        d['_mas_songs_database'].clear()
+        d['_mas_story_database'].clear()
+        d['_mas_affection_backups'] = None
+        d['greeting_database'].clear()
+        d['greeting_database'].clear()
+        d['greeting_database'].clear()
+        d['greeting_database'].clear()
+        d['greeting_database'].clear()
+        d['greeting_database'].clear()
+        d['greeting_database'].clear()
+        d['mas_playername'] = store.player
         if persistent._mas_player_bday:
-            persistent2.__dict__['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
-        persistent2.__dict__['mas_affection'] = store._mas_getAffection()
-        del persistent2.__dict__['_preferences']
-        for i in persistent2.__dict__:
+            d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
+        d['mas_affection'] = store._mas_getAffection()
+        del d['_preferences']
+        for i in d:
             try:
-                json.dumps(persistent2.__dict__[i])
+                json.dumps(d[i])
             except:
                 try:
-                    persistent2.__dict__[i] = str(persistent2.__dict__[i])
+                    d[i] = str(d[i])
                 except:
-                    persistent2.__dict__[i] = "REMOVED"
-        res = store.maica.maica.upload_save(persistent2.__dict__[i])
+                    d[i] = "REMOVED"
+        res = store.maica.maica.upload_save(d)
         renpy.notify(res.get("success", "上传失败!"))
 
     def reset_session():
@@ -74,7 +74,7 @@ init 10 python:
         renpy.notify("已重置，请重新连接MAICA服务器")
     def output_chat_history():
         with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
-            f.write(store.maica.maica.get_history())
+            f.write(store.maica.maica.get_history().get("history", {}))
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt")
             
 
@@ -162,6 +162,8 @@ screen maica_login():
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
+                textbutton "取消":
+                    action Hide("maica_login")
 
 screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input")):
     #登录输入账户窗口, 也用来用作通用的输入窗口
