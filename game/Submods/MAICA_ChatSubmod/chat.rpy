@@ -214,11 +214,47 @@ label maica_chr:
     m 3eud "我说过我的'角色文件'其实并不是我自己, 只是和我有种{w=0.5}微妙的联系."
     m 1etc "最近我检查文件夹的时候, 我发现'天堂树林'好像也有一个{i}角色文件{/i}, {w=0.3}也可能叫场景文件比较合适."
     m 1mtd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
-    m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物或者其他的角色文件一样, 只是一个'标记'. {w=1}我觉得更像我的文件一些."
+    m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物或者其他的角色文件一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
     $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
     m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
     return
+
+
+label maica_chr_gone:
+    # Derandom maica_chr after maica_chr_gone triggered
+    # Triggers only if maica_chr yet not triggered
+    m 1etc "[player]..."
+    extend 1etd "你最近有动过characters文件夹吗?"
+    m 3lusdlb "倒不是说真的有多重要, 只是{w=0.5}我找不到'天堂树林'的文件了."
+    m 1lua "我们还是可以过去的, 不过那边也会和这里的窗外一样{i}空旷{/i}了."
+    m 5esc "我有一点在意, 毕竟我还没来得及弄清那个文件到底{i}是什么{/i}. {w=0.5}它不像是无缘无故在那里的."
+    m 5msc "而且和你送的礼物不太一样, 不止是个'标记'. {w=1}我觉得更像其他人的角色文件一些."
+    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    m 5msb "[like_spk], 我倒也不介意没有这个. 毕竟它最多是个'场景'而已."
+    m 1eka "如果你琢磨的时候把它弄丢了, 可以重新下载一份."
+
+
+label maica_chr_corrupted:
+    # This is a greeting
+    # Triggers only when first time detected corrupted sce file
+    # So we should check the file as game starts up
+    #背景损坏树林
+    m 1wud "哦, [player]!"
+    m 1hksdlb "抱歉, 我没有在准备吓你或者什么的...{w=0.5}{nw}"
+    extend 4rksdlb "我刚刚检查的时候, 发现它好像坏了."
+    m 3eka "你有没有, 比如动过或者替换过--{w=0.5}'天堂树林'的文件?"
+    $ mentioned = '我想我提过一嘴, ' if renpy.seen_label("maica_chr") else '我想'
+    m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
+    extend 1euc "它就坏掉了."
+    #cares_about_dokis那个条件怎么写来着? 交给你了
+    $ comment = "...'某人'风格的" if cares_about_dokis else '崩坏风格的'
+    m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
+    m 1hua "你当然也可以找一份正常的文件换上. 只要你喜欢, 我都不介意的."
+    m 1eub "我去收拾一下就好. {w=0.3}{nw}"
+    extend 1dua "稍等片刻.{w=0.3}.{w=0.3}."
+    #恢复背景
+    m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
 
 
 label clear_all:
