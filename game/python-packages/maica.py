@@ -155,6 +155,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "username":account,
                 "password":pwd
             }
+            if email:
+                data = {
+                "email":email,
+                "password":pwd
+            }
             response = requests.post("https://maicadev.monika.love/api/register", json=data)
             if response.status_code == 200:
                 response_data = response.json()

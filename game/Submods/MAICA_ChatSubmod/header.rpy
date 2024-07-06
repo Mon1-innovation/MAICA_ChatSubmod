@@ -26,9 +26,11 @@ default persistent.maica_setting_dict = {
 init 10 python:
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
+    _maica_LoginEmail = None
     def _maica_clear():
         store._maica_LoginAcc = ""
         store._maica_LoginPw = ""
+        store._maica_LoginEmail = None
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
 
     def maica_login_ok():
@@ -244,7 +246,8 @@ screen maica_login():
                 textbutton "输入 DCC 账号用户名":
                     action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginAcc")
                 text "或"
-                textbutton "输入 DCC 账号邮箱"
+                textbutton "输入 DCC 账号邮箱":
+                    action Show("maica_login_input",message = "请输入DCC 账号邮箱",returnto = "_maica_LoginEmail")
 
             hbox:
                 textbutton "输入 DCC 账号密码":
@@ -255,7 +258,7 @@ screen maica_login():
                 if renpy.version_tuple[0] < 8:
                     textbutton "连接至Maica生成令牌":
                         action [
-                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
+                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
