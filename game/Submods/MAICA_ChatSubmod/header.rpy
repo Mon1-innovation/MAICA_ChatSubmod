@@ -91,6 +91,7 @@ init 10 python:
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
+        update_model_setting()
     
     def update_model_setting():
         import os, json
@@ -151,6 +152,12 @@ screen maica_setting_pane():
 screen maica_setting():
     python:
         import store.maica.maica as ai
+        submods_screen = store.renpy.get_screen("submods", "screens")
+
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
     modal True
     zorder 215
 
@@ -175,13 +182,20 @@ screen maica_setting():
             hbox: 
                 textbutton "自动重连: ['√' if persistent.maica_setting_dict['auto_connect'] else '×']"
                     action ToggleDict(persistent.maica_setting_dict, "auto_connect", True, False)
+                    hovered SetField(_tooltip, "value", "连接断开时自动重连")
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 textbutton "Maica 模型: ['maica_main' if persistent.maica_setting_dict['maica_model'] == ai.MaicaAiModel.maica_main else 'maica_core' ]":
                     action ToggleDict(persistent.maica_setting_dict, "maica_model", ai.MaicaAiModel.maica_main, ai.MaicaAiModel.maica_core)
+                    hovered SetField(_tooltip, "value", "maica_main：完全能力模型，maica_core: 核心能力模型\n完全能力的前置响应延迟偏高")
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
             
             hbox:
                 textbutton "使用自定义模型参数: ['√' if persistent.maica_setting_dict['use_custom_model_config'] else '×']"
                     action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
+                    hovered SetField(_tooltip, "value", "在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题")
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 textbutton "立刻更新参数":
                     Function(update_model_setting)
@@ -190,10 +204,16 @@ screen maica_setting():
             hbox:
                 textbutton "使用存档数据: ['√' if persistent.maica_setting_dict['sf_extraction'] else '×']"
                     action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
+                    hovered SetField(_tooltip, "value", "关闭时，模型将不会使用存档数据")
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
             
             hbox:
                 textbutton "选择使用的对话会话: [persistent.maica_setting_dict['chat_session']]"
-                    action CycleDict(persistent.maica_setting_dict, "chat_session", value = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], loop=True)
+                    action CycleDict(persistent.maica_setting_dict, "chat_session", value = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], loop=True)
+                    hovered SetField(_tooltip, "value", "chat_session为0为单轮对话模式，不同的对话之间相互独立，需要分别上传存档")
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
             
 
             hbox:
@@ -201,6 +221,7 @@ screen maica_setting():
 
                 textbutton "保存设置":
                     action [
+                        Function(apply_setting),
                         Hide("maica_setting")
                         ]
 
