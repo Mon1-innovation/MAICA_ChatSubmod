@@ -15,6 +15,14 @@ init -989 python:
             update_dir="",
             attachment_id=None
         )
+
+default persistent.maica_setting_dict = {
+    "auto_connect":False,
+    "maica_model":store.maica.maica.MaicaAiModel.maica_main,
+    "use_custom_model_config":False,
+    "sf_extraction":False,
+    "chat_session":1
+}
 init 10 python:
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
@@ -76,6 +84,24 @@ init 10 python:
         with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
             f.write(store.maica.maica.get_history().get("history", {}))
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt")
+    
+    def apply_setting():
+        store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_connect"]
+        persistent.maica_setting_dict["use_custom_model_config"]
+        store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
+        store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
+        store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
+    
+    def update_model_setting():
+        import os, json
+        try:
+            with open(os.path.join(store.maica.basedir, "custom_model_config.json"), "r") as f:
+                store.maica.maica.modelconfig = json.load(f)
+        except Exception as e:
+            if not renpy.is_init_phase():
+                renpy.notify("加载自定义模型配置失败:\n {}".format(e))
+            store.mas_submod_utils.submod_log("Failed to load custom model config: {}".format(e))
+        
             
 
 screen maica_setting_pane():
@@ -118,10 +144,67 @@ screen maica_setting_pane():
             textbutton ("退出当前DCC账号"):
                 action Function(store.maica.maica.close_wss_session)
     
-        textbutton ("> MAICA Chat设置 *部分选项需要重新连接")
+        textbutton ("> MAICA Chat设置 *部分选项需要重新连接"):
+            action Show("maica_setting")
 
             
-        
+screen maica_setting():
+    python:
+        import store.maica.maica as ai
+    modal True
+    zorder 215
+
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xfill False
+            yfill False
+            spacing 5
+
+            hbox:
+                text "累计对话: [store.maica.maica.stat['message_count']]"
+                
+            hbox:
+                text "累计收到Token: [store.maica.maica.stat['received_token']]"
+            hbox:
+                textbutton "重置统计数据":
+                    action Function(store.maica.maica._reset_stat)
+
+
+            hbox: 
+                textbutton "自动重连: ['√' if persistent.maica_setting_dict['auto_connect'] else '×']"
+                    action ToggleDict(persistent.maica_setting_dict, "auto_connect", True, False)
+            hbox:
+                textbutton "Maica 模型: ['maica_main' if persistent.maica_setting_dict['maica_model'] == ai.MaicaAiModel.maica_main else 'maica_core' ]":
+                    action ToggleDict(persistent.maica_setting_dict, "maica_model", ai.MaicaAiModel.maica_main, ai.MaicaAiModel.maica_core)
+            
+            hbox:
+                textbutton "使用自定义模型参数: ['√' if persistent.maica_setting_dict['use_custom_model_config'] else '×']"
+                    action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
+
+                textbutton "立刻更新参数":
+                    Function(update_model_setting)
+                    
+
+            hbox:
+                textbutton "使用存档数据: ['√' if persistent.maica_setting_dict['sf_extraction'] else '×']"
+                    action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
+            
+            hbox:
+                textbutton "选择使用的对话会话: [persistent.maica_setting_dict['chat_session']]"
+                    action CycleDict(persistent.maica_setting_dict, "chat_session", value = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], loop=True)
+            
+
+            hbox:
+                style_prefix "confirm"
+
+                textbutton "保存设置":
+                    action [
+                        Hide("maica_setting")
+                        ]
+
+                 
 
 
 screen maica_login():
@@ -164,6 +247,8 @@ screen maica_login():
                             ]
                 textbutton "取消":
                     action Hide("maica_login")
+
+
 
 screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input")):
     #登录输入账户窗口, 也用来用作通用的输入窗口
