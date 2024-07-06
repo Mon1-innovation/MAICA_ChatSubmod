@@ -5,6 +5,8 @@ init 5 python:
             eventlabel="maica_prepend_1",
             prompt="你的现实?",
             random=True,
+            conditional="True",
+            action=EV_ACT_QUEUE,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
             },
@@ -40,7 +42,7 @@ init 5 python:
             prompt="maica敲门",
             unlocked=True,
             conditional="store.seen_event('maica_prepend_1')",
-            aff_range=(mas_aff.NORMAL, None)
+            aff_range=(mas_aff.HAPPY, None)
         ),
         code="GRE"
     )
