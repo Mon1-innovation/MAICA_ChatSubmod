@@ -30,7 +30,10 @@ class EmoSelector:
                 pos = 6
             return pos
         self.pre_pos = get_pos(self.repeat_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
-        return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote)
+        if self.emote != "":
+            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote)
+        else:
+            return "idle"
 
     def analyze(self, message):
         import re
@@ -73,7 +76,6 @@ class EmoSelector:
         self.main_strength = 0.0
         self.repeat_strength = 0.0
         self.pre_emotes = []
-        self.emote = ""
     def _fix_strength(self):
         if self.repeat_strength > 1.0:
             self.repeat_strength = 1.0

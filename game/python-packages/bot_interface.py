@@ -24,34 +24,34 @@ logger.info('正在使用logging')
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
-if PY3:
-    from queue import Queue
-else:
-    class Queue(object):
-        def __init__(self):
-            self.items = []
+
+class Queue(object):
+    def __init__(self):
+        self.items = []
+
+    def put(self, item):
+        """将元素加入队列"""
+        self.items.append(item)
     
-        def put(self, item):
-            """将元素加入队列"""
-            self.items.append(item)
+    def get(self):
+        """从队列中取出元素"""
+        if not self.is_empty():
+            return self.items.pop(0)
+        else:
+            raise IndexError("get from empty queue")
+
+    def is_empty(self):
+        """检查队列是否为空"""
+        return len(self.items) == 0
     
-        def get(self):
-            """从队列中取出元素"""
-            if not self.is_empty():
-                return self.items.pop(0)
-            else:
-                raise IndexError("get from empty queue")
-    
-        def is_empty(self):
-            """检查队列是否为空"""
-            return len(self.items) == 0
-    
-        def size(self):
-            """返回队列的大小"""
-            return len(self.items)
-        
-        def __len__(self):
-            return self.size()
+    def size(self):
+        """返回队列的大小"""
+        return len(self.items)
+    def clear(self):
+        """清空队列"""
+        self.items = []
+    def __len__(self):
+        return self.size()
 
 chinese_to_english_punctuation = {
     '，': ', ',
