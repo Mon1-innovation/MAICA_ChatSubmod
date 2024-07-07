@@ -76,7 +76,6 @@ class EmoSelector:
         self.main_strength = 0.0
         self.repeat_strength = 0.0
         self.pre_emotes = []
-        self.emote = ""
     def _fix_strength(self):
         if self.repeat_strength > 1.0:
             self.repeat_strength = 1.0
