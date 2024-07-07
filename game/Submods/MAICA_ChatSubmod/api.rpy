@@ -7,13 +7,13 @@ init 5 python in maica:
     data = {}
     def change_token(content):
         if store.maica.maica.wss_session is not None and store.maica.maica.wss_session.keep_running:
-            return False, _("MAICA 仍在连接中, 请先断开连接")
+            return False, _("MAICA仍在连接中, 请先断开连接")
         store.maica.maica.ciphertext = content.strip()
         renpy.notify(_("请在子模组界面使用已保存的令牌重新连接"))
         return True, content
     store.mas_registerAPIKey(
         "Maica_Token",
-        _("Maica 令牌"),
+        _("MAICA令牌"),
         on_change=change_token
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))

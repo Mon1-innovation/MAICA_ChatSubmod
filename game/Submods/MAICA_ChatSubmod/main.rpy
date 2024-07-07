@@ -9,10 +9,10 @@ label maica_talking:
         while True:
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             question = mas_input(
-                        _("想和我聊什么呢?"),
+                        _("说吧, [player]"),
                         default="",
                         length=50,
-                        screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": "不聊啦"}
+                        screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": "就这样吧"}
                     ).strip(' \t\n\r') #mas_input
             if question == "":
                 continue
