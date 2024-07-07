@@ -16,6 +16,7 @@ class MaicaAi(ChatBotInterface):
     
     class MaicaAiLang:
         zh_cn = "zh"
+        en = "en"
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000

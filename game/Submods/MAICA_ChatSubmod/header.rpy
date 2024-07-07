@@ -220,14 +220,15 @@ screen maica_setting():
             
             hbox:
                 textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
-                    hovered SetField(_tooltip, "value", _("你与莫妮卡的沟通语言"))
+                    action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
+                    hovered SetField(_tooltip, "value", _("你与莫妮卡的沟通语言\n通过system prompt实现, 不能保证输出语言严格正确"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             
             hbox:
                 textbutton _("使用高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
                     action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
-                    hovered SetField(_tooltip, "value", _("在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
+                    hovered SetField(_tooltip, "value", _("在使用前, 请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 textbutton _("刷新参数"):
@@ -288,33 +289,33 @@ screen maica_login():
             spacing 5
 
             hbox:
-                textbutton "输入 DCC 账号用户名":
+                textbutton _("输入 DCC 账号用户名"):
                     action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginAcc")
-                text "或"
-                textbutton "输入 DCC 账号邮箱":
-                    action Show("maica_login_input",message = "请输入DCC 账号邮箱",returnto = "_maica_LoginEmail")
+                text _("或")
+                textbutton _("输入 DCC 账号邮箱"):
+                    action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
 
             hbox:
-                textbutton "输入 DCC 账号密码":
-                    action Show("maica_login_input",message = "请输入DCC 账号密码",returnto = "_maica_LoginPw")
+                textbutton _("输入 DCC 账号密码"):
+                    action Show("maica_login_input",message = _("请输入DCC 账号密码"),returnto = "_maica_LoginPw")
             hbox:
                 text ""
             hbox:
                 if renpy.version_tuple[0] < 8:
-                    textbutton "连接至Maica生成令牌":
+                    textbutton _("连接至服务器生成MAICA令牌"):
                         action [
                             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
                 else:
-                    textbutton "生成令牌":
+                    textbutton _("生成MAICA令牌"):
                         action [
                             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
-                textbutton "取消":
+                textbutton _("取消"):
                     action [Function(_maica_clear), Hide("maica_login")]
 
 
