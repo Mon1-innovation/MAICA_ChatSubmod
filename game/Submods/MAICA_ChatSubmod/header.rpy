@@ -1,7 +1,7 @@
 init -990 python:
     store.mas_submod_utils.Submod(
         author="P",
-        name="MAICA-Blessland",
+        name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
         version='0.0.1',
         settings_pane="maica_setting_pane"
@@ -9,7 +9,7 @@ init -990 python:
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
         store.sup_utils.SubmodUpdater(
-            submod="MAICA-Blessland",
+            submod="MAICA Blessland",
             user_name="Mon1_Innovation",
             repository_name="MAICA_ChatSubmod",
             update_dir="",
@@ -32,7 +32,7 @@ init 10 python:
         "use_custom_model_config":False,
         "sf_extraction":False,
         "chat_session":1,
-        "console":True
+        "console":True,
         "target_lang":None
     }
     default_dict.update(persistent.maica_setting_dict)
