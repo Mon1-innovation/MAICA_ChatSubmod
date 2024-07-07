@@ -218,7 +218,7 @@ screen maica_setting():
             hbox:
                 textbutton "使用自定义模型参数: [persistent.maica_setting_dict.get('use_custom_model_config')]":
                     action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
-                    hovered SetField(_tooltip, "value", "在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题")
+                    hovered SetField(_tooltip, "value", "在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为模型参数")
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 textbutton "立刻更新参数":
@@ -228,7 +228,7 @@ screen maica_setting():
             hbox:
                 textbutton "使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]":
                     action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
-                    hovered SetField(_tooltip, "value", "关闭时，模型将不会使用存档数据")
+                    hovered SetField(_tooltip, "value", "关闭时，模型将不会使用存档数据\n在开启前请务必先上传存档")
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 
 

@@ -5,6 +5,7 @@ label maica_talking:
     python:
         import time
         from store.maica import maica as ai
+        ai.content_func = store.mas_ptod._update_console_history
         while True:
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             question = mas_input(
@@ -17,6 +18,7 @@ label maica_talking:
                 continue
             if question == "nevermind":
                 _return = "canceled"
+                ai.content_func = None
                 break
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
@@ -41,13 +43,14 @@ label maica_talking:
                 store.mas_submod_utils.submod_log.debug("label maica_talking::mes: {}".format(mes))
                 renpy.show("monika {}".format(mes[0]))
                 renpy.say(m, mes[1])
-            _return = "finish"
+            
     # store.mas_ptod.write_command()
 
     # store.mas_ptod._update_console_history([])
 
     
     if persistent.maica_setting_dict['console']:
+        
         $ store.mas_ptod.clear_console()
         hide screen mas_py_console_teaching
         show monika at t11

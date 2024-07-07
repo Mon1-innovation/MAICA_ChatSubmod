@@ -148,7 +148,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def send_to_outside_func(self, content):
         if self.content_func is None:
             return
-        self.content_func(content)
+        content = content.replace("\"", "").replace("'", "").strip()
+        l = content.split("\n")
+        for i in l:
+            self.content_func(i.replace("\n"))
     def update_stat(self, new):
         self.stat.update(new)
     def get_message(self):
