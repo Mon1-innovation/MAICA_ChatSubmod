@@ -30,7 +30,10 @@ class EmoSelector:
                 pos = 6
             return pos
         self.pre_pos = get_pos(self.repeat_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
-        return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote)
+        if self.emote != "":
+            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote)
+        else:
+            return "idle"
 
     def analyze(self, message):
         import re
