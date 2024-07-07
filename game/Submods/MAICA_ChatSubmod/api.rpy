@@ -53,7 +53,7 @@ init 5 python in maica:
     def clear_maica():
         maica.auto_reconnect = False
         maica.close_wss_session()
-        persistent.maica_stat = maica.maica_stat.copy()
+        persistent.maica_stat = maica.stat.copy()
         save_persistent()
     #@store.mas_submod_utils.functionplugin("ch30_preloop")
     #def start_maica():
