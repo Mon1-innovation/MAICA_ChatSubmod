@@ -9,10 +9,10 @@ label maica_talking:
         while True:
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             question = mas_input(
-                        "想和我聊什么呢?",
+                        _("想和我聊什么呢?"),
                         default="",
                         length=50,
-                        screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
+                        screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": "不聊啦"}
                     ).strip(' \t\n\r') #mas_input
             if question == "":
                 continue
@@ -32,7 +32,7 @@ label maica_talking:
                     round(gentime)
                     ))
                 if ai.wss_session.keep_running == False and ai.len_message_queue() == 0:
-                    renpy.say(m, "似乎连接出了问题, 一会再试试吧~")
+                    renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
                     _return = "disconnected"
                     
                 if ai.len_message_queue() == 0:

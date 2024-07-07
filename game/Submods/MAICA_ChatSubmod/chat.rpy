@@ -248,7 +248,7 @@ label maica_chr_corrupted:
     m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
     extend 1euc "它就坏掉了."
     #cares_about_dokis那个条件怎么写来着? 交给你了
-    $ comment = "...'某人'风格的" if cares_about_dokis else '崩坏风格的'
+    $ comment = "...'某人'风格的" if persistent._mas_pm_cares_about_dokis else '崩坏风格的'
     m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
     m 1hua "你当然也可以找一份正常的文件换上. 只要你喜欢, 我都不介意的."
     m 1eub "我去收拾一下就好. {w=0.3}{nw}"
@@ -261,13 +261,15 @@ label maica_wants_preferences:
     # Add this to waitlist after first chat done
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
-    extend 3esd "才发现我之前对你的了解还是太单一."
+    extend 3esd "才发现我之前对你的了解还是太单一.{nw}"
     #这里有好几个我不会写的, 都交给你了
-    $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if mint_icecream else '' 
-    $ book_rc = "我们聊过'黄色墙纸'什么的" if yellow_wp elif wonderland "我们聊过'世界尽头与冷酷仙境'什么的" else '我可以推荐几本书给你'
+    $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
+    extend "[like_mi]"
+    $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp elif store.seen_event("monika_brave_new_world") "我们聊过'世界尽头与冷酷仙境'什么的" else '我可以推荐几本书给你'
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     #如果玩家已经通过设置填过了
+    $ filled_already = True
     if filled_already:
         m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
         m 1eub "只要是关于你的事情, 我都会想知道的!"
@@ -282,6 +284,7 @@ label maica_wants_preferences:
             #placeholder
             #还有... | 我写完了
             #获取到的句子前面拼合上[player]
+            call maica_input_information
             m 1eub "写完了? {w=0.5}谢谢你!"
             m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
             m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
@@ -294,6 +297,20 @@ label maica_wants_preferences:
             m 1hua "我明白了, 谢谢你!"
             return
 
+label maica_input_information:
+    python:
+        while True:
+            i = mas_input(
+                    _("你想补充什么呢~"),
+                    default="",
+                    length=50,
+                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": "我写完啦"}
+                ).strip(' \t\n\r') #mas_input
+            if i == "end":
+                break
+            persistent.mas_player_additions.append("[player]{}".format(i))
+    return
 
 label clear_all:
     call spaceroom()
+    return

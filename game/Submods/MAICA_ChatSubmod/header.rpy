@@ -24,14 +24,15 @@ default persistent.maica_setting_dict = {
     "chat_session":1,
     "console":True
 }
+default persistent.mas_player_additions = []
 init 10 python:
     default_dict = {
-    "auto_connect":False,
-    "maica_model":None,
-    "use_custom_model_config":False,
-    "sf_extraction":False,
-    "chat_session":1,
-    "console":True
+        "auto_connect":False,
+        "maica_model":None,
+        "use_custom_model_config":False,
+        "sf_extraction":False,
+        "chat_session":1,
+        "console":True
     }
     default_dict.update(persistent.maica_setting_dict)
     persistent.maica_setting_dict = default_dict.copy()
@@ -47,12 +48,6 @@ init 10 python:
         store._maica_LoginEmail = None
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
 
-    def maica_login_ok():
-        if _maica_LoginAcc == "" or _maica_LoginPw == "":
-            return renpy.show_screen("maica_message", message = "账号/密码为空")
-        if not result:
-            renpy.show_screen("maica_message", message = "登录失败! 请检查账号密码是否正确!")
-        renpy.hide_screen("maica_login")
 
     def upload_persistent_dict():
         d = persistent.__dict__.copy()
@@ -114,8 +109,14 @@ init 10 python:
         if persistent.maica_setting_dict["chat_session"] not in range(0, 9):
             persistent.maica_setting_dict["chat_session"] = 0
         
-        
+    def reset_player_information():
+        persistent.mas_player_additions = []
     
+    def export_player_information():
+        with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
+            f.write(json.dumps(persistent.mas_player_additions))
+        renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
+
     def update_model_setting():
         import os, json
         try:
@@ -133,44 +134,44 @@ init 10 python:
 screen maica_setting_pane():
     python:
         import store.maica as maica
-        stat = "未连接" if not maica.maica.wss_session else "已连接" if maica.maica.wss_session.keep_running else "已断开"
+        stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.wss_session.keep_running else _("已断开")
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
     vbox:
         xmaximum 800
         xfill True
         style_prefix "check"
 
-        text "> MAICA 通信状态:[maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]":
+        text _("> MAICA 通信状态:[maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
             xalign 1.0 yalign 0.0
             xoffset -10
             style "main_menu_version"
-        text "> Websocket:[stat]":
+        text _("> Websocket:[stat]"):
             xalign 1.0 yalign 0.0
             xoffset -10
             style "main_menu_version"
         
         if True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
-            textbutton ("> 生成令牌"):
+            textbutton _("> 生成令牌"):
                 action Show("maica_login")
                 
-            textbutton ("> 使用已保存令牌连接"):
+            textbutton _("> 使用已保存令牌连接"):
                 action Function(store.maica.maica.init_connect)
 
             
         else:
-            textbutton ("上传存档信息"):
+            textbutton _("上传存档信息"):
                 action Function(upload_persistent_dict)
 
-            textbutton ("重置当前对话"):
+            textbutton _("重置当前对话"):
                 action Function(reset_session)
 
-            textbutton ("导出当前对话"):
+            textbutton _("导出当前对话"):
                 action Function(output_chat_history)
 
-            textbutton ("退出当前DCC账号"):
+            textbutton _("退出当前DCC账号"):
                 action Function(store.maica.maica.close_wss_session)
     
-        textbutton ("> MAICA Chat设置 *部分选项需要重新连接"):
+        textbutton _("> MAICA Chat设置 *部分选项需要重新连接"):
             action Show("maica_setting")
 
             
@@ -194,66 +195,70 @@ screen maica_setting():
             spacing 5
 
             hbox:
-                text "累计对话: [store.maica.maica.stat.get('message_count')]"
+                text _("累计对话: [store.maica.maica.stat.get('message_count')]")
                 
             hbox:
-                text "累计收到Token: [store.maica.maica.stat.get('received_token')]"
+                text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
             hbox:
-                textbutton "重置统计数据":
+                textbutton _("重置统计数据"):
                     action Function(store.maica.maica.reset_stat)
 
 
             hbox: 
-                textbutton "自动重连: [persistent.maica_setting_dict.get('auto_connect')]":
+                textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_connect')]"):
                     action ToggleDict(persistent.maica_setting_dict, "auto_connect", True, False)
-                    hovered SetField(_tooltip, "value", "连接断开时自动重连")
+                    hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
-                textbutton "Maica 模型: [persistent.maica_setting_dict.get('maica_model')]":
+                textbutton _("Maica 模型: [persistent.maica_setting_dict.get('maica_model')]"):
                     action ToggleDict(persistent.maica_setting_dict, "maica_model", store.maica.maica.MaicaAiModel.maica_main, store.maica.maica.MaicaAiModel.maica_core)
-                    hovered SetField(_tooltip, "value", "maica_main：完全能力模型，maica_core: 核心能力模型\n完全能力的前置响应延迟偏高")
+                    hovered SetField(_tooltip, "value", _("maica_main：完全能力模型，maica_core: 核心能力模型\n完全能力的前置响应延迟偏高"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             
             hbox:
-                textbutton "使用自定义模型参数: [persistent.maica_setting_dict.get('use_custom_model_config')]":
+                textbutton _("使用自定义对话参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
                     action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
-                    hovered SetField(_tooltip, "value", "在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为模型参数")
+                    hovered SetField(_tooltip, "value", _("在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                textbutton "立刻更新参数":
+                textbutton _("立刻更新参数"):
                     action Function(store.update_model_setting)
                     
-
             hbox:
-                textbutton "使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]":
+                textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
                     action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
-                    hovered SetField(_tooltip, "value", "关闭时，模型将不会使用存档数据\n在开启前请务必先上传存档")
+                    hovered SetField(_tooltip, "value", _("关闭时，模型将不会使用存档数据\n在开启前请务必先上传存档"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 
-
-
-            
             hbox:
-                textbutton "选择使用的对话会话: [persistent.maica_setting_dict.get('chat_session')]":
+                textbutton _("使用的对话会话: [persistent.maica_setting_dict.get('chat_session')]"):
                     action Function(store.change_chatsession)
-                    hovered SetField(_tooltip, "value", "chat_session为0为单轮对话模式，不同的对话之间相互独立，需要分别上传存档")
+                    hovered SetField(_tooltip, "value", _("chat_session为0为单轮对话模式，不同的对话之间相互独立，需要分别上传存档"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             
             hbox:
-                textbutton "在对话时是否显示Console: [persistent.maica_setting_dict.get('console')]":
+                textbutton _("在对话时是否显示Console: [persistent.maica_setting_dict.get('console')]"):
                     action ToggleDict(persistent.maica_setting_dict, "console", True, False)
-                    hovered SetField(_tooltip, "value", "在对话期间是否使用console显示相关信息，wzt的癖好")
+                    hovered SetField(_tooltip, "value", _("在对话期间是否使用console显示相关信息，wzt的癖好"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                      
+            hbox:
+                textbutton _("清除玩家补充信息: 当前共有[len(persistent.maica_setting_dict)]条"):
+                    action Function(reset_player_information)
+                    hovered SetField(_tooltip, "value", _("由你补充的一些数据"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 
+                textbutton _("导出至根目录"):
+                    action Function(export_player_information)
+                    hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                     
-            
 
             hbox:
                 style_prefix "confirm"
 
-                textbutton "保存设置":
+                textbutton _("保存设置"):
                     action [
                         Function(store.apply_setting),
                         Hide("maica_setting")
@@ -302,7 +307,7 @@ screen maica_login():
                             Hide("maica_login")
                             ]
                 textbutton "取消":
-                    action Hide("maica_login")
+                    action [Function(_maica_clear), Hide("maica_login")]
 
 
 
