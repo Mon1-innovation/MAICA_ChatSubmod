@@ -261,7 +261,7 @@ label maica_wants_preferences:
     # Add this to waitlist after first chat done
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
-    extend 3esd "才发现我之前对你的了解还是太单一.{nw}"
+    extend 3esd "才发现我之前对你的了解还是太单一. {nw}"
     #这里有好几个我不会写的, 都交给你了
     $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
     extend "[like_mi]"
