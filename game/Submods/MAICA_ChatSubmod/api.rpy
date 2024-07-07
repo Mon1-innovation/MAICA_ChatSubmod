@@ -38,10 +38,16 @@ init 5 python in maica:
         with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
             sentiment = json.loads(emost.read())
         return sentiment
+    
+    def init_eoc():
+        with(open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_eoc.json"), "r")) as eocs:
+            eoc = json.loads(eocs.read())
+        return eoc
 
     maica.MoodStatus.selector = init_selector()
     maica.MoodStatus.storage = init_storage()
     maica.MoodStatus.sentiment = init_sentiment()
+    maica.MoodStatus.eoc = init_eoc()
 
     @store.mas_submod_utils.functionplugin("_quit")
     def clear_maica():
