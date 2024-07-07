@@ -89,7 +89,7 @@ init 10 python:
                 except:
                     d[i] = "REMOVED"
         res = store.maica.maica.upload_save(d)
-        renpy.notify(res.get("success", "上传失败"))
+        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败"))
 
     def reset_session():
         store.maica.maica.reset_chat_session()

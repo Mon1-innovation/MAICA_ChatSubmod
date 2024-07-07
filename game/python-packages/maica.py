@@ -112,7 +112,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def_modelconfig = {
         "top_p":[0.1, 1.0, 0.7],
         "temperature":[0.0, 1.0, 0.4],
-        "max_tokens":[0, 128, None],
+        "max_tokens":[0, 1024, None],
         "frequency_penalty":[0.0, 1.0, 0.0],
         "presence_penalty":[0.0, 1.0, 0.0],
         "seed":[0, 999, None]
