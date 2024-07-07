@@ -106,7 +106,7 @@ init 10 python:
     
     def change_chatsession():
         persistent.maica_setting_dict["chat_session"] += 1
-        if persistent.maica_setting_dict["chat_session"] not in range(0, 9):
+        if persistent.maica_setting_dict["chat_session"] not in range(0, 10):
             persistent.maica_setting_dict["chat_session"] = 0
         
     def reset_player_information():
@@ -244,7 +244,7 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                       
             hbox:
-                textbutton _("清除玩家补充信息: 当前共有[len(persistent.maica_setting_dict)]条"):
+                textbutton _("清除玩家补充信息: 当前共有[len(persistent.mas_player_additions)]条"):
                     action Function(reset_player_information)
                     hovered SetField(_tooltip, "value", _("由你补充的一些数据"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)

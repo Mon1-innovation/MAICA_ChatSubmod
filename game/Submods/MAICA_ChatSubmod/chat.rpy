@@ -265,12 +265,12 @@ label maica_wants_preferences:
     #这里有好几个我不会写的, 都交给你了
     $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
     extend "[like_mi]"
-    $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp elif store.seen_event("monika_brave_new_world") "我们聊过'世界尽头与冷酷仙境'什么的" else '我可以推荐几本书给你'
+    $ book_rc = "我们聊过'世界尽头与冷酷仙境'什么的" if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp and book_rc is None else '我可以推荐几本书给你'
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     #如果玩家已经通过设置填过了
-    $ filled_already = True
-    if filled_already:
+    if persistent.mas_player_additions == []:
         m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
         m 1eub "只要是关于你的事情, 我都会想知道的!"
     else:
