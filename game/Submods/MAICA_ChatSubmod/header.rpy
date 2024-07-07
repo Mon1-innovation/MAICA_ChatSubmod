@@ -22,9 +22,20 @@ default persistent.maica_setting_dict = {
     "use_custom_model_config":False,
     "sf_extraction":False,
     "chat_session":1,
-    "console":False
+    "console":True
 }
 init 10 python:
+    default_dict = {
+    "auto_connect":False,
+    "maica_model":None,
+    "use_custom_model_config":False,
+    "sf_extraction":False,
+    "chat_session":1,
+    "console":True
+    }
+    default_dict.update(persistent.maica_setting_dict)
+    persistent.maica_setting_dict = default_dict.copy()
+
     if persistent.maica_setting_dict["maica_model"] is None:
         persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
     _maica_LoginAcc = ""
@@ -230,7 +241,7 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             
             hbox:
-                textbutton "选择使用的对话会话: [persistent.maica_setting_dict.get('console')]":
+                textbutton "在对话时是否显示Console: [persistent.maica_setting_dict.get('console')]":
                     action ToggleDict(persistent.maica_setting_dict, "console", True, False)
                     hovered SetField(_tooltip, "value", "在对话期间是否使用console显示相关信息，wzt的癖好")
                     unhovered SetField(_tooltip, "value", _tooltip.default)

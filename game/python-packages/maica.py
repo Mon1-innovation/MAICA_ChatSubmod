@@ -6,7 +6,7 @@ import emotion_analyze_v2
 
 import websocket
 websocket._logging._logger = logger
-websocket._logging.enableTrace(True)
+websocket._logging.enableTrace(False)
 
 
 class MaicaAi(ChatBotInterface):
@@ -130,12 +130,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.sf_extraction = False
         self.stream_output = True
         self.update_screen_func = None
+        self.content_func = None
         # 待发送消息队列
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
         self.status = self.MaicaAiStatus.NOT_READY
         self.history_status = None
-        self._gen_token(account, pwd, token) if account != "" and pwd != "" else ""
+        self._gen_token(account, pwd, token) 
         self.modelconfig = {}
         self.reset_stat()
         self.auto_reconnect = False
@@ -144,6 +145,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "message_count":0,
             "received_token":0
         }
+    def send_to_outside_func(self, content):
+        if self.content_func is None:
+            return
+        self.content_func(content)
     def update_stat(self, new):
         self.stat.update(new)
     def get_message(self):
@@ -288,8 +293,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.debug("_on_message: {}".format(message))
         
         logger.debug("self.status: {}".format(self.status))
+        
         import json
         data = json.loads(message)
+        if data.get("type", False) != "carriage":
+            self.send_to_outside_func(data.get("content", "Error: Data frame is received but content is empty"))
         logger.debug("data.status in process: {}".format(data["status"] in ("delete_hint", "delete", "session_created", "nickname", "ok", "continue", "streaming_done")))
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
@@ -364,7 +372,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def chat(self, message):
         if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
             raise RuntimeError("Maica not ready to chat")
-        
+        self.senddata_queue.clear()
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
         self.stat['message_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND

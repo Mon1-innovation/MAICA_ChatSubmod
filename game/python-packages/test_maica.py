@@ -3,7 +3,7 @@
 
 import maica, os
 import emotion_analyze
-ai = maica.MaicaAi("", "", "")
+ai = maica.MaicaAi("", "", token = "Die3i9eiHt+WOYiGKBeNwLQanPgXKNald8Y+df9Vnb/+2FjZYbO+pF6rl/A55xTyEsD1knLQ71x25+IIVLolArdLz5FQ7BS6teF5AfQVc6djj/j7gGCXkL3fnkQLJWhCs0LPuBmeO0FFyiyQonMkZfswfVtfntlDf+fc/gcK1dKww/lXU6mfwwmh3BZ8g1vlyH4JtRJFisOGsflNIWsEpyuwf1yJT57WmCrisKawukU9XWJpKdmscABDT4frSW05yyBqYVKUnqVX7kfemOrxOhkaWk7L3jILVQp/WlxizRJ99KtDDUso8hNJ/3mfdCS1CB5LBazdPnuCKfATVKN0xA==")
 print(ai.ciphertext)
 ai.sf_extraction = True
 ai.model = ai.MaicaAiModel.maica_main
