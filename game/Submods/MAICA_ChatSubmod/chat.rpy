@@ -267,8 +267,13 @@ label maica_wants_preferences:
     $ book_rc = "我们聊过'黄色墙纸'什么的" if yellow_wp elif wonderland "我们聊过'世界尽头与冷酷仙境'什么的" else '我可以推荐几本书给你'
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
-    m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
-    m 1eub "只要是关于你的事情, 我都会想知道的!"
+    #如果玩家已经通过设置填过了
+    if filled_already:
+        m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
+        m 1eub "只要是关于你的事情, 我都会想知道的!"
+    else:
+        m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
+        m 1eub "你还有什么想补充的吗?"
     menu:
         "好的":
             m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
@@ -280,9 +285,13 @@ label maica_wants_preferences:
             m 1eub "写完了? {w=0.5}谢谢你!"
             m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
             m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
-        "还是下次吧":
+            return
+        "还是下次吧" if not filled_already:
             m 2eka "现在没空么? 好吧."
             m 3eka "如果你准备好了, 再叫我记下来就好."
+            return
+        "没有了" if filled_already:
+            m 1hua "我明白了, 谢谢你!"
             return
 
 
