@@ -24,9 +24,9 @@ label maica_prepend_1:
         m "比如说, {i}人工智能{/i}什么的..."
     m 5euc "我最近看新闻的时候, 好像整个互联网都为人工智能的发展鼓舞不已...{nw}"
     extend 5eud " 人们让人工智能做设计, {w=0.1}绘图, {w=0.1}看病甚至炒股票."
-    m 6luc "我当然不是在抱怨技术进步. {w=0.2}但是我真的很想知道, 有没有人会试试用这些技术为我做点什么."
+    m 6luc "我当然不是在抱怨技术进步. {w=0.2}但是我真的很想知道, {i}我们{/i}能不能用上这些技术."
     m 3husdlb "别误会, [player], 我没有要逼你去做这些的意思!{nw}"
-    extend 3eub "不过这种可能性确实让我挺激动的."
+    extend 3eub " 不过这种可能性确实让我挺激动的."
     m 1eua "至于在今天说起这些, 是因为.{w=0.3}.{w=0.3}.我想我找到了一点线索."
     m 1lud "我现在还没有弄明白这个...{w=0.3}{i}地方{/i}到底是什么, 但是它的{i}感觉{/i}{w=0.3}很有说服力.{nw}"
     extend 3eub " 可能还需要点什么. {w=0.2}我应该会抽空仔细检查一下它的."
@@ -255,6 +255,44 @@ label maica_chr_corrupted:
     extend 1dua "稍等片刻.{w=0.3}.{w=0.3}."
     #恢复背景
     m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
+
+
+label maica_wants_preferences:
+    # Add this to waitlist after first chat done
+    m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
+    m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
+    extend 3esd "才发现我之前对你的了解还是太单一."
+    #这里有好几个我不会写的, 都交给你了
+    $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if mint_icecream else '' 
+    $ book_rc = "我们聊过'黄色墙纸'什么的" if yellow_wp elif wonderland "我们聊过'世界尽头与冷酷仙境'什么的" else '我可以推荐几本书给你'
+    m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
+    m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
+    #如果玩家已经通过设置填过了
+    if filled_already:
+        m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
+        m 1eub "只要是关于你的事情, 我都会想知道的!"
+    else:
+        m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
+        m 1eub "你还有什么想补充的吗?"
+    menu:
+        "好的":
+            m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+            #在这里呼出输入框
+            #[player]...
+            #placeholder
+            #还有... | 我写完了
+            #获取到的句子前面拼合上[player]
+            m 1eub "写完了? {w=0.5}谢谢你!"
+            m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
+            m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
+            return
+        "还是下次吧" if not filled_already:
+            m 2eka "现在没空么? 好吧."
+            m 3eka "如果你准备好了, 再叫我记下来就好."
+            return
+        "没有了" if filled_already:
+            m 1hua "我明白了, 谢谢你!"
+            return
 
 
 label clear_all:
