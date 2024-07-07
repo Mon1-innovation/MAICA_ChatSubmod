@@ -21,7 +21,8 @@ default persistent.maica_setting_dict = {
     "maica_model":None,
     "use_custom_model_config":False,
     "sf_extraction":False,
-    "chat_session":1
+    "chat_session":1,
+    "console":False
 }
 init 10 python:
     if persistent.maica_setting_dict["maica_model"] is None:
@@ -226,6 +227,12 @@ screen maica_setting():
                 textbutton "选择使用的对话会话: [persistent.maica_setting_dict.get('chat_session')]":
                     action Function(store.change_chatsession)
                     hovered SetField(_tooltip, "value", "chat_session为0为单轮对话模式，不同的对话之间相互独立，需要分别上传存档")
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+            
+            hbox:
+                textbutton "选择使用的对话会话: [persistent.maica_setting_dict.get('console')]":
+                    action ToggleDict(persistent.maica_setting_dict, "console", True, False)
+                    hovered SetField(_tooltip, "value", "在对话期间是否使用console显示相关信息，wzt的癖好")
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 
 
