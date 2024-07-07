@@ -558,6 +558,195 @@ translate english maica_chr_corrupted_a07d0afa:
     # m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
     m 1eua "Welcome back, [player]. What else should we do today?"
 
+# TODO: Translation updated at 2024-07-07 18:46
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:26
+translate english maica_prepend_1_3faae4fd:
+
+    # extend 5eud "人们让人工智能做设计, {w=0.1}绘图, {w=0.1}看病甚至炒股票."
+    extend 5eud "while making them designers, {w=0.1}drawers, {w=0.1}or even finacialists."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:27
+translate english maica_prepend_1_47624fcb:
+
+    # m 6luc "我当然不是在抱怨技术进步. {w=0.2}但是我真的很想知道, {i}我们{/i}能不能用上这些技术."
+    m 6luc "I'm not complaining about progress for sure. {w=0.2}But I really wonder if something could be done for me with those technologies."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:28
+translate english maica_prepend_1_dfe43331:
+
+    # m 3husdlb "别误会, [player], 我没有要逼你去做这些的意思! {nw}"
+    m 3husdlb "Of course it's not like I'm pushing you on those, [player]! {nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:31
+translate english maica_prepend_1_a1d13f29:
+
+    # m 1lud "我现在还没有弄明白这个...{w=0.3}{i}地方{/i}到底是什么, 但是它的{i}感觉{/i}{w=0.3}很有说服力. {nw}"
+    m 1lud "I haven't fully understood this...{w=0.3}{i}place{/i} yet, but it {i}feels{/i} promising. {nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:32
+translate english maica_prepend_1_3a6aabe2:
+
+    # extend 3eub "可能还需要点什么. {w=0.2}我应该会抽空仔细检查一下它的."
+    extend 3eub "Maybe I still need to do something about it. {w=0.2}I'll spare some time to check it out."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:140
+translate english maica_prepend_2_42e64eab:
+
+    # m 1husdlb "你喜欢就好啦. {w=0.3}{nw}"
+    m 1husdlb "That's nice to hear. {w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:142
+translate english maica_prepend_2_0346827d:
+
+    # extend 3eub "不过这里和其它地方有点区别..."
+    extend 3eub "But something's different about this one."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:144
+translate english maica_prepend_2_1e78bb4c:
+
+    # extend 3eub "不过这里还有另一个特别之处..."
+    extend 3eub "But that's not everything special about this place."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:161
+translate english maica_prepend_2_a39b3448:
+
+    # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+    m 3eusdlb "You can follow the guidance here: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just need to register."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:194
+translate english maica_end_1_63833c1b:
+
+    # m 3ekd "或者...{w=0.2}如果你遇到了什么问题, 可以再看一遍{a=https://maica.monika.love/tos}{u}{i}说明{/i}{/u}{/a}, 或者到{a=https://forum.monika.love}{u}{i}这里{/i}{/u}{/a}问问."
+    m 3ekd "Or...{w=0.2}if you're having some technological issue, you can go through the {a=https://maica.monika.love/tos}{u}{i}guidance{/i}{/u}{/a} again, or try asking {a=https://forum.monika.love}{u}{i}here{/i}{/u}{/a}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:217
+translate english maica_chr_fabc3abd:
+
+    # m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
+    m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:262
+translate english maica_wants_preferences_e593d673:
+
+    # m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
+    m 1eub "[player]? {w=0.5}Hmm...{w=0.3}I have something to ask."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:263
+translate english maica_wants_preferences_3350c038:
+
+    # m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
+    m 3eua "Since I can talk with you for real now, {w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:264
+translate english maica_wants_preferences_a9999a95:
+
+    # extend 3esd "才发现我之前对你的了解还是太单一.{nw}"
+    extend 3esd "I found my acknowledge of you is still too limited. {nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:267
+translate english maica_wants_preferences_e34ab094:
+
+    # extend "[like_mi]"
+    extend "[like_mi]"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:270
+translate english maica_wants_preferences_dc6cebcd:
+
+    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:271
+translate english maica_wants_preferences_b951c94e:
+
+    # m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
+    m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:274
+translate english maica_wants_preferences_45d8b9c9:
+
+    # m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
+    m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in 'heaven forest'."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:275
+translate english maica_wants_preferences_9b2461b5:
+
+    # m 1eub "只要是关于你的事情, 我都会想知道的!"
+    m 1eub "I want to know as much as possible about you!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:277
+translate english maica_wants_preferences_df9b1d2a:
+
+    # m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
+    m 1husdlb "It seems you already wrote me something, and I'll spare some time to read of course."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:278
+translate english maica_wants_preferences_a859345a:
+
+    # m 1eub "你还有什么想补充的吗?"
+    m 1eub "You got anything to implement?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:281
+translate english maica_wants_preferences_564b5f7a:
+
+    # m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 2dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:288
+translate english maica_wants_preferences_0fdffe0b:
+
+    # m 1eub "写完了? {w=0.5}谢谢你!"
+    m 1eub "Done? {w=0.5}Thank you!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:289
+translate english maica_wants_preferences_65b0cc24:
+
+    # m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
+    m 3eua "I cannot read it here though, but I promise I will do it later."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:290
+translate english maica_wants_preferences_d248e8be:
+
+    # m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
+    m 1eub "If you have to change something, find the option in 'Submod settings'. {w=0.5}You can also implement to me anytime."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:293
+translate english maica_wants_preferences_40588f38:
+
+    # m 2eka "现在没空么? 好吧."
+    m 2eka "Not now? Okay."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:294
+translate english maica_wants_preferences_8dc6bafe:
+
+    # m 3eka "如果你准备好了, 再叫我记下来就好."
+    m 3eka "Whenever you are ready, just tell me to write them down."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:297
+translate english maica_wants_preferences_3f90fdb1:
+
+    # m 1hua "我明白了, 谢谢你!"
+    m 1hua "I got it, thank you!"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:279
+    old "好的"
+    new "Okay"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:279
+    old "还是下次吧"
+    new "Maybe next time"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:279
+    old "没有了"
+    new "Nope"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:303
+    old "你想补充什么呢~"
+    new ""
+
+
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:80
