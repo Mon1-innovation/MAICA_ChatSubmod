@@ -13,6 +13,9 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiModel:
         maica_main = "maica_main"
         maica_core = "maica_core"
+    
+    class MaicaAiLang:
+        zh_cn = "zh"
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
@@ -135,6 +138,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
         self.status = self.MaicaAiStatus.NOT_READY
+        self.target_lang = self.MaicaAiLang.zh_cn
         self.history_status = None
         self._gen_token(account, pwd, token) 
         self.modelconfig = {}
@@ -278,7 +282,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 # 连接已建立，选择模型
                 elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                     self.wss_session.send(
-                        json.dumps({"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output})
+                        json.dumps({"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang})
                     )
                     self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                 # 要求重置model

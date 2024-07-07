@@ -33,12 +33,15 @@ init 10 python:
         "sf_extraction":False,
         "chat_session":1,
         "console":True
+        "target_lang":None
     }
     default_dict.update(persistent.maica_setting_dict)
     persistent.maica_setting_dict = default_dict.copy()
 
     if persistent.maica_setting_dict["maica_model"] is None:
         persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
+    if persistent.maica_setting_dict["target_lang"] is None:
+        persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.zh_cn
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
     _maica_LoginEmail = None
@@ -213,6 +216,11 @@ screen maica_setting():
                 textbutton _("Maica 模型: [persistent.maica_setting_dict.get('maica_model')]"):
                     action ToggleDict(persistent.maica_setting_dict, "maica_model", store.maica.maica.MaicaAiModel.maica_main, store.maica.maica.MaicaAiModel.maica_core)
                     hovered SetField(_tooltip, "value", _("maica_main：完全能力模型，maica_core: 核心能力模型\n完全能力的前置响应延迟偏高"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+            
+            hbox:
+                textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
+                    hovered SetField(_tooltip, "value", _("你与莫妮卡的沟通语言"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             
