@@ -17,7 +17,7 @@ init -989 python:
         )
 
 default persistent.maica_setting_dict = {
-    "auto_connect":False,
+    "auto_reconnect":False,
     "maica_model":None,
     "use_custom_model_config":False,
     "sf_extraction":False,
@@ -27,7 +27,7 @@ default persistent.maica_setting_dict = {
 default persistent.mas_player_additions = []
 init 10 python:
     default_dict = {
-        "auto_connect":False,
+        "auto_reconnect":False,
         "maica_model":None,
         "use_custom_model_config":False,
         "sf_extraction":False,
@@ -100,7 +100,7 @@ init 10 python:
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt")
     
     def apply_setting():
-        store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_connect"]
+        store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             update_model_setting()
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
@@ -208,8 +208,8 @@ screen maica_setting():
 
 
             hbox: 
-                textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_connect')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "auto_connect", True, False)
+                textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
                     hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
@@ -263,6 +263,10 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
+            if renpy.config.debug:
+                hbox:
+                    textbutton "MASEventList.push(maica_talking)":
+                        action Function(store.MASEventList.push, "maica_talking")
 
             hbox:
                 style_prefix "confirm"
