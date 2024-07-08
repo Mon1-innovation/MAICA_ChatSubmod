@@ -49,12 +49,11 @@ init 5 python in maica:
     maica.MoodStatus.sentiment = init_sentiment()
     maica.MoodStatus.eoc = init_eoc()
 
-    @store.mas_submod_utils.functionplugin("_quit")
+    @store.mas_submod_utils.functionplugin("_quit", )
     def clear_maica():
         maica.auto_reconnect = False
         maica.close_wss_session()
-        persistent.maica_stat = maica.stat.copy()
-        save_persistent()
+        store.persistent.maica_stat = maica.stat.copy()
     #@store.mas_submod_utils.functionplugin("ch30_preloop")
     #def start_maica():
     #    if store.mas_getAPIKey("Maica_Token") == "":

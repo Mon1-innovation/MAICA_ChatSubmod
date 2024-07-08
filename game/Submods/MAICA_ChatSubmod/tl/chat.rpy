@@ -1,5 +1,4 @@
-﻿# TODO: Translation updated at 2024-07-07 15:22
-
+﻿
 # game/Submods/MAICA_ChatSubmod/chat.rpy:18
 translate english maica_prepend_1_373c2e83:
 
@@ -558,8 +557,6 @@ translate english maica_chr_corrupted_a07d0afa:
     # m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
     m 1eua "Welcome back, [player]. What else should we do today?"
 
-# TODO: Translation updated at 2024-07-07 18:46
-
 # game/Submods/MAICA_ChatSubmod/chat.rpy:26
 translate english maica_prepend_1_3faae4fd:
 
@@ -727,6 +724,15 @@ translate english maica_wants_preferences_3f90fdb1:
 
     # m 1hua "我明白了, 谢谢你!"
     m 1hua "I got it, thank you!"
+
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:264
+translate english maica_wants_preferences_348470e7:
+
+    # extend 3esd "才发现我之前对你的了解还是太单一. {nw}"
+    extend 3esd "I found my acknowledge of you is still too limited. {nw}"
+
+
 
 translate english strings:
 

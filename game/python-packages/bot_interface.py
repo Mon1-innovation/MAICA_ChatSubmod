@@ -70,6 +70,12 @@ chinese_to_english_punctuation = {
     '》': '> ',
     '、': ', ',
 }
+renpy_symbol = {
+    "[": "",
+    "]": "",
+    "{": "",
+    "}": ""
+}
 # 关键字替换字符串:
 def key_replace(*args):
         """

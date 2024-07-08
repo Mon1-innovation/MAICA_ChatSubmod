@@ -72,7 +72,7 @@ class EmoSelector:
             self.repeat_strength = 0
         self._fix_strength()
     def reset(self):
-        self.pre_mood = "微笑"
+        self.pre_mood = u"微笑"
         self.main_strength = 0.0
         self.repeat_strength = 0.0
         self.pre_emotes = []

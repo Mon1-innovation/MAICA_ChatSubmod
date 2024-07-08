@@ -1,7 +1,7 @@
 init -990 python:
     store.mas_submod_utils.Submod(
         author="P",
-        name="MAICA-Blessland",
+        name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
         version='0.0.1',
         settings_pane="maica_setting_pane"
@@ -9,7 +9,7 @@ init -990 python:
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
         store.sup_utils.SubmodUpdater(
-            submod="MAICA-Blessland",
+            submod="MAICA Blessland",
             user_name="Mon1_Innovation",
             repository_name="MAICA_ChatSubmod",
             update_dir="",
@@ -17,7 +17,7 @@ init -989 python:
         )
 
 default persistent.maica_setting_dict = {
-    "auto_connect":False,
+    "auto_reconnect":False,
     "maica_model":None,
     "use_custom_model_config":False,
     "sf_extraction":False,
@@ -27,18 +27,21 @@ default persistent.maica_setting_dict = {
 default persistent.mas_player_additions = []
 init 10 python:
     default_dict = {
-        "auto_connect":False,
+        "auto_reconnect":False,
         "maica_model":None,
         "use_custom_model_config":False,
         "sf_extraction":False,
         "chat_session":1,
-        "console":True
+        "console":True,
+        "target_lang":None
     }
     default_dict.update(persistent.maica_setting_dict)
     persistent.maica_setting_dict = default_dict.copy()
 
     if persistent.maica_setting_dict["maica_model"] is None:
         persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
+    if persistent.maica_setting_dict["target_lang"] is None:
+        persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.zh_cn
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
     _maica_LoginEmail = None
@@ -86,7 +89,7 @@ init 10 python:
                 except:
                     d[i] = "REMOVED"
         res = store.maica.maica.upload_save(d)
-        renpy.notify(res.get("success", "上传失败"))
+        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败"))
 
     def reset_session():
         store.maica.maica.reset_chat_session()
@@ -97,7 +100,7 @@ init 10 python:
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt")
     
     def apply_setting():
-        store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_connect"]
+        store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             update_model_setting()
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
@@ -205,8 +208,8 @@ screen maica_setting():
 
 
             hbox: 
-                textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_connect')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "auto_connect", True, False)
+                textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
                     hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
@@ -214,12 +217,18 @@ screen maica_setting():
                     action ToggleDict(persistent.maica_setting_dict, "maica_model", store.maica.maica.MaicaAiModel.maica_main, store.maica.maica.MaicaAiModel.maica_core)
                     hovered SetField(_tooltip, "value", _("maica_main：完全能力模型，maica_core: 核心能力模型\n完全能力的前置响应延迟偏高"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+            
+            hbox:
+                textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
+                    hovered SetField(_tooltip, "value", _("你与莫妮卡的沟通语言\n通过system prompt实现, 不能保证输出语言严格正确"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
             
             hbox:
                 textbutton _("使用高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
                     action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
-                    hovered SetField(_tooltip, "value", _("在使用前，请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
+                    hovered SetField(_tooltip, "value", _("在使用前, 请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 textbutton _("刷新参数"):
@@ -254,6 +263,10 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
+            if renpy.config.debug:
+                hbox:
+                    textbutton "MASEventList.push(maica_talking)":
+                        action Function(store.MASEventList.push, "maica_talking")
 
             hbox:
                 style_prefix "confirm"
@@ -280,33 +293,33 @@ screen maica_login():
             spacing 5
 
             hbox:
-                textbutton "输入 DCC 账号用户名":
+                textbutton _("输入 DCC 账号用户名"):
                     action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginAcc")
-                text "或"
-                textbutton "输入 DCC 账号邮箱":
-                    action Show("maica_login_input",message = "请输入DCC 账号邮箱",returnto = "_maica_LoginEmail")
+                text _("或")
+                textbutton _("输入 DCC 账号邮箱"):
+                    action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
 
             hbox:
-                textbutton "输入 DCC 账号密码":
-                    action Show("maica_login_input",message = "请输入DCC 账号密码",returnto = "_maica_LoginPw")
+                textbutton _("输入 DCC 账号密码"):
+                    action Show("maica_login_input",message = _("请输入DCC 账号密码"),returnto = "_maica_LoginPw")
             hbox:
                 text ""
             hbox:
                 if renpy.version_tuple[0] < 8:
-                    textbutton "连接至Maica生成令牌":
+                    textbutton _("连接至服务器生成MAICA令牌"):
                         action [
                             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
                 else:
-                    textbutton "生成令牌":
+                    textbutton _("生成MAICA令牌"):
                         action [
                             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
-                textbutton "取消":
+                textbutton _("取消"):
                     action [Function(_maica_clear), Hide("maica_login")]
 
 
