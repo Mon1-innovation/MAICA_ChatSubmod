@@ -261,13 +261,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
         
     # 检查参数合法性
-    def _check_modelconfig(self):
+    def _check_modelconfig(self):    
         for i in self.def_modelconfig:
             if i in self.modelconfig:
-                if i in ("max_tokens", "seed"):
-                    if type(self.modelconfig[i]) != int:
-                        logger.warning("modelconfig {} is invaild: reset {} -> {}".format(i, self.modelconfig[i], round(self.modelconfig[i])))
-                        self.modelconfig[i] = round(self.modelconfig[i])
                 if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
                     if self.def_modelconfig[i][2] == None:
                         logger.warning("modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
@@ -297,48 +293,54 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.info("_on_open")
         import time, threading
         def send_message():
-            import json
-            while True:
-                if self.wss_session.keep_running == False:
-                    logger.info("websocket is closed")
-                    break
-                time.sleep(1)
-                # 消息已进入队列，等待发送
-                if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                    if PY2:
-                        message = self.senddata_queue.get().decode().strip()
-                    else:
-                        message = self.senddata_queue.get().strip()
-                    dict = {"chat_session":self.chat_session, "query":message}
-                    logger.debug(dict)
-                    self._check_modelconfig()
-                    dict.update(self.modelconfig)
-                    message = json.dumps(dict, ensure_ascii=False) 
-                    #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
-                    self.wss_session.send(
-                        message
-                    )   
-                    self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+            try:
+                import json
+                while True:
+                    if self.wss_session.keep_running == False:
+                        logger.info("websocket is closed")
+                        break
+                    time.sleep(1)
+                    # 消息已进入队列，等待发送
+                    if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
+                        
+                        if PY2:
+                            message = str(self.senddata_queue.get()).decode().strip()
+                        else:
+                            message = str(self.senddata_queue.get()).strip()
+                        dict = {"chat_session":self.chat_session, "query":message}
+                        logger.debug(dict)
+                        self._check_modelconfig()
+                        dict.update(self.modelconfig)
+                        message = json.dumps(dict, ensure_ascii=False) 
+                        #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
+                        self.wss_session.send(
+                            message
+                        )   
+                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
 
-                # 身份验证
-                elif self.status == self.MaicaAiStatus.WAIT_AUTH:
-                    self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
-                    self.wss_session.send(self.ciphertext)
-                    logger.info(self.status)
-                # 连接已建立，选择模型
-                elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                    self.wss_session.send(
-                        json.dumps({"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang})
-                    )
-                    self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
-                # 要求重置model
-                elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
-                    self.wss_session.send(
-                        json.dumps({"chat_session":self.chat_session, "purge":True})
-                    )
-                    self.status = self.MaicaAiStatus.SESSION_RESETED
-                    self.wss_session.close()
-                    break
+                    # 身份验证
+                    elif self.status == self.MaicaAiStatus.WAIT_AUTH:
+                        self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
+                        self.wss_session.send(self.ciphertext)
+                        logger.info(self.status)
+                    # 连接已建立，选择模型
+                    elif self.status == self.MaicaAiStatus.SESSION_CREATED:
+                        self.wss_session.send(
+                            json.dumps({"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang})
+                        )
+                        self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
+                    # 要求重置model
+                    elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
+                        self.wss_session.send(
+                            json.dumps({"chat_session":self.chat_session, "purge":True})
+                        )
+                        self.status = self.MaicaAiStatus.SESSION_RESETED
+                        self.wss_session.close()
+                        break
+            except Exception as e:
+                import traceback
+                logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
+                self.send_to_outside_func("!!SUBMOD ERROR when send_message: {}".format(e))
         self.wss_thread = threading.Thread(target=send_message)
         self.wss_thread.start()
     _pos = 0
@@ -347,7 +349,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.__on_message(wsapp, message)
         except Exception as e:
             import traceback
-            self.send_to_outside_func("!!SUBMOD ERROR when on_message: {}|{}".format(e.__name__, e))
+            self.send_to_outside_func("!!SUBMOD ERROR when on_message: {}".format(e))
             logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
     def __on_message(self, wsapp, message):
         logger.debug("_on_message: {}".format(message))
@@ -424,6 +426,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def chat(self, message):
         #if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
         #    raise RuntimeError("Maica not ready to chat")
+        message = str(message)
         self.senddata_queue.clear()
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
         self.stat['message_count'] += 1

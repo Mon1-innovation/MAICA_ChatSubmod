@@ -108,6 +108,8 @@ init 10 python:
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             update_model_setting(ininit)
+        else:
+            store.maica.maica.modelconfig = {}
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
@@ -129,7 +131,7 @@ init 10 python:
     def update_model_setting(ininit = False):
         import os, json
         try:
-            with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "custom_model_config.json"), "r") as f:
+            with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "custom_modelconfig.json"), "r") as f:
                 store.maica.maica.modelconfig = json.load(f)
         except Exception as e:
             if not ininit:

@@ -11,13 +11,13 @@ label maica_talking:
         while True:
             if ai.wss_session is None:
                 store.mas_ptod.write_command("Init Connecting...")
-                renpy.pause(0.3)
+                renpy.pause(0.3, True)
             if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
-                renpy.pause(0.3)
+                renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
             if not ai.is_ready_to_input() and not ai.is_failed():
-                store.mas_ptod.write_command("Wait login successful...")
+                store.mas_ptod.write_command("Wait login...")
                 renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                 if ai.is_ready_to_input():
                     store.mas_ptod.write_command("Login successful, ready to chat!")
@@ -59,10 +59,10 @@ label maica_talking:
                     renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
                     _return = "disconnected"
                     break
-                mes = ai.get_message()
-                store.mas_submod_utils.submod_log.debug("label maica_talking::mes: {}".format(mes))
-                renpy.show("monika {}".format(mes[0]))
-                renpy.say(m, mes[1])
+                message = ai.get_message()
+                store.mas_submod_utils.submod_log.debug("label maica_talking::message: {}".format(message))
+                renpy.show(u"monika {}".format(message[0]))
+                renpy.say(m, message[1])
             
     # store.mas_ptod.write_command()
 
