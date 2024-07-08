@@ -25,6 +25,9 @@ default persistent.maica_setting_dict = {
     "console":True
 }
 default persistent.mas_player_additions = []
+
+define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
+#define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     default_dict = {
         "auto_reconnect":False,
@@ -33,7 +36,9 @@ init 10 python:
         "sf_extraction":False,
         "chat_session":1,
         "console":True,
-        "target_lang":None
+        "console_font":maica_confont,
+        "target_lang":None,
+        "_event_pushed":False
     }
     default_dict.update(persistent.maica_setting_dict)
     persistent.maica_setting_dict = default_dict.copy()
@@ -106,6 +111,7 @@ init 10 python:
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
+        store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
     
     def change_chatsession():
         persistent.maica_setting_dict["chat_session"] += 1
@@ -180,7 +186,6 @@ screen maica_setting_pane():
             
 screen maica_setting():
     python:
-        
         submods_screen = store.renpy.get_screen("submods", "screens")
 
         if submods_screen:
@@ -251,13 +256,31 @@ screen maica_setting():
                     action ToggleDict(persistent.maica_setting_dict, "console", True, False)
                     hovered SetField(_tooltip, "value", _("在对话期间是否使用console显示相关信息, wzt的癖好\n说谁呢, 不觉得这很酷吗"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+                
+                textbutton _("控制台字体: [persistent.maica_setting_dict.get('console_font')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
+                    hovered SetField(_tooltip, "value", _("console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
                       
             hbox:
                 textbutton _("清除玩家补充信息: 当前共有[len(persistent.mas_player_additions)]条"):
                     action Function(reset_player_information)
                     hovered SetField(_tooltip, "value", _("由你补充的一些数据"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+
                 
+                textbutton _("增加信息"):
+                    action [
+                        SetDict(persistent.maica_setting_dict, "_event_pushed", True),
+                        Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
+                        Function(store.MASEventList.push, "maica_input_information")
+                        ]
+                    hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    sensitive not persistent.maica_setting_dict.get('_event_pushed')
+
+            
+
                 textbutton _("导出至根目录"):
                     action Function(export_player_information)
                     hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
@@ -266,13 +289,18 @@ screen maica_setting():
             if renpy.config.debug:
                 hbox:
                     textbutton "MASEventList.push(maica_talking)":
-                        action Function(store.MASEventList.push, "maica_talking")
+                        action [
+                            Function(store.MASEventList.push, "maica_talking"),
+                            SetDict(persistent.maica_setting_dict, "_event_pushed", True)
+                            ]
+                        sensitive not persistent.maica_setting_dict.get('_event_pushed')
 
             hbox:
                 style_prefix "confirm"
 
                 textbutton _("保存设置"):
                     action [
+                        SetDict(persistent.maica_setting_dict, "_event_pushed", False),
                         Function(store.apply_setting),
                         Hide("maica_setting")
                         ]

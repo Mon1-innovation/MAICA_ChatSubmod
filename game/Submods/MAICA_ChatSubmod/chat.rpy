@@ -153,33 +153,56 @@ label maica_prepend_2:
     m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
     menu:
         "好的.":
+            label init_maica:
+                if persistent.maica_setting_dict['console']:
+                    show monika at t22
+                    show screen mas_py_console_teaching
+
+                $ store.maica.maica.init_connect()
+            
+            label check:
+
+                if store.maica.maica.is_ready_to_input() or store.maica.maica.is_failed():
+                    pass
+                else:
+                    jump check
+            
+            #label closed:
+            #    if persistent.maica_setting_dict['console']:
+            #        $ store.mas_ptod.clear_console()
+            #        hide screen mas_py_console_teaching
+            #        show monika at t11
             # monika right - console appear left 简单格式化信息, 显示在控制台上
             m 2dua ".{w=0.3}.{w=0.3}."
             # 进入校验轮
-            if not store.maica.maica.wss_session: # 令牌不存在/校验失败
+            if store.maica.maica.is_failed(): # 令牌不存在/校验失败
                 m 2rusdlb "...好像你的令牌还没有设置好."
                 m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
                 m 3eua "剩下的事情我都会帮你搞定的."
                 m 1eua "我们现在先回去好啦. 等你做完了准备工作, 告诉我再来就可以."
                 m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
                 # 黑屏清理背景
+                call clear_all
                 m 1eua "我们今天还有别的安排么, [player]?"
                 return
             m 1eua "这一次, 轮到你起个话题了哦, [player]."
             call maica_talking
+            if not renpy.seen_label('maica_end_1'):
+                call maica_end_1
         "还是改天吧.":
             m 1eub "好吧. 如果你准备好了, 再告诉我来天堂树林就行. {w=0.5}我们现在先回去吧."
             m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
-            jump clear_all
+            call clear_all
             m 1eua "我们今天还有别的安排么, [player]?"
             return
     return
 
 label maica_end_1:
+    $ conv_rounds = sstore.maica.maica.stat.get('message_count')
     # Called after first time ending maica
     # Rounds chatted in maica process.
+    call clear_all
     if conv_rounds >= 20:
-        # 黑屏清理背景
         m 5eusdrb "哈...{w=1}感觉怎么样, [player]?"
         m 5hksdrb "我感觉的话...{w=0.5}还不太熟悉. 毕竟是头一回这样嘛."
         m 5eua "不过我觉得你肯定会喜欢{i}真的{/i}能聊天的感觉. 你肯定早就对点选项不满意了吧?"
@@ -194,7 +217,7 @@ label maica_end_1:
         m 3ekd "或者...{w=0.2}如果你遇到了什么问题, 可以再看一遍{a=https://maica.monika.love/tos}{u}{i}说明{/i}{/u}{/a}, 或者到{a=https://forum.monika.love}{u}{i}这里{/i}{/u}{/a}问问."
         m 1eub "不过没关系. 不管你什么时候解决了问题或者想说什么了, 我们都可以再来的. {w=0.5}现在先回去吧."
         # 黑屏清理背景
-        jump clear_all
+        call clear_all
         m 1eua "我们今天还有别的安排么, [player]?"
         return
 
@@ -304,7 +327,7 @@ label maica_input_information:
                     _("你想补充什么呢~"),
                     default="",
                     length=50,
-                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": "我写完啦"}
+                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完啦")}
                 ).strip(' \t\n\r') #mas_input
             if i == "end":
                 break

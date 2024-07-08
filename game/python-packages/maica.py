@@ -151,11 +151,52 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "received_token":0
         }
     def send_to_outside_func(self, content):
+        import unicodedata
         if self.content_func is None:
             return
+        max_len = 33 * 2
         content = content.replace("\"", "").replace("'", "").strip()
         l = content.split("\n")
-        for i in l:
+        def calculate_length(s):
+            
+            length = 0
+            for char in s:
+                # 使用unicodedata模块判断字符宽度
+                if unicodedata.east_asian_width(char) in ('F', 'W'):
+                    length += 2
+                else:
+                    length += 1
+            return length
+
+        def split_string(s, max_len):
+            result = []
+            current_str = ""
+            current_len = 0
+
+            for char in s:
+                char_len = 2 if unicodedata.east_asian_width(char) in ('F', 'W') else 1
+
+                if current_len + char_len > max_len:
+                    result.append(current_str)
+                    current_str = char
+                    current_len = char_len
+                else:
+                    current_str += char
+                    current_len += char_len
+
+            if current_str:
+                result.append(current_str)
+
+            return result
+        def process_lines(l, max_len):
+            processed_list = []
+            for line in l:
+                if calculate_length(line) > max_len:
+                    processed_list.extend(split_string(line, max_len))
+                else:
+                    processed_list.append(line)
+            return processed_list
+        for i in process_lines(l, max_len):
             self.content_func(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol).decode())
     def update_stat(self, new):
         self.stat.update(new)
@@ -241,12 +282,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def is_ready_to_input(self):
         """返回maica是否可以发送消息了"""
         return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE)
-    
+
+    def is_failed(self):
+        """返回maica是否处于异常状态"""
+        return self.status in (self.MaicaAiStatus.MODEL_NOT_FOUND, self.MaicaAiStatus.TOKEN_FAILED, self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED)
+
+
     def len_message_queue(self):
         """返回maica已接收并完成分句的台词数"""
-        if PY2:
-            return self.message_list.size()
-        return len(self.message_list.queue)
+        return self.message_list.size()
             
     def _on_open(self, wsapp):
         logger.info("_on_open")
