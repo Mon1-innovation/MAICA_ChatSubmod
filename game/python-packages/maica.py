@@ -151,6 +151,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "received_token":0
         }
     def send_to_outside_func(self, content):
+        content = str(content)
         import unicodedata
         if self.content_func is None:
             return
