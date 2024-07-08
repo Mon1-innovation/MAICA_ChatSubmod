@@ -5,6 +5,8 @@ label maica_talking:
     python:
         import time
         from store.maica import maica as ai
+        if ai.wss_session is None:
+            ai.init_connect()
         ai.content_func = store.mas_ptod._update_console_history
         while True:
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))

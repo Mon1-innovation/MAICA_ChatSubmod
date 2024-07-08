@@ -151,7 +151,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "received_token":0
         }
     def send_to_outside_func(self, content):
-        content = str(content)
+        content = u"{}".format(content)
         import unicodedata
         if self.content_func is None:
             return
@@ -347,8 +347,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.__on_message(wsapp, message)
         except Exception as e:
             import traceback
-            logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
             self.send_to_outside_func("!!SUBMOD ERROR when on_message: {}|{}".format(e.__name__, e))
+            logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
     def __on_message(self, wsapp, message):
         logger.debug("_on_message: {}".format(message))
         
@@ -422,8 +422,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
         
     def chat(self, message):
-        if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
-            raise RuntimeError("Maica not ready to chat")
+        #if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
+        #    raise RuntimeError("Maica not ready to chat")
         self.senddata_queue.clear()
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
         self.stat['message_count'] += 1
