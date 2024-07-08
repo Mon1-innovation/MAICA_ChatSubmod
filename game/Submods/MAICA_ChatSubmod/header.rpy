@@ -129,7 +129,7 @@ init 10 python:
     def update_model_setting(ininit = False):
         import os, json
         try:
-            with open(os.path.join(store.maica.basedir, "custom_model_config.json"), "r") as f:
+            with open(os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod", "custom_model_config.json"), "r") as f:
                 store.maica.maica.modelconfig = json.load(f)
         except Exception as e:
             if not ininit:

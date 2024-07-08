@@ -9,6 +9,19 @@ label maica_talking:
             ai.init_connect()
         ai.content_func = store.mas_ptod._update_console_history
         while True:
+            if ai.wss_session is None:
+                store.mas_ptod.write_command("Init Connecting...")
+                renpy.pause(0.3)
+            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect']:
+                ai.init_connect()
+                renpy.pause(0.3)
+                store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
+            if not ai.is_ready_to_input() and not ai.is_failed():
+                store.mas_ptod.write_command("Wait login successful...")
+                renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
+                if ai.is_ready_to_input():
+                    store.mas_ptod.write_command("Login successful, ready to chat!")
+                continue
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             question = mas_input(
                         _("说吧, [player]"),
