@@ -54,10 +54,19 @@ init 5 python in maica:
         maica.auto_reconnect = False
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
+
+
     #@store.mas_submod_utils.functionplugin("ch30_preloop")
     #def start_maica():
     #    if store.mas_getAPIKey("Maica_Token") == "":
     #        return
     #    maica.init_connect()
+
+init -700 python:
+    try:
+        screen_data = store.mas_api_keys.MASUpdateCertScreenData()
+        screen_data.start()
+    except:
+        store.mas_submod_utils.submod_log.warning("MAICA call MASUpdateCertScreenData.start() failed")
 
     

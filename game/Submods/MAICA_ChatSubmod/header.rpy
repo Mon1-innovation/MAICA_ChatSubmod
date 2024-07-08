@@ -104,10 +104,10 @@ init 10 python:
             f.write(store.maica.maica.get_history().get("history", {}))
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt")
     
-    def apply_setting():
+    def apply_setting(ininit=False):
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
-            update_model_setting()
+            update_model_setting(ininit)
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
@@ -126,17 +126,17 @@ init 10 python:
             f.write(json.dumps(persistent.mas_player_additions))
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
 
-    def update_model_setting():
+    def update_model_setting(ininit = False):
         import os, json
         try:
             with open(os.path.join(store.maica.basedir, "custom_model_config.json"), "r") as f:
                 store.maica.maica.modelconfig = json.load(f)
         except Exception as e:
-            if not renpy.is_init_phase():
-                renpy.notify("加载自定义模型配置失败:\n {}".format(e))
-            store.mas_submod_utils.submod_log("Failed to load custom model config: {}".format(e))
+            if not ininit:
+                renpy.notify(_("加载高级参数失败, 查看submod_log.log来获取详细原因").format(e))
+            store.mas_submod_utils.submod_log.error("Failed to load custom model config: {}".format(e))
     
-    apply_setting()
+    apply_setting(True)
         
             
 
