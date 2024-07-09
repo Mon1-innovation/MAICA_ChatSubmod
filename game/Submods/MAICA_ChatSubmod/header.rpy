@@ -58,7 +58,8 @@ init 10 python:
 
 
     def upload_persistent_dict():
-        d = persistent.__dict__.copy()
+        import copy
+        d = copy.deepcopy(persistent.__dict__)
         d['_seen_ever'].clear()
         d['_mas_event_init_lockdb'].clear()
         d['_changed'].clear()
