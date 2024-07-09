@@ -5,23 +5,39 @@ label maica_talking:
     python:
         import time
         from store.maica import maica as ai
+        ai.content_func = store.mas_ptod._update_console_history
+        ai.send_to_outside_func(ai.ascii_icon)
+        if persistent.maica_setting_dict['console']:
+            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+            renpy.pause(2.3)
         if ai.wss_session is None:
             ai.init_connect()
-        ai.content_func = store.mas_ptod._update_console_history
         while True:
             if ai.wss_session is None:
                 store.mas_ptod.write_command("Init Connecting...")
                 renpy.pause(0.3, True)
-            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect']:
+            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_failed():
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
             if not ai.is_ready_to_input() and not ai.is_failed():
                 store.mas_ptod.write_command("Wait login...")
                 renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                if ai.is_ready_to_input():
-                    store.mas_ptod.write_command("Login successful, ready to chat!")
                 continue
+            if ai.is_ready_to_input():
+                store.mas_ptod.write_command("Login successful, ready to chat!")
+            elif ai.is_failed():
+                if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
+                    store.mas_ptod.write_command("Login failed, please check your token.")
+                elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
+                    store.mas_ptod.write_command("Savedata not found, please check your setting.")
+                else:
+                    store.mas_ptod.write_command("An error occurred, please check your submog_log.log")
+                renpy.pause(2.0)
+                renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
+                _return = "disconnected"
+                break
+                
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             question = mas_input(
                         _("说吧, [player]"),
@@ -56,7 +72,7 @@ label maica_talking:
                     _history_list.pop()
                     continue    
                 if ai.wss_session.keep_running == False and ai.len_message_queue() == 0:
-                    renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
+                    renpy.say(m, _("好像出了什么问题..."))
                     _return = "disconnected"
                     break
                 message = ai.get_message()

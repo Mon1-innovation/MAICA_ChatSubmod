@@ -10,6 +10,15 @@ websocket._logging.enableTrace(False)
 
 
 class MaicaAi(ChatBotInterface):
+    ascii_icon = """                                                             
+
+    __  ___ ___     ____ ______ ___ 
+   /  |/  //   |   /  _// ____//   |
+  / /|_/ // /| |   / / / /    / /| |
+ / /  / // ___ | _/ / / /___ / ___ |
+/_/  /_//_/  |_|/___/ \____//_/  |_|
+                                    
+"""
     class MaicaAiModel:
         maica_main = "maica_main"
         maica_core = "maica_core"
@@ -48,17 +57,24 @@ class MaicaAi(ChatBotInterface):
         # 请求心跳包
         REQUEST_PING = 11100
 
+        ###################################
         # 令牌验证失败
         TOKEN_FAILED = 13400
         # 选择的 model 不正确
         MODEL_NOT_FOUND = 13401
         # wss异常关闭
         WSS_CLOSED_UNEXCEPTED = 13402
-        ######### MAICA 服务器状态码
+        # 玩家数据未找到
+        SAVEFILE_NOTFOUND = 13403
+        ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
         def is_1xx(cls, code):
             return 100 <= int(code) - cls.MAIKA_PREFIX <= 199
+        
+        @classmethod
+        def is_submod_exception(cls, code):
+            return 13400 <= code <= 13499
         
         # session 已超过 32768token
         TOKEN_MAX_EXCEEDED = MAIKA_PREFIX + 204
@@ -83,7 +99,8 @@ class MaicaAi(ChatBotInterface):
             MODEL_NOT_FOUND: u"选择的 model 不正确",
             TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 可能有部分对话已被删除",
             TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话可能已删除过",
-            WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看log以获取详细信息"
+            WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看log以获取详细信息",
+            SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档"
         }
         @classmethod
         def get_description(cls, code):
@@ -156,7 +173,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.content_func is None:
             return
         max_len = 33 * 2
-        content = content.replace("\"", "").replace("'", "").strip()
+        content = content.replace("\"", "").replace("'", "")
         l = content.split("\n")
         def calculate_length(s):
             
@@ -287,7 +304,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def is_failed(self):
         """返回maica是否处于异常状态"""
-        return self.status in (self.MaicaAiStatus.MODEL_NOT_FOUND, self.MaicaAiStatus.TOKEN_FAILED, self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED)
+        return self.MaicaAiStatus.is_submod_exception(self.status)\
+            or not self.wss_session.keep_running if self.wss_session else True\
+            or not self.wss_thread.is_alive() if self.wss_thread else True
 
 
     def len_message_queue(self):
@@ -365,7 +384,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         data = json.loads(message)
         if data.get("type", False) != "carriage":
             self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-        if 500 <= data.get("status", 200) < 600:
+        if 500 <= data.get("code", 200) < 600:
             self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
@@ -404,10 +423,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     emote = self.MoodStatus.get_emote()
                     logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
                     logger.debug("MESSAGE_WAITING_RESPONSE::MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+                    self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+
                     self.message_list.put((emote, res.strip()))
                     logger.debug("Server:",self._received[self._pos:self._pos + isnum])
                     self._pos = self._pos + isnum
-
+            if data['status'] == "savefile_notfound":
+                self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
+                self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
+                self.wss_session.close()
             if data['status'] == "streaming_done":
                 if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
                     raw_message = self._received[self._pos:]
@@ -415,6 +439,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
                     emote = self.MoodStatus.get_emote()
                     logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
+                    self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
                     self.message_list.put((emote, res.strip()))
                     logger.debug("Server:",self._received[self._pos:])
                 self._pos = 0

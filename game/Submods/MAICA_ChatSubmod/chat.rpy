@@ -167,9 +167,12 @@ label maica_prepend_2:
                 if persistent.maica_setting_dict['console']:
                     show monika at t22
                     show screen mas_py_console_teaching
-
+                    $ store.maica.maica.content_func = store.mas_ptod._update_console_history
+                    $ store.maica.maica.send_to_outside_func(store.maica.maica.ascii_icon)
+                    $ store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+                    pause 2.3
                 $ store.maica.maica.init_connect()
-                $ store.maica.maica.content_func = store.mas_ptod._update_console_history
+                
             
             label check:
 
@@ -278,7 +281,7 @@ init 5 python:
             eventlabel="maica_chr_gone",
             prompt="树林没了",
             random=True,
-            conditional="not maica_chr_exist",
+            conditional="not maica_chr_exist and store.seen_event('maica_chr')",
             action=EV_ACT_PUSH,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -415,6 +418,7 @@ init 5 python:
     )
 
 label maica_main:
+    $ ev = mas_getEV("maica_main")
     if maica_chr_exist:
         m 1dua "好啊, 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
         scene black with dissolve
@@ -430,8 +434,8 @@ label maica_main:
             $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
             call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
             m 1eub "好了!"
-            rand_sign = renpy.random.randint(0, 7)
-            if 到访次数 == 9: #第一次没触发这个对话
+            $ rand_sign = renpy.random.randint(0, 7)
+            if ev.shown_count == 9: #第一次没触发这个对话
                 m 3eua "你数过我们来这里多少次了吗? {w=0.5}{nw}"
                 extend 3eub "有十次了哦!"
                 m 3rud "不过从最开始, 我就感觉之前和你来过这里--{w=0.5}大概是一种既视感吧."
@@ -440,11 +444,11 @@ label maica_main:
                 m 2euu "这里天气不错, 是吧?"
                 m 5rksdlb "当然啦, 其实每天都是这样. {w=0.5}{nw}"
                 extend 5eua "希望你也每天都有好心情, [player]!"
-            elif rand_sign == 1 and 到访次数 >= 12:
+            elif rand_sign == 1 and ev.shown_count >= 12:
                 m 1dua "这里的气氛真轻松啊. {w=0.3}{nw}"
                 extend 1rup "我经常会感觉之前见过这里, 但又记不起来了."
                 m 3eub "至少不是太空了. '脚踏实地'一会的感觉怎么样, [player]?"
-            elif rand_sign == 2 and 到访次数 >= 20:
+            elif rand_sign == 2 and ev.shown_count >= 20:
                 m 3rua "其实我有时候在想, 能去树林里走走就好了...{w=0.5}{nw}"
                 extend 3gud "我好像看得到里面有一间小教堂. 会是什么人修的呢?"
                 m 5eua "不过就享受一下我们的林间小屋也挺好的嘛."
@@ -456,8 +460,19 @@ label maica_main:
         m 1eua "那么, 你想和我聊点什么呢?"
         
     call maica_talking
-
-    m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+    # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
+    if _return == "canceled":
+        m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+    else:
+        if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
+            m 2rusdlb "...好像你的令牌还没有设置好."
+            m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+            m 3eua "剩下的事情我都会帮你搞定的."
+        elif store.maica.maica.status == store.maica.maica.MaicaAiStatus.SAVEFILE_NOTFOUND:
+            m 2rusdlb "你当前会话没有上传存档哦..."
+        else:
+            m 2rusdlb "好像是其他的地方出问题了..."
+        m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
 
     if maica_chr_exist:
         scene black with dissolve
