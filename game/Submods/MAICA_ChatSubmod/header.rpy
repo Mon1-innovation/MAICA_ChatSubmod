@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.0.1',
+        version='0.1.0',
         settings_pane="maica_setting_pane"
     )
 init -989 python:
@@ -269,7 +269,7 @@ screen maica_setting():
             hbox:
                 textbutton _("清除玩家补充信息: 当前共有[len(persistent.mas_player_additions)]条"):
                     action Function(reset_player_information)
-                    hovered SetField(_tooltip, "value", _("由你补充的一些数据"))
+                    hovered SetField(_tooltip, "value", _("由你补充的一些数据, 增删后需要重新上传存档"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 
