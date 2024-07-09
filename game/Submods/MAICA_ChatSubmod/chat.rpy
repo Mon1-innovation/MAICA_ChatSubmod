@@ -462,7 +462,7 @@ label maica_main:
     call maica_talking
     # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
     if _return == "canceled":
-        m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+        m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
     else:
         if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
             m 2rusdlb "...好像你的令牌还没有设置好."
