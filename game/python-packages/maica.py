@@ -361,6 +361,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         data = json.loads(message)
         if data.get("type", False) != "carriage":
             self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+        if 500 <= data.get("status", 200) < 600:
+            self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
+            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
+            self.wss_session.close()
         logger.debug("data.status in process: {}".format(data["status"] in ("delete_hint", "delete", "session_created", "nickname", "ok", "continue", "streaming_done")))
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
