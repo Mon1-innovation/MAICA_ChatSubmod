@@ -180,7 +180,7 @@ label maica_prepend_2:
                     jump check
             
             label closed:
-                store.mas_ptod.write_command("Login successful, ready to chat!")
+                $ store.mas_ptod.write_command("Login successful, ready to chat!")
                 pause 1.0
                 if persistent.maica_setting_dict['console']:
                     $ store.mas_ptod.clear_console()
@@ -308,7 +308,7 @@ init 5 python:
             prompt="树林坏了",
             unlocked=True,
             conditional="maica_chr_changed",
-            action=EV_ACT_QUEUE,
+            action=EV_ACT_PUSH,
             aff_range=(mas_aff.HAPPY, None)
         ),
         code="GRE"

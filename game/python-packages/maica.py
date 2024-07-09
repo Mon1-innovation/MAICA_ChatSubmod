@@ -249,7 +249,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _init_connect(self):
         logger.debug("_init_connect")
-        if not self.multi_lock.acquire(1):
+        if not self.multi_lock.acquire(blocking=False):
             return logger.warning("Maica::_init_connect try to create multi connection")
         import websocket
         self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
@@ -258,6 +258,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.WAIT_AUTH
         self.wss_session.run_forever()
         self.multi_lock.release()
+        logger.info("Maica::_init_connect released lock")
         
         
     # 检查参数合法性
@@ -359,7 +360,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import json
         data = json.loads(message)
         if data.get("type", False) != "carriage":
-            self.send_to_outside_func(data.get("content", "Error: Data frame is received but content is empty"))
+            self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
         logger.debug("data.status in process: {}".format(data["status"] in ("delete_hint", "delete", "session_created", "nickname", "ok", "continue", "streaming_done")))
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
