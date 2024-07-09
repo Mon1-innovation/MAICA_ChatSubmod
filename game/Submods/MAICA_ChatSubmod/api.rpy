@@ -60,7 +60,7 @@ init 5 python in maica:
     def start_maica():
         if store.mas_getAPIKey("Maica_Token") == "":
             return
-        maica._gen_token("", "", store.mas_getAPIKey("Maica_Token"))
+        store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
 
 init -700 python:
     try:

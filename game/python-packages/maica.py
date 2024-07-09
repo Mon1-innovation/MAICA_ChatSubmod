@@ -256,9 +256,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                                                   , on_close=self._on_close)
         self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
-        self.wss_session.run_forever()
-        self.multi_lock.release()
-        logger.info("Maica::_init_connect released lock")
+        try:
+            self.wss_session.run_forever()
+        except Exception as e:
+            self.send_to_outside_func("wss_session.run_forever() failed: {}".format(e))
+        finally:
+            self.multi_lock.release()
+            logger.info("Maica::_init_connect released lock")
         
         
     # 检查参数合法性

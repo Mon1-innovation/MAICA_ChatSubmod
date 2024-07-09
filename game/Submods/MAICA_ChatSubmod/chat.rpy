@@ -397,3 +397,38 @@ label clear_all:
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
     return
+
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_main",
+            prompt="我们去天堂树林吧",
+            category=["你", "我们", "模组"],
+            pool=True,
+            random=False,
+            conditional="store.seen_event('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+label maica_main:
+    if maica_chr_exist:
+        scene black with dissolve
+        pause 2.0
+        if maica_chr_changed:
+            $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
+            call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+        else:
+            $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
+            call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+        
+    call maica_talking
+
+    if maica_chr_exist:
+        scene black with dissolve
+        pause 2.0
+        call clear_all
+    return
