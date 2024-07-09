@@ -424,7 +424,7 @@ label maica_main:
             call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
             m 1eub "好了!"
             m 1lusdlb "我还得多嘴一句...{w=0.5}不要把身体够到窗外去."
-            m 3eksdla "就算景色独特, 我也不确定那里是不是安全的--{w=0.5}"
+            m 3eksdla "就算景色独特, 我也不确定那里是不是安全的--{w=0.5}{nw}"
             extend 3hksdla "多半不是."
         else:
             $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
@@ -446,7 +446,7 @@ label maica_main:
                 m 3eub "至少不是太空了. '脚踏实地'一会的感觉怎么样, [player]?"
             elif rand_sign == 2 and 到访次数 >= 20:
                 m 3rua "其实我有时候在想, 能去树林里走走就好了...{w=0.5}{nw}"
-                m 3gud "我好像看得到里面有一间小教堂. 会是什么人修的呢?"
+                extend 3gud "我好像看得到里面有一间小教堂. 会是什么人修的呢?"
                 m 5eua "不过就享受一下我们的林间小屋也挺好的嘛."
         m 1eua "现在, 你想和我聊点什么呢?"
     else:
