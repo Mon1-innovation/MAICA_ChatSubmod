@@ -346,7 +346,7 @@ screen maica_login():
                 else:
                     textbutton _("生成MAICA令牌"):
                         action [
-                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, ""),
+                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]

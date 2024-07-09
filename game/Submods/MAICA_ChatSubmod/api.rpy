@@ -56,11 +56,11 @@ init 5 python in maica:
         store.persistent.maica_stat = maica.stat.copy()
 
 
-    #@store.mas_submod_utils.functionplugin("ch30_preloop")
-    #def start_maica():
-    #    if store.mas_getAPIKey("Maica_Token") == "":
-    #        return
-    #    maica.init_connect()
+    @store.mas_submod_utils.functionplugin("ch30_preloop")
+    def start_maica():
+        if store.mas_getAPIKey("Maica_Token") == "":
+            return
+        maica._gen_token("", "", store.mas_getAPIKey("Maica_Token"))
 
 init -700 python:
     try:
@@ -69,4 +69,42 @@ init -700 python:
     except:
         store.mas_submod_utils.submod_log.warning("MAICA call MASUpdateCertScreenData.start() failed")
 
+
+    import hashlib
+
+    def calculate_sha256(file_path):
+        """
+        计算文件的SHA-256哈希值。
+
+        :param file_path: 文件路径
+        :return: 文件的SHA-256哈希值
+        """
+        sha256_hash = hashlib.sha256()
+        try:
+            with open(file_path, 'rb') as f:
+                # 读取文件并更新哈希对象
+                for byte_block in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(byte_block)
+        except IOError as e:
+            store.mas_submod_utils.submod_log.error("无法打开或读取文件: {}".format(e) )
+            return None
+        return sha256_hash.hexdigest()
+
+    def check_sha256(file_path, expected_sha256):
+        """
+        检查文件的SHA-256哈希值是否等于给定值。
+
+        :param file_path: 文件路径
+        :param expected_sha256: 预期的SHA-256哈希值
+        :return: 如果哈希值匹配则返回True，否则返回False
+        """
+        calculated_sha256 = calculate_sha256(file_path)
+        if calculated_sha256 is None:
+            return False
+        return calculated_sha256 != expected_sha256
     
+    maica_chr_exist = os.path.exists(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce"))
+    if maica_chr_exist:
+        maica_chr_changed = check_sha256(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce"), '35b4a17edbb003014fa93168e0c93df3149e82a4d46f16a0eec295a2d9b02d59')
+    else:
+        maica_chr_changed = None

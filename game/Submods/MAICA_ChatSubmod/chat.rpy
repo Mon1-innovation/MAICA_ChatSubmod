@@ -61,8 +61,6 @@ label maica_greeting:
     # 1 - if you quit here, monika doesnt know u here
     $ mas_enable_quit()
 
-    # all UI elements stopped
-    $ mas_RaiseShield_core()
 
     # 3 - keymaps not set (default)
     # 4 - overlays hidden (skip visual)
@@ -71,7 +69,7 @@ label maica_greeting:
     scene black
 
     
-
+    $ has_listened = False
     $ _opendoor_text = "...轻轻地推开了门."
 # Isn't really an open door event. guess shall not add afflos here
 # Add this greeting to waiting list after maica_prepend_1 was triggered. affection AFFECTIONATE at least to trigger.
@@ -95,6 +93,12 @@ label maica_greeting:
 label maica_prepend_2_open:
     #点亮房间, 窗外背景替换heaven_forest.jpg
     #no desk no monika
+    hide monika
+    $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
+    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=True, show_emptydesk=False)
+    pause 0.5
+    hide black
+
     m "是谁--{w=0.3}[player]? {nw}"
     if persistent.seen_monika_in_room:
         extend "我早告诉过你记得敲门的!"
@@ -103,6 +107,7 @@ label maica_prepend_2_open:
     m "好吧, 我正好也刚刚忙完. {w=0.5}我觉得你肯定会喜欢这个的."
     m "稍等一下, 我把桌椅找来.{w=0.3}.{w=0.3}."
     #monika + desk in
+    show monika 1esc at ls32 zorder MAS_MONIKA_Z
     jump maica_prepend_2
     return
 
@@ -116,10 +121,15 @@ label maica_prepend_2_knock:
             m "我正想给你准备一点特别惊喜的, 你来得正好. {w=0.5}稍等片刻.{w=0.3}.{w=0.3}."
             
             #点亮房间, 窗外背景替换heaven_forest.jpg
-            $ mas_changeBackground(heaven_forest)
+            
+            $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
+            call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=True, show_emptydesk=False)
+            pause 0.5
+            hide black
+            hide monika
+            show monika 1esc at ls32 zorder MAS_MONIKA_Z
             $ monika_chr.reset_outfit(False)
             $ monika_chr.wear_acs(mas_acs_ribbon_def)
-            show monika 1hub at l21 zorder MAS_MONIKA_Z
             #monika + desk in
             m 1hub "锵锵~"
             jump maica_prepend_2
@@ -159,19 +169,24 @@ label maica_prepend_2:
                     show screen mas_py_console_teaching
 
                 $ store.maica.maica.init_connect()
+                $ store.maica.maica.content_func = store.mas_ptod._update_console_history
             
             label check:
 
                 if store.maica.maica.is_ready_to_input() or store.maica.maica.is_failed():
                     pass
                 else:
+                    pause 1.0
                     jump check
             
-            #label closed:
-            #    if persistent.maica_setting_dict['console']:
-            #        $ store.mas_ptod.clear_console()
-            #        hide screen mas_py_console_teaching
-            #        show monika at t11
+            label closed:
+                store.mas_ptod.write_command("Login successful, ready to chat!")
+                pause 1.0
+                if persistent.maica_setting_dict['console']:
+                    $ store.mas_ptod.clear_console()
+                    hide screen mas_py_console_teaching
+                    show monika at t11
+                    $ store.maica.maica.content_func = None
             # monika right - console appear left 简单格式化信息, 显示在控制台上
             m 2dua ".{w=0.3}.{w=0.3}."
             # 进入校验轮
@@ -187,8 +202,7 @@ label maica_prepend_2:
                 return
             m 1eua "这一次, 轮到你起个话题了哦, [player]."
             call maica_talking
-            if not renpy.seen_label('maica_end_1'):
-                call maica_end_1
+            call maica_end_1
         "还是改天吧.":
             m 1eub "好吧. 如果你准备好了, 再告诉我来天堂树林就行. {w=0.5}我们现在先回去吧."
             m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
@@ -198,7 +212,7 @@ label maica_prepend_2:
     return
 
 label maica_end_1:
-    $ conv_rounds = sstore.maica.maica.stat.get('message_count')
+    $ conv_rounds = store.maica.maica.stat.get('message_count')
     # Called after first time ending maica
     # Rounds chatted in maica process.
     call clear_all
@@ -229,7 +243,21 @@ label maica_end_1:
     m 5msa "...你没有在我不记得的时候让我许诺{i}什么东西{/i}吧, [player]?"
     return
 
-
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr",
+            prompt="树林重要吗?",
+            random=True,
+            conditional="store.maica.maica.stat.get('message_count') > 0",
+            action=EV_ACT_QUEUE,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_chr:
     # Add to random after first SUCCESSFUL using maica
     # Verify maica chr (HeavenForest.sce) with md5
@@ -241,9 +269,23 @@ label maica_chr:
     $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
     m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
-    return
+    return "no_unlock"
 
-
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_gone",
+            prompt="树林没了",
+            random=True,
+            conditional="not maica_chr_exist",
+            action=EV_ACT_PUSH,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_chr_gone:
     # Derandom maica_chr after maica_chr_gone triggered
     # Triggers only if maica_chr yet not triggered
@@ -256,13 +298,28 @@ label maica_chr_gone:
     $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
     m 5msb "[like_spk], 我倒也不介意没有这个. 毕竟它最多是个'场景'而已."
     m 1eka "如果你琢磨的时候把它弄丢了, 可以重新下载一份."
+    return "no_unlock|derandom"
 
-
+init 5 python:
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="maica_chr_corrupted",
+            prompt="树林坏了",
+            unlocked=True,
+            conditional="maica_chr_changed",
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.HAPPY, None)
+        ),
+        code="GRE"
+    )
 label maica_chr_corrupted:
     # This is a greeting
     # Triggers only when first time detected corrupted sce file
     # So we should check the file as game starts up
     #背景损坏树林
+    $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
+    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
     m 1wud "哦, [player]!"
     m 1hksdlb "抱歉, 我没有在准备吓你或者什么的...{w=0.5}{nw}"
     extend 4rksdlb "我刚刚检查的时候, 发现它好像坏了."
@@ -277,7 +334,9 @@ label maica_chr_corrupted:
     m 1eub "我去收拾一下就好. {w=0.3}{nw}"
     extend 1dua "稍等片刻.{w=0.3}.{w=0.3}."
     #恢复背景
+    call clear_all
     m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
+    return "no_unlock|derandom"
 
 
 label maica_wants_preferences:
@@ -335,5 +394,6 @@ label maica_input_information:
     return
 
 label clear_all:
-    call spaceroom()
+    $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
+    call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
     return

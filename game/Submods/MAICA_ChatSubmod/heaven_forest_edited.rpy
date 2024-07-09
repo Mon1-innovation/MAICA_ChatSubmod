@@ -1,87 +1,3 @@
-#======================================================================
-#请先修改本文件的文件名（英文加数字·但不能以数字开头）
-#v2版本相比v1版本,简化了一些操作
-#你只需要创建好这里的文件夹,然后修改下面的东西就好了
-#你需要修改的东西（大概行数）：
-#11行 基本配置 房间细节
-#233行 桌椅贴图
-#277行 选择对话
-#======================================================================
-
-
-init -990 python:
-    ##############################################
-    # 基本配置
-    ##############################################
-
-    #房间ID 建议英文 在mod_assets/location下创建的文件夹必须与ID相同 ID不允许与任何已有房间冲突
-    submod_roomid = "heaven_forest_2"
-
-    #房间名称 在选择房间时选择的名字
-    submod_roomname = "天堂森林2"
-
-    #图片名称 若为空默认为sub_day_n 所有图片都位于<mod_assets/location/房间ID/>内
-    #如id为"sub_bg_id" 则所有图片都位于<mod_assets/location/sub_bg_id/>
-    #所有图片大小必须为1280*720
-    #建议使用PS处理透明图层
-    #####白天##### 
-    sub_day = "disruption_forest.jpg" #晴天*必填
-    sub_rain = "" #雨天
-    sub_overcast = "" #多云
-    sub_snow = "" #雪天
-
-    #####晚上#####
-    sub_day_n = "" #晴天 若为空则为sub_day
-    sub_rain_n = "" #雨天
-    sub_overcast_n = "" #多云
-    sub_snow_n = "" #雪天
-
-    #####傍晚#####
-    sub_day_ss = "" #晴天
-    sub_rain_ss = "" #雨天
-    sub_overcast_ss = "" #多云
-    sub_snow_ss = "" #雪天
-
-    ##############################################
-    # 房间细节 True=是,False=否
-    ##############################################
-
-    #禁用天气变化
-    sub_dp = True
-    #隐藏日历
-    sub_hc = True
-    #禁用天气动画
-    sub_hm = True
-    #是否解锁
-    sub_unl = False 
-
-
-    #除非你知道在做什么,否则不要动以下代码!============================
-    #定义图片文件夹
-    imgdir = "mod_assets/location/"+ submod_roomid + "/"
-    if not renpy.loadable(imgdir + sub_day):
-        raise Exception("sub_day could not be loaded, please check the file name - sub_day无法加载，请检查文件名称")
-    def DetectBg(imgname,weather):
-        """
-        检测指定天气房间图片是否存在
-        imgname - 要检查的图片,
-        weather - 若图片加载失败/未填 "d" ->sub_day  n ->sub_day_n
-        """
-        if sub_day == "" or sub_day == Null:
-            raise Exception("sub_day cannot be an empty string - sub_day不可为空,你至少要有一张图,对吧?")
-            return
-        if imgname == "" and renpy.loadable(imgdir + imgname):
-            if weather == "d":
-                return imgdir + sub_day
-            elif weather == "n":
-                return DetectBg(sub_day_n,"d")
-            else:
-                raise Exception("weather must be \"d\"/\"n\" - weather 必须为“d”或“n”,你修改了别的位置了是吧?")
-        elif renpy.loadable(imgdir + imgname):
-            return imgdir + imgname
-        else:
-            raise Exception("Background resources folder not found - 背景资源文件夹未找到,请检查对应的id和文件夹是否正确创建")
-
 
     #store.mas_submod_utils.Submod(
     #    author=submod_author,
@@ -103,22 +19,22 @@ init -990 python:
 #        )
 
 # 白天
-image heaven_forest_d_day = imgdir + sub_day 
-image heaven_forest_d_rain = DetectBg(sub_rain,"n")
-image heaven_forest_d_overcast = DetectBg(sub_overcast,"n")
-image heaven_forest_d_snow = DetectBg(sub_snow,"n")
+image heaven_forest_d_day = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_rain = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_overcast ="mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_snow = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
 
 # 晚上
-image heaven_forest_d_night= DetectBg(sub_day_n,"n")          
-image heaven_forest_d_rain_night = DetectBg(sub_rain_n,"n")
-image heaven_forest_d_overcast_night = DetectBg(sub_overcast_n,"n")
-image heaven_forest_d_snow_night = DetectBg(sub_snow_n,"n")
+image heaven_forest_d_night= "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_rain_night = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_overcast_night = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_snow_night = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
 
 # 傍晚
-image heaven_forest_d_ss = DetectBg(sub_day_ss,"d")
-image heaven_forest_d_rain_ss = DetectBg(sub_rain_ss,"n")
-image heaven_forest_d_overcast_ss = DetectBg(sub_overcast_ss,"n")
-image heaven_forest_d_snow_ss = DetectBg(sub_snow_ss,"n")
+image heaven_forest_d_ss = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_rain_ss = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_overcast_ss ="mod_assets/location/heaven_forest_2/disruption_forest.jpg"
+image heaven_forest_d_snow_ss = "mod_assets/location/heaven_forest_2/disruption_forest.jpg"
 
 ### 这里疑似是为特殊日期（生日,万圣节等)处理装饰的地方,如果不需要请注释
 #init 501 python:
@@ -149,8 +65,8 @@ image heaven_forest_d_snow_ss = DetectBg(sub_snow_ss,"n")
 
 init -1 python:
     heaven_forest_d = MASFilterableBackground(
-        submod_roomid,
-        submod_roomname,
+        "heaven_forest_d",
+        "天堂森林战损版",
         MASFilterWeatherMap(
             #白天
             day=MASWeatherMap({
@@ -171,7 +87,7 @@ init -1 python:
                 store.mas_weather.PRECIP_TYPE_DEF: "heaven_forest_d_ss",
                 store.mas_weather.PRECIP_TYPE_RAIN: "heaven_forest_d_rain_ss",
                 store.mas_weather.PRECIP_TYPE_OVERCAST: "heaven_forest_d_overcast_ss",
-                store.mas_weather.PRECIP_TYPE_SNOW: "heaven_forest_d_snow_ss",
+                store.mas_weather.PRECIP_TYPE_SNOW: "heaven_forest_d_2_snow_ss",
             }),
         ),
 
@@ -218,10 +134,10 @@ init -1 python:
         # 房间细节 True=是,False=否
         ##############################################
 
-        disable_progressive=sub_dp,    #是否禁用天气变化
-        hide_masks=sub_hm,             #是否禁用天气动画
-        hide_calendar=sub_hc,          #是否隐藏日历
-        unlocked=sub_unl,                #是否解锁
+        disable_progressive=True,    #是否禁用天气变化
+        hide_masks=True,             #是否禁用天气动画
+        hide_calendar=True,          #是否隐藏日历
+        unlocked=False,                #是否解锁
         entry_pp=store.mas_background._entry,   #没必要改
         exit_pp=store.mas_background._exit,     #↑
         ex_props={"skip_outro": None}           #↑
@@ -237,9 +153,6 @@ init -2 python in mas_background:
             pass
 
         else:
-            if not store.mas_inEVL("switch_dlg"):
-                store.pushEvent("switch_dlg")
-
             store.mas_o31HideVisuals()
             store.mas_d25HideVisuals()
 
@@ -260,7 +173,7 @@ init -2 python in mas_background:
 
     def _exit(_new, **kwargs):
         """
-        离开原先房间执行的代码 不需要改
+        离开这个房间执行的代码 不需要改
         """
         #O31
         if store.persistent._mas_o31_in_o31_mode:
@@ -277,37 +190,6 @@ init -2 python in mas_background:
         store.monika_chr.tablechair.table = "def"
         store.monika_chr.tablechair.chair = "def"
 
-        if _new == store.mas_background_def:
-            store.pushEvent("return_switch_dlg")
 
 
-##############################################
-# 选择对话
-##############################################
 
-###进入这个房间后随机选择一句
-label switch_dlg:
-    python:
-        switch_quip = renpy.substitute(renpy.random.choice([
-            "她的房间真有少女气息呢~",
-            "呜哇，老是来别人的房间，有空的话...也来我家坐坐吧~",
-            "小飞鱼很可爱~",
-            "她真的很开心呢..."
-        ]))
-
-    m 1hua "[switch_quip]"
-
-    return
-###回到默认教室以后随机选择一句
-label return_switch_dlg:
-    python:
-        switch_quip = renpy.substitute(renpy.random.choice([
-            "我回来了~",
-            "想念我们的教室了?",
-            "我们已经在一起多久了呢..."
-        ]))
-
-    m 1hua "[switch_quip]"
-    return
-
-### ---//从这里的代码到末尾的代码可以考虑删除,因为只是一些对话代码//---
