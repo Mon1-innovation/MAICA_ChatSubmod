@@ -10,6 +10,22 @@ websocket._logging.enableTrace(False)
 
 
 class MaicaAi(ChatBotInterface):
+    ascii_icon = """                                                             
+          ____                                                 
+        ,'  , `.   ,---,         ,---,  ,----..     ,---,        
+     ,-+-,.' _ |  '  .' \     ,`--.' | /   /   \   '  .' \       
+  ,-+-. ;   , || /  ;    '.   |   :  :|   :     : /  ;    '.     
+ ,--.'|'   |  ;|:  :       \  :   |  '.   |  ;. /:  :       \    
+|   |  ,', |  '::  |   /\   \ |   :  |.   ; /--` :  |   /\   \   
+|   | /  | |  |||  :  ' ;.   :'   '  ;;   | ;    |  :  ' ;.   :  
+'   | :  | :  |,|  |  ;/  \   \   |  ||   : |    |  |  ;/  \   \ 
+;   . |  ; |--' '  :  | \  \ ,'   :  ;.   | '___ '  :  | \  \ ,' 
+|   : |  | ,    |  |  '  '--' |   |  ''   ; : .'||  |  '  '--'   
+|   : '  |/     |  :  :       '   :  |'   | '/  :|  :  :         
+;   | |`-'      |  | ,'       ;   |.' |   :    / |  | ,'         
+|   ;/          `--''         '---'    \   \ .'  `--''           
+'---'                                   `---`
+"""
     class MaicaAiModel:
         maica_main = "maica_main"
         maica_core = "maica_core"
@@ -156,7 +172,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.content_func is None:
             return
         max_len = 33 * 2
-        content = content.replace("\"", "").replace("'", "").strip()
+        content = content.replace("\"", "").replace("'", "")
         l = content.split("\n")
         def calculate_length(s):
             

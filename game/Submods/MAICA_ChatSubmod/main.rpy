@@ -5,9 +5,13 @@ label maica_talking:
     python:
         import time
         from store.maica import maica as ai
+        ai.content_func = store.mas_ptod._update_console_history
+        ai.send_to_outside_func(ai.ascii_icon)
+        if persistent.maica_setting_dict['console']:
+            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+            renpy.pause(2.3)
         if ai.wss_session is None:
             ai.init_connect()
-        ai.content_func = store.mas_ptod._update_console_history
         while True:
             if ai.wss_session is None:
                 store.mas_ptod.write_command("Init Connecting...")
