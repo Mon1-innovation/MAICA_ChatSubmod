@@ -70,7 +70,7 @@ label maica_greeting:
 
     
     $ has_listened = False
-    $ _opendoor_text = "...轻轻地推开了门."
+    $ _opendoor_text = _("...轻轻地推开了门.")
 # Isn't really an open door event. guess shall not add afflos here
 # Add this greeting to waiting list after maica_prepend_1 was triggered. affection AFFECTIONATE at least to trigger.
 # Shouldn't trigger if today is special event like player bday. finish that for me p
