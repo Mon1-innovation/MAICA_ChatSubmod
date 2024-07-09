@@ -49,12 +49,13 @@ init 10 python:
         persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.zh_cn
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
-    _maica_LoginEmail = None
+    _maica_LoginEmail = ""
     def _maica_clear():
         store._maica_LoginAcc = ""
         store._maica_LoginPw = ""
-        store._maica_LoginEmail = None
+        store._maica_LoginEmail = ""
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
+        store.mas_api_keys.save_keys()
 
 
     def upload_persistent_dict():
@@ -325,7 +326,7 @@ screen maica_login():
 
             hbox:
                 textbutton _("输入 DCC 账号用户名"):
-                    action Show("maica_login_input",message = "请输入DCC 账号用户名",returnto = "_maica_LoginAcc")
+                    action Show("maica_login_input",message = _("请输入DCC 账号用户名") ,returnto = "_maica_LoginAcc")
                 text _("或")
                 textbutton _("输入 DCC 账号邮箱"):
                     action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
@@ -339,14 +340,14 @@ screen maica_login():
                 if renpy.version_tuple[0] < 8:
                     textbutton _("连接至服务器生成MAICA令牌"):
                         action [
-                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail),
+                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
                 else:
                     textbutton _("生成MAICA令牌"):
                         action [
-                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail),
+                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]

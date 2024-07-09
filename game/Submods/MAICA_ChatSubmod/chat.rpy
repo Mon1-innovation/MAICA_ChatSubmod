@@ -460,8 +460,19 @@ label maica_main:
         m 1eua "那么, 你想和我聊点什么呢?"
         
     call maica_talking
-
-    m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+    # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
+    if _return == "canceled":
+        m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+    else:
+        if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
+            m 2rusdlb "...好像你的令牌还没有设置好."
+            m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+            m 3eua "剩下的事情我都会帮你搞定的."
+        elif store.maica.maica.status == store.maica.maica.MaicaAiStatus.SAVEFILE_NOTFOUND:
+            m 2rusdlb "你当前会话没有上传存档哦..."
+        else:
+            m 2rusdlb "好像是其他的地方出问题了..."
+        m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
 
     if maica_chr_exist:
         scene black with dissolve
