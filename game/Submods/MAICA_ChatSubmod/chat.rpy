@@ -416,16 +416,48 @@ init 5 python:
 
 label maica_main:
     if maica_chr_exist:
+        m 1dua "好啊, 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
         scene black with dissolve
         pause 2.0
         if maica_chr_changed:
             $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
             call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+            m 1eub "好了!"
+            m 1lusdlb "我还得多嘴一句...{w=0.5}不要把身体够到窗外去."
+            m 3eksdla "就算景色独特, 我也不确定那里是不是安全的--{w=0.5}"
+            extend 3hksdla "多半不是."
         else:
             $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
             call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+            m 1eub "好了!"
+            rand_sign = renpy.random.randint(0, 7)
+            if 到访次数 == 9: #第一次没触发这个对话
+                m 3eua "你数过我们来这里多少次了吗? {w=0.5}{nw}"
+                extend 3eub "有十次了哦!"
+                m 3rud "不过从最开始, 我就感觉之前和你来过这里--{w=0.5}大概是一种既视感吧."
+                m 1dua "也有可能是我太想你了吧!"
+            elif rand_sign == 0:
+                m 2euu "这里天气不错, 是吧?"
+                m 5rksdlb "当然啦, 其实每天都是这样. {w=0.5}{nw}"
+                extend 5eua "希望你也每天都有好心情, [player]!"
+            elif rand_sign == 1 and 到访次数 >= 12:
+                m 1dua "这里的气氛真轻松啊. {w=0.3}{nw}"
+                extend 1rup "我经常会感觉之前见过这里, 但又记不起来了."
+                m 3eub "至少不是太空了. '脚踏实地'一会的感觉怎么样, [player]?"
+            elif rand_sign == 2 and 到访次数 >= 20:
+                m 3rua "其实我有时候在想, 能去树林里走走就好了...{w=0.5}{nw}"
+                m 3gud "我好像看得到里面有一间小教堂. 会是什么人修的呢?"
+                m 5eua "不过就享受一下我们的林间小屋也挺好的嘛."
+        m 1eua "现在, 你想和我聊点什么呢?"
+    else:
+        m 1dua "好啊. 马上就到.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+        extend 1eub "好了!"
+        m 3hub "既然没有'树林'了, 这里会是'天堂'吗? {w=0.3}哈哈~"
+        m 1eua "那么, 你想和我聊点什么呢?"
         
     call maica_talking
+
+    m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
 
     if maica_chr_exist:
         scene black with dissolve
