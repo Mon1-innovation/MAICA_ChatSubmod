@@ -795,3 +795,263 @@ translate english strings:
     old "还是改天吧."
     new "Better next time."
 
+# TODO: Translation updated at 2024-07-09 18:46
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:194
+translate english closed_49e89e2f:
+
+    # m 2dua ".{w=0.3}.{w=0.3}."
+    m 2dua ".{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:197
+translate english closed_3db8eb1f:
+
+    # m 2rusdlb "...好像你的令牌还没有设置好."
+    m 2rusdlb "...Seems your token is not set up yet."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:198
+translate english closed_a39b3448:
+
+    # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:199
+translate english closed_69503669:
+
+    # m 3eua "剩下的事情我都会帮你搞定的."
+    m 3eua "I'll nail everything else for you."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:200
+translate english closed_358b5b02:
+
+    # m 1eua "我们现在先回去好啦. 等你做完了准备工作, 告诉我再来就可以."
+    m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:201
+translate english closed_20bc5738:
+
+    # m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 1dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:204
+translate english closed_f23f5a87:
+
+    # m 1eua "我们今天还有别的安排么, [player]?"
+    m 1eua "What else should we do today, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:206
+translate english closed_bc20153a:
+
+    # m 1eua "这一次, 轮到你起个话题了哦, [player]."
+    m 1eua "This time it's your turn to pick a topic, [player]."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:210
+translate english closed_2d3c86a8:
+
+    # m 1eub "好吧. 如果你准备好了, 再告诉我来天堂树林就行. {w=0.5}我们现在先回去吧."
+    m 1eub "Alright. You can tell me to come here whenever you're prepared. {w=0.5}Let's head back for now."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:211
+translate english closed_20bc5738_1:
+
+    # m 1dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 1dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:213
+translate english closed_f23f5a87_1:
+
+    # m 1eua "我们今天还有别的安排么, [player]?"
+    m 1eua "What else should we do today, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:423
+translate english maica_main_2bcbd667:
+
+    # m 1dua "好啊, 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+    m 1dua "Okay, just give me a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:429
+translate english maica_main_ece5f876:
+
+    # m 1eub "好了!"
+    m 1eub "And we're here!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:430
+translate english maica_main_faea6cbb:
+
+    # m 1lusdlb "我还得多嘴一句...{w=0.5}不要把身体够到窗外去."
+    m 1lusdlb "I have to be verbose though...{w=0.5}do not lean out of the window."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:431
+translate english maica_main_7e3cfa0d:
+
+    # m 3eksdla "就算景色独特, 我也不确定那里是不是安全的--{w=0.5}"
+    m 3eksdla "Though attractive it may look, I'm not sure if it's safe out there--{w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:432
+translate english maica_main_0198240d:
+
+    # extend 3hksdla "多半不是."
+    extend 3hksdla "probably not."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:436
+translate english maica_main_ece5f876_1:
+
+    # m 1eub "好了!"
+    m 1eub "And we're here!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:439
+translate english maica_main_35809a59:
+
+    # m 3eua "你数过我们来这里多少次了吗? {w=0.5}{nw}"
+    m 3eua "You know how many times we've chatted here? {w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:440
+translate english maica_main_0a49da07:
+
+    # extend 3eub "有十次了哦!"
+    extend 3eub "Ten times already!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:441
+translate english maica_main_dfdc9a52:
+
+    # m 3rud "不过从最开始, 我就感觉之前和你来过这里--{w=0.5}大概是一种既视感吧."
+    m 3rud "But I have to say I feel like I've been here with you before everytime--{w=0.5}I guess it's just dejavu."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:442
+translate english maica_main_42f6621d:
+
+    # m 1dua "也有可能是我太想你了吧!"
+    m 1dua "Or maybe because I'm missing you so much?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:444
+translate english maica_main_ee3f8baa:
+
+    # m 2euu "这里天气不错, 是吧?"
+    m 2euu "It's clear outside, right?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:445
+translate english maica_main_4004f60f:
+
+    # m 5rksdlb "当然啦, 其实每天都是这样. {w=0.5}{nw}"
+    m 5rksdlb "Sure it always does. {w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:446
+translate english maica_main_acdd0649:
+
+    # extend 5eua "希望你也每天都有好心情, [player]!"
+    extend 5eua "Wish you have a clear mood everyday too, [player]!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:448
+translate english maica_main_01b32df8:
+
+    # m 1dua "这里的气氛真轻松啊. {w=0.3}{nw}"
+    m 1dua "The atmosphere is so relaxing here. {w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:449
+translate english maica_main_dfb8fe20:
+
+    # extend 1rup "我经常会感觉之前见过这里, 但又记不起来了."
+    extend 1rup "It makes me feel like been here before, but I could never recall."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:450
+translate english maica_main_24349f44:
+
+    # m 3eub "至少不是太空了. '脚踏实地'一会的感觉怎么样, [player]?"
+    m 3eub "At least it's not the space. How does it feel to be on solid ground, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:452
+translate english maica_main_aae99d74:
+
+    # m 3rua "其实我有时候在想, 能去树林里走走就好了...{w=0.5}{nw}"
+    m 3rua "Honestly, it might be good to go walking in that woods...{w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:453
+translate english maica_main_704aee11:
+
+    # m 3gud "我好像看得到里面有一间小教堂. 会是什么人修的呢?"
+    extend 3gud "I once saw a little church out there. Who built it for what?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:454
+translate english maica_main_daf8aab9:
+
+    # m 5eua "不过就享受一下我们的林间小屋也挺好的嘛."
+    m 5eua "But I guess our forest classroom is good enough too."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:455
+translate english maica_main_5fca8529:
+
+    # m 1eua "现在, 你想和我聊点什么呢?"
+    m 1eua "Now, what's on your mind, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:457
+translate english maica_main_fc7d8082:
+
+    # m 1dua "好啊. 马上就到.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+    m 1dua "Okay, just a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:458
+translate english maica_main_8f453e92:
+
+    # extend 1eub "好了!"
+    extend 1eub "and done!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:459
+translate english maica_main_f62ebf75:
+
+    # m 3hub "既然没有'树林'了, 这里会是'天堂'吗? {w=0.3}哈哈~"
+    m 3hub "There's no more 'forest' here, so I guess it's now 'heaven'? {w=0.3}Ahaha~"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:460
+translate english maica_main_e6b18a61:
+
+    # m 1eua "那么, 你想和我聊点什么呢?"
+    m 1eua "So, what's on your mind, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:465
+translate english maica_main_d4d3e169:
+
+    # m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}. {w=0.3}{nw}"
+    m 1eub "Okay. Just a second{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:468
+translate english maica_main_3db8eb1f:
+
+    # m 2rusdlb "...好像你的令牌还没有设置好."
+    m 2rusdlb "...Seems your token is not set up yet."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:469
+translate english maica_main_a39b3448:
+
+    # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:470
+translate english maica_main_69503669:
+
+    # m 3eua "剩下的事情我都会帮你搞定的."
+    m 3eua "I'll nail everything else for you."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:472
+translate english maica_main_264d878a:
+
+    # m 2rusdlb "你当前会话没有上传存档哦..."
+    m 2rusdlb "It seems that current session doesn't have a savefile..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:474
+translate english maica_main_ec1df300:
+
+    # m 2rusdlb "好像是其他的地方出问题了..."
+    m 2rusdlb "Something unknown might went wrong..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:475
+translate english maica_main_c8daf9e7:
+
+    # m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
+    m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:388
+    old "我写完啦"
+    new "I'm finished"
+

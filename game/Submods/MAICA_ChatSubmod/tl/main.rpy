@@ -10,3 +10,11 @@ translate english strings:
     old "似乎连接出了问题, 一会再试试吧~"
     new "A connection issue happend, maybe try again in a few minutes?"
 
+# TODO: Translation updated at 2024-07-09 18:46
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/main.rpy:75
+    old "好像出了什么问题..."
+    new "Something may went wrong..."
+

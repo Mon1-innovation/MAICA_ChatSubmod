@@ -19,22 +19,22 @@
 #        )
 
 # 白天
-image heaven_forest_day = "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_rain = "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_overcast ="mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_snow = "mod_assets/location/heaven_forest/heaven_forest.jpg"
+image heaven_forest_day = "mod_assets/location/heaven_forest/heaven_classroom.jpg"
+image heaven_forest_rain = "mod_assets/location/heaven_forest/heaven_classroom.jpg"
+image heaven_forest_overcast ="mod_assets/location/heaven_forest/heaven_classroom.jpg"
+image heaven_forest_snow = "mod_assets/location/heaven_forest/heaven_classroom.jpg"
 
 # 晚上
-image heaven_forest_night= "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_rain_night = "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_overcast_night = "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_snow_night = "mod_assets/location/heaven_forest/heaven_forest.jpg"
+image heaven_forest_night= "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
+image heaven_forest_rain_night = "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
+image heaven_forest_overcast_night = "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
+image heaven_forest_snow_night = "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
 
 # 傍晚
-image heaven_forest_ss = "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_rain_ss = "mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_overcast_ss ="mod_assets/location/heaven_forest/heaven_forest.jpg"
-image heaven_forest_snow_ss = "mod_assets/location/heaven_forest/heaven_forest.jpg"
+image heaven_forest_ss = "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
+image heaven_forest_rain_ss = "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
+image heaven_forest_overcast_ss ="mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
+image heaven_forest_snow_ss = "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
 
 ### 这里疑似是为特殊日期（生日,万圣节等)处理装饰的地方,如果不需要请注释
 #init 501 python:
