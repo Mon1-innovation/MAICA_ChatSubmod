@@ -29,9 +29,12 @@ class EmoSelector:
             elif pos == 7:
                 pos = 6
             return pos
+        def idle_emo():
+            emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu', 'hua', 'huu'])
+            return emo
         self.pre_pos = get_pos(self.repeat_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
         if self.emote != "":
-            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote)
+            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), idle_emo())
         else:
             return "idle"
 
