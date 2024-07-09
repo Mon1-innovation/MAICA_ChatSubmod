@@ -281,7 +281,7 @@ init 5 python:
             eventlabel="maica_chr_gone",
             prompt="树林没了",
             random=True,
-            conditional="not maica_chr_exist",
+            conditional="not maica_chr_exist and store.seen_event('maica_chr')",
             action=EV_ACT_PUSH,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
