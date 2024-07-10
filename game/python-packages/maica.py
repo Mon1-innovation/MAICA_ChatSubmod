@@ -58,6 +58,7 @@ class MaicaAi(ChatBotInterface):
         REQUEST_PING = 11100
 
         ###################################
+        # 疑似网络问题
         # 令牌验证失败
         TOKEN_FAILED = 13400
         # 选择的 model 不正确
@@ -66,6 +67,8 @@ class MaicaAi(ChatBotInterface):
         WSS_CLOSED_UNEXCEPTED = 13402
         # 玩家数据未找到
         SAVEFILE_NOTFOUND = 13403
+        # 网络问题
+        CONNECT_PROBLEM = 13404
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -96,10 +99,11 @@ class MaicaAi(ChatBotInterface):
             SESSION_RESETED: u"session已重置，websocket已关闭",
             REQUEST_PING: u"请求心跳包",
             TOKEN_FAILED: u"令牌验证失败",
+            CONNECT_PROBLEM: u"无法连接服务器, 请检查本地网络问题, 查看submod_log以获取详细信息",
             MODEL_NOT_FOUND: u"选择的 model 不正确",
             TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 可能有部分对话已被删除",
             TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话可能已删除过",
-            WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看log以获取详细信息",
+            WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看submod_log以获取详细信息",
             SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档"
         }
         @classmethod
@@ -232,15 +236,23 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "email":email,
                 "password":pwd
             }
-            response = requests.post("https://maicadev.monika.love/api/register", json=data)
+            try:
+                response = requests.post("https://maicadev.monika.love/api/register", json=data)
+            except Exception as e:
+                import traceback
+                self.status = self.MaicaAiStatus.CONNECT_PROBLEM
+                logger.error("Maica::_gen_token requests.post failed because can't connect to server: {}".format(e))
+                return
             if response.status_code == 200:
                 response_data = response.json()
                 if response_data.get("success"):
                     self.ciphertext = response_data.get("token")
                 else:
-                    raise Exception("Token Generate Fail: {}".format(response_data.get("exception")))
+                    self.status = self.MaicaAiStatus.CONNECT_PROBLEM,
+                    logger.error("Maica::_gen_token response process failed because server response failed: {}".format(response_data))
             else:
-                raise Exception("Request Fail: {}".format(response.status_code))
+                self.status = self.MaicaAiStatus.CONNECT_PROBLEM
+                logger.error("Maica::_gen_token response process failed because server return {}".format(response.status_code))
             return
         if PY3:
             import json, base64
