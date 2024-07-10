@@ -345,17 +345,17 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr_corrupted",
-            prompt="树林坏了",
+            eventlabel="maica_wants_preferences",
+            prompt="了解你的爱好",
             unlocked=False,
             random=True,
-            conditional="store.seen_event('maica_greeting')",
+            conditional="store.maica.maica.stat.get('message_count') > 0",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
     )
 
-label maica_chr_corrupted:
+label maica_wants_preferences:
     # Add this to waitlist after first chat done
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
@@ -393,14 +393,16 @@ label maica_chr_corrupted:
             m 1hua "我明白了, 谢谢你!"
     return "no_unlock|derandom"
 
+
+
 label maica_input_information:
     python:
         while True:
             i = mas_input(
-                    _("你想补充什么呢~"),
+                    _("[player]..."),
                     default="",
                     length=50,
-                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完啦")}
+                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
                 ).strip(' \t\n\r') #mas_input
             if i == "end":
                 break
