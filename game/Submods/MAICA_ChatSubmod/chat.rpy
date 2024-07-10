@@ -341,8 +341,21 @@ label maica_chr_corrupted:
     m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
     return "no_unlock|derandom"
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_corrupted",
+            prompt="树林坏了",
+            unlocked=False,
+            random=True,
+            conditional="store.seen_event('maica_greeting')",
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.HAPPY, None)
+        )
+    )
 
-label maica_wants_preferences:
+label maica_chr_corrupted:
     # Add this to waitlist after first chat done
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
@@ -373,14 +386,12 @@ label maica_wants_preferences:
             m 1eub "写完了? {w=0.5}谢谢你!"
             m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
             m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
-            return
         "还是下次吧" if not filled_already:
             m 2eka "现在没空么? 好吧."
             m 3eka "如果你准备好了, 再叫我记下来就好."
-            return
         "没有了" if filled_already:
             m 1hua "我明白了, 谢谢你!"
-            return
+    return "no_unlock|derandom"
 
 label maica_input_information:
     python:
