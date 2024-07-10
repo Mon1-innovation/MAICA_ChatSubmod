@@ -3,7 +3,12 @@
 
 import maica, os
 import emotion_analyze
-ai = maica.MaicaAi("", "", token = "Die3i9eiHt+WOYiGKBeNwLQanPgXKNald8Y+df9Vnb/+2FjZYbO+pF6rl/A55xTyEsD1knLQ71x25+IIVLolArdLz5FQ7BS6teF5AfQVc6djj/j7gGCXkL3fnkQLJWhCs0LPuBmeO0FFyiyQonMkZfswfVtfntlDf+fc/gcK1dKww/lXU6mfwwmh3BZ8g1vlyH4JtRJFisOGsflNIWsEpyuwf1yJT57WmCrisKawukU9XWJpKdmscABDT4frSW05yyBqYVKUnqVX7kfemOrxOhkaWk7L3jILVQp/WlxizRJ99KtDDUso8hNJ/3mfdCS1CB5LBazdPnuCKfATVKN0xA==")
+t = ""
+with open("token.txt", "r") as f:
+    t = f.read().strip()
+    
+
+ai = maica.MaicaAi("", "", token = t)
 print(ai.ciphertext)
 ai.sf_extraction = True
 ai.model = ai.MaicaAiModel.maica_main
@@ -56,8 +61,8 @@ try:
     
     while True:
         if not ai.status in (ai.MaicaAiStatus.MESSAGE_WAIT_INPUT, ai.MaicaAiStatus.MESSAGE_DONE):
-            print("等待Maica返回中")
-            maica.logger.info("ai.status = {}".format(ai.status))
+            #print("等待Maica返回中")
+            #maica.logger.info("ai.status = {}".format(ai.status))
             time.sleep(1)
             continue
         if ai.status == ai.MaicaAiStatus.MESSAGE_DONE and len(ai.message_list) > 0:
@@ -72,7 +77,9 @@ try:
         #if m == "":
         #    continue
         #ai.chat(m)
+        time.sleep(10.0)
         ai.start_MSpire()
+        
         
     print("wss 关闭，主进程停止")
     #except Exception as e:
