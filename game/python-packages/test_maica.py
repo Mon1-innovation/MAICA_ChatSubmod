@@ -7,6 +7,10 @@ ai = maica.MaicaAi("", "", token = "Die3i9eiHt+WOYiGKBeNwLQanPgXKNald8Y+df9Vnb/+
 print(ai.ciphertext)
 ai.sf_extraction = True
 ai.model = ai.MaicaAiModel.maica_main
+ai.MoodStatus = emotion_analyze.MoodStatus()
+ai.MoodStatus.main_strength = 0.0
+ai.MoodStatus.repeat_strength = 0.0
+ai.MoodStatus.pre_mood = ""
 ai.chat_session
 ai.init_connect()
 import time
@@ -56,18 +60,20 @@ try:
             maica.logger.info("ai.status = {}".format(ai.status))
             time.sleep(1)
             continue
-        if ai.status == ai.MaicaAiStatus.MESSAGE_DONE and len(ai.message_list.queue) > 0:
+        if ai.status == ai.MaicaAiStatus.MESSAGE_DONE and len(ai.message_list) > 0:
             print("message_list.get: ", ai.message_list.get())
             continue
         if not ai.wss_session.keep_running:
             break
         #ai.status = ai.MaicaAiStatus.REQUEST_RESET_SESSION
         print("开始chat")
-        ai.sf_extraction = True
-        m = input("请输入内容：\n")
-        if m == "":
-            continue
-        ai.chat(m)
+        #ai.sf_extraction = True
+        #m = input("请输入内容：\n")
+        #if m == "":
+        #    continue
+        #ai.chat(m)
+        ai.start_MSpire()
+        
     print("wss 关闭，主进程停止")
     #except Exception as e:
     #    raise e

@@ -43,6 +43,8 @@ class MaicaAi(ChatBotInterface):
         MESSAGE_WAIT_INPUT = 10302
         # 已输入消息，等待消息发送
         MESSAGE_WAIT_SEND = 10300
+        # 发送MSpire请求
+        MESSAGE_WAIT_SEND_MSPIRE = 10304
         # 已发送消息，等待MAICA回应
         MESSAGE_WAITING_RESPONSE = 10301
         # MAICA 已经输出完毕
@@ -94,6 +96,7 @@ class MaicaAi(ChatBotInterface):
             MESSAGE_WAIT_INPUT: u"maica 已准备好，等待玩家输入",
             MESSAGE_WAIT_SEND: u"已输入消息，等待消息发送",
             MESSAGE_WAITING_RESPONSE: u"已发送消息，等待MAICA回应",
+            MESSAGE_WAIT_SEND_MSPIRE: u"等待发送MSpire请求",
             MESSAGE_DONE: u"MAICA 已经输出完毕",
             REQUEST_RESET_SESSION: u"请求重置session",
             SESSION_RESETED: u"session已重置，websocket已关闭",
@@ -324,7 +327,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def len_message_queue(self):
         """返回maica已接收并完成分句的台词数"""
         return self.message_list.size()
-            
+    
+    def start_MSpire(self):
+        self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
     def _on_open(self, wsapp):
         logger.info("_on_open")
         import time, threading
@@ -353,6 +358,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                    elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
+                        dict = {"chat_session":self.chat_session, "inspire":True}
+                        logger.debug(dict)
+                        self._check_modelconfig()
+                        dict.update(self.modelconfig)
+                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                        self.wss_session.send(
+                            json.dumps(dict, ensure_ascii=False) 
+                        )
 
                     # 身份验证
                     elif self.status == self.MaicaAiStatus.WAIT_AUTH:
@@ -396,7 +410,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         data = json.loads(message)
         if data.get("type", False) != "carriage":
             self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-        if 500 <= data.get("code", 200) < 600:
+        if 500 <= int(data.get("code", 200)) < 600:
             self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
@@ -438,7 +452,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
 
                     self.message_list.put((emote, res.strip()))
-                    logger.debug("Server:",self._received[self._pos:self._pos + isnum])
+                    logger.debug("Server:{}".format(self._received[self._pos:self._pos + isnum]))
                     self._pos = self._pos + isnum
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
