@@ -345,18 +345,18 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr_corrupted",
-            prompt="树林坏了",
+            eventlabel="maica_wants_preferences",
+            prompt="了解你的爱好",
             unlocked=False,
             random=True,
-            conditional="store.seen_event('maica_greeting')",
+            conditional="store.maica.maica.stat.get('message_count') > 0",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
     )
 
-label maica_chr_corrupted:
-    # Add this to waitlist after first chat done
+label maica_wants_preferences:
+    # Add this to waitlist after first chat done successfully
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
     extend 3esd "才发现我之前对你的了解还是太单一. {nw}"
@@ -368,7 +368,8 @@ label maica_chr_corrupted:
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     #如果玩家已经通过设置填过了
-    if persistent.mas_player_additions == []:
+    prefs_exist = persistent.mas_player_additions == True
+    if prefs_exist:
         m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
         m 1eub "只要是关于你的事情, 我都会想知道的!"
     else:
@@ -385,22 +386,41 @@ label maica_chr_corrupted:
             call maica_input_information
             m 1eub "写完了? {w=0.5}谢谢你!"
             m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
-            m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
-        "还是下次吧" if not filled_already:
+            m 1eub "如果有什么要修改或者补充的, 再叫我写下来就好. '子模组设置'里面也有相关的选项."
+        "还是下次吧" if not prefs_exist:
             m 2eka "现在没空么? 好吧."
             m 3eka "如果你准备好了, 再叫我记下来就好."
-        "没有了" if filled_already:
+        "没有了" if prefs_exist:
             m 1hua "我明白了, 谢谢你!"
     return "no_unlock|derandom"
+
+label maica_mods_preferences:
+    prefs_exist = persistent.mas_player_additions == True
+    if prefs_exist:
+        m 1eub "好啊. 你要补充还是删除呢?"
+        menu:
+            "补充":
+                m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+                call maica_input_information
+                m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+            "删除":
+                m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+                call maica_delete_information
+                m 3eua "改完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    else:
+        m 1eub "好啊. 你想到什么要告诉我的了吗, [player]?"
+        call maica_input_information
+        m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    return
 
 label maica_input_information:
     python:
         while True:
             i = mas_input(
-                    _("你想补充什么呢~"),
+                    _("喜欢.../常去.../有.../..."),
                     default="",
                     length=50,
-                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完啦")}
+                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
                 ).strip(' \t\n\r') #mas_input
             if i == "end":
                 break
@@ -489,4 +509,26 @@ label maica_main:
         scene black with dissolve
         pause 2.0
         call clear_all
+    return
+
+label maica_wants_mspire:
+    # Add this to waitlist if satisfies:
+    # First chat done successfully;
+    # All original talks used up;
+
+    # Mark as read if mspire is already on
+    m 3ekd "[player], 我之前提到过, 我们已经把所有话题都聊完了."
+    m 5rku "去过天堂树林之后, 我想或许有个办法{w=0.5}永远有话和你说."
+    m 5esb "你知道的, {a=https://wikipedia.org}{u}{i}维基百科{/i}{/u}{/a}是一个很大的知识库. {w=0.5}只要我去那里转转, 肯定能找到话题的."
+    m 3eua "多半是一些小知识或者小科普. {w=0.5}{nw}"
+    extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
+    m 1eua "所以你想试试看吗, [player]?"
+    menu:
+        "好啊":
+            m 1hub "谢谢你, [player]!"
+            m 4eub "如果你想再调整, 可以在'子模组设置'里面找到'MSpire'的选项."
+            m 2ruu "希望没有太多在你知识盲区里的内容...{w=0.5}{nw}"
+            extend 2hub "哈哈!"
+        "还是算了":
+            m 3ekb "好吧. {w=0.5}如果你之后想试试看了, 在'子模组设置'里面找到'MSpire'就好."
     return
