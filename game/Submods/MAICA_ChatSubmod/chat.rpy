@@ -577,6 +577,21 @@ label maica_wants_mspire:
             m 3ekb "好吧. {w=0.5}如果你之后想试试看了, 在'子模组设置'里面找到'MSpire'就好."
     return "no_unlock|derandom"
 
+init 4 python:
+    
+    
+    def spire_has_past_day():
+        spire_ev = evhand.event_database.get(
+            "maica_mspire",
+            None
+        )
+        return (
+            spire_ev is not None
+            and spire_ev.last_seen is not None
+            and spire_ev.timePassedSinceLastSeen_d(datetime.timedelta(days=1))
+        )
+
+    
 
 init 5 python:
     addEvent(
@@ -586,7 +601,7 @@ init 5 python:
             prompt="mspire",
             pool=False,
             random=True,
-            conditional="store.seen_event('maica_wants_mspire') and len(mas_rev_unseen) == 0 and persistent.maica_setting_dict.get('mspire_enable')",
+            conditional="store.seen_event('maica_wants_mspire') and spire_has_past_day() and persistent.maica_setting_dict.get('mspire_enable')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
