@@ -63,7 +63,7 @@ class MoodStatus(object):
                 logger.warning("MoodStatus::analyze {} not in EmotionalStatus".format(match))
             # 如果匹配内容在字典的键中，去除匹配的字符串
             message = message.replace('[{}]'.format(match), '')
-            self.add_emotional(match)
+            #self.add_emotional(match)
 
         return message
     # 增加心情值
