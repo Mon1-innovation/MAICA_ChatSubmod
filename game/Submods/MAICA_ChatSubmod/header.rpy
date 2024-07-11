@@ -30,7 +30,7 @@ define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     import logging
-    default_dict = {
+    maica_default_dict = {
         "auto_reconnect":False,
         "maica_model":None,
         "use_custom_model_config":False,
@@ -42,10 +42,11 @@ init 10 python:
         "_event_pushed":False,
         "mspire_enable":True,
         "mspire_category":[],
+        "mspire_interval":60,
         "log_level":logging.DEBUG,
     }
-    default_dict.update(persistent.maica_setting_dict)
-    persistent.maica_setting_dict = default_dict.copy()
+    maica_default_dict.update(persistent.maica_setting_dict)
+    persistent.maica_setting_dict = maica_default_dict.copy()
 
     if persistent.maica_setting_dict["maica_model"] is None:
         persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
@@ -304,10 +305,10 @@ screen maica_setting():
             hbox:
                 textbutton _("MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
                     action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                    hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响"))
+                    hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响, 需要关闭重复对话"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                textbutton _("MSpire范围"):
+                textbutton _("对话范围编辑"):
                     action [
                         SetDict(persistent.maica_setting_dict, "_event_pushed", True),
                         Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
@@ -315,6 +316,15 @@ screen maica_setting():
                         ]
                     hovered SetField(_tooltip, "value", _("范围为维基百科的category页面"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                textbutton _("间隔: [persistent.maica_setting_dict.get('mspire_interval')]分钟"):
+                    action NullAction()
+                bar:
+                    value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=5 ,style="slider")
+                    xsize 200
+                    hovered SetField(_tooltip, "value", _("MSpire对话的最低间隔分钟"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                
             
             hbox:
                 textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
@@ -342,7 +352,7 @@ screen maica_setting():
                         Function(store.apply_setting),
                         Hide("maica_setting")
                         ]
-
+                
                  
 
 

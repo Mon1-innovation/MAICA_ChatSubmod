@@ -580,7 +580,7 @@ label maica_wants_mspire:
 init 4 python:
     
     
-    def spire_has_past_day():
+    def spire_has_past(delta = datetime.timedelta(days=1)):
         spire_ev = evhand.event_database.get(
             "maica_mspire",
             None
@@ -588,7 +588,7 @@ init 4 python:
         return (
             spire_ev is not None
             and spire_ev.last_seen is not None
-            and spire_ev.timePassedSinceLastSeen_d(datetime.timedelta(days=1))
+            and spire_ev.timePassedSinceLastSeen_d()
         )
 
     
@@ -601,7 +601,7 @@ init 5 python:
             prompt="mspire",
             pool=False,
             random=True,
-            conditional="store.seen_event('maica_wants_mspire') and spire_has_past_day() and persistent.maica_setting_dict.get('mspire_enable')",
+            conditional="store.seen_event('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -625,7 +625,7 @@ label mspire_mods_preferences:
                 call mspire_delete_information
                 m 3eua "改完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
     else:
-        m 1eub "好啊. 你想到什么要告诉我的了吗, [player]?"
+        m 1eub "好啊. 你想我说那些方面呢~"
         call mspire_input_information
         m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
     return
@@ -652,7 +652,7 @@ label mspire_delete_information:
                 i, i, False, False, True 
             ])
 
-    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="删除选择项", return_all=True)
+    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("删除选择项"), return_all=True)
 
     python:
         persistent.maica_setting_dict['mspire_category'] = []
