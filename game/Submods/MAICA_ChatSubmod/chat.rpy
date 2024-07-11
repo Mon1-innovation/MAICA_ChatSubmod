@@ -611,7 +611,24 @@ label maica_mspire:
     call maica_talking(mspire=True)
     return "no_unlock|derandom"
 
-
+label mspire_mods_preferences:
+    $ prefs_exist = len(persistent.maica_setting_dict['mspire_category'])
+    if prefs_exist:
+        m 1eub "好啊. 你要补充还是删除呢?"
+        menu:
+            "补充":
+                m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+                call mspire_input_information
+                m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+            "删除":
+                m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+                call mspire_delete_information
+                m 3eua "改完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    else:
+        m 1eub "好啊. 你想到什么要告诉我的了吗, [player]?"
+        call mspire_input_information
+        m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    return
 
 label mspire_input_information:
     python:
@@ -624,7 +641,8 @@ label mspire_input_information:
                 ).strip(' \t\n\r') #mas_input
             if i == "end":
                 break
-            persistent.mas_player_additions.append("[player]{}".format(i))
+            persistent.maica_setting_dict['mspire_category'].append("{}".format(i))
+            apply_setting()
     return
 label mspire_delete_information:
     python:

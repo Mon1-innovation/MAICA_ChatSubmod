@@ -41,7 +41,8 @@ init 10 python:
         "target_lang":None,
         "_event_pushed":False,
         "mspire_enable":True,
-        "mspire_category":[]
+        "mspire_category":[],
+        "log_level":logging.DEBUG,
     }
     default_dict.update(persistent.maica_setting_dict)
     persistent.maica_setting_dict = default_dict.copy()
@@ -120,6 +121,7 @@ init 10 python:
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
+        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
     
     def change_chatsession():
         persistent.maica_setting_dict["chat_session"] += 1
@@ -147,8 +149,8 @@ init 10 python:
     def change_loglevel():
         import logging
         l = [logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
-        curr = l.index(store.mas_submod_utils.submod_log.level)
-        store.mas_submod_utils.submod_log.level = l[(curr + 1) % len(l)]
+        curr = l.index(persistent.maica_setting_dict["log_level"])
+        persistent.maica_setting_dict["log_level"] = l[(curr + 1) % len(l)]
     
     apply_setting(True)
         
@@ -305,7 +307,14 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                textbutton _("MSpire范围")
+                textbutton _("MSpire范围"):
+                    action [
+                        SetDict(persistent.maica_setting_dict, "_event_pushed", True),
+                        Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
+                        Function(store.MASEventList.push, "mspire_mods_preferences")
+                        ]
+                    hovered SetField(_tooltip, "value", _("范围为维基百科的category页面"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
             
             hbox:
                 textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):

@@ -170,6 +170,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.reset_stat()
         self.auto_reconnect = False
         self.mspire_category = ["视觉小说", "恋爱冒险游戏"]
+        self.mspire_session = 0
+
     def reset_stat(self):
         self.stat = {
             "message_count":0,
@@ -363,7 +365,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {"chat_session":self.chat_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
+                        dict = {"chat_session":self.mspire_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
                         logger.debug(dict)
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
