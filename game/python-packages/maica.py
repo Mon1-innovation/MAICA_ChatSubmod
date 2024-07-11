@@ -169,7 +169,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.modelconfig = {}
         self.reset_stat()
         self.auto_reconnect = False
-        self.mspire_category = ["美少女游戏"]
+        self.mspire_category = ["视觉小说", "恋爱冒险游戏"]
     def reset_stat(self):
         self.stat = {
             "message_count":0,
@@ -336,7 +336,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
     def _on_open(self, wsapp):
         logger.info("_on_open")
-        import time, threading
+        import time, threading, random
         def send_message():
             try:
                 import json
@@ -363,7 +363,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {"chat_session":self.chat_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category}
+                        dict = {"chat_session":self.chat_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
                         logger.debug(dict)
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
@@ -471,7 +471,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
                     self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
                     self.message_list.put((emote, res.strip()))
-                    logger.debug("Server:",self._received[self._pos:])
+                    logger.debug("Server: {}".format(self._received[self._pos:]))
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE

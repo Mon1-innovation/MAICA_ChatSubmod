@@ -16,8 +16,7 @@ ai.MoodStatus = emotion_analyze.MoodStatus()
 ai.MoodStatus.main_strength = 0.0
 ai.MoodStatus.repeat_strength = 0.0
 ai.MoodStatus.pre_mood = ""
-ai.chat_session
-ai.mspire_category = []
+ai.chat_session = 0
 ai.init_connect()
 import time
 print("读取表情信息")
@@ -25,42 +24,44 @@ data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
 # 表情代码
-#with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r", encoding='utf-8') as e:
-#    for i in e.readlines():
-#        line = i.split(":")
-#        if len(line) != 2:
-#            continue
-#        line[1] = line[1].strip()
-#        if line[1] not in data:
-#            data[line[1]] = {"sentiment":-2}
-#        if not len(line[0]) in data[line[1]]:
-#            data[line[1]][len(line[0])] = []
-#        data[line[1]][len(line[0])].append(line[0])
-#    
-#    for i in data:
-#        for n in i:
-#            n = set(n)
-## 表情正负性
-#with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.txt"), "r", encoding='utf-8') as s:
-#    for i in s.readlines():
-#        line = i.split(":")
-#        if len(line) != 2:
-#            continue
-#        line[1] = line[1].strip()
-#        if line[0] in data:
-#            data[line[0]]["sentiment"] = [line[1]]
-#emotion_analyze.add_emotedata(data)
-#
-## 表情相关性
-#import json
-#with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_influence.json"), "r", encoding='utf-8') as s:
-#    emotion_analyze.add_emoteeffectdata(
-#        json.load(s)
-#    )
+with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r", encoding='utf-8') as e:
+    for i in e.readlines():
+        line = i.split(":")
+        if len(line) != 2:
+            continue
+        line[1] = line[1].strip()
+        if line[1] not in data:
+            data[line[1]] = {"sentiment":-2}
+        if not len(line[0]) in data[line[1]]:
+            data[line[1]][len(line[0])] = []
+        data[line[1]][len(line[0])].append(line[0])
+    
+    for i in data:
+        for n in i:
+            n = set(n)
+# 表情正负性
+with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.txt"), "r", encoding='utf-8') as s:
+    for i in s.readlines():
+        line = i.split(":")
+        if len(line) != 2:
+            continue
+        line[1] = line[1].strip()
+        if line[0] in data:
+            data[line[0]]["sentiment"] = [line[1]]
+emotion_analyze.add_emotedata(data)
+
+# 表情相关性
+import json
+with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_influence.json"), "r", encoding='utf-8') as s:
+    emotion_analyze.add_emoteeffectdata(
+        json.load(s)
+    )
 
 try:
     
     while True:
+        if ai.is_failed():
+            break
         if not ai.status in (ai.MaicaAiStatus.MESSAGE_WAIT_INPUT, ai.MaicaAiStatus.MESSAGE_DONE):
             #print("等待Maica返回中")
             #maica.logger.info("ai.status = {}".format(ai.status))

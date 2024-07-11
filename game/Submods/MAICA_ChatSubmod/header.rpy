@@ -29,6 +29,7 @@ default persistent.mas_player_additions = []
 define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
+    import logging
     default_dict = {
         "auto_reconnect":False,
         "maica_model":None,
@@ -38,7 +39,9 @@ init 10 python:
         "console":True,
         "console_font":maica_confont,
         "target_lang":None,
-        "_event_pushed":False
+        "_event_pushed":False,
+        "mspire_enable":True,
+        "mspire_category":[]
     }
     default_dict.update(persistent.maica_setting_dict)
     persistent.maica_setting_dict = default_dict.copy()
@@ -116,6 +119,7 @@ init 10 python:
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
+        store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
     
     def change_chatsession():
         persistent.maica_setting_dict["chat_session"] += 1
@@ -139,6 +143,12 @@ init 10 python:
             if not ininit:
                 renpy.notify(_("加载高级参数失败, 查看submod_log.log来获取详细原因").format(e))
             store.mas_submod_utils.submod_log.error("Failed to load custom model config: {}".format(e))
+    
+    def change_loglevel():
+        import logging
+        l = [logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
+        curr = l.index(store.mas_submod_utils.submod_log.level)
+        store.mas_submod_utils.submod_log.level = l[(curr + 1) % len(l)]
     
     apply_setting(True)
         
@@ -289,6 +299,21 @@ screen maica_setting():
                     action Function(export_player_information)
                     hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+            hbox:
+                textbutton _("MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
+                    hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                textbutton _("MSpire范围")
+            
+            hbox:
+                textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
+                    action Function(store.change_loglevel)
+                    hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                    
 
             if renpy.config.debug:
                 hbox:

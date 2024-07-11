@@ -586,7 +586,7 @@ init 5 python:
             prompt="mspire",
             pool=False,
             random=True,
-            conditional="store.seen_event('maica_wants_mspire') and len(mas_rev_unseen) == 0",
+            conditional="store.seen_event('maica_wants_mspire') and len(mas_rev_unseen) == 0 and persistent.maica_setting_dict.get('mspire_enable')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -595,3 +595,36 @@ init 5 python:
 label maica_mspire:
     call maica_talking(mspire=True)
     return "no_unlock|derandom"
+
+
+
+label mspire_input_information:
+    python:
+        while True:
+            i = mas_input(
+                    _("请输入你想添加的分类:"),
+                    default="",
+                    length=50,
+                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
+                ).strip(' \t\n\r') #mas_input
+            if i == "end":
+                break
+            persistent.mas_player_additions.append("[player]{}".format(i))
+    return
+label mspire_delete_information:
+    python:
+        items = []
+        for i in persistent.maica_setting_dict['mspire_category']:
+            items.append([
+                i, i, False, False, True 
+            ])
+
+    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="删除选择项", return_all=True)
+
+    python:
+        persistent.maica_setting_dict['mspire_category'] = []
+        for i in _return:
+            if _return[i]:
+                persistent.maica_setting_dict['mspire_category'].append(i)
+    return
+           
