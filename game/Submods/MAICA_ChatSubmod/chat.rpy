@@ -368,7 +368,7 @@ label maica_wants_preferences:
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     #如果玩家已经通过设置填过了
-    prefs_exist = persistent.mas_player_additions == True
+    $ prefs_exist = len(persistent.mas_player_additions)
     if prefs_exist:
         m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
         m 1eub "只要是关于你的事情, 我都会想知道的!"
@@ -393,9 +393,23 @@ label maica_wants_preferences:
         "没有了" if prefs_exist:
             m 1hua "我明白了, 谢谢你!"
     return "no_unlock|derandom"
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mods_preferences",
+            prompt="调整[player]的爱好",
+            category=["你", "我们", "模组"],
+            pool=True,
+            random=False,
+            conditional="store.seen_event('maica_wants_preferences')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.HAPPY, None)
+        )
+    )
 
 label maica_mods_preferences:
-    prefs_exist = persistent.mas_player_additions == True
+    $ prefs_exist = len(persistent.mas_player_additions)
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?"
         menu:
@@ -426,6 +440,24 @@ label maica_input_information:
                 break
             persistent.mas_player_additions.append("[player]{}".format(i))
     return
+label maica_delete_information:
+    python:
+        items = []
+        for i in persistent.mas_player_additions:
+            items.append([
+                i, i, False, False, True 
+            ])
+
+    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="删除选择项", return_all=True)
+
+    python:
+        persistent.mas_player_additions = []
+        for i in _return:
+            if _return[i]:
+                persistent.mas_player_additions.append(i)
+    return
+            
+
 
 label clear_all:
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
@@ -510,7 +542,19 @@ label maica_main:
         pause 2.0
         call clear_all
     return
-
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_mspire",
+            prompt="spire",
+            pool=False,
+            random=False,
+            conditional="store.seen_event('maica_greeting') and len(mas_rev_unseen) == 0",
+            action=EV_ACT_PUSH,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_wants_mspire:
     # Add this to waitlist if satisfies:
     # First chat done successfully;
@@ -531,4 +575,4 @@ label maica_wants_mspire:
             extend 2hub "哈哈!"
         "还是算了":
             m 3ekb "好吧. {w=0.5}如果你之后想试试看了, 在'子模组设置'里面找到'MSpire'就好."
-    return
+    return "no_unlock|derandom"

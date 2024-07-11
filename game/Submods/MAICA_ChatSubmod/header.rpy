@@ -273,11 +273,11 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 
-                textbutton _("增加信息"):
+                textbutton _("编辑信息"):
                     action [
                         SetDict(persistent.maica_setting_dict, "_event_pushed", True),
                         Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
-                        Function(store.MASEventList.push, "maica_input_information")
+                        Function(store.MASEventList.push, "maica_mods_preferences")
                         ]
                     hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
