@@ -576,3 +576,22 @@ label maica_wants_mspire:
         "还是算了":
             m 3ekb "好吧. {w=0.5}如果你之后想试试看了, 在'子模组设置'里面找到'MSpire'就好."
     return "no_unlock|derandom"
+
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mspire",
+            prompt="mspire",
+            pool=False,
+            random=True,
+            conditional="store.seen_event('maica_wants_mspire') and len(mas_rev_unseen) == 0",
+            action=EV_ACT_PUSH,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+label maica_mspire:
+    call maica_talking(mspire=True)
+    return "no_unlock|derandom"

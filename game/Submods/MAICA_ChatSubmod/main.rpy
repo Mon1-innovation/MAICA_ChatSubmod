@@ -1,4 +1,4 @@
-label maica_talking:
+label maica_talking(mspire = False):
     if persistent.maica_setting_dict['console']:
         show monika at t22
         show screen mas_py_console_teaching
@@ -16,7 +16,7 @@ label maica_talking:
             if ai.wss_session is None:
                 store.mas_ptod.write_command("Init Connecting...")
                 renpy.pause(0.3, True)
-            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_failed():
+            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_connected():
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
@@ -53,6 +53,8 @@ label maica_talking:
                 break
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
+            if mspire:
+                ai.start_MSpire()
             ai.chat(question)
             gentime = 0.0
             while ai.is_responding() or ai.len_message_queue() > 0 :

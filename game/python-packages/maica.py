@@ -169,6 +169,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.modelconfig = {}
         self.reset_stat()
         self.auto_reconnect = False
+        self.mspire_category = ["美少女游戏"]
     def reset_stat(self):
         self.stat = {
             "message_count":0,
@@ -320,9 +321,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def is_failed(self):
         """返回maica是否处于异常状态"""
         return self.MaicaAiStatus.is_submod_exception(self.status)\
-            or not self.wss_session.keep_running if self.wss_session else True\
-            or not self.wss_thread.is_alive() if self.wss_thread else True
+            and not self.is_connected()
 
+    def is_connected(self):
+        """返回maica是否连接服务器, 不检查状态码"""
+        return self.wss_session.keep_running if self.wss_session else False \
+            and self.wss_thread.is_alive() if self.wss_thread else False
 
     def len_message_queue(self):
         """返回maica已接收并完成分句的台词数"""
@@ -359,7 +363,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {"chat_session":self.chat_session, "inspire":True}
+                        dict = {"chat_session":self.chat_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category}
                         logger.debug(dict)
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
@@ -479,7 +483,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
         self.close_wss_session()
 
-    def _on_close(self, wsapp, close_status_code, close_msg):
+    def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         if close_status_code or close_msg:
             logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
         
