@@ -1,3 +1,7 @@
+init -1500 python:
+    if not config.language:
+        config.language = "english"
+
 init 5 python in maica:
     import store
     import maica, os, json

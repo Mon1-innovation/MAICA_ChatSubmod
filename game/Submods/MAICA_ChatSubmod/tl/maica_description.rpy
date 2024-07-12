@@ -1,5 +1,5 @@
 translate english python in maica:
-    maica._descriptions.update({
+    maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
         maica.MaicaAiStatus.WAIT_AUTH: u"Account acquired, verifying",
         maica.MaicaAiStatus.WAIT_SERVER_TOKEN: u"Waiting for token verification",

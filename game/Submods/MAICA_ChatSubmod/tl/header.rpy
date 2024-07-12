@@ -132,7 +132,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:261
     old "导出至根目录"
-    new "Export to game root directory"
+    new "Export to submod root directory"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:263
     old "导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
@@ -204,7 +204,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:266
     old "console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"
-    new "Decides what font should console display in. mplus-1mn-medium.ttf for default, SarasaMonoTC-SemiBold.ttf may behave better with non-ascii characters."
+    new "Decides what font should console display in. \nmplus-1mn-medium.ttf for default, SarasaMonoTC-SemiBold.ttf may behave better with non-ascii characters."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:272
     old "由你补充的一些数据, 增删后需要重新上传存档"
