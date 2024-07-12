@@ -17,6 +17,7 @@ ai.MoodStatus.main_strength = 0.0
 ai.MoodStatus.repeat_strength = 0.0
 ai.MoodStatus.pre_mood = ""
 ai.chat_session = 0
+ai.target_lang = ai.MaicaAiLang.en
 ai.init_connect()
 import time
 print("读取表情信息")

@@ -171,11 +171,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.auto_reconnect = False
         self.mspire_category = ["视觉小说", "恋爱冒险游戏"]
         self.mspire_session = 0
+        self._gen_time = 0.0
 
     def reset_stat(self):
         self.stat = {
             "message_count":0,
-            "received_token":0
+            "received_token":0,
+            "mspire_count":0,
         }
     def send_to_outside_func(self, content):
         content = u"{}".format(content)
@@ -314,7 +316,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             
     def is_responding(self):
         """返回maica是否正在返回消息"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND)
+        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE)
 
     def is_ready_to_input(self):
         """返回maica是否可以发送消息了"""
@@ -323,7 +325,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def is_failed(self):
         """返回maica是否处于异常状态"""
         return self.MaicaAiStatus.is_submod_exception(self.status)\
-            and not self.is_connected()
+            or not self.is_connected()
 
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
@@ -335,6 +337,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.message_list.size()
     
     def start_MSpire(self):
+        self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
     def _on_open(self, wsapp):
         logger.info("_on_open")
@@ -412,7 +415,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
         logger.debug("self.status: {}".format(self.status))
         
-        import json
+        import json, time
         data = json.loads(message)
         if data.get("type", False) != "carriage":
             self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
@@ -478,6 +481,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
                 self.MoodStatus.reset()
+                self._gen_time = time.time()
         if self.update_screen_func:
             self.update_screen_func(0)
     def _on_error(self, wsapp, error):

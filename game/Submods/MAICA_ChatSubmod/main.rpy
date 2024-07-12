@@ -7,11 +7,14 @@ label maica_talking(mspire = False):
         from store.maica import maica as ai
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
+        if mspire:
+            ai.send_to_outside_func("<Submod> MSpire init...")
         if persistent.maica_setting_dict['console']:
             store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
         if ai.wss_session is None:
             ai.init_connect()
+        printed = False
         while True:
             if ai.wss_session is None:
                 store.mas_ptod.write_command("Init Connecting...")
@@ -24,8 +27,9 @@ label maica_talking(mspire = False):
                 store.mas_ptod.write_command("Wait login...")
                 renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                 continue
-            if ai.is_ready_to_input():
+            if ai.is_ready_to_input() and not printed:
                 store.mas_ptod.write_command("Login successful, ready to chat!")
+                printed = True
             elif ai.is_failed():
                 if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
                     store.mas_ptod.write_command("Login failed, please check your token.")
@@ -39,48 +43,57 @@ label maica_talking(mspire = False):
                 break
                 
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
-            question = mas_input(
-                        _("说吧, [player]"),
-                        default="",
-                        length=50,
-                        screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
-                    ).strip(' \t\n\r') #mas_input
-            if question == "":
-                continue
-            if question == "nevermind":
-                _return = "canceled"
-                ai.content_func = None
-                break
+            if mspire is False:
+                question = mas_input(
+                            _("说吧, [player]"),
+                            default="",
+                            length=50,
+                            screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
+                        ).strip(' \t\n\r') #mas_input
+                if question == "":
+                    continue
+                if question == "nevermind":
+                    _return = "canceled"
+                    ai.content_func = None
+                    break
+                ai.chat(question)
+            else:
+                ai.start_MSpire()
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
-            if mspire:
-                ai.start_MSpire()
-            ai.chat(question)
+                        
             gentime = 0.0
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.is_responding():
-                    gentime = time.time() - start_time
+                    gentime = time.time()
+                else:
+                    gentime = ai._gen_time
                 if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect']:
                     ai.init_connect()
                     store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
 
                 store.mas_ptod.write_command("Maica.status:{} | message_queue: {}/{}token | time: {}".format(
                     ai.status, ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
-                    round(gentime)
+                    round(gentime - start_time)
                     ))
-                if ai.len_message_queue() == 0:
-                    #renpy.show(monika 1eua)
-                    renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                    _history_list.pop()
-                    continue    
-                if ai.wss_session.keep_running == False and ai.len_message_queue() == 0:
+                if ai.is_failed() and ai.len_message_queue() == 0:
                     renpy.say(m, _("好像出了什么问题..."))
                     _return = "disconnected"
                     break
+                if ai.len_message_queue() == 0:
+                    #renpy.show(monika 1eua)
+                    store.mas_ptod.write_command("Wait message...")
+                    renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
+                    _history_list.pop()
+                    continue    
                 message = ai.get_message()
                 store.mas_submod_utils.submod_log.debug("label maica_talking::message: {}".format(message))
                 renpy.show(u"monika {}".format(message[0]))
                 renpy.say(m, message[1])
+            
+            if mspire:
+                _return = "canceled"
+                break
             
     # store.mas_ptod.write_command()
 
