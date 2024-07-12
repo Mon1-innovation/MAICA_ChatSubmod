@@ -34,7 +34,7 @@ MAICA的相关文档存储于https://github.com/Mon1-innovation/MAICA/tree/main/
 MAICA 的前端, 基于MAICA的聊天子模组.
 
 > 注意: 需要一个 Doki Chinese Club 账号才能使用, 具体要求请查看[TOS](https://maica.monika.love/tos).
-
+![alt text](image1.png)
 ## 特色
 
 * 完全自由的聊天, 你想到什么就聊什么
