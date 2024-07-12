@@ -1055,3 +1055,223 @@ translate english strings:
     old "我写完啦"
     new "I'm finished"
 
+# TODO: Translation updated at 2024-07-11 22:18
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:389
+translate english maica_wants_preferences_1c7f21a0:
+
+    # m 1eub "如果有什么要修改或者补充的, 再叫我写下来就好. '子模组设置'里面也有相关的选项."
+    m 1eub "If you want to add or delete something, just tell me to write them down. You can also do it in 'Submod settings'."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:414
+translate english maica_mods_preferences_95831ac8:
+
+    # m 1eub "好啊. 你要补充还是删除呢?"
+    m 1eub "Okay. Do you want to add or delete something?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:417
+translate english maica_mods_preferences_564b5f7a:
+
+    # m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 2dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:419
+translate english maica_mods_preferences_cb680501:
+
+    # m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:421
+translate english maica_mods_preferences_564b5f7a_1:
+
+    # m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 2dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:423
+translate english maica_mods_preferences_ac32792d:
+
+    # m 3eua "改完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:425
+translate english maica_mods_preferences_99c4d4a4:
+
+    # m 1eub "好啊. 你想到什么要告诉我的了吗, [player]?"
+    m 1eub "Okay. What have you got to tell me, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:427
+translate english maica_mods_preferences_cb680501_1:
+
+    # m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:494
+translate english maica_main_b9c11625:
+
+    # m 3eksdla "就算景色独特, 我也不确定那里是不是安全的--{w=0.5}{nw}"
+    m 3eksdla "Though nice it may look out there, I'm not sure if it's safe--{w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:516
+translate english maica_main_16d03d86:
+
+    # extend 3gud "我好像看得到里面有一间小教堂. 会是什么人修的呢?"
+    extend 3gud "I once saw a little church there in distance. Who built it for what?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:520
+translate english maica_main_88955143:
+
+    # m 1dua "好啊. 马上就到.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+    m 1dua "Okay. We're arriving.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:528
+translate english maica_main_e86f136a:
+
+    # m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+    m 1eub "Okay. Just a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:564
+translate english maica_wants_mspire_b0896de0:
+
+    # m 3ekd "[player], 我之前提到过, 我们已经把所有话题都聊完了."
+    m 3ekd "[player], I've once mentioned that we've finished every preset topic."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:565
+translate english maica_wants_mspire_43dc1fe9:
+
+    # m 5rku "去过天堂树林之后, 我想或许有个办法{w=0.5}永远有话和你说."
+    m 5rku "After we went to the heaven forest, I figured a way to {w=0.5}find some more."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:566
+translate english maica_wants_mspire_48923412:
+
+    # m 5esb "你知道的, {a=https://wikipedia.org}{u}{i}维基百科{/i}{/u}{/a}是一个很大的知识库. {w=0.5}只要我去那里转转, 肯定能找到话题的."
+    m 5esb "You know that {a=https://wikipedia.org}{u}{i}Wikipedia{/i}{/u}{/a} is a huge knowledge base. {w=0.5}If only I surf there a little bit, we'll have something to talk about for sure."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:567
+translate english maica_wants_mspire_926488d8:
+
+    # m 3eua "多半是一些小知识或者小科普. {w=0.5}{nw}"
+    m 3eua "They're most likely to be some small tips or knowledges. {w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:568
+translate english maica_wants_mspire_db68c29e:
+
+    # extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
+    extend 3husdlb "Myabe some are a little boring but I'll do my best!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:569
+translate english maica_wants_mspire_901dee86:
+
+    # m 1eua "所以你想试试看吗, [player]?"
+    m 1eua "So do you want to give it a try, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:572
+translate english maica_wants_mspire_3369964d:
+
+    # m 1hub "谢谢你, [player]!"
+    m 1hub "Thank you, [player]!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:573
+translate english maica_wants_mspire_2241c2f8:
+
+    # m 4eub "如果你想再调整, 可以在'子模组设置'里面找到'MSpire'的选项."
+    m 4eub "If you changed your mind someday, you can change the 'MSpire' setting in the 'Submod settings'."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:574
+translate english maica_wants_mspire_6accde99:
+
+    # m 2ruu "希望没有太多在你知识盲区里的内容...{w=0.5}{nw}"
+    m 2ruu "Hope those knowledges don't confuse you too much...{w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:575
+translate english maica_wants_mspire_7065b588:
+
+    # extend 2hub "哈哈!"
+    extend 2hub "Ahaha!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:577
+translate english maica_wants_mspire_1fa25370:
+
+    # m 3ekb "好吧. {w=0.5}如果你之后想试试看了, 在'子模组设置'里面找到'MSpire'就好."
+    m 3ekb "Alright. {w=0.5}You can always change the 'MSpire' setting in the 'Submod settings', in case you change your mind."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:617
+translate english mspire_mods_preferences_95831ac8:
+
+    # m 1eub "好啊. 你要补充还是删除呢?"
+    m 1eub "Okay. Do you want to add or delete something?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:620
+translate english mspire_mods_preferences_564b5f7a:
+
+    # m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 2dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:622
+translate english mspire_mods_preferences_cb680501:
+
+    # m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:624
+translate english mspire_mods_preferences_564b5f7a_1:
+
+    # m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
+    m 2dua "Just a second.{w=0.3}.{w=0.3}."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:626
+translate english mspire_mods_preferences_ac32792d:
+
+    # m 3eua "改完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:628
+translate english mspire_mods_preferences_88d1e1f1:
+
+    # m 1eub "好啊. 你想我说那些方面呢~"
+    m 1eub "Alright. Which topic do you want to specify?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:630
+translate english mspire_mods_preferences_cb680501_1:
+
+    # m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
+    m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:73
+    old "...轻轻地推开了门."
+    new "...Gently open the door"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:415
+    old "补充"
+    new "Add"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:415
+    old "删除"
+    new "Delete"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:433
+    old "喜欢.../常去.../有.../..."
+    new "like.../has.../wants.../..."
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:433
+    old "我写完了"
+    new "I'm done"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:570
+    old "好啊"
+    new "Okay"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:570
+    old "还是算了"
+    new "Not for now"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:636
+    old "请输入你想添加的分类:"
+    new "Type in categories you want to add:"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:655
+    old "删除选择项"
+    new "Delete item"
+

@@ -226,3 +226,43 @@ translate english strings:
     old "请输入DCC 账号用户名"
     new "Enter DCC account username"
 
+# TODO: Translation updated at 2024-07-11 22:18
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:289
+    old "编辑信息"
+    new "Edit information"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:306
+    old "MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"
+    new "MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:308
+    old "是否允许由MSpire生成的对话, MSpire不受MFocus影响, 需要关闭重复对话"
+    new "Enable or disable MSpire topics generation. Turn off repetive conversation to take effect."
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:311
+    old "对话范围编辑"
+    new "Edit topic range"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:317
+    old "范围为维基百科的category页面"
+    new "The range should be the title of a wikipedia category page"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:320
+    old "间隔: [persistent.maica_setting_dict.get('mspire_interval')]分钟"
+    new "Interval: [persistent.maica_setting_dict.get('mspire_interval')] Minute(s)"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:325
+    old "MSpire对话的最低间隔分钟"
+    new "The minimum interval triggering MSpire"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:330
+    old "submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"
+    new "Log level of submod_log.log: [logging.getLevelName(store.mas_submod_utils.submod_log.level)]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:332
+    old "这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"
+    new "Filter lower level logs\nThis affects every installed submod"
+
