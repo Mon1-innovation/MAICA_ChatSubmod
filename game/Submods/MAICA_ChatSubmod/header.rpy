@@ -252,6 +252,12 @@ screen maica_setting():
                         hbox:
                             text "ai.len_message_queue(): [store.maica.maica.len_message_queue()]"
                         hbox:
+                            text "maica_chr_exist: [maica_chr_exist]"
+                        hbox:
+                            text "maica_chr_changed: [maica_chr_changed]"
+                        hbox:
+                            text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
+                        hbox:
                             text "=====MaicaAi() Finish====="
 
                     hbox:

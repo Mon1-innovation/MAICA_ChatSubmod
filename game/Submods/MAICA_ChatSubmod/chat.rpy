@@ -162,6 +162,7 @@ label maica_prepend_2:
     m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
     m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
     menu:
+        "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
         "好的.":
             label init_maica:
                 if persistent.maica_setting_dict['console']:
@@ -413,6 +414,7 @@ label maica_mods_preferences:
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?"
         menu:
+            "好啊. 你要补充还是删除呢?"
             "补充":
                 m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
                 call maica_input_information
@@ -568,6 +570,7 @@ label maica_wants_mspire:
     extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
     m 1eua "所以你想试试看吗, [player]?"
     menu:
+        "所以你想试试看吗, [player]?"
         "好啊":
             m 1hub "谢谢你, [player]!"
             m 4eub "如果你想再调整, 可以在'子模组设置'里面找到'MSpire'的选项."
@@ -616,6 +619,7 @@ label mspire_mods_preferences:
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?"
         menu:
+            "好啊. 你要补充还是删除呢?"
             "补充":
                 m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
                 call mspire_input_information
