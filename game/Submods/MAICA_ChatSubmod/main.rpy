@@ -76,10 +76,11 @@ label maica_talking(mspire = False):
                     ai.status, ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
                     round(gentime - start_time)
                     ))
-                if ai.is_failed() and ai.len_message_queue() == 0:
-                    renpy.say(m, _("好像出了什么问题..."))
-                    _return = "disconnected"
-                    break
+                if ai.is_failed():
+                    if ai.len_message_queue() == 0:
+                        renpy.say(m, _("好像出了什么问题..."))
+                        _return = "disconnected"
+                        break
                 if ai.len_message_queue() == 0:
                     #renpy.show(monika 1eua)
                     store.mas_ptod.write_command("Wait message...")
