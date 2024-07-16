@@ -57,7 +57,11 @@ class EmoSelector:
                 match = u"开心"
             
             m = 0.7
-            emo = match
+            if match in self.selector:
+                emo = match
+            else:
+                emo = self.pre_mood
+                logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
         self.process_strength(emo, m)
         self.pre_mood = emo
         return message

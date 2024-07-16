@@ -411,12 +411,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("!!SUBMOD ERROR when on_message: {}".format(e))
             logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
     def __on_message(self, wsapp, message):
-        logger.debug("_on_message: {}".format(message))
-        
-        logger.debug("self.status: {}".format(self.status))
-        
         import json, time
         data = json.loads(message)
+        logger.debug("_on_message: {}".format(data))    
         if data.get("type", False) != "carriage":
             self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
         if 500 <= int(data.get("code", 200)) < 600:
