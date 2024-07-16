@@ -65,24 +65,31 @@ init 5 python in maica:
         if store.mas_getAPIKey("Maica_Token") == "":
             return
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
-        if not store.mas_can_import.certifi():
-            import request
-            url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
-            response = requests.get(url)
-            if response.status_code == 200:
-                # 将文件保存到本地
-                with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","cacert.pem"), "wb") as file:
-                    file.write(response.content)
-                store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
-            else:
-                print("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+        while True:
+            import time
+            if not store.mas_can_import.certifi() or ("ERROR" in cacert_screen_data._main_text and cacert_screen_data._updating is false):
+                import request
+                url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
+                response = requests.get(url)
+                if response.status_code == 200:
+                    # 将文件保存到本地
+                    with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","cacert.pem"), "wb") as file:
+                        file.write(response.content)
+                    store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
+                else:
+                    print("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+                
+            if cacert_screen_data._updating is false:
+                break
+            time.sleep(1)
+                
 
 init -700 python:
     try:
-        screen_data = store.mas_api_keys.MASUpdateCertScreenData()
-        screen_data.start()
+        cacert_screen_data = store.mas_api_keys.MASUpdateCertScreenData()
+        cacert_screen_data.start()
     except:
-        store.mas_submod_utils.submod_log.warning("MAICA call MASUpdateCertScreenData.start() failed, will ")
+        store.mas_submod_utils.submod_log.warning("MAICA call MASUpdateCertScreenData.start() failed")
 
 
     import hashlib
