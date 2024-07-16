@@ -297,7 +297,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         try:
             self.wss_session.run_forever()
         except Exception as e:
+            import traceback
             self.send_to_outside_func("wss_session.run_forever() failed: {}".format(e))
+            logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
             self.multi_lock.release()
             logger.info("Maica::_init_connect released lock")

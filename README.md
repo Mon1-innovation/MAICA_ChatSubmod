@@ -61,4 +61,4 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
 4. 提供对中英双语的完整支持, 但模型在英语上的表现可能较弱, 也更可能发生功能上的故障.
 
 ## 常见错误
-1. 
+1. TLS CA certificate bundle
