@@ -128,7 +128,7 @@ def is_a_talk(strs):
     for index in range(length):
         index = length - index
         for s in signal:
-            if not s == "." or not len(re.search(r"\.", strs)) == len(re.search(r"[0-9]\s*\.\s*[0-9]", strs)):
+            if not s == "." or not len(re.findall(r"\.", strs)) == len(re.findall(r"[0-9]\s*\.\s*[0-9]", strs)):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
