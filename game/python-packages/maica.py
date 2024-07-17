@@ -312,9 +312,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
                     if self.def_modelconfig[i][2] == None:
                         logger.warning("modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
+                        self.send_to_outside_func("<submod> modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
                         del self.modelconfig[i]
                     else:
                         logger.warning("modelconfig {} is invaild: reset  {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
+                        self.send_to_outside_func("<submod> modelconfig {} is invaild: reset {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
                         self.modelconfig[i] = self.def_modelconfig[i][2]
             
     def is_responding(self):
@@ -361,9 +363,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         else:
                             message = str(self.senddata_queue.get()).strip()
                         dict = {"chat_session":self.chat_session, "query":message}
-                        logger.debug(dict)
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
+                        logger.debug(dict)
                         message = json.dumps(dict, ensure_ascii=False) 
                         #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                         self.wss_session.send(
