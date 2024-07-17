@@ -505,7 +505,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
     def _append_to_message_list(self, emote, message):
-        self.message_list.put((emote, key_replace(message, bot_interface.renpy_symbol_big_bracket_only)))
+        self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict):
         import requests, json
         for i in range(1, self.MAX_CHATSESSION+1):
