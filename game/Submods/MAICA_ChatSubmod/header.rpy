@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.2.5',
+        version='0.2.6',
         settings_pane="maica_setting_pane"
     )
 init -989 python:
@@ -24,6 +24,9 @@ default persistent.maica_setting_dict = {
     "chat_session":1,
     "console":True
 }
+default persistent.maica_advanced_setting = {}
+default persistent.maica_advanced_setting_status = {}
+default persistent.maica_player_additions_status = {}
 default persistent.mas_player_additions = []
 
 define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
@@ -46,8 +49,24 @@ init 10 python:
         "mspire_session":0,
         "log_level":logging.DEBUG,
     }
+    maica_advanced_setting = {
+        "top_p":0.7,
+        "temperature":0.4,
+        "max_tokens":1024,
+        "frequency_penalty":0.0,
+        "presence_penalty":0.0,
+        "seed":0.0,
+        "mf_aggressive":False,
+        "sfe_aggressive":False
+    }
+    maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
+    maica_advanced_setting.update(persistent.maica_advanced_setting)
+    maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
+
     persistent.maica_setting_dict = maica_default_dict.copy()
+    persistent.maica_advanced_setting = maica_advanced_setting.copy()
+    persistent.maica_advanced_setting_status = maica_advanced_setting_status.copy()
 
     if persistent.maica_setting_dict["maica_model"] is None:
         persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
@@ -115,7 +134,7 @@ init 10 python:
     def maica_apply_setting(ininit=False):
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
-            update_model_setting(ininit)
+            maica_apply_advanced_setting()
         else:
             store.maica.maica.modelconfig = {}
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
@@ -127,6 +146,15 @@ init 10 python:
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.mas_submod_utils.getAndRunFunctions()
+    
+    def maica_apply_advanced_setting():
+        settings_dict = {}
+        for k, v in persistent.maica_advanced_setting_status.items():
+            if v:
+                settings_dict[k] = persistent.maica_advanced_setting[k]
+        store.maica.maica.modelconfig.update(settings_dict)
+        store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
+            
     
     def change_chatsession():
         persistent.maica_setting_dict["chat_session"] += 1
@@ -204,6 +232,135 @@ screen maica_setting_pane():
         textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
             action Show("maica_setting")
 
+screen maica_advance_setting():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+                    hbox:
+                        text _("{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt#L81}{i}{u}MAICA 官方文档{/i}{/u}{/a}")
+                    hbox:
+                        text _("{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/i}{/u}{/a}")
+
+                    hbox:
+                        textbutton "top_p":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "top_p")
+                            hovered SetField(_tooltip, "value", _("模型选择的范围, 模型考虑概率质量值在前 top_p 的标记的结果, 因此，0.1 意味着仅考虑概率质量值前 10% 的标记"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        if persistent.maica_advanced_setting_status.get("top_p", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "top_p", 1.0, step=0.01,offset=0 ,style="slider")
+                                xsize 200
+                            
+                            textbutton "[persistent.maica_advanced_setting.get('top_p', 'None')]"
+
+
+                    hbox:
+                        textbutton "temperature":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "temperature")
+                            hovered SetField(_tooltip, "value", _("模型输出的随机性, 较高的值会使输出更随机, 而较低的值则会使其更加专注和确定"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        if persistent.maica_advanced_setting_status.get("temperature", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "temperature", 1.0, step=0.01,offset=0 ,style="slider")
+                                xsize 200
+                            textbutton "[persistent.maica_advanced_setting.get('temperature', 'None')]"
+                    
+                    hbox:
+                        textbutton "max_tokens":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "max_tokens")
+                            hovered SetField(_tooltip, "value", _("模型输出的长度限制, 较高的值会使输出更长"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        if persistent.maica_advanced_setting_status.get("max_tokens", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "max_tokens", 1024, step=1,offset=0 ,style="slider")
+                                xsize 200
+                            textbutton "[persistent.maica_advanced_setting.get('max_tokens', 'None')]"
+                    
+                    hbox:
+                        textbutton "frequency_penalty":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "frequency_penalty")
+                            hovered SetField(_tooltip, "value", _("频率惩罚, 正值基于新标记在文本中的现有频率对其进行惩罚, 降低模型重复相同行的可能性"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "frequency_penalty", 1.0, step=0.01,offset=0 ,style="slider")
+                                xsize 200
+                            textbutton "[persistent.maica_advanced_setting.get('frequency_penalty', 'None')]"
+                    
+                    hbox:
+                        textbutton "presence_penalty":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
+                            hovered SetField(_tooltip, "value", _("正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        if persistent.maica_advanced_setting_status.get("presence_penalty", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "presence_penalty", 1.0, step=0.01,offset=0 ,style="slider")
+                                xsize 200
+                            textbutton "[persistent.maica_advanced_setting.get('presence_penalty', 'None')]"
+ 
+                    hbox:
+                        textbutton "seed":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "seed")
+                        
+                        if persistent.maica_advanced_setting_status.get("seed", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
+                                xsize 600
+                            textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
+
+                    
+                    hbox:
+                        textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
+                            action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
+                                ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
+                            hovered SetField(_tooltip, "value", _("总是尽可能使用MFocus的最终输出替代指导构型信息. 启用此功能可能提升模型的复杂信息梳理能力 \n但也可能会造成人称或格式的混乱"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
+                            action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
+                                ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
+                            hovered SetField(_tooltip, "value", _("指定sfe_aggressive为true将总是以用户的真名替代prompt中的[[player]字段. \n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                    
+                    hbox:
+                        style_prefix "confirm"
+                        textbutton _("保存设置"):
+                            action [
+                                Function(maica_apply_advanced_setting),
+                                Hide("maica_advance_setting")
+                            ]
+                        
+                        
             
 screen maica_setting():
     python:
@@ -269,6 +426,7 @@ screen maica_setting():
                     hbox:
                         text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
                     hbox:
+                    
                         textbutton _("重置统计数据"):
                             action Function(store.maica.maica.reset_stat)
 
@@ -297,8 +455,8 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("在使用前, 请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        textbutton _("刷新参数"):
-                            action Function(store.update_model_setting)
+                        textbutton _("设置高级参数"):
+                            action Show("maica_advance_setting")
 
                     hbox:
                         textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
@@ -362,13 +520,15 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("范围为维基百科的category页面"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        textbutton _("间隔: [persistent.maica_setting_dict.get('mspire_interval')]分钟"):
+                        textbutton _("间隔"):
                             action NullAction()
                         bar:
-                            value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=5 ,style="slider")
+                            value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=10 ,style="slider")
                             xsize 200
                             hovered SetField(_tooltip, "value", _("MSpire对话的最低间隔分钟"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
 
                         textbutton _("使用会话: [persistent.maica_setting_dict.get('mspire_session')]"):
                             action NullAction()
