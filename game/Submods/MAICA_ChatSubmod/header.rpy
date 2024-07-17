@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.2.1',
+        version='0.2.4',
         settings_pane="maica_setting_pane"
     )
 init -989 python:
@@ -34,7 +34,7 @@ init 10 python:
         "auto_reconnect":False,
         "maica_model":None,
         "use_custom_model_config":False,
-        "sf_extraction":False,
+        "sf_extraction":True,
         "chat_session":1,
         "console":True,
         "console_font":maica_confont,
@@ -63,7 +63,7 @@ init 10 python:
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
         store.mas_api_keys.save_keys()
 
-
+    @store.mas_submod_utils.functionplugin("ch30_preloop")
     def upload_persistent_dict():
         import copy
         d = copy.deepcopy(persistent.__dict__)
@@ -189,8 +189,8 @@ screen maica_setting_pane():
 
             
         else:
-            textbutton _("上传存档信息"):
-                action Function(upload_persistent_dict)
+            #textbutton _("上传存档信息"):
+            #    action Function(upload_persistent_dict)
 
             textbutton _("重置当前对话"):
                 action Function(reset_session)
@@ -303,7 +303,7 @@ screen maica_setting():
                     hbox:
                         textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
                             action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
-                            hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据\n在开启前请务必先上传存档"))
+                            hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据\n每次重启游戏将自动上传存档"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:

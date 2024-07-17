@@ -62,34 +62,33 @@ init 5 python in maica:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def start_maica():
-        if store.mas_getAPIKey("Maica_Token") == "":
-            return
-        store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
-        while True:
-            import time
-            if not store.mas_can_import.certifi() or ("ERROR" in cacert_screen_data._main_text and cacert_screen_data._updating is false):
-                import request
-                url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
-                response = requests.get(url)
-                if response.status_code == 200:
-                    # 将文件保存到本地
-                    with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","cacert.pem"), "wb") as file:
-                        file.write(response.content)
-                    store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
-                else:
-                    print("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+        if store.mas_getAPIKey("Maica_Token") != "":
+            store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
+        if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
+            import requests
+            url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
+            response = requests.get(url, verify=False)
+            if response.status_code == 200:
+                # 将文件保存到本地
+                with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","cacert.pem"), "wb") as file:
+                    file.write(response.content)
+                store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
+            else:
+                print("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
                 
-            if cacert_screen_data._updating is false:
-                break
-            time.sleep(1)
                 
 
 init -700 python:
+    maica_can_update_cacert = False
     try:
-        cacert_screen_data = store.mas_api_keys.MASUpdateCertScreenData()
-        cacert_screen_data.start()
+        import os
+        if not os.path.exists(os.path.join(renpy.config.basedir, "game\python-packages\certifi\cacert.pem")):
+            res = mas_can_import.certifi._update_cert(force=True)
+            if res is None or res < 0:
+                raise Exception("fuck")
     except:
-        store.mas_submod_utils.submod_log.warning("MAICA call MASUpdateCertScreenData.start() failed")
+        maica_can_update_cacert = True
+        store.mas_submod_utils.submod_log.warning("MAS native function update cacert failed")
 
 
     import hashlib

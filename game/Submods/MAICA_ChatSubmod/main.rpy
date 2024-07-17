@@ -8,7 +8,7 @@ label maica_talking(mspire = False):
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
         if mspire:
-            ai.send_to_outside_func("<Submod> MSpire init...")
+            ai.send_to_outside_func("<submod> MSpire init...")
         if persistent.maica_setting_dict['console']:
             store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
