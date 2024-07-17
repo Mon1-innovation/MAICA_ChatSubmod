@@ -4,7 +4,7 @@ WRITING = 1
 END = 0
 import ast
 import sys
-
+import re
 import logging
 
 logger = logging.getLogger()
@@ -127,8 +127,9 @@ def is_a_talk(strs):
     length = len(strs)
     for index in range(length):
         for s in signal:
-            if strs[index:index+len(s)] == s:
-                return index + 1
+            if not s == "." or not len(re.search(r"\.", strs)) == len(re.search(r"[0-9]\s*\.\s*[0-9]", strs)):
+                if strs[index:index+len(s)] == s:
+                    return index + 1
     return 0
 
 
