@@ -460,7 +460,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     logger.debug("MESSAGE_WAITING_RESPONSE::MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
                     self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
 
-                    self.message_list.put((emote, res.strip()))
+                    self._append_to_message_list(emote, res.strip())
                     logger.debug("Server:{}".format(self._received[self._pos:self._pos + isnum]))
                     self._pos = self._pos + isnum
             if data['status'] == "savefile_notfound":
@@ -475,7 +475,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     emote = self.MoodStatus.get_emote()
                     logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
                     self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-                    self.message_list.put((emote, res.strip()))
+                    self._append_to_message_list(emote, res.strip())
                     logger.debug("Server: {}".format(self._received[self._pos:]))
                 self._pos = 0
                 self._received = ""
@@ -502,7 +502,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.stat['message_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
-
+    def _append_to_message_list(self, emote, message):
+        self.message_list.put((emote, key_replace(message, bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict):
         import requests, json
         for i in range(1, self.MAX_CHATSESSION+1):

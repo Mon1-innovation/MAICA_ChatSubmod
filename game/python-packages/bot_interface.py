@@ -76,6 +76,10 @@ renpy_symbol = {
     "{": "",
     "}": ""
 }
+renpy_symbol_big_bracket_only = {
+    "{": "",
+    "}": ""
+}
 # 关键字替换字符串:
 def key_replace(*args):
         """
