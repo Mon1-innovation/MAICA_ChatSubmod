@@ -276,7 +276,7 @@ screen maica_advance_setting():
                         
                         if persistent.maica_advanced_setting_status.get("top_p", False):
                             bar:
-                                value DictValue(persistent.maica_advanced_setting, "top_p", 1.0, step=0.01,offset=0 ,style="slider")
+                                value DictValue(persistent.maica_advanced_setting, "top_p", 0.9, step=0.01,offset=0.1 ,style="slider")
                                 xsize 200
                             
                             textbutton "[persistent.maica_advanced_setting.get('top_p', 'None')]"
