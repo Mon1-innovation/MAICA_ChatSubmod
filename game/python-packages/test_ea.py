@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import emotion_analyze_v2, os, json
-basedir = "E:\GithubKu\MAICA_ChatSubmod"
+basedir = "D:\MAICA_ChatSubmod"
 def init_selector():
     selector = {}
     power={}
@@ -52,9 +52,9 @@ selector.analyze("[很开心]")
 print(selector.get_emote())
 print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
 
-selector.analyze("")
+selector.analyze("[开心]")
 print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("")
+selector.analyze("[眨眼]")
 print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
 selector.analyze("")
 print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
