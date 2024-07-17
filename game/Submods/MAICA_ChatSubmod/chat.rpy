@@ -605,7 +605,7 @@ init 5 python:
             prompt="mspire",
             pool=False,
             random=True,
-            conditional="store.seen_event('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable')",
+            conditional="store.seen_event('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
