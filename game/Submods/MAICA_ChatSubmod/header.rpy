@@ -53,7 +53,7 @@ init 10 python:
         "top_p":0.7,
         "temperature":0.4,
         "max_tokens":1024,
-        "frequency_penalty":0.0,
+        "frequency_penalty":0.3,
         "presence_penalty":0.0,
         "seed":0.0,
         "mf_aggressive":False,
@@ -452,7 +452,7 @@ screen maica_setting():
                     hbox:
                         textbutton _("使用高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
                             action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
-                            hovered SetField(_tooltip, "value", _("在使用前, 请务必查看子模组根目录的custom_modelconfig.json\n否则可能导致意料之外的问题\n子模组将读取该json作为对话参数"))
+                            hovered SetField(_tooltip, "value", _("高级参数会大幅影响模型的表现"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("设置高级参数"):
