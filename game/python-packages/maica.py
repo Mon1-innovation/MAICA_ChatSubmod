@@ -449,7 +449,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self._received = self._received + data['content']
-                isnum = is_a_talk(self._received[self._pos:])
+                if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
+                    isnum = 0
+                else:
+                    isnum = is_a_talk(self._received[self._pos:])
                 logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
