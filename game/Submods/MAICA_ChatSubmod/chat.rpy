@@ -393,6 +393,7 @@ label maica_wants_preferences:
             m 3eka "如果你准备好了, 再叫我记下来就好."
         "没有了" if prefs_exist:
             m 1hua "我明白了, 谢谢你!"
+    $ mas_unlockEVL("maica_mods_preferences", "EVE")
     return "no_unlock|derandom"
 init 5 python:
     addEvent(
@@ -403,8 +404,7 @@ init 5 python:
             category=["你", "我们", "模组"],
             pool=True,
             random=False,
-            conditional="store.seen_event('maica_wants_preferences')",
-            action=EV_ACT_UNLOCK,
+            unlocked=False,
             aff_range=(mas_aff.HAPPY, None)
         )
     )
@@ -464,6 +464,7 @@ label maica_delete_information:
 label clear_all:
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
+    $ mas_unlockEVL("maica_main", "EVE")
     return
 
 
@@ -476,8 +477,7 @@ init 5 python:
             category=["你", "我们", "模组"],
             pool=True,
             random=False,
-            conditional="store.seen_event('maica_greeting')",
-            action=EV_ACT_UNLOCK,
+            unlocked=False,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -552,7 +552,8 @@ init 5 python:
             prompt="spire",
             pool=False,
             random=False,
-            conditional="store.seen_event('maica_greeting') and len(mas_rev_unseen) == 0",
+            unlocked=False,
+            conditional="renpy.seen_label('maica_greeting') and len(mas_rev_unseen) == 0",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
