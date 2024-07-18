@@ -251,7 +251,7 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr",
+            eventlabel="maica_chr2",
             prompt="树林重要吗?",
             random=True,
             conditional="renpy.seen_label('maica_end_1')",
@@ -262,7 +262,7 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
-label maica_chr:
+label maica_chr2:
     # Add to random after first SUCCESSFUL using maica
     # Verify maica chr (HeavenForest.sce) with md5
     m 1eud "...[player], 你还记得'角色文件'什么的吗?"
@@ -345,7 +345,7 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_wants_preferences",
+            eventlabel="maica_wants_preferences2",
             prompt="了解你的爱好",
             unlocked=False,
             random=True,
@@ -355,7 +355,7 @@ init 5 python:
         )
     )
 
-label maica_wants_preferences:
+label maica_wants_preferences2:
     # Add this to waitlist after first chat done successfully
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"

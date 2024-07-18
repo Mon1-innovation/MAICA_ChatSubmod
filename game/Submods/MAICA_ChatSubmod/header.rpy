@@ -3,10 +3,11 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.2.8',
+        version='0.2.10',
         settings_pane="maica_setting_pane",
         version_updates={
-            "maica_update_v0_2_7":"maica_update_v0_2_8"
+            "maica_update_v0_2_7":"maica_update_v0_2_8",
+            "maica_update_v0_2_8":"maica_update_v0_2_9"
         }
     )
 init -989 python:
@@ -420,19 +421,19 @@ screen maica_setting():
                         hbox:
                             text "Event status"
                         hbox:
-                            text "maica_greeting.conditional:[eval(mas_getEV('maica_greeting').conditional)]"
+                            text "maica_greeting.conditional:[eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
                         hbox:
-                            text "maica_chr.conditional(cant eval()): [(mas_getEV('maica_chr').conditional)]"
+                            text "maica_chr2.conditional: [eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
                         hbox:
-                            text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]"
+                            text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
                         hbox:
-                            text "maica_chr_corrupted.conditional:[eval(mas_getEV('maica_chr_corrupted').conditional)]"
+                            text "maica_chr_corrupted.conditional:[eval(mas_getEV('maica_chr_corrupted').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted')]"
                         hbox:
-                            text "maica_wants_preferences.conditional(cant eval()): [(mas_getEV('maica_wants_preferences').conditional)]"
+                            text "maica_wants_preferences2.conditional: [eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
                         hbox:
-                            text "maica_wants_mspire.conditional:[eval(mas_getEV('maica_wants_mspire').conditional)]"
+                            text "maica_wants_mspire.conditional:[eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
                         hbox:
-                            text "maica_mspire.conditional:[eval(mas_getEV('maica_mspire').conditional)]"
+                            text "maica_mspire.conditional:[eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
                         hbox:
                             text "=====MaicaAi() Finish====="
 
