@@ -415,6 +415,22 @@ screen maica_setting():
                         hbox:
                             text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
                         hbox:
+                            text "Event status"
+                        hbox:
+                            text "maica_greeting.conditional:[eval(mas_getEV("maica_greeting").conditional)]"
+                        hbox:
+                            text "maica_chr.conditional:[eval(mas_getEV("maica_chr").conditional)]"
+                        hbox:
+                            text "maica_chr_gone.conditional:[eval(mas_getEV("maica_chr_gone").conditional)]"
+                        hbox:
+                            text "maica_chr_corrupted.conditional:[eval(mas_getEV("maica_chr_corrupted").conditional)]"
+                        hbox:
+                            text "maica_wants_preferences.conditional:[eval(mas_getEV("maica_wants_preferences").conditional)]"
+                        hbox:
+                            text "maica_wants_mspire.conditional:[eval(mas_getEV("maica_wants_mspire").conditional)]"
+                        hbox:
+                            text "maica_mspire.conditional:[eval(mas_getEV("maica_mspire").conditional)]""
+                        hbox:
                             text "=====MaicaAi() Finish====="
 
                     hbox:

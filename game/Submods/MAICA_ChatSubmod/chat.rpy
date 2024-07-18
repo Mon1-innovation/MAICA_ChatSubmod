@@ -311,7 +311,7 @@ init 5 python:
             eventlabel="maica_chr_corrupted",
             prompt="树林坏了",
             unlocked=True,
-            conditional="maica_chr_changed",
+            conditional="maica_chr_changed and store.seen_event('maica_chr')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.HAPPY, None)
         ),
