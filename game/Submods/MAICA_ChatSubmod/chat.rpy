@@ -282,7 +282,7 @@ init 5 python:
             eventlabel="maica_chr_gone",
             prompt="树林没了",
             random=True,
-            conditional="not maica_chr_exist and store.seen_event('maica_chr')",
+            conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -308,15 +308,15 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr_corrupted",
+            eventlabel="maica_chr_corrupted2",
             prompt="树林坏了",
             unlocked=True,
-            conditional="maica_chr_changed and store.seen_event('maica_chr')",
+            conditional="maica_chr_changed and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.HAPPY, None)
         )
     )
-label maica_chr_corrupted:
+label maica_chr_corrupted2:
     # This is a greeting
     # Triggers only when first time detected corrupted sce file
     # So we should check the file as game starts up

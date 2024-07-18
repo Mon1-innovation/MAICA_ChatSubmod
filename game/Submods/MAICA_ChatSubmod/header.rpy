@@ -427,7 +427,7 @@ screen maica_setting():
                         hbox:
                             text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
                         hbox:
-                            text "maica_chr_corrupted.conditional:[eval(mas_getEV('maica_chr_corrupted').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted')]"
+                            text "maica_chr_corrupted2.conditional:[eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
                         hbox:
                             text "maica_wants_preferences2.conditional: [eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
                         hbox:
