@@ -520,21 +520,20 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _append_to_message_list(self, emote, message):
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
-    def upload_save(self, dict):
+    def upload_save(self, dict, session=1):
         if not self.__accessable:
             return logger.error("Maica is not serving")
         import requests, json
-        for i in range(1, self.MAX_CHATSESSION+1):
-            res = requests.post(
-                "https://maicadev.monika.love/api/savefile",
-                data = json.dumps(
-                    {
-                        "access_token": self.ciphertext,
-                        "chat_session": i,
-                        "content": dict
-                    },
-                )
+        res = requests.post(
+            "https://maicadev.monika.love/api/savefile",
+            data = json.dumps(
+                {
+                    "access_token": self.ciphertext,
+                    "chat_session": session,
+                    "content": dict
+                },
             )
+        )
         return res.json()
 
     def get_history(self, lines = 0):
