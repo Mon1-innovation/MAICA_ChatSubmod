@@ -254,7 +254,7 @@ init 5 python:
             eventlabel="maica_chr",
             prompt="树林重要吗?",
             random=True,
-            conditional="store.maica.maica.stat.get('message_count') > 0",
+            conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -307,15 +307,14 @@ label maica_chr_gone:
 init 5 python:
     addEvent(
         Event(
-            persistent.greeting_database,
+            persistent.event_database,
             eventlabel="maica_chr_corrupted",
             prompt="树林坏了",
             unlocked=True,
             conditional="maica_chr_changed and store.seen_event('maica_chr')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.HAPPY, None)
-        ),
-        code="GRE"
+        )
     )
 label maica_chr_corrupted:
     # This is a greeting
@@ -350,7 +349,7 @@ init 5 python:
             prompt="了解你的爱好",
             unlocked=False,
             random=True,
-            conditional="store.maica.maica.stat.get('message_count') > 0",
+            conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )

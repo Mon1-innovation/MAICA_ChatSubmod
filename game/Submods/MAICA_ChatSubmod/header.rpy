@@ -4,7 +4,10 @@ init -990 python:
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
         version='0.2.8',
-        settings_pane="maica_setting_pane"
+        settings_pane="maica_setting_pane",
+        version_updates={
+            "maica_update_v0_2_7":"maica_update_v0_2_8"
+        }
     )
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
@@ -417,19 +420,19 @@ screen maica_setting():
                         hbox:
                             text "Event status"
                         hbox:
-                            text "maica_greeting.conditional:[eval(mas_getEV("maica_greeting").conditional)]"
+                            text "maica_greeting.conditional:[eval(mas_getEV('maica_greeting').conditional)]"
                         hbox:
-                            text "maica_chr.conditional:[eval(mas_getEV("maica_chr").conditional)]"
+                            text "maica_chr.conditional(cant eval()): [(mas_getEV('maica_chr').conditional)]"
                         hbox:
-                            text "maica_chr_gone.conditional:[eval(mas_getEV("maica_chr_gone").conditional)]"
+                            text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]"
                         hbox:
-                            text "maica_chr_corrupted.conditional:[eval(mas_getEV("maica_chr_corrupted").conditional)]"
+                            text "maica_chr_corrupted.conditional:[eval(mas_getEV('maica_chr_corrupted').conditional)]"
                         hbox:
-                            text "maica_wants_preferences.conditional:[eval(mas_getEV("maica_wants_preferences").conditional)]"
+                            text "maica_wants_preferences.conditional(cant eval()): [(mas_getEV('maica_wants_preferences').conditional)]"
                         hbox:
-                            text "maica_wants_mspire.conditional:[eval(mas_getEV("maica_wants_mspire").conditional)]"
+                            text "maica_wants_mspire.conditional:[eval(mas_getEV('maica_wants_mspire').conditional)]"
                         hbox:
-                            text "maica_mspire.conditional:[eval(mas_getEV("maica_mspire").conditional)]""
+                            text "maica_mspire.conditional:[eval(mas_getEV('maica_mspire').conditional)]"
                         hbox:
                             text "=====MaicaAi() Finish====="
 
