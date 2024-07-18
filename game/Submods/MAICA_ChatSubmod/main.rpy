@@ -94,6 +94,8 @@ label maica_talking(mspire = False):
             
             if mspire:
                 _return = "canceled"
+                afm_pref = renpy.game.preferences.afm_enable
+                renpy.game.preferences.afm_enable = False
                 break
             
     # store.mas_ptod.write_command()

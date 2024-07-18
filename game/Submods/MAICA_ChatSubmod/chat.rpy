@@ -592,7 +592,7 @@ init 4 python:
         return (
             spire_ev is not None
             and spire_ev.last_seen is not None
-            and spire_ev.timePassedSinceLastSeen_d()
+            and spire_ev.timePassedSinceLastSeen_d(delta)
         )
 
     
@@ -605,7 +605,7 @@ init 5 python:
             prompt="mspire",
             pool=False,
             random=True,
-            conditional="store.seen_event('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
+            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
