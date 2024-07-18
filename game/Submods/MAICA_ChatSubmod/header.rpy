@@ -3,12 +3,8 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.2.10',
+        version='0.2.11',
         settings_pane="maica_setting_pane",
-        version_updates={
-            "maica_update_v0_2_7":"maica_update_v0_2_8",
-            "maica_update_v0_2_8":"maica_update_v0_2_9"
-        }
     )
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
