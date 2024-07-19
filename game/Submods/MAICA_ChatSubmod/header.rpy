@@ -146,6 +146,13 @@ init 10 python:
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.mas_submod_utils.getAndRunFunctions()
+        if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
+            store.maica.maica.MoodStatus.emote_translate = {}
+        elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
+            with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
+                store.maica.maica.MoodStatus.emote_translate = json.load(f)
+            
+            
     
     def maica_apply_advanced_setting():
         settings_dict = {}
