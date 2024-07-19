@@ -171,7 +171,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.NOT_READY
         self.target_lang = self.MaicaAiLang.zh_cn
         self.history_status = None
-        self.accessable()
         self._gen_token(account, pwd, token) 
         self.modelconfig = {}
         self.reset_stat()
