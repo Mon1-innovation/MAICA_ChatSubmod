@@ -138,58 +138,7 @@ init -1 python:
         hide_masks=True,             #是否禁用天气动画
         hide_calendar=True,          #是否隐藏日历
         unlocked=False,                #是否解锁
-        entry_pp=store.mas_background._entry,   #没必要改
-        exit_pp=store.mas_background._exit,     #↑
         ex_props={"skip_outro": None}           #↑
     )
-
-
-init -2 python in mas_background:
-    def _entry(_old, **kwargs):
-        """
-        进入这个房间执行的代码
-        """
-        if kwargs.get("startup"):
-            pass
-
-        else:
-            store.mas_o31HideVisuals()
-            store.mas_d25HideVisuals()
-
-        ##############################################
-        # 桌椅贴图 没有就别改
-        ##############################################
-
-        #更改桌椅贴图 monika/t/
-        store.monika_chr.tablechair.table = "def"
-        #table-def.png
-        store.monika_chr.tablechair.chair = "def"
-        #chair-def.png
-        #如果你有自己的贴图，命名格式为table-<图片id>.png 图片id与要填在上面的一样
-        #chair同理
-
-        if store.seen_event("mas_monika_islands"):
-            store.mas_unlockEVL("mas_monika_islands", "EVE")
-
-    def _exit(_new, **kwargs):
-        """
-        离开这个房间执行的代码 不需要改
-        """
-        #O31
-        if store.persistent._mas_o31_in_o31_mode:
-            store.mas_o31ShowVisuals()
-
-        #D25
-        elif store.persistent._mas_d25_deco_active:
-            store.mas_d25ShowVisuals()
-
-        #确保锁定小岛对话.
-        store.mas_lockEVL("mas_monika_islands", "EVE")
-
-        #这里就别改了
-        store.monika_chr.tablechair.table = "def"
-        store.monika_chr.tablechair.chair = "def"
-
-
 
 

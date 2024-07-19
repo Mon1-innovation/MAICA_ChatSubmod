@@ -251,10 +251,10 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr",
+            eventlabel="maica_chr2",
             prompt="树林重要吗?",
             random=True,
-            conditional="store.maica.maica.stat.get('message_count') > 0",
+            conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -262,7 +262,7 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
-label maica_chr:
+label maica_chr2:
     # Add to random after first SUCCESSFUL using maica
     # Verify maica chr (HeavenForest.sce) with md5
     m 1eud "...[player], 你还记得'角色文件'什么的吗?"
@@ -282,7 +282,7 @@ init 5 python:
             eventlabel="maica_chr_gone",
             prompt="树林没了",
             random=True,
-            conditional="not maica_chr_exist and store.seen_event('maica_chr')",
+            conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -307,17 +307,16 @@ label maica_chr_gone:
 init 5 python:
     addEvent(
         Event(
-            persistent.greeting_database,
-            eventlabel="maica_chr_corrupted",
+            persistent.event_database,
+            eventlabel="maica_chr_corrupted2",
             prompt="树林坏了",
             unlocked=True,
-            conditional="maica_chr_changed",
+            conditional="maica_chr_changed and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.HAPPY, None)
-        ),
-        code="GRE"
+        )
     )
-label maica_chr_corrupted:
+label maica_chr_corrupted2:
     # This is a greeting
     # Triggers only when first time detected corrupted sce file
     # So we should check the file as game starts up
@@ -346,17 +345,17 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_wants_preferences",
+            eventlabel="maica_wants_preferences2",
             prompt="了解你的爱好",
             unlocked=False,
             random=True,
-            conditional="store.maica.maica.stat.get('message_count') > 0",
+            conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
     )
 
-label maica_wants_preferences:
+label maica_wants_preferences2:
     # Add this to waitlist after first chat done successfully
     m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
@@ -592,7 +591,7 @@ init 4 python:
         return (
             spire_ev is not None
             and spire_ev.last_seen is not None
-            and spire_ev.timePassedSinceLastSeen_d()
+            and spire_ev.timePassedSinceLastSeen_d(delta)
         )
 
     
@@ -605,7 +604,7 @@ init 5 python:
             prompt="mspire",
             pool=False,
             random=True,
-            conditional="store.seen_event('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable')",
+            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )

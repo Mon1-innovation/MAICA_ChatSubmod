@@ -17,7 +17,9 @@ ai.MoodStatus.main_strength = 0.0
 ai.MoodStatus.repeat_strength = 0.0
 ai.MoodStatus.pre_mood = ""
 ai.chat_session = 0
-ai.target_lang = ai.MaicaAiLang.en
+ai.mspire_category = []
+ai.target_lang = ai.MaicaAiLang.zh_cn
+ai.__accessable = False
 ai.init_connect()
 import time
 print("读取表情信息")
@@ -85,6 +87,7 @@ try:
         
         
     print("wss 关闭，主进程停止")
+    print(ai.MaicaAiStatus.get_description(ai.status))
     #except Exception as e:
     #    raise e
     #    print(e)

@@ -3,8 +3,8 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.2.6',
-        settings_pane="maica_setting_pane"
+        version='0.2.11',
+        settings_pane="maica_setting_pane",
     )
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
@@ -414,6 +414,22 @@ screen maica_setting():
                             text "maica_chr_changed: [maica_chr_changed]"
                         hbox:
                             text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
+                        hbox:
+                            text "Event status"
+                        hbox:
+                            text "maica_greeting.conditional:[eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
+                        hbox:
+                            text "maica_chr2.conditional: [eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
+                        hbox:
+                            text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
+                        hbox:
+                            text "maica_chr_corrupted2.conditional:[eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
+                        hbox:
+                            text "maica_wants_preferences2.conditional: [eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
+                        hbox:
+                            text "maica_wants_mspire.conditional:[eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
+                        hbox:
+                            text "maica_mspire.conditional:[eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
                         hbox:
                             text "=====MaicaAi() Finish====="
 

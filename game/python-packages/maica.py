@@ -59,7 +59,7 @@ class MaicaAi(ChatBotInterface):
         # 请求心跳包
         REQUEST_PING = 11100
 
-        ###################################
+        #############################Submod 错误状态码
         # 疑似网络问题
         # 令牌验证失败
         TOKEN_FAILED = 13400
@@ -71,6 +71,8 @@ class MaicaAi(ChatBotInterface):
         SAVEFILE_NOTFOUND = 13403
         # 网络问题
         CONNECT_PROBLEM = 13404
+        # 服务器维护中
+        SERVER_MAINTAIN = 13405
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -107,7 +109,8 @@ class MaicaAi(ChatBotInterface):
             TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 可能有部分对话已被删除",
             TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话可能已删除过",
             WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看submod_log以获取详细信息",
-            SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档"
+            SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档",
+            SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
         }
         @classmethod
         def get_description(cls, code):
@@ -146,6 +149,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def __init__(self, account, pwd, token = ""):
         import threading
+        self.__accessable = False
+        self._serving_status = ""
         self.stat = {}
         self.multi_lock = threading.RLock()
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
@@ -173,6 +178,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mspire_category = ["视觉小说", "恋爱冒险游戏"]
         self.mspire_session = 0
         self._gen_time = 0.0
+
 
     def reset_stat(self):
         self.stat = {
@@ -286,6 +292,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         threading.Thread(target=self._init_connect).start()
 
     def _init_connect(self):
+        if not self.__accessable:
+            return logger.error("Maica server not serving.")
         logger.debug("_init_connect")
         if not self.multi_lock.acquire(blocking=False):
             return logger.warning("Maica::_init_connect try to create multi connection")
@@ -501,6 +509,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def chat(self, message):
         #if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
         #    raise RuntimeError("Maica not ready to chat")
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
         message = str(message)
         self.senddata_queue.clear()
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
@@ -509,22 +519,25 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _append_to_message_list(self, emote, message):
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
-    def upload_save(self, dict):
+    def upload_save(self, dict, session=1):
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
         import requests, json
-        for i in range(1, self.MAX_CHATSESSION+1):
-            res = requests.post(
-                "https://maicadev.monika.love/api/savefile",
-                data = json.dumps(
-                    {
-                        "access_token": self.ciphertext,
-                        "chat_session": i,
-                        "content": dict
-                    },
-                )
+        res = requests.post(
+            "https://maicadev.monika.love/api/savefile",
+            data = json.dumps(
+                {
+                    "access_token": self.ciphertext,
+                    "chat_session": session,
+                    "content": dict
+                },
             )
+        )
         return res.json()
 
     def get_history(self, lines = 0):
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
         import requests, json
         res = requests.post(
             "https://maicadev.monika.love/api/history",
@@ -551,6 +564,22 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session.close()
         self.wss_session.keep_running = False
 
+    def accessable(self):
+        import requests, json
+        res = requests.post("https://maicadev.monika.love/api/accessibility")
+        d = res.json()
+        if d["success"]:
+            self._serving_status = d["accessibility"]
+            if d["accessibility"] != "serving":
+                self.status = self.MaicaAiStatus.SERVER_MAINTAIN
+                self.__accessable = False
+                logger.error("Maica is not serving: {}".format(d["accessibility"]))
+            else:
+                self.__accessable = True
+        else:
+            self.status = self.MaicaAiStatus.SERVER_MAINTAIN
+            self.__accessable = False
+            logger.error("Maica is not serving: {}".format(d["accessibility"]))
 
         
 
