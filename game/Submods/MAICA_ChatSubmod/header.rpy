@@ -57,7 +57,8 @@ init 10 python:
         "presence_penalty":0.0,
         "seed":0.0,
         "mf_aggressive":False,
-        "sfe_aggressive":False
+        "sfe_aggressive":False,
+        "tnd_aggressive":1,
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -345,6 +346,18 @@ screen maica_advance_setting():
                                 value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
                                 xsize 600
                             textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
+                    
+                    hbox:
+                        textbutton "tnd_aggressive":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
+                            hovered SetField(_tooltip, "value", _("0时只调用MFocus直接选择的工具. 当其为1时总是会调用时间与节日工具. 当其为2时还会额外调用日期工具.\n为2时, 且mas_geolocation存在, tnd_aggressive还会额外调用当前天气工具.\n可能补偿MFocus命中率低下的问题, 但也可能会干扰模型对部分问题的判断."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 3, step=1,offset=0 ,style="slider")
+                                xsize 600
+                            textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
 
                     
                     hbox:
