@@ -71,7 +71,9 @@ class EmoSelector:
                 match = self.emote_translate[match]
             else:
                 if self.fallback_emptyemote.is_empty():
-                    self.fallback_emptyemote.items = EmoSelector.EMPTY_EMOTE_FALLBACK.get(self.pre_mood, [])
+                    fallbackemo = EmoSelector.EMPTY_EMOTE_FALLBACK.get(self.pre_mood, [])
+                    for i in fallbackemo:
+                        self.fallback_emptyemote.put(i)
                 if not self.fallback_emptyemote.is_empty():
                     match = self.fallback_emptyemote.get()
             m = 0.7
