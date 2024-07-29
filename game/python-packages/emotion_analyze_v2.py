@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import os, json, math, random
-from bot_interface import PY2, PY3, logger
+from bot_interface import PY2, PY3, logger, Queue
 def sort_by_val(ele):
     key = list(ele.keys())[0]
     return ele[key]
 
 
 class EmoSelector:
+    EMPTY_EMOTE_FALLBACK = {
+        u"开心":[u"笑", u"微笑"],
+        u"脸红":[u"脸红", u"微笑"],
+        u"意味深长":[u"意味深长", u"微笑"],
+        u"生气":[u"不满"],
+        u"担心":[u"沉重", u"凝视"],
+        u"尴尬":[u"尴尬", u"微笑"],
+        u"惊喜":[u"开心", u"笑", u"微笑"],
+    }
     def __init__(self, selector, storage, sentiment, eoc=None):
         self.selector = selector
         self.storage = storage
@@ -21,6 +30,7 @@ class EmoSelector:
         self.pre_emotes = []
         self.emote = ""
         self.pre_pos = 0
+        self.fallback_emptyemote = Queue()
     def get_emote(self, idle = False):
         def idle_pos(pos):
             if pos == 3:
@@ -59,9 +69,11 @@ class EmoSelector:
             
             if match in self.emote_translate.values():
                 match = self.emote_translate[match]
-            m = 0.7
-
-            
+            else:
+                if self.fallback_emptyemote.is_empty():
+                    self.fallback_emptyemote.items = EmoSelector.EMPTY_EMOTE_FALLBACK.get(self.pre_mood, [])
+                if not self.fallback_emptyemote.is_empty():
+                    match = self.fallback_emptyemote.get()
             m = 0.7
             if match in self.selector:
                 emo = match
