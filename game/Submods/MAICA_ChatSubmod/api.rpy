@@ -74,7 +74,7 @@ init 5 python in maica:
                     file.write(response.content)
                 store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
             else:
-                store.mas_submod_utils.submod_log.info("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+                store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
         store.maica.maica.accessable()
                 
                 

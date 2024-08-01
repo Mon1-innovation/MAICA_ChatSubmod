@@ -59,6 +59,7 @@ init 10 python:
         "mf_aggressive":False,
         "sfe_aggressive":False,
         "tnd_aggressive":1,
+        "esc_aggressive":True
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -370,6 +371,11 @@ screen maica_advance_setting():
                             action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
                             hovered SetField(_tooltip, "value", _("指定sfe_aggressive为true将总是以用户的真名替代prompt中的[[player]字段. \n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
+                            action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
+                                ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
+                            hovered SetField(_tooltip, "value", _("当esc_aggressive为true时会调用agent模型对MFocus联网搜集的信息整理一次.\n 启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     
                     hbox:
