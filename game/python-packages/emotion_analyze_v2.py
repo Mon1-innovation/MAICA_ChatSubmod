@@ -12,10 +12,11 @@ class EmoSelector:
         u"开心":[u"笑", u"微笑"],
         u"脸红":[u"脸红", u"微笑"],
         u"意味深长":[u"意味深长", u"微笑"],
-        u"生气":[u"不满"],
+        u"生气":[u"不满", u"担心"],
         u"担心":[u"沉重", u"凝视"],
         u"尴尬":[u"尴尬", u"微笑"],
         u"惊喜":[u"开心", u"笑", u"微笑"],
+        u"惊讶":[u"尴尬", u"微笑"],
     }
     def __init__(self, selector, storage, sentiment, eoc=None):
         self.selector = selector
