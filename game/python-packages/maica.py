@@ -75,6 +75,8 @@ class MaicaAi(ChatBotInterface):
         SERVER_MAINTAIN = 13405
         # 错误的输入
         WRONE_INPUT = 13406
+        # 证书模块损坏
+        CERTIFI_BROKEN = 13407
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -114,6 +116,7 @@ class MaicaAi(ChatBotInterface):
             SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档",
             SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
             WRONE_INPUT:u"错误的输入, 请检查输入内容",
+            CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
         }
         @classmethod
         def get_description(cls, code):
@@ -182,6 +185,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mspire_category = ["视觉小说", "恋爱冒险游戏"]
         self.mspire_session = 0
         self._gen_time = 0.0
+        self.in_mas = True
 
 
     def reset_stat(self):
@@ -579,6 +583,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session.close()
 
     def accessable(self):
+        if self.in_mas:
+            try:
+                import certifi
+                certifi.set_parent_dir
+            except AttributeError:
+                logger.error("certifi is broken")
+                self.status = self.MaicaAiStatus.CERTIFI_BROKEN
+                self.__accessable = False
+                return
+                
         import requests, json
         res = requests.post("https://maicadev.monika.love/api/accessibility")
         d = res.json()
@@ -594,6 +608,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
             logger.error("Maica is not serving: {}".format(d["accessibility"]))
+            
 
         
 
