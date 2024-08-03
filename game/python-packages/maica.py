@@ -77,6 +77,8 @@ class MaicaAi(ChatBotInterface):
         WRONE_INPUT = 13406
         # 证书模块损坏
         CERTIFI_BROKEN = 13407
+        # 证书模块损坏, 但是自动修复成功, 需要重启
+        CERTIFI_AUTO_FIX = 13408
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -117,6 +119,7 @@ class MaicaAi(ChatBotInterface):
             SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
             WRONE_INPUT:u"错误的输入, 请检查输入内容",
             CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
+            CERTIFI_AUTO_FIX:u"证书模块损坏, 但是自动修复成功, 需要重启MAS",
         }
         @classmethod
         def get_description(cls, code):
