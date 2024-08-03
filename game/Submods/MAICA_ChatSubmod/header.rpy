@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.2.11',
+        version='0.3.0',
         settings_pane="maica_setting_pane",
     )
 init -989 python:
@@ -357,8 +357,8 @@ screen maica_advance_setting():
                         
                         if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
                             bar:
-                                value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 3, step=1,offset=0 ,style="slider")
-                                xsize 600
+                                value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 2, step=1,offset=0 ,style="slider")
+                                xsize 100
                             textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
 
                     

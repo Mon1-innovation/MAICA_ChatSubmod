@@ -73,6 +73,8 @@ class MaicaAi(ChatBotInterface):
         CONNECT_PROBLEM = 13404
         # 服务器维护中
         SERVER_MAINTAIN = 13405
+        # 错误的输入
+        WRONE_INPUT = 13406
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -111,6 +113,7 @@ class MaicaAi(ChatBotInterface):
             WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看submod_log以获取详细信息",
             SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档",
             SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
+            WRONE_INPUT:u"错误的输入, 请检查输入内容",
         }
         @classmethod
         def get_description(cls, code):
@@ -168,6 +171,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         # 待发送消息队列
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
+        self._current_topic = ""
         self.status = self.MaicaAiStatus.NOT_READY
         self.target_lang = self.MaicaAiLang.zh_cn
         self.history_status = None
@@ -370,6 +374,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).decode().strip()
                         else:
                             message = str(self.senddata_queue.get()).strip()
+                        self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message}
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
@@ -434,10 +439,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
         logger.debug("data.status in process: {}".format(data["status"] in ("delete_hint", "delete", "session_created", "nickname", "ok", "continue", "streaming_done")))
+        # 到达上限状态接收
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
         elif data["status"] == "delete":
             self.history_status = self.MaicaAiStatus.TOKEN_MAX_EXCEEDED 
+        # 错误code处理
+        if data.get("status") == "wrong_input":
+            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
+            self.wss_session.close()
+            self.status = self.MaicaAiStatus.WRONE_INPUT
+            
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
             if data['status'] != "session_created":
@@ -490,6 +502,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
                     self._append_to_message_list(emote, res.strip())
                     logger.debug("Server: {}".format(self._received[self._pos:]))
+                logger.debug("User input: {}".format(self._current_topic))
+                logger.debug("Responsed message: {}".format(self._received))
                 self._pos = 0
                 self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
@@ -558,11 +572,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             json.dumps({"chat_session":self.chat_session, "purge":True})
         )
         self.status = self.MaicaAiStatus.SESSION_RESETED
+        self.history_status = None
         self.wss_session.close()
 
     def close_wss_session(self):
         self.wss_session.close()
-        self.wss_session.keep_running = False
 
     def accessable(self):
         import requests, json
