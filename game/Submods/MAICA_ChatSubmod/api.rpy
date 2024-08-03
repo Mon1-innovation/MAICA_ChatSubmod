@@ -68,7 +68,7 @@ init 5 python in maica:
             import requests
             if not store.mas_can_import.certifi():
                 store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
-                res = requests.get("http://releases.0721play.top/"+"https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
+                res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
                 if res.status_code == 200:
                     with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","core.py"), "wb") as file:
                         file.write(res.content)
