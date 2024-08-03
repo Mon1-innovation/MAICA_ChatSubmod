@@ -646,7 +646,6 @@ label mspire_input_information:
             if i == "end":
                 break
             persistent.maica_setting_dict['mspire_category'].append("{}".format(i))
-            apply_setting()
     return
 label mspire_delete_information:
     python:
