@@ -19,7 +19,7 @@ ai.MoodStatus.pre_mood = ""
 ai.chat_session = 0
 ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
-ai.__accessable = False
+ai.accessable()
 ai.init_connect()
 import time
 print("读取表情信息")
