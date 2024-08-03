@@ -193,6 +193,7 @@ init 10 python:
         l = [logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
         curr = l.index(persistent.maica_setting_dict["log_level"])
         persistent.maica_setting_dict["log_level"] = l[(curr + 1) % len(l)]
+        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
     
     maica_apply_setting(True)
         
