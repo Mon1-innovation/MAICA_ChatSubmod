@@ -29,6 +29,8 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
+        # 等待可用性验证
+        WAIT_AVAILABILITY = 10001
         # 账户信息已准备好，准备令牌验证
         WAIT_AUTH = 10100
         # 等待令牌验证结果
@@ -96,6 +98,7 @@ class MaicaAi(ChatBotInterface):
 
         _descriptions = {
             NOT_READY: u"未准备好, 等待配置账户信息",
+            WAIT_AVAILABILITY:u"需要验证可用性, 请执行MaicaAi.accessable()",
             WAIT_AUTH: u"账户信息已确认，连接MAICA服务器验证中",
             WAIT_SERVER_TOKEN: u"等待令牌验证结果",
             WAIT_USE_TOKEN: u"等待传入令牌",
@@ -178,7 +181,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self._received = ""
         self._current_topic = ""
-        self.status = self.MaicaAiStatus.NOT_READY
+        self.status = self.MaicaAiStatus.WAIT_AVAILABILITY
         self.target_lang = self.MaicaAiLang.zh_cn
         self.history_status = None
         self.modelconfig = {}
@@ -613,6 +616,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 logger.error("Maica is not serving: {}".format(d["accessibility"]))
             else:
                 self.__accessable = True
+                self.status = self.MaicaAiStatus.NOT_READY
         else:
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
