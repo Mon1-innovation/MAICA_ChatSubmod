@@ -178,7 +178,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.NOT_READY
         self.target_lang = self.MaicaAiLang.zh_cn
         self.history_status = None
-        self._gen_token(account, pwd, token) 
         self.modelconfig = {}
         self.reset_stat()
         self.auto_reconnect = False
@@ -248,7 +247,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def get_message(self):
         return self.message_list.get()
     def _gen_token(self, account, pwd, token, email = None):
+        if token != "":
+            self.ciphertext = token
+            return
         if PY2:
+            if not self.__accessable and token == "":
+                return logger.error("Maica server not serving.")
             import requests
             data = {
                 "username":account,
@@ -288,12 +292,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "username":account,
                 "password":pwd
             }
-            if token == "":
-                message = json.dumps(data, ensure_ascii=False).encode('utf-8')
-                print(message)
-                self.ciphertext = base64.b64encode(cipher.encrypt(message)).decode('utf-8')
-            else:
-                self.ciphertext = token
+            message = json.dumps(data, ensure_ascii=False).encode('utf-8')
+            print(message)
+            self.ciphertext = base64.b64encode(cipher.encrypt(message)).decode('utf-8')
+            
 
     def init_connect(self):
         import threading
@@ -358,6 +360,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.message_list.size()
     
     def start_MSpire(self):
+        if not self.__accessable:
+            return logger.error("Maica server not serving.")
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
     def _on_open(self, wsapp):
@@ -570,6 +574,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return res.json()
     
     def reset_chat_session(self):
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
         self.wss_session.send(
