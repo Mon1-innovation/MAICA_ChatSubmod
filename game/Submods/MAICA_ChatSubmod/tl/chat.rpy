@@ -1275,3 +1275,16 @@ translate english strings:
     old "删除选择项"
     new "Delete item"
 
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:164
+    old "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
+    new "I think I know how to show you that. {w=0.2}Shall we try it now, [player]?"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:415
+    old "好啊. 你要补充还是删除呢?"
+    new "Alright. Do you want to add or to delete something?"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:572
+    old "所以你想试试看吗, [player]?"
+    new "So do you want to try it out, [player]?"
