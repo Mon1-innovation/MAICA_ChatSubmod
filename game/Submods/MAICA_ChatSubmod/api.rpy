@@ -67,15 +67,21 @@ init 5 python in maica:
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
             import requests
             if not store.mas_can_import.certifi():
-                store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
-                res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
-                if res.status_code == 200:
-                    with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","core.py"), "wb") as file:
-                        file.write(res.content)
-                        store.maica.maica.status = 13408
-                        store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
-                else:
-                    store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：{}", res.status_code)
+                try:
+                    store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
+                    try:
+                        res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
+                    except:
+                        res = requests.get("https://mirror.ghproxy.com/" + "https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
+                    if res.status_code == 200:
+                        with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","core.py"), "wb") as file:
+                            file.write(res.content)
+                            store.maica.maica.status = 13408
+                            store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
+                    else:
+                        store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：{}", res.status_code)
+                except Exception as e:
+                    store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed: {}".format(e))
             
             url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
             response = requests.get(url, verify=False)

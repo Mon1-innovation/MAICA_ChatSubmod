@@ -595,6 +595,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session.close()
 
     def accessable(self):
+        if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
+            self.__accessable = False
+            return
         if self.in_mas:
             try:
                 import certifi
