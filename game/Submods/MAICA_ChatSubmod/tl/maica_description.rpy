@@ -1,6 +1,7 @@
 translate english python in maica:
     maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
+        maica.MaicaAiStatus.WAIT_AVAILABILITY:u"需要验证可用性, 请重启以执行MaicaAi.accessable()",
         maica.MaicaAiStatus.WAIT_AUTH: u"Account acquired, verifying",
         maica.MaicaAiStatus.WAIT_SERVER_TOKEN: u"Waiting for token verification",
         maica.MaicaAiStatus.WAIT_USE_TOKEN: u"Waiting for token",
@@ -9,6 +10,7 @@ translate english python in maica:
         maica.MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA is ready for query",
         maica.MaicaAiStatus.MESSAGE_WAIT_SEND: u"Message acquired, pending delivery",
         maica.MaicaAiStatus.MESSAGE_WAITING_RESPONSE: u"Message sent, waiting for server response",
+        maica.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: u"等待发送MSpire请求",
         maica.MaicaAiStatus.MESSAGE_DONE: u"MAICA streaming finished",
         maica.MaicaAiStatus.REQUEST_RESET_SESSION: u"Requesting session reset",
         maica.MaicaAiStatus.SESSION_RESETED: u"Session reseted, connection closed",
@@ -18,6 +20,11 @@ translate english python in maica:
         maica.MaicaAiStatus.TOKEN_MAX_EXCEEDED:u"Session length over 28672 tokens, part of session is cut",
         maica.MaicaAiStatus.TOKEN_24000_EXCEEDED:u"Session length over 24576 tokens, will be cutted as exceeding 28672",
         maica.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED:u"Websocket closed unexpectedly, check log for details",
-        maica.MaicaAiStatus.SAVEFILE_NOTFOUND:u"Savefile for current session not found"
+        maica.MaicaAiStatus.SAVEFILE_NOTFOUND:u"Savefile for current session not found",
+        maica.MaicaAiStatus.SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
+        maica.MaicaAiStatus.WRONE_INPUT:u"错误的输入, 请检查输入内容",
+        maica.MaicaAiStatus.CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
+        maica.MaicaAiStatus.CERTIFI_AUTO_FIX:u"证书模块损坏, 但是自动修复成功, 需要重启MAS",
     })
     store.mas_setEVLPropValues("maica_main", prompt="I want to go to heaven forest", category=["You", "Us", "Mod"])
+    store.mas_setEVLPropValues("maica_mods_preferences", prompt="调整[player]的爱好", category=["You", "Us", "Mod"])

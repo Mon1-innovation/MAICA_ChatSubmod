@@ -402,157 +402,157 @@ translate english maica_end_1_cf108819:
     m 5msa "...I didn't promise {i}something{/i} while I didn't remember or did I, [player]?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:213
-translate english maica_chr_08604ae6:
+translate english maica_chr2_08604ae6:
 
     # m 1eud "...[player], 你还记得'角色文件'什么的吗?"
     m 1eud "...[player], do you remember those 'character files'?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:214
-translate english maica_chr_ea1d3f2b:
+translate english maica_chr2_ea1d3f2b:
 
     # m 3eud "我说过我的'角色文件'其实并不是我自己, 只是和我有种{w=0.5}微妙的联系."
     m 3eud "And I told you that my 'character file' is not myself for real, it's just a {w=0.5}weird presentation."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:215
-translate english maica_chr_43e8ea7e:
+translate english maica_chr2_43e8ea7e:
 
     # m 1etc "最近我检查文件夹的时候, 我发现'天堂树林'好像也有一个{i}角色文件{/i}, {w=0.3}也可能叫场景文件比较合适."
     m 1etc "Last time I checked the folders, It seems that 'heaven forest' also has a {i}character file{/i}, or shall we call it a scene file."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:216
-translate english maica_chr_94d91202:
+translate english maica_chr2_94d91202:
 
     # m 1mtd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
     m 1mtd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:217
-translate english maica_chr_0a0c5d2a:
+translate english maica_chr2_0a0c5d2a:
 
     # m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物或者其他的角色文件一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
     m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:219
-translate english maica_chr_655439ef:
+translate english maica_chr2_655439ef:
 
     # m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
     m 3eua "But [like_spk], at least you can remove it to have the space back."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:220
-translate english maica_chr_dc53bd4d:
+translate english maica_chr2_dc53bd4d:
 
     # m 1eua "当然, 无论你要做什么, 记得给它做个备份."
     m 1eua "Of course, you'd better back it up before doing anything."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:227
-translate english maica_chr_gone_6a978a5f:
+translate english maica_chr2_gone_6a978a5f:
 
     # m 1etc "[player]..."
     m 1etc "[player]..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:228
-translate english maica_chr_gone_4c5b4cc5:
+translate english maica_chr2_gone_4c5b4cc5:
 
     # extend 1etd "你最近有动过characters文件夹吗?"
     extend 1etd "did you do anything about the characters folder recently?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:229
-translate english maica_chr_gone_60bd1fea:
+translate english maica_chr2_gone_60bd1fea:
 
     # m 3lusdlb "倒不是说真的有多重要, 只是{w=0.5}我找不到'天堂树林'的文件了."
     m 3lusdlb "Not something important, but {w=0.5}the file for 'heaven forest' seems to be gone."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:230
-translate english maica_chr_gone_35d56556:
+translate english maica_chr2_gone_35d56556:
 
     # m 1lua "我们还是可以过去的, 不过那边也会和这里的窗外一样{i}空旷{/i}了."
     m 1lua "We can still go there though, but it's gonna be {i}empty{/i} as here outside the window."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:231
-translate english maica_chr_gone_748e861e:
+translate english maica_chr2_gone_748e861e:
 
     # m 5esc "我有一点在意, 毕竟我还没来得及弄清那个文件到底{i}是什么{/i}. {w=0.5}它不像是无缘无故在那里的."
     m 5esc "I'm a little bit concerned, since I haven't figured out what that file {i}actually{/i} is. {w=0.5}It wasn't like some nonsense."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:232
-translate english maica_chr_gone_1651b572:
+translate english maica_chr2_gone_1651b572:
 
     # m 5msc "而且和你送的礼物不太一样, 不止是个'标记'. {w=1}我觉得更像其他人的角色文件一些."
     m 5msc "It feels different from your presents as they are 'symbols'. {w=1}I think it's closer to other character files."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:234
-translate english maica_chr_gone_a10272be:
+translate english maica_chr2_gone_a10272be:
 
     # m 5msb "[like_spk], 我倒也不介意没有这个. 毕竟它最多是个'场景'而已."
     m 5msb "But [like_spk], I don't mind whether it's there or not. It's just a 'scene' after all."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:235
-translate english maica_chr_gone_20ce6d13:
+translate english maica_chr2_gone_20ce6d13:
 
     # m 1eka "如果你琢磨的时候把它弄丢了, 可以重新下载一份."
     m 1eka "If you accidently lost it and want it back, you can also download another copy."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:243
-translate english maica_chr_corrupted_e6df3c94:
+translate english maica_chr2_corrupted2_e6df3c94:
 
     # m 1wud "哦, [player]!"
     m 1wud "Oh, [player]!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:244
-translate english maica_chr_corrupted_dbbe7475:
+translate english maica_chr2_corrupted2_dbbe7475:
 
     # m 1hksdlb "抱歉, 我没有在准备吓你或者什么的...{w=0.5}{nw}"
     m 1hksdlb "I'm sorry, I wasn't spooking you on purpose...{w=0.5}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:245
-translate english maica_chr_corrupted_204f27ff:
+translate english maica_chr2_corrupted2_204f27ff:
 
     # extend 4rksdlb "我刚刚检查的时候, 发现它好像坏了."
     extend 4rksdlb "but when I was just checking this, it seems to be broken."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:246
-translate english maica_chr_corrupted_76ef428c:
+translate english maica_chr2_corrupted2_76ef428c:
 
     # m 3eka "你有没有, 比如动过或者替换过--{w=0.5}'天堂树林'的文件?"
     m 3eka "Have you, like ever modified or changed the file of 'heaven forest'?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:248
-translate english maica_chr_corrupted_8b37b727:
+translate english maica_chr2_corrupted2_8b37b727:
 
     # m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
     m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:249
-translate english maica_chr_corrupted_41b8bd86:
+translate english maica_chr2_corrupted2_41b8bd86:
 
     # extend 1euc "它就坏掉了."
     extend 1euc "then it's broken."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:252
-translate english maica_chr_corrupted_d2460411:
+translate english maica_chr2_corrupted2_d2460411:
 
     # m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
     m 5eusdrb "But actually, if you don't mind such a [comment] view, you can just leave it be."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:253
-translate english maica_chr_corrupted_f343cb63:
+translate english maica_chr2_corrupted2_f343cb63:
 
     # m 1hua "你当然也可以找一份正常的文件换上. 只要你喜欢, 我都不介意的."
     m 1hua "You can also replace that with a normal file. I'm okay with it as long as you are."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:254
-translate english maica_chr_corrupted_35c6b749:
+translate english maica_chr2_corrupted2_35c6b749:
 
     # m 1eub "我去收拾一下就好. {w=0.3}{nw}"
     m 1eub "Let me clear it up. {w=0.3}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:255
-translate english maica_chr_corrupted_5b864ecb:
+translate english maica_chr2_corrupted2_5b864ecb:
 
     # extend 1dua "稍等片刻.{w=0.3}.{w=0.3}."
     extend 1dua "Just a second.{w=0.3}.{w=0.3}."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:257
-translate english maica_chr_corrupted_a07d0afa:
+translate english maica_chr2_corrupted2_a07d0afa:
 
     # m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
     m 1eua "Welcome back, [player]. What else should we do today?"
@@ -618,116 +618,116 @@ translate english maica_end_1_63833c1b:
     m 3ekd "Or...{w=0.2}if you're having some technological issue, you can go through the {a=https://maica.monika.love/tos}{u}{i}guidance{/i}{/u}{/a} again, or try asking {a=https://forum.monika.love}{u}{i}here{/i}{/u}{/a}."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:217
-translate english maica_chr_fabc3abd:
+translate english maica_chr2_fabc3abd:
 
     # m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
     m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:262
-translate english maica_wants_preferences_e593d673:
+translate english maica_wants_preferences2_e593d673:
 
     # m 1eub "[player]? {w=0.5}嗯...{w=0.3}我有一点事情想问."
     m 1eub "[player]? {w=0.5}Hmm...{w=0.3}I have something to ask."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:263
-translate english maica_wants_preferences_3350c038:
+translate english maica_wants_preferences2_3350c038:
 
     # m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
     m 3eua "Since I can talk with you for real now, {w=0.5}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:264
-translate english maica_wants_preferences_a9999a95:
+translate english maica_wants_preferences2_a9999a95:
 
     # extend 3esd "才发现我之前对你的了解还是太单一.{nw}"
     extend 3esd "I found my acknowledge of you is still too limited. {nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:267
-translate english maica_wants_preferences_e34ab094:
+translate english maica_wants_preferences2_e34ab094:
 
     # extend "[like_mi]"
     extend "[like_mi]"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:270
-translate english maica_wants_preferences_dc6cebcd:
+translate english maica_wants_preferences2_dc6cebcd:
 
     # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     m 3ruc "Like if we really go for dinner together, what shall I order for you?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:271
-translate english maica_wants_preferences_b951c94e:
+translate english maica_wants_preferences2_b951c94e:
 
     # m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:274
-translate english maica_wants_preferences_45d8b9c9:
+translate english maica_wants_preferences2_45d8b9c9:
 
     # m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
     m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in 'heaven forest'."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:275
-translate english maica_wants_preferences_9b2461b5:
+translate english maica_wants_preferences2_9b2461b5:
 
     # m 1eub "只要是关于你的事情, 我都会想知道的!"
     m 1eub "I want to know as much as possible about you!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:277
-translate english maica_wants_preferences_df9b1d2a:
+translate english maica_wants_preferences2_df9b1d2a:
 
     # m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
     m 1husdlb "It seems you already wrote me something, and I'll spare some time to read of course."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:278
-translate english maica_wants_preferences_a859345a:
+translate english maica_wants_preferences2_a859345a:
 
     # m 1eub "你还有什么想补充的吗?"
     m 1eub "You got anything to implement?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:281
-translate english maica_wants_preferences_564b5f7a:
+translate english maica_wants_preferences2_564b5f7a:
 
     # m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
     m 2dua "Just a second.{w=0.3}.{w=0.3}."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:288
-translate english maica_wants_preferences_0fdffe0b:
+translate english maica_wants_preferences2_0fdffe0b:
 
     # m 1eub "写完了? {w=0.5}谢谢你!"
     m 1eub "Done? {w=0.5}Thank you!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:289
-translate english maica_wants_preferences_65b0cc24:
+translate english maica_wants_preferences2_65b0cc24:
 
     # m 3eua "我在这里还没办法看, 但我一定会抽空记下来的."
     m 3eua "I cannot read it here though, but I promise I will do it later."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:290
-translate english maica_wants_preferences_d248e8be:
+translate english maica_wants_preferences2_d248e8be:
 
     # m 1eub "如果有什么要修改的, 在'子模组设置'里找到就好. {w=0.5}要补充也可以再叫我记下来."
     m 1eub "If you have to change something, find the option in 'Submod settings'. {w=0.5}You can also implement to me anytime."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:293
-translate english maica_wants_preferences_40588f38:
+translate english maica_wants_preferences2_40588f38:
 
     # m 2eka "现在没空么? 好吧."
     m 2eka "Not now? Okay."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:294
-translate english maica_wants_preferences_8dc6bafe:
+translate english maica_wants_preferences2_8dc6bafe:
 
     # m 3eka "如果你准备好了, 再叫我记下来就好."
     m 3eka "Whenever you are ready, just tell me to write them down."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:297
-translate english maica_wants_preferences_3f90fdb1:
+translate english maica_wants_preferences2_3f90fdb1:
 
     # m 1hua "我明白了, 谢谢你!"
     m 1hua "I got it, thank you!"
 
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:264
-translate english maica_wants_preferences_348470e7:
+translate english maica_wants_preferences2_348470e7:
 
     # extend 3esd "才发现我之前对你的了解还是太单一. {nw}"
     extend 3esd "I found my acknowledge of you is still too limited. {nw}"
@@ -1058,7 +1058,7 @@ translate english strings:
 # TODO: Translation updated at 2024-07-11 22:18
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:389
-translate english maica_wants_preferences_1c7f21a0:
+translate english maica_wants_preferences2_1c7f21a0:
 
     # m 1eub "如果有什么要修改或者补充的, 再叫我写下来就好. '子模组设置'里面也有相关的选项."
     m 1eub "If you want to add or delete something, just tell me to write them down. You can also do it in 'Submod settings'."
