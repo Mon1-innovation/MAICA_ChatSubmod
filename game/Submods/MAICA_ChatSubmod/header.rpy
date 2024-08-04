@@ -73,7 +73,10 @@ init 10 python:
     if persistent.maica_setting_dict["maica_model"] is None:
         persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
     if persistent.maica_setting_dict["target_lang"] is None:
-        persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.zh_cn
+        if config.language == "chinese":
+            persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.zh_cn
+        else:
+            persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.en
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
     _maica_LoginEmail = ""
