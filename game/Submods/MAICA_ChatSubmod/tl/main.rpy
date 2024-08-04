@@ -18,3 +18,11 @@ translate english strings:
     old "好像出了什么问题..."
     new "Something may went wrong..."
 
+# TODO: Translation updated at 2024-08-04 13:15
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/main.rpy:49
+    old "就这样吧"
+    new "I'm done"
+
