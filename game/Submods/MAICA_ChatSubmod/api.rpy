@@ -18,7 +18,7 @@ init 5 python in maica:
     store.mas_registerAPIKey(
         "Maica_Token",
         _("MAICA令牌"),
-        on_change=change_token
+        on_change=change_token,
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
     #maica.update_screen_func = renpy.pause

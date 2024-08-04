@@ -310,7 +310,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_chr_corrupted2",
             prompt="树林坏了",
-            unlocked=True,
+            pool=False,
             conditional="maica_chr_changed and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.HAPPY, None)
@@ -449,7 +449,7 @@ label maica_delete_information:
                 i, i, False, False, True 
             ])
 
-    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt="删除选择项", return_all=True)
+    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("删除选择项"), return_all=True)
 
     python:
         persistent.mas_player_additions = []

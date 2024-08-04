@@ -461,15 +461,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         # 错误code处理
         if data.get("status") == "wrong_input":
             self.send_to_outside_func("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
-            self.wss_session.close()
             self.status = self.MaicaAiStatus.WRONE_INPUT
-            
+            self.wss_session.close()
+        elif data.get("status") == "unauthorized":
+            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("May be wrong password"))
+            self.status = self.MaicaAiStatus.TOKEN_FAILED
+            self.wss_session.close()
+
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
-            if data['status'] != "session_created":
-                self.status = self.MaicaAiStatus.TOKEN_FAILED
-                self.wss_session.close()
-            else:
+            if data['status'] == "session_created":
                 self.status = self.MaicaAiStatus.SESSION_CREATED
         if self.status == self.MaicaAiStatus.SESSION_CREATED:
             if data["status"] == "nickname":
