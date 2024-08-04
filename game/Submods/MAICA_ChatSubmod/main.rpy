@@ -12,7 +12,7 @@ label maica_talking(mspire = False):
         if persistent.maica_setting_dict['console']:
             store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
-        if ai.wss_session is None:
+        if not ai.wss_session:
             ai.init_connect()
         printed = False
         while True:
