@@ -16,9 +16,11 @@ label maica_talking(mspire = False):
             ai.init_connect()
         printed = False
         while True:
-            if ai.wss_session is None:
+            if not ai.wss_session:
                 store.mas_ptod.write_command("Init Connecting...")
                 renpy.pause(0.3, True)
+                if not ai.wss_session and not ai.is_failed():
+                    continue
             if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_connected():
                 ai.init_connect()
                 renpy.pause(0.3, True)
