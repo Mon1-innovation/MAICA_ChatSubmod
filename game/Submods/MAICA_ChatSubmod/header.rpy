@@ -87,7 +87,7 @@ init 10 python:
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
         store.mas_api_keys.save_keys()
 
-    @store.mas_submod_utils.functionplugin("ch30_preloop", auto_error_handling = False)
+    @store.mas_submod_utils.functionplugin("ch30_preloop")
     def upload_persistent_dict():
         import copy
         d = copy.deepcopy(persistent.__dict__)
