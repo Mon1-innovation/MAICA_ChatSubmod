@@ -15,6 +15,7 @@ label maica_talking(mspire = False):
         if not ai.wss_session:
             ai.init_connect()
         printed = False
+        is_retry_before_sendmessage = False
         while True:
             if not ai.wss_session:
                 store.mas_ptod.write_command("Init Connecting...")
@@ -43,24 +44,36 @@ label maica_talking(mspire = False):
                 renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
                 _return = "disconnected"
                 break
-                
+            if is_retry_before_sendmessage:
+                ai.chat(is_retry_before_sendmessage)
+                question = is_retry_before_sendmessage
+                is_retry_before_sendmessage = False
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
-            if mspire is False:
-                question = mas_input(
-                            _("说吧, [player]"),
-                            default="",
-                            length=50,
-                            screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
-                        ).strip(' \t\n\r') #mas_input
-                if question == "":
-                    continue
-                if question == "nevermind":
-                    _return = "canceled"
-                    ai.content_func = None
-                    break
-                ai.chat(question)
-            else:
-                ai.start_MSpire()
+            if ai.is_ready_to_input():
+                if mspire is False:
+                    question = mas_input(
+                                _("说吧, [player]"),
+                                default="",
+                                length=50,
+                                screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
+                            ).strip(' \t\n\r') #mas_input
+                    if question == "":
+                        continue
+                    if question == "nevermind":
+                        _return = "canceled"
+                        ai.content_func = None
+                        break
+                    ai.chat(question)
+                    is_retry_before_sendmessage = False
+                else:
+                    ai.start_MSpire()
+            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_connected():
+                ai.init_connect()
+                renpy.pause(0.3, True)
+                store.mas_ptod._update_console_history("[[before responsed disconnect] Websocket is closed, reconnecting...")
+                is_retry_before_sendmessage = question
+                continue
+
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
                         

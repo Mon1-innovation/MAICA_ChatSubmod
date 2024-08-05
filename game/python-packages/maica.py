@@ -326,7 +326,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
             self.multi_lock.release()
-            logger.info("Maica::_init_connect released lock")
+            logger.info("Maica::_init_connect released lock because error")
         
         
     # 检查参数合法性
@@ -534,6 +534,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         if close_status_code or close_msg:
             logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
+        self.multi_lock.release()
         
     def chat(self, message):
         #if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
