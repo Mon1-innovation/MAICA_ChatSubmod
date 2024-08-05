@@ -552,16 +552,20 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.__accessable:
             logger.error("upload_save::Maica is not serving")
             return {}
+        if self.ciphertext in ("", None):
+            logger.error("upload_save:: token is null")
+            return {}
         import requests, json
-        res = requests.post(
-            "https://maicadev.monika.love/api/savefile",
-            data = json.dumps(
+        content = json.dumps(
                 {
                     "access_token": self.ciphertext,
                     "chat_session": session,
                     "content": dict
                 }
             )
+        res = requests.post(
+            "https://maicadev.monika.love/api/savefile",
+            data = content
         )
         if res.status_code == 200:
             return res.json()
