@@ -550,7 +550,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict, session=1):
         if not self.__accessable:
-            logger.error("Maica is not serving")
+            logger.error("upload_save::Maica is not serving")
             return {}
         import requests, json
         res = requests.post(
@@ -560,10 +560,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "access_token": self.ciphertext,
                     "chat_session": session,
                     "content": dict
-                },
+                }
             )
         )
-        return res.json()
+        if res.status_code == 200:
+            return res.json()
+        else:
+            logger.error("upload_save:: return non http 200:: {}".format(res.text))
+            return {}
 
     def get_history(self, lines = 0):
         if not self.__accessable:

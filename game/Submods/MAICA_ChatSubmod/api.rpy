@@ -28,23 +28,23 @@ init 5 python in maica:
         maica.update_stat(store.persistent.maica_stat)
 
 
-    basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
+    maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
     def init_selector():
-        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_selector.json"), "r") as emost:
+        with open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_selector.json"), "r") as emost:
             sentiment = json.loads(emost.read())
         return sentiment
     def init_storage():
-        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r") as emops:
+        with open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r") as emops:
             storage = json.loads(emops.read())
         return storage
 
     def init_sentiment():
-        with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
+        with open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
             sentiment = json.loads(emost.read())
         return sentiment
     
     def init_eoc():
-        with(open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_eoc.json"), "r")) as eocs:
+        with(open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_eoc.json"), "r")) as eocs:
             eoc = json.loads(eocs.read())
         return eoc
 
