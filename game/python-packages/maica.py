@@ -622,9 +622,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import requests, json
         res = requests.post("https://maicadev.monika.love/api/accessibility")
         d = res.json()
-        if d["success"]:
+        if d.get(u"success", False):
             self._serving_status = d["accessibility"]
-            if d["accessibility"] != "serving":
+            if d.get("accessibility", None) != "serving":
                 self.status = self.MaicaAiStatus.SERVER_MAINTAIN
                 self.__accessable = False
                 logger.error("Maica is not serving: {}".format(d["accessibility"]))

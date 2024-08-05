@@ -152,7 +152,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:295
     old "输入 DCC 账号邮箱"
-    new "enter DCC register email"
+    new "Enter DCC register email"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:296
     old "请输入DCC 账号邮箱"
