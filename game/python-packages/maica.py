@@ -550,7 +550,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict, session=1):
         if not self.__accessable:
-            return logger.error("Maica is not serving")
+            logger.error("Maica is not serving")
+            return {}
         import requests, json
         res = requests.post(
             "https://maicadev.monika.love/api/savefile",

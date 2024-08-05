@@ -60,7 +60,7 @@ init 5 python in maica:
         store.persistent.maica_stat = maica.stat.copy()
 
 
-    @store.mas_submod_utils.functionplugin("ch30_preloop")
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
         if store.mas_getAPIKey("Maica_Token") != "":
             store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
