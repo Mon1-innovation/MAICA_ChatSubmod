@@ -594,7 +594,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session.close()
 
     def close_wss_session(self):
-        self.wss_session.close()
+        if self.wss_session:
+            self.wss_session.close()
 
     def accessable(self):
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
