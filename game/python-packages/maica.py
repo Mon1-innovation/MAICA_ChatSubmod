@@ -160,6 +160,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     MAX_CHATSESSION = 9
 
     def __init__(self, account, pwd, token = ""):
+        """
+        初始化函数，用于创建MaicaAI对象
+        
+        Args:
+            account (str): MaicaAI账号
+            pwd (str): MaicaAI密码
+            token (str, optional): MaicaAI的token，默认为空字符串
+        
+        Returns:
+            None
+        """
         import threading
         self.__accessable = False
         self._serving_status = ""
@@ -348,7 +359,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE)
 
     def is_ready_to_input(self):
-        """返回maica是否可以发送消息了"""
+        """返回maica是否可以接受输入消息了"""
         return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE)
 
     def is_failed(self):
@@ -360,6 +371,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """返回maica是否连接服务器, 不检查状态码"""
         return self.wss_session.keep_running if self.wss_session else False \
             and self.wss_thread.is_alive() if self.wss_thread else False
+
+    def get_status_description(self):
+        """返回maica当前状态描述"""
+        return self.MaicaAiStatus.get_description(self.status)
 
     def len_message_queue(self):
         """返回maica已接收并完成分句的台词数"""
@@ -537,8 +552,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.multi_lock.release()
         
     def chat(self, message):
-        #if not self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE):
-        #    raise RuntimeError("Maica not ready to chat")
+        
         if not self.__accessable:
             return logger.error("Maica is not serving")
         message = str(message)
@@ -550,6 +564,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _append_to_message_list(self, emote, message):
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict, session=1):
+        """
+        向Maica服务上传并保存存档数据。
+        
+        Args:
+            dict (dict): 要上传的数据，必须为字典类型。
+            session (int, optional): 会话ID。默认为1。
+        
+        Returns:
+            dict: 如果上传成功，则返回Maica服务返回的JSON响应；否则返回空字典。
+        
+        """
+
         if not self.__accessable:
             logger.error("upload_save::Maica is not serving")
             return {}
@@ -575,6 +601,23 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return {}
 
     def get_history(self, lines = 0):
+        """
+        获取与Maica的历史聊天记录
+        
+        Args:
+            lines (int, optional): 需要获取的聊天记录条数
+                当lines为正整数n时, 接口只返回对话历史的前n项, 应注意其中第一项为最后一次生效的system字段.
+                当lines为负整数-n时, 接口只返回对话历史的后n项, 此时返回的对话历史仍然以正序排列.
+                当lines为0时, 接口返回全部对话历史--可能会很长.
+        
+        Returns:
+            dict: 包含历史聊天记录的字典。
+        
+        Raises:
+            无
+        
+        """
+        
         if not self.__accessable:
             return logger.error("Maica is not serving")
         import requests, json
@@ -591,6 +634,20 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return res.json()
     
     def reset_chat_session(self):
+        """
+        重置当前聊天会话。
+        
+        Args:
+            无。
+        
+        Returns:
+            无返回值。
+        
+        Raises:
+            无。
+        
+        """
+
         if not self.__accessable:
             return logger.error("Maica is not serving")
         import json
@@ -603,10 +660,35 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session.close()
 
     def close_wss_session(self):
+        """
+        关闭WebSocket会话。
+        
+        Args:
+            无参数。
+        
+        Returns:
+            无返回值。
+        
+        """
+
         if self.wss_session:
             self.wss_session.close()
 
     def accessable(self):
+        """
+        检查Maica服务是否可访问
+        注意, 在开始使用前, 必须先使用该函数来检查MAICA服务器是否可用
+        
+        Args:
+            无
+        
+        Returns:
+            无返回值，该函数主要用于更新类的状态
+        
+        Raises:
+            无
+        """
+
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
             self.__accessable = False
             return

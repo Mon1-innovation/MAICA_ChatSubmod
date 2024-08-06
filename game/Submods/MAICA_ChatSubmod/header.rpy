@@ -205,7 +205,7 @@ init 10 python:
 screen maica_setting_pane():
     python:
         import store.maica as maica
-        stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.wss_session.keep_running else _("已断开")
+        stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.is_connected() else _("已断开")
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
     vbox:
         xmaximum 800
@@ -221,7 +221,7 @@ screen maica_setting_pane():
             xoffset -10
             style "main_menu_version"
         
-        if True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
+        if not maica.maica.is_connected():
             textbutton _("> 生成令牌"):
                 action Show("maica_login")
                 
