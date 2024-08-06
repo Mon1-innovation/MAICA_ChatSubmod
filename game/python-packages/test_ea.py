@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import emotion_analyze_v2, os, json
-basedir = "D:\MAICA_ChatSubmod"
+basedir = ""
 def init_selector():
     selector = {}
     power={}
@@ -47,24 +47,11 @@ selector.storage = init_storage()
 selector.sentiment = init_sentiment()
 selector.eoc = init_eoc()
 selector.affection = 500
-selector.analyze("[很开心]")
 
-print(selector.get_emote())
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+def print_info(data = ""):
+    selector.analyze(data)
+    print(selector.get_emote())
+    print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+    print("期望表情: {}:{}".format(selector.pre_mood,selector.selector.get(selector.pre_mood, None)))
 
-selector.analyze("[开心]")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("[眨眼]")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("[厌恶]")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-selector.analyze("[很开心]")
-print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
+print_info("[脸红]")
