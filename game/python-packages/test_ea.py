@@ -55,3 +55,10 @@ def print_info(data = ""):
     print("期望表情: {}:{}".format(selector.pre_mood,selector.selector.get(selector.pre_mood, None)))
 
 print_info("[脸红]")
+print_info("")
+print_info("")
+print_info("")
+print_info("[意味深长]")
+print_info("")
+print_info("")
+print_info("")
