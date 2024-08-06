@@ -377,7 +377,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             try:
                 import json
                 while True:
-                    if self.wss_session.keep_running == False:
+                    if not self.is_connected():
                         logger.info("websocket is closed")
                         break
                     time.sleep(1)

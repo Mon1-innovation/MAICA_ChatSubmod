@@ -12,17 +12,17 @@ label maica_talking(mspire = False):
         if persistent.maica_setting_dict['console']:
             store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
-        if not ai.wss_session:
+        if not ai.is_connected():
             ai.init_connect()
         printed = False
         is_retry_before_sendmessage = False
         while True:
-            if not ai.wss_session:
+            if not ai.is_connected():
                 store.mas_ptod.write_command("Init Connecting...")
                 renpy.pause(0.3, True)
-                if not ai.wss_session and not ai.is_failed():
+                if not ai.is_connected() and not ai.is_failed():
                     continue
-            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_connected():
+            if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
@@ -67,7 +67,7 @@ label maica_talking(mspire = False):
                     is_retry_before_sendmessage = False
                 else:
                     ai.start_MSpire()
-            if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect'] and not ai.is_connected():
+            if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("[[before responsed disconnect] Websocket is closed, reconnecting...")
@@ -83,7 +83,7 @@ label maica_talking(mspire = False):
                     gentime = time.time()
                 else:
                     gentime = ai._gen_time
-                if ai.wss_session.keep_running == False and persistent.maica_setting_dict['auto_reconnect']:
+                if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                     ai.init_connect()
                     store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
 
