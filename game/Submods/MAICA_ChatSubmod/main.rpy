@@ -70,7 +70,7 @@ label maica_talking(mspire = False):
             if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
                 renpy.pause(0.3, True)
-                store.mas_ptod._update_console_history("[[before responsed disconnect] Websocket is closed, reconnecting...")
+                store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
                 is_retry_before_sendmessage = question
                 continue
 
