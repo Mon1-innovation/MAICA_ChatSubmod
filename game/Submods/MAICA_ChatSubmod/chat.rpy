@@ -40,8 +40,8 @@ init 5 python:
             persistent.greeting_database,
             eventlabel="maica_greeting",
             prompt="maica敲门",
-            unlocked=True,
             conditional="store.seen_event('maica_prepend_1')",
+            action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.HAPPY, None)
         ),
         code="GRE"
@@ -253,7 +253,6 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_chr2",
             prompt="树林重要吗?",
-            random=True,
             conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             rules={
@@ -281,7 +280,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_chr_gone",
             prompt="树林没了",
-            random=True,
+            pool=False,
             conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
             rules={
@@ -313,6 +312,9 @@ init 5 python:
             pool=False,
             conditional="maica_chr_changed and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
             aff_range=(mas_aff.HAPPY, None)
         )
     )
@@ -347,8 +349,8 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_wants_preferences2",
             prompt="了解你的爱好",
+            pool=False,
             unlocked=False,
-            random=True,
             conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
@@ -477,6 +479,9 @@ init 5 python:
             pool=True,
             random=False,
             unlocked=False,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -603,7 +608,6 @@ init 5 python:
             eventlabel="maica_mspire",
             prompt="mspire",
             pool=False,
-            random=True,
             conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
