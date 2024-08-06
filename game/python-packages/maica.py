@@ -324,6 +324,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.debug("_init_connect")
         if not self.multi_lock.acquire(blocking=False):
             return logger.warning("Maica::_init_connect try to create multi connection")
+        self.status = self.MaicaAiStatus.NOT_READY
         import websocket
         self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
                                                   , on_close=self._on_close)
@@ -391,6 +392,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         def send_message():
             try:
                 import json
+                from websocket import WebSocketConnectionClosedException
                 while True:
                     if not self.is_connected():
                         logger.info("websocket is closed")
@@ -443,6 +445,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.status = self.MaicaAiStatus.SESSION_RESETED
                         self.wss_session.close()
                         break
+            except WebSocketConnectionClosedException as e:
+                import traceback
+                logger.warning("exception is ocurrred (maybe reconnect to fast, will close wss_session): \n{}".format(traceback.format_exc()))
+                self.send_to_outside_func("!!SUBMOD ERROR when send_message: {}".format(e))
+                self.close_wss_session()
+                self.multi_lock.release()
             except Exception as e:
                 import traceback
                 logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
@@ -673,6 +681,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         if self.wss_session:
             self.wss_session.close()
+        
 
     def accessable(self):
         """

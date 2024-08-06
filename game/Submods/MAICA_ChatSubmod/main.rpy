@@ -10,7 +10,7 @@ label maica_talking(mspire = False):
         if mspire:
             ai.send_to_outside_func("<submod> MSpire init...")
         if persistent.maica_setting_dict['console']:
-            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+            store.mas_ptod.write_command("Thank you for using MAICA Blessland !")
             renpy.pause(2.3)
         if not ai.is_connected():
             ai.init_connect()
@@ -29,6 +29,7 @@ label maica_talking(mspire = False):
             if not ai.is_ready_to_input() and not ai.is_failed():
                 store.mas_ptod.write_command("Wait login...")
                 renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
+                _history_list.pop()
                 continue
             if ai.is_ready_to_input() and not printed:
                 store.mas_ptod.write_command("Login successful, ready to chat!")
