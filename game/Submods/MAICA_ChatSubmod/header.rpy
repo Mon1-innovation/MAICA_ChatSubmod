@@ -621,7 +621,7 @@ screen maica_setting():
                 
                  
 
-
+default use_email = True
 screen maica_login():
     modal True
     zorder 215
@@ -635,11 +635,26 @@ screen maica_login():
             spacing 5
 
             hbox:
-                textbutton _("输入 DCC 账号用户名"):
-                    action Show("maica_login_input",message = _("请输入DCC 账号用户名") ,returnto = "_maica_LoginAcc")
-                text _("或")
-                textbutton _("输入 DCC 账号邮箱"):
-                    action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
+                style_prefix "check"
+                if use_email:
+                    textbutton _("改为用户名登录"):
+                        action [ToggleVariable("use_email"), Function(_maica_clear)]
+                        selected False
+
+                else:
+                    textbutton _("改为邮箱登录"):
+                        action [ToggleVariable("use_email"), Function(_maica_clear)]
+                        selected False
+                        
+
+                    
+            hbox:
+                if use_email:
+                    textbutton _("输入 DCC 账号邮箱"):
+                        action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
+                else:
+                    textbutton _("输入 DCC 账号用户名"):
+                        action Show("maica_login_input",message = _("请输入DCC 账号用户名") ,returnto = "_maica_LoginAcc")
 
             hbox:
                 textbutton _("输入 DCC 账号密码"):
