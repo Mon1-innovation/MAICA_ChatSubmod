@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.3.3',
+        version='0.3.5',
         settings_pane="maica_setting_pane",
     )
 init -989 python:
@@ -137,6 +137,9 @@ init 10 python:
         renpy.notify(_("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def maica_apply_setting(ininit=False):
+        if persistent.maica_setting_dict["mspire_interval"] <= 10:
+            persistent.maica_setting_dict["mspire_interval"] = 10
+            
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
@@ -197,7 +200,13 @@ init 10 python:
         curr = l.index(persistent.maica_setting_dict["log_level"])
         persistent.maica_setting_dict["log_level"] = l[(curr + 1) % len(l)]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-    
+    def try_eval(str):
+        try:
+            return eval(str)
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("Failed to eval: {}".format(e))
+            return None
+
     maica_apply_setting(True)
         
             
@@ -205,13 +214,18 @@ init 10 python:
 screen maica_setting_pane():
     python:
         import store.maica as maica
-        stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.wss_session.keep_running else _("已断开")
+        stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.is_connected() else _("已断开")
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
     vbox:
         xmaximum 800
         xfill True
         style_prefix "check"
 
+        if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
+            text _("> 警告: 与 Better Loading 不兼容"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
         text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
             xalign 1.0 yalign 0.0
             xoffset -10
@@ -221,7 +235,7 @@ screen maica_setting_pane():
             xoffset -10
             style "main_menu_version"
         
-        if True if not maica.maica.wss_session else not maica.maica.wss_session.keep_running:
+        if not maica.maica.is_connected():
             textbutton _("> 生成令牌"):
                 action Show("maica_login")
                 
@@ -400,6 +414,7 @@ screen maica_setting():
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
             _tooltip = None
+        
     modal True
     zorder 215
     
@@ -447,19 +462,21 @@ screen maica_setting():
                         hbox:
                             text "Event status"
                         hbox:
-                            text "maica_greeting.conditional:[eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
+                            text "maica_greeting.conditional:[try_eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
                         hbox:
-                            text "maica_chr2.conditional: [eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
+                            text "maica_chr2.conditional: [try_eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
                         hbox:
-                            text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
+                            text "maica_chr_gone.conditional:[try_eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
                         hbox:
-                            text "maica_chr_corrupted2.conditional:[eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
+                            text "maica_chr_corrupted2.conditional:[try_eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
                         hbox:
-                            text "maica_wants_preferences2.conditional: [eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
+                            text "maica_wants_preferences2.conditional: [try_eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
                         hbox:
-                            text "maica_wants_mspire.conditional:[eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
+                            text "maica_wants_mspire.conditional:[try_eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
                         hbox:
-                            text "maica_mspire.conditional:[eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
+                            text "maica_mspire.conditional:[try_eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
+                        hbox:
+                            text "maica_mspire.last_seen:[evhand.event_database.get('maica_mspire',None).last_seen]"
                         hbox:
                             text "=====MaicaAi() Finish====="
 
@@ -563,7 +580,7 @@ screen maica_setting():
                                 Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
                                 Function(store.MASEventList.push, "mspire_mods_preferences")
                                 ]
-                            hovered SetField(_tooltip, "value", _("范围为维基百科的category页面"))
+                            hovered SetField(_tooltip, "value", _("范围为维基百科的category页面\n如果无法找到catrgory将会提示错误输入"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("间隔"):
@@ -621,7 +638,7 @@ screen maica_setting():
                 
                  
 
-
+default use_email = True
 screen maica_login():
     modal True
     zorder 215
@@ -635,11 +652,26 @@ screen maica_login():
             spacing 5
 
             hbox:
-                textbutton _("输入 DCC 账号用户名"):
-                    action Show("maica_login_input",message = _("请输入DCC 账号用户名") ,returnto = "_maica_LoginAcc")
-                text _("或")
-                textbutton _("输入 DCC 账号邮箱"):
-                    action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
+                style_prefix "check"
+                if use_email:
+                    textbutton _("改为用户名登录"):
+                        action [ToggleVariable("use_email"), Function(_maica_clear)]
+                        selected False
+
+                else:
+                    textbutton _("改为邮箱登录"):
+                        action [ToggleVariable("use_email"), Function(_maica_clear)]
+                        selected False
+                        
+
+                    
+            hbox:
+                if use_email:
+                    textbutton _("输入 DCC 账号邮箱"):
+                        action Show("maica_login_input",message = _("请输入DCC 账号邮箱"),returnto = "_maica_LoginEmail")
+                else:
+                    textbutton _("输入 DCC 账号用户名"):
+                        action Show("maica_login_input",message = _("请输入DCC 账号用户名") ,returnto = "_maica_LoginAcc")
 
             hbox:
                 textbutton _("输入 DCC 账号密码"):

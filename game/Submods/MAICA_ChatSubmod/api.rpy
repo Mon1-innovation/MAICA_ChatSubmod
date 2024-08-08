@@ -10,7 +10,7 @@ init 5 python in maica:
     maica.logger = store.mas_submod_utils.submod_log
     data = {}
     def change_token(content):
-        if store.maica.maica.wss_session is not None and store.maica.maica.wss_session.keep_running:
+        if store.maica.maica.wss_session is not None and store.maica.maica.is_connected():
             return False, _("MAICA仍在连接中, 请先断开连接")
         store.maica.maica.ciphertext = content.strip()
         renpy.notify(_("请在子模组界面使用已保存的令牌重新连接"))
@@ -62,6 +62,8 @@ init 5 python in maica:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
+            store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
         if store.mas_getAPIKey("Maica_Token") != "":
             store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:

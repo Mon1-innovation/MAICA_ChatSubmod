@@ -33,6 +33,17 @@ class EmoSelector:
         self.pre_pos = 0
         self.fallback_emptyemote = Queue()
     def get_emote(self, idle = False):
+        """
+        获取表情
+        
+        Args:
+            idle (bool, optional): 是否处于空闲状态. 默认为False.
+        
+        Returns:
+            str: 可以直接show的表情代码.
+        
+        """
+
         def idle_pos(pos):
             if pos == 3:
                 return 1
@@ -46,15 +57,33 @@ class EmoSelector:
             return emo
         self.pre_pos = get_pos(self.repeat_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
         if self.emote != "":
-            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), idle_emo())
+            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote if not idle else idle_emo())
         else:
             return "idle"
 
     def analyze(self, message):
+        """
+        分析输入消息中的情绪标签，并返回处理后的消息。
+        
+        Args:
+            message (str): 需要进行情绪分析的字符串消息。
+        
+        Returns:
+            str: 处理后的字符串消息，其中情绪标签已被去除。
+        
+        """
+        def fallback_emo():
+            if self.fallback_emptyemote.is_empty():
+                fallbackemo = EmoSelector.EMPTY_EMOTE_FALLBACK.get(self.pre_mood, [])
+                for i in fallbackemo:
+                    self.fallback_emptyemote.put(i)
+            if not self.fallback_emptyemote.is_empty():
+                return self.fallback_emptyemote.get()
+            return self.pre_mood
+
         import re
         # 正则表达式模式
         pattern = r'\[(.*?)\]'
-
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
         m = 0.25
@@ -64,25 +93,25 @@ class EmoSelector:
             # 如果匹配内容在字典的键中，去除匹配的字符串
             if match == "player":
                 continue
+            if match in [u"感动", u"憧憬", u"脸红"] and self.main_strength > 0.7:
+                message = message.replace('[player]', '[mas_get_player_nickname()]')
             message = message.replace('[{}]'.format(match), '')
             if match == u"很开心":
                 match = u"开心"
             
             if match in self.emote_translate.values():
                 match = self.emote_translate[match]
-            else:
-                if self.fallback_emptyemote.is_empty():
-                    fallbackemo = EmoSelector.EMPTY_EMOTE_FALLBACK.get(self.pre_mood, [])
-                    for i in fallbackemo:
-                        self.fallback_emptyemote.put(i)
-                if not self.fallback_emptyemote.is_empty():
-                    match = self.fallback_emptyemote.get()
             m = 0.7
+
             if match in self.selector:
                 emo = match
+                self.fallback_emptyemote.clear()
             else:
-                emo = self.pre_mood
+                emo = fallback_emo()
                 logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
+        if matches == []:
+            emo = fallback_emo()
+
         self.process_strength(emo, m)
         self.pre_mood = emo
         return message
