@@ -62,6 +62,8 @@ init 5 python in maica:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        if store.mas_submod_utils.isSubmodInstalled("Better Loading")：
+            store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
         if store.mas_getAPIKey("Maica_Token") != "":
             store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:

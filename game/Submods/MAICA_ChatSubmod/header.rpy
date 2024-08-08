@@ -212,6 +212,11 @@ screen maica_setting_pane():
         xfill True
         style_prefix "check"
 
+        if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
+            text _("> 警告: 与 Better Loading 不兼容"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
         text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
             xalign 1.0 yalign 0.0
             xoffset -10
