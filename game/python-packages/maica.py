@@ -198,7 +198,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.modelconfig = {}
         self.reset_stat()
         self.auto_reconnect = False
-        self.mspire_category = ["视觉小说", "恋爱冒险游戏"]
+        self.mspire_category = []
         self.mspire_session = 0
         self._gen_time = 0.0
         self.in_mas = True

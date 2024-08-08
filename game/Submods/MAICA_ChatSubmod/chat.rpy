@@ -596,7 +596,7 @@ init 4 python:
         return (
             spire_ev is not None
             and spire_ev.last_seen is not None
-            and spire_ev.timePassedSinceLastSeen_d(delta)
+            and spire_ev.timePassedSinceLastSeen_dt(delta, datetime.datetime.now())
         )
 
     
@@ -608,15 +608,20 @@ init 5 python:
             eventlabel="maica_mspire",
             prompt="mspire",
             pool=False,
-            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minute=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
-            action=EV_ACT_PUSH,
+            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
             aff_range=(mas_aff.NORMAL, None)
         )
     )
+init 999 python:
+    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()"
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mspire():
+        if try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire"):
+            return MASEventList.queue("maica_mspire")
 
 label maica_mspire:
     call maica_talking(mspire=True)
-    return "no_unlock|derandom"
+    return "no_unlock"
 
 label mspire_mods_preferences:
     $ prefs_exist = len(persistent.maica_setting_dict['mspire_category'])
@@ -666,5 +671,6 @@ label mspire_delete_information:
         for i in _return:
             if _return[i]:
                 persistent.maica_setting_dict['mspire_category'].append(i)
+        store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
     return
            

@@ -137,6 +137,9 @@ init 10 python:
         renpy.notify(_("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def maica_apply_setting(ininit=False):
+        if persistent.maica_setting_dict["mspire_interval"] <= 10:
+            persistent.maica_setting_dict["mspire_interval"] = 10
+            
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
@@ -197,7 +200,13 @@ init 10 python:
         curr = l.index(persistent.maica_setting_dict["log_level"])
         persistent.maica_setting_dict["log_level"] = l[(curr + 1) % len(l)]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-    
+    def try_eval(str):
+        try:
+            return eval(str)
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("Failed to eval: {}".format(e))
+            return None
+
     maica_apply_setting(True)
         
             
@@ -405,6 +414,7 @@ screen maica_setting():
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
             _tooltip = None
+        
     modal True
     zorder 215
     
@@ -452,19 +462,21 @@ screen maica_setting():
                         hbox:
                             text "Event status"
                         hbox:
-                            text "maica_greeting.conditional:[eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
+                            text "maica_greeting.conditional:[try_eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
                         hbox:
-                            text "maica_chr2.conditional: [eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
+                            text "maica_chr2.conditional: [try_eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
                         hbox:
-                            text "maica_chr_gone.conditional:[eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
+                            text "maica_chr_gone.conditional:[try_eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
                         hbox:
-                            text "maica_chr_corrupted2.conditional:[eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
+                            text "maica_chr_corrupted2.conditional:[try_eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
                         hbox:
-                            text "maica_wants_preferences2.conditional: [eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
+                            text "maica_wants_preferences2.conditional: [try_eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
                         hbox:
-                            text "maica_wants_mspire.conditional:[eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
+                            text "maica_wants_mspire.conditional:[try_eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
                         hbox:
-                            text "maica_mspire.conditional:[eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
+                            text "maica_mspire.conditional:[try_eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
+                        hbox:
+                            text "maica_mspire.last_seen:[evhand.event_database.get('maica_mspire',None).last_seen]"
                         hbox:
                             text "=====MaicaAi() Finish====="
 
@@ -568,7 +580,7 @@ screen maica_setting():
                                 Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
                                 Function(store.MASEventList.push, "mspire_mods_preferences")
                                 ]
-                            hovered SetField(_tooltip, "value", _("范围为维基百科的category页面"))
+                            hovered SetField(_tooltip, "value", _("范围为维基百科的category页面\n如果无法找到catrgory将会提示错误输入"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("间隔"):
