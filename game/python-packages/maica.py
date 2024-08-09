@@ -29,8 +29,6 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
-        # 等待可用性验证
-        WAIT_AVAILABILITY = 10001
         # 账户信息已准备好，准备令牌验证
         WAIT_AUTH = 10100
         # 等待令牌验证结果
@@ -81,6 +79,8 @@ class MaicaAi(ChatBotInterface):
         CERTIFI_BROKEN = 13407
         # 证书模块损坏, 但是自动修复成功, 需要重启
         CERTIFI_AUTO_FIX = 13408
+        # 等待可用性验证
+        WAIT_AVAILABILITY = 13409
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -312,7 +312,34 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             message = json.dumps(data, ensure_ascii=False).encode('utf-8')
             print(message)
             self.ciphertext = base64.b64encode(cipher.encrypt(message)).decode('utf-8')
-            
+
+    def _verify_token(self):
+        """
+        验证token是否有效。
+        
+        Returns:
+            bool: 验证结果。
+        
+        """
+        import requests
+        try:
+            logger.debug(self.ciphertext)
+            res = requests.post("https://maicadev.monika.love/api/legality", json={"access_token": self.ciphertext})
+            if res.status_code == 200:
+                res = res.json()
+                if res.get("success", False):
+                    return True
+                else:
+                    logger.warning("Maica::_verify_token not passed: {}".format(res))
+                    return False
+            else:
+                logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
+                return False
+        except Exception as e:
+            import traceback
+            logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
+            return False
+
 
     def init_connect(self):
         import threading
