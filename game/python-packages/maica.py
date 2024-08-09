@@ -323,7 +323,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """
         import requests
         try:
-            logger.debug(self.ciphertext)
             res = requests.post("https://maicadev.monika.love/api/legality", json={"access_token": self.ciphertext})
             if res.status_code == 200:
                 res = res.json()
