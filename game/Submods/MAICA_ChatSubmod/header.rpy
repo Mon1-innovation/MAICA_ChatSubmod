@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.3.5',
+        version='0.3.7',
         settings_pane="maica_setting_pane",
     )
 init -989 python:
@@ -86,6 +86,13 @@ init 10 python:
         store._maica_LoginEmail = ""
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
         store.mas_api_keys.save_keys()
+    
+    def _maica_verify_token():
+        res = store.maica.maica._verify_token()
+        if not res:
+            renpy.show_screen("maica_message", message=_("验证失败, 请检查账号密码"))
+        else:
+            renpy.show_screen("maica_message", message=_("验证成功"))
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def upload_persistent_dict():
@@ -683,6 +690,7 @@ screen maica_login():
                     textbutton _("连接至服务器生成MAICA令牌"):
                         action [
                             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
+                            Function(_maica_verify_token),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
@@ -690,6 +698,7 @@ screen maica_login():
                     textbutton _("生成MAICA令牌"):
                         action [
                             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
+                            Function(_maica_verify_token),
                             Function(_maica_clear), 
                             Hide("maica_login")
                             ]
