@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.3.7',
+        version='0.3.8',
         settings_pane="maica_setting_pane",
     )
 init -989 python:
