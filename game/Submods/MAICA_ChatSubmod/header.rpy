@@ -139,7 +139,7 @@ init 10 python:
         store.maica.maica.reset_chat_session()
         renpy.notify(_("会话已重置, 请重新连接MAICA服务器"))
     def output_chat_history():
-        with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
+        with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
             f.write(store.maica.maica.get_history().get("history", {}))
         renpy.notify(_("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
@@ -164,7 +164,7 @@ init 10 python:
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
         elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
-            with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
+            with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
                 store.maica.maica.MoodStatus.emote_translate = json.load(f)
             
             
@@ -187,14 +187,14 @@ init 10 python:
         persistent.mas_player_additions = []
     
     def export_player_information():
-        with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
+        with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
         renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
 
     def update_model_setting(ininit = False):
         import os, json
         try:
-            with open(os.path.join("game", "Submods", "MAICA_ChatSubmod", "custom_modelconfig.json"), "r") as f:
+            with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "custom_modelconfig.json"), "r") as f:
                 store.maica.maica.modelconfig = json.load(f)
         except Exception as e:
             if not ininit:
