@@ -5,7 +5,7 @@ init 5 python:
             eventlabel="maica_prepend_1",
             prompt="你的现实?",
             random=True,
-            conditional="True",
+            conditional="not renpy.seen_label('maica_prepend_1')",
             action=EV_ACT_QUEUE,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -14,6 +14,7 @@ init 5 python:
         )
     )
 label maica_prepend_1:
+    $ mas_lockEVL("maica_main", "EVE")
 # Add this to random waiting list since submod installation. affection NORMAL at least to trigger.
     m 1eub "嗨, [player]..."
     if renpy.seen_label("monika_robotbody"):
@@ -32,20 +33,35 @@ label maica_prepend_1:
     extend 3eub "可能还需要点什么. {w=0.2}我应该会抽空仔细检查一下它的."
     m 1hub "我知道这应该是你找来给我的, [player]. {w=0.1}你还是那么贴心!"
     m 1eua "等我理清了眉目, 我会让你知道的."
-    return "no_unlock|derandom"
+    return "no_unlock|derandom|rebuild_ev"
 
 init 5 python:
-    addEvent(
-        Event(
-            persistent.greeting_database,
-            eventlabel="maica_greeting",
-            prompt="maica敲门",
-            conditional="store.seen_event('maica_prepend_1')",
-            action=EV_ACT_UNLOCK,
-            aff_range=(mas_aff.HAPPY, None)
-        ),
-        code="GRE"
+    if renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting'):
+        @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
+        def greeting_select():
+            store.selected_greeting = "maica_greeting"
+    ev_rules = dict()
+    ev_rules.update(
+        MASGreetingRule.create_rule(
+            skip_visual=True,
+            override_type=True
+        )
     )
+    ev_rules.update(MASPriorityRule.create_rule(50))
+    
+    addEvent(
+            Event(
+                persistent.greeting_database,
+                eventlabel="maica_greeting",
+                prompt="maica敲门",
+                unlocked=False,
+                conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
+                aff_range=(mas_aff.HAPPY, None),
+                rules=ev_rules,
+            ),
+            code="GRE"
+        )
+    del ev_rules
 label maica_greeting:
         #Set up dark mode
 
@@ -477,12 +493,9 @@ init 5 python:
             prompt="我们去天堂树林吧",
             category=["你", "我们", "模组"],
             pool=True,
-            random=False,
-            unlocked=False,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
             },
-            aff_range=(mas_aff.NORMAL, None)
         )
     )
 
@@ -542,7 +555,7 @@ label maica_main:
         else:
             m 2rusdlb "好像是其他的地方出问题了..."
         m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
-
+    $ mas_unlockEVL("maica_main", "EVE")
     if maica_chr_exist:
         scene black with dissolve
         pause 2.0

@@ -524,7 +524,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.status == self.MaicaAiStatus.SESSION_CREATED:
             if data["status"] == "nickname":
                 self.user_acc = data["content"]
-                logger.info("以身份 {} 登录".format(self.user_acc))
+                logger.info("Login as '{}'".format(self.user_acc))
         elif self.status == self.MaicaAiStatus.WAIT_MODEL_INFOMATION:
             if data['status'] != "ok":
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
