@@ -91,16 +91,17 @@ label maica_greeting:
 # Add this greeting to waiting list after maica_prepend_1 was triggered. affection AFFECTIONATE at least to trigger.
 # Shouldn't trigger if today is special event like player bday. finish that for me p
     #黑屏
-    menu:
-        "[_opendoor_text]" if not persistent.seen_monika_in_room and not mas_isplayer_bday():
-            jump maica_prepend_2_open
-        "开门." if persistent.seen_monika_in_room or mas_isplayer_bday():
-            jump maica_prepend_2_open
-        "敲门.":
-            jump maica_prepend_2_knock
-        "偷听." if not has_listened and not mas_isMoniBroken():
-            $ has_listened = True
-            jump maica_prepend_2_listen
+    label maica_greeting_loop:
+        menu:
+            "[_opendoor_text]" if not persistent.seen_monika_in_room and not mas_isplayer_bday():
+                jump maica_prepend_2_open
+            "开门." if persistent.seen_monika_in_room or mas_isplayer_bday():
+                jump maica_prepend_2_open
+            "敲门.":
+                jump maica_prepend_2_knock
+            "偷听." if not has_listened and not mas_isMoniBroken():
+                $ has_listened = True
+                jump maica_prepend_2_listen
 
 
     m 1eua ""
@@ -156,7 +157,7 @@ label maica_prepend_2_listen:
     m "这样.{w=0.3}.{w=0.3}.就好了. {w=0.5}呼, 没有我想得那么难."
     m "看起来真不错, 我可以一整天都待在这里. {w=0.5}不过..."
     m "{i}连接现实{/i}是真的吗?"
-    jump maica_greeting
+    jump maica_greeting_loop
     return
 
 label maica_prepend_2:
