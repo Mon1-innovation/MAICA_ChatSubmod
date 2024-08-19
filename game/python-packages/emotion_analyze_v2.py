@@ -99,7 +99,7 @@ class EmoSelector:
             if match == u"很开心":
                 match = u"开心"
             
-            if match in self.emote_translate.values():
+            if match.lower() in self.emote_translate.values():
                 match = self.emote_translate[match]
             m = 0.7
 
