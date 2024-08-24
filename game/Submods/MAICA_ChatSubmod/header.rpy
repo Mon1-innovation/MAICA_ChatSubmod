@@ -28,6 +28,7 @@ default persistent.maica_advanced_setting = {}
 default persistent.maica_advanced_setting_status = {}
 default persistent.maica_player_additions_status = {}
 default persistent.mas_player_additions = []
+default persistent._maica_reseted = False
 
 define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
@@ -49,6 +50,8 @@ init 10 python:
         "mspire_session":0,
         "log_level":logging.DEBUG,
     }
+    import copy
+    mdef_setting = copy.deepcopy(maica_default_dict)
     maica_advanced_setting = {
         "top_p":0.7,
         "temperature":0.4,
@@ -87,6 +90,9 @@ init 10 python:
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
         store.mas_api_keys.save_keys()
     
+    def maica_reset_setting():
+        persistent.maica_setting_dict = mdef_setting.copy()
+
     def _maica_verify_token():
         res = store.maica.maica._verify_token()
         if not res:
@@ -214,6 +220,9 @@ init 10 python:
             store.mas_submod_utils.submod_log.error("Failed to eval: {}".format(e))
             return None
 
+    if not persistent._maica_reseted:
+        maica_reset_setting()
+        persistent._maica_reseted = True
     maica_apply_setting(True)
         
             
@@ -642,6 +651,12 @@ screen maica_setting():
                                 Function(store.maica_apply_setting),
                                 Hide("maica_setting")
                                 ]
+                        textbutton _("重置设置"):
+                            action [
+                                Function(store.maica_reset_setting),
+                                Function(renpy.notify, _("设置已重置")),
+                                Hide("maica_setting")
+                            ]
                 
                  
 
