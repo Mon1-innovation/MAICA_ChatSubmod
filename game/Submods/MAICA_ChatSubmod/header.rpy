@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.3.8',
+        version='0.4.0',
         settings_pane="maica_setting_pane",
     )
 init -989 python:
@@ -36,13 +36,13 @@ init 10 python:
     import logging
     maica_default_dict = {
         "auto_reconnect":False,
-        "maica_model":None,
+        "maica_model":store.maica.maica.MaicaAiModel.maica_main,
         "use_custom_model_config":False,
         "sf_extraction":True,
         "chat_session":1,
         "console":True,
         "console_font":maica_confont,
-        "target_lang":None,
+        "target_lang":store.maica.maica.MaicaAiLang.zh_cn if config.language == "chinese" else store.maica.maica.MaicaAiLang.en,
         "_event_pushed":False,
         "mspire_enable":True,
         "mspire_category":[],
@@ -73,13 +73,6 @@ init 10 python:
     persistent.maica_advanced_setting = maica_advanced_setting.copy()
     persistent.maica_advanced_setting_status = maica_advanced_setting_status.copy()
 
-    if persistent.maica_setting_dict["maica_model"] is None:
-        persistent.maica_setting_dict["maica_model"] = store.maica.maica.MaicaAiModel.maica_main
-    if persistent.maica_setting_dict["target_lang"] is None:
-        if config.language == "chinese":
-            persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.zh_cn
-        else:
-            persistent.maica_setting_dict["target_lang"] = store.maica.maica.MaicaAiLang.en
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
     _maica_LoginEmail = ""
