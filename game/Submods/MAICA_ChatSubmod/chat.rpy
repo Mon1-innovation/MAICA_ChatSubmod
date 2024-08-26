@@ -40,16 +40,16 @@ init 5 python:
         @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
         def greeting_select():
             store.selected_greeting = "maica_greeting"
-    ev_rules = dict()
-    ev_rules.update(
-        MASGreetingRule.create_rule(
-            skip_visual=True,
-            override_type=True
+        ev_rules = dict()
+        ev_rules.update(
+            MASGreetingRule.create_rule(
+                skip_visual=True,
+                override_type=True
+            )
         )
-    )
-    ev_rules.update(MASPriorityRule.create_rule(50))
-    
-    addEvent(
+        ev_rules.update(MASPriorityRule.create_rule(50))
+        
+        addEvent(
             Event(
                 persistent.greeting_database,
                 eventlabel="maica_greeting",
@@ -61,7 +61,7 @@ init 5 python:
             ),
             code="GRE"
         )
-    del ev_rules
+        del ev_rules
 label maica_greeting:
         #Set up dark mode
 
