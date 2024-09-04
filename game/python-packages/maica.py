@@ -58,7 +58,10 @@ class MaicaAi(ChatBotInterface):
 
         # 请求心跳包
         REQUEST_PING = 11100
-
+        # 发送设置项
+        SEND_SETTING = 11200
+        # 等待设置结果
+        WAIT_SETTING_RESPONSE = 11201
         #############################Submod 错误状态码
         # 疑似网络问题
         # 令牌验证失败
@@ -433,8 +436,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message}
-                        self._check_modelconfig()
-                        dict.update(self.modelconfig)
+                        #self._check_modelconfig()
+                        #dict.update(self.modelconfig)
                         logger.debug(dict)
                         message = json.dumps(dict, ensure_ascii=False) 
                         #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
@@ -459,8 +462,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         logger.info(self.status)
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
+                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
+                        self._check_modelconfig()
+                        dict.update(self.modelconfig)
                         self.wss_session.send(
-                            json.dumps({"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang})
+                            json.dumps(dict)
                         )
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
@@ -470,7 +476,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )
                         self.status = self.MaicaAiStatus.SESSION_RESETED
                         self.wss_session.close()
-                        break
+                        break 
+                    # 发送设置, 切记仅在闲置时进行 
+                    elif self.status == self.MaicaAiStatus.SEND_SETTINGS:
+                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
+                        self._check_modelconfig()
+                        dict.update(self.modelconfig)
+                        self.wss_session.send(
+                            json.dumps(dict)
+                        )
+                        self.status = self.MaicaAiStatus.WAIT_SETTING_RESPONSE
+
             except WebSocketConnectionClosedException as e:
                 import traceback
                 logger.warning("exception is ocurrred (maybe reconnect to fast, will close wss_session): \n{}".format(traceback.format_exc()))
@@ -484,6 +500,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_thread = threading.Thread(target=send_message)
         self.wss_thread.start()
     _pos = 0
+    def send_settings(self):
+        self.status = self.MaicaAiStatus.SEND_SETTINGS
     def _on_message(self, wsapp, message):
         try:
             self.__on_message(wsapp, message)
@@ -525,10 +543,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if data["status"] == "nickname":
                 self.user_acc = data["content"]
                 logger.info("Login as '{}'".format(self.user_acc))
-        elif self.status == self.MaicaAiStatus.WAIT_MODEL_INFOMATION:
-            if data['status'] != "ok":
+        elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
+            if not data['status'] in ("ok", "thread_ready"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
-            else:
+            else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             logger.debug("MESSAGE_WAITING_RESPONSE:: status in process: {}".format(data["status"] in ("continue", "streaming_done")))
