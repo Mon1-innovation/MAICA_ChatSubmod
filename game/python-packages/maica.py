@@ -501,7 +501,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_thread.start()
     _pos = 0
     def send_settings(self):
-        self.status = self.MaicaAiStatus.SEND_SETTINGS
+        if self.is_ready_to_input():
+            self.status = self.MaicaAiStatus.SEND_SETTINGS
+            return True
+        else:
+            return False
     def _on_message(self, wsapp, message):
         try:
             self.__on_message(wsapp, message)

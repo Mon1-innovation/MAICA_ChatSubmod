@@ -165,6 +165,9 @@ init 10 python:
         elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
             with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
                 store.maica.maica.MoodStatus.emote_translate = json.load(f)
+        
+        if not ininit:
+            renpy.notify(_("正在上传设置") if store.maica.maica.send_setting() else _("不能上传设置, 请等待MAICA准备好聊天\n请等待状态码改变后手动上传设置"))
             
             
     
@@ -253,16 +256,20 @@ screen maica_setting_pane():
 
             
         else:
-            #textbutton _("上传存档信息"):
-            #    action Function(upload_persistent_dict)
+            if maica.maica.is_ready_to_input()
+                textbutton _("> 手动上传设置"):
+                    action Function(maica_apply_setting)
+            else:
+                textbutton _("> 手动上传设置 [[不能上传, 因为MAICA未准备好/忙碌中]")
+                    
 
-            textbutton _("重置当前对话"):
+            textbutton _("> 重置当前对话"):
                 action Function(reset_session)
 
-            textbutton _("导出当前对话"):
+            textbutton _("> 导出当前对话"):
                 action Function(output_chat_history)
 
-            textbutton _("退出当前DCC账号"):
+            textbutton _("> 退出当前DCC账号"):
                 action Function(store.maica.maica.close_wss_session)
     
         textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
@@ -647,6 +654,7 @@ screen maica_setting():
                         textbutton _("重置设置"):
                             action [
                                 Function(store.maica_reset_setting),
+                                Function(store.maica_apply_setting, ininit = True),
                                 Function(renpy.notify, _("设置已重置")),
                                 Hide("maica_setting")
                             ]
