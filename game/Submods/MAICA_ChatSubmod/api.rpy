@@ -5,7 +5,7 @@ init -1500 python:
 init 5 python in maica:
     import store
     import maica, os, json
-    maica.basedir = os.path.join(renpy.config.basedir, "game\Submods\MAICA_ChatSubmod")
+    maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     
     maica.logger = store.mas_submod_utils.submod_log
     data = {}
@@ -30,21 +30,21 @@ init 5 python in maica:
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
     def init_selector():
-        with open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_selector.json"), "r") as emost:
+        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_selector.json")), "r") as emost:
             sentiment = json.loads(emost.read())
         return sentiment
     def init_storage():
-        with open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_power_storage.json"), "r") as emops:
+        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_power_storage.json")), "r") as emops:
             storage = json.loads(emops.read())
         return storage
 
     def init_sentiment():
-        with open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.json"), "r") as emost:
+        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_sentiment.json")), "r") as emost:
             sentiment = json.loads(emost.read())
         return sentiment
     
     def init_eoc():
-        with(open(os.path.join(maica_basedir, "game\Submods\MAICA_ChatSubmod", "emotion_eoc.json"), "r")) as eocs:
+        with(open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_eoc.json")), "r")) as eocs:
             eoc = json.loads(eocs.read())
         return eoc
 
@@ -79,12 +79,12 @@ init 5 python in maica:
                         res2 = requests.get("https://mirror.ghproxy.com/" + "https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False)
 
                     if res.status_code == 200:
-                        with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","core.py"), "wb") as file:
+                        with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
                             store.maica.maica.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
                     if res2.status_code == 200:
-                        with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","__init__.py"), "wb") as file:
+                        with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
                             file.write(res2.content)
                             store.maica.maica.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
@@ -97,7 +97,7 @@ init 5 python in maica:
             response = requests.get(url, verify=False)
             if response.status_code == 200:
                 # 将文件保存到本地
-                with open(os.path.join(renpy.config.basedir, "game\python-packages\certifi","cacert.pem"), "wb") as file:
+                with open(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem"), "wb") as file:
                     file.write(response.content)
                 store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
             else:
@@ -116,7 +116,7 @@ init -700 python:
     maica_can_update_cacert = False
     try:
         import os
-        if not os.path.exists(os.path.join(renpy.config.basedir, "game\python-packages\certifi\cacert.pem")):
+        if not os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem"))):
             res = mas_can_import.certifi._update_cert(force=True)
             if res is None or res < 0:
                 raise Exception("fuck")
@@ -158,8 +158,8 @@ init -700 python:
             return False
         return calculated_sha256 != expected_sha256
     
-    maica_chr_exist = os.path.exists(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce"))
+    maica_chr_exist = os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")))
     if maica_chr_exist:
-        maica_chr_changed = check_sha256(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce"), '35b4a17edbb003014fa93168e0c93df3149e82a4d46f16a0eec295a2d9b02d59')
+        maica_chr_changed = check_sha256(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")), '35b4a17edbb003014fa93168e0c93df3149e82a4d46f16a0eec295a2d9b02d59')
     else:
         maica_chr_changed = None

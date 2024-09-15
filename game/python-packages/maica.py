@@ -478,7 +478,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.close()
                         break 
                     # 发送设置, 切记仅在闲置时进行 
-                    elif self.status == self.MaicaAiStatus.SEND_SETTINGS:
+                    elif self.status == self.MaicaAiStatus.SEND_SETTING:
                         dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
@@ -502,7 +502,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     _pos = 0
     def send_settings(self):
         if self.is_ready_to_input():
-            self.status = self.MaicaAiStatus.SEND_SETTINGS
+            self.status = self.MaicaAiStatus.SEND_SETTING
             return True
         else:
             return False
@@ -538,15 +538,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
+        if data["status"] == "nickname":
+            self.user_acc = data["content"]
+            logger.info("Login as '{}'".format(self.user_acc))
 
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
-            if data['status'] == "session_created":
-                self.status = self.MaicaAiStatus.SESSION_CREATED
-        if self.status == self.MaicaAiStatus.SESSION_CREATED:
-            if data["status"] == "nickname":
-                self.user_acc = data["content"]
-                logger.info("Login as '{}'".format(self.user_acc))
+            if data['status'] == "thread_ready":
+                self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT            
         elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
             if not data['status'] in ("ok", "thread_ready"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
@@ -745,7 +744,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         Raises:
             无
         """
-
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
             self.__accessable = False
             return
