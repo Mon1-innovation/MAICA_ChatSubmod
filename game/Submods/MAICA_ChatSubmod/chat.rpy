@@ -179,7 +179,7 @@ label maica_prepend_2:
     m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
     m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
     menu:
-        "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
+        "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{nw}"
         "好的.":
             label init_maica:
                 if persistent.maica_setting_dict['console']:

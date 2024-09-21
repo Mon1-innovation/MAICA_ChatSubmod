@@ -430,6 +430,7 @@ screen maica_setting():
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
             _tooltip = None
+        store.len = len
         
     modal True
     zorder 215
@@ -477,6 +478,8 @@ screen maica_setting():
                             text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
                         hbox:
                             textbutton "输出Event信息到日志"
+                        #hbox:
+                        #    text "len(mas_rev_unseen): [mas_rev_unseen]"
 
                         #hbox:
                         #    text "Event status"
@@ -705,22 +708,13 @@ screen maica_login():
             hbox:
                 text ""
             hbox:
-                if renpy.version_tuple[0] < 8:
-                    textbutton _("连接至服务器生成MAICA令牌"):
-                        action [
-                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
-                            Function(_maica_verify_token),
-                            Function(_maica_clear), 
-                            Hide("maica_login")
-                            ]
-                else:
-                    textbutton _("生成MAICA令牌"):
-                        action [
-                            Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
-                            Function(_maica_verify_token),
-                            Function(_maica_clear), 
-                            Hide("maica_login")
-                            ]
+                textbutton _("连接至服务器生成MAICA令牌"):
+                    action [
+                        Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
+                        Function(_maica_verify_token),
+                        Function(_maica_clear), 
+                        Hide("maica_login")
+                        ]
                 textbutton _("取消"):
                     action [Function(_maica_clear), Hide("maica_login")]
 

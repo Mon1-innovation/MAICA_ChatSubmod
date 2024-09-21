@@ -126,6 +126,8 @@ class MaicaAi(ChatBotInterface):
             WRONE_INPUT:u"错误的输入, 请检查输入内容",
             CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
             CERTIFI_AUTO_FIX:u"证书模块损坏, 但是自动修复成功, 需要重启MAS",
+            SEND_SETTING:u"上传设置中",
+
         }
         @classmethod
         def get_description(cls, code):
@@ -261,7 +263,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     processed_list.append(line)
             return processed_list
         for i in process_lines(l, max_len):
-            self.content_func(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol).decode())
+            if PY2:
+                self.content_func(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol).decode())
+            elif PY3:
+                self.content_func(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol))
+
     def update_stat(self, new):
         self.stat.update(new)
     def get_message(self):
@@ -270,51 +276,36 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if token != "":
             self.ciphertext = token
             return
-        if PY2:
-            if not self.__accessable and token == "":
-                return logger.error("Maica server not serving.")
-            import requests
+        if not self.__accessable and token == "":
+            return logger.error("Maica server not serving.")
+        import requests
+        data = {
+            "username":account,
+            "password":pwd
+        }
+        if email:
             data = {
-                "username":account,
-                "password":pwd
-            }
-            if email:
-                data = {
-                "email":email,
-                "password":pwd
-            }
-            try:
-                response = requests.post("https://maicadev.monika.love/api/register", json=data)
-            except Exception as e:
-                import traceback
-                self.status = self.MaicaAiStatus.CONNECT_PROBLEM
-                logger.error("Maica::_gen_token requests.post failed because can't connect to server: {}".format(e))
-                return
-            if response.status_code == 200:
-                response_data = response.json()
-                if response_data.get("success"):
-                    self.ciphertext = response_data.get("token")
-                else:
-                    self.status = self.MaicaAiStatus.CONNECT_PROBLEM,
-                    logger.error("Maica::_gen_token response process failed because server response failed: {}".format(response_data))
-            else:
-                self.status = self.MaicaAiStatus.CONNECT_PROBLEM
-                logger.error("Maica::_gen_token response process failed because server return {}".format(response.status_code))
+            "email":email,
+            "password":pwd
+        }
+        try:
+            response = requests.post("https://maicadev.monika.love/api/register", json=data)
+        except Exception as e:
+            import traceback
+            self.status = self.MaicaAiStatus.CONNECT_PROBLEM
+            logger.error("Maica::_gen_token requests.post failed because can't connect to server: {}".format(e))
             return
-        if PY3:
-            import json, base64
-            from Crypto.Cipher import PKCS1_OAEP
-            from Crypto.PublicKey import RSA
-            self.public_key = RSA.import_key(self.public_key_pem)
-            cipher = PKCS1_OAEP.new(self.public_key)
-            # 加密
-            data = {
-                "username":account,
-                "password":pwd
-            }
-            message = json.dumps(data, ensure_ascii=False).encode('utf-8')
-            print(message)
-            self.ciphertext = base64.b64encode(cipher.encrypt(message)).decode('utf-8')
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data.get("success"):
+                self.ciphertext = response_data.get("token")
+            else:
+                self.status = self.MaicaAiStatus.CONNECT_PROBLEM,
+                logger.error("Maica::_gen_token response process failed because server response failed: {}".format(response_data))
+        else:
+            self.status = self.MaicaAiStatus.CONNECT_PROBLEM
+            logger.error("Maica::_gen_token response process failed because server return {}".format(response.status_code))
+        return
 
     def _verify_token(self):
         """
@@ -459,7 +450,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     elif self.status == self.MaicaAiStatus.WAIT_AUTH:
                         self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
                         self.wss_session.send(self.ciphertext)
-                        logger.info(self.status)
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                         dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
@@ -523,7 +513,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
-        logger.debug("data.status in process: {}".format(data["status"] in ("delete_hint", "delete", "session_created", "nickname", "ok", "continue", "streaming_done")))
         # 到达上限状态接收
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
