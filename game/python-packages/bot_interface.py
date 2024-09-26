@@ -141,7 +141,7 @@ def is_precisely_a_talk(str):
     allset, wordset, puncset, critset, excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
-    pattern_excrit = r'[~!！?？]'
+    pattern_excrit = r'[~!！]'
     str_split = re.split(pattern_common_punc, str)
     relpos = 0
     for chop in str_split:
@@ -157,7 +157,7 @@ def is_precisely_a_talk(str):
         relpos += 1
     if len(critset) <= 2 and len(str) <= 20:
         # Likely too short to break
-        if not re.search(pattern_excrit, str):
+        if not excritset:
             return 0
         else:
             return get_pos(excritset[-1][0])
@@ -183,6 +183,43 @@ def is_precisely_a_talk(str):
     else:
         # Break
         return 60
+def add_pauses(str):
+    allset, wordset, puncset, critset, excritset = []
+    pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
+    pattern_crit = r'[.。!！?？~]'
+    pattern_excrit = r'[~!！]'
+    str_split = re.split(pattern_common_punc, str)
+    relpos = 0
+    for chop in str_split:
+        if re.match(pattern_common_punc, chop):
+            puncset.append([relpos, chop])
+            if re.search(pattern_crit, chop):
+                critset.append([relpos, chop])
+                if re.search(pattern_excrit, chop):
+                    excritset.append([relpos, chop])
+        else:
+            wordset.append([relpos, chop])
+        allset.append([relpos, chop])
+        relpos += 1
+    for i in puncset:
+        num = i[0]; content = i[1]
+        if re.match(r'\s*\.\.\.', content):
+            allset[num] += '{w=0.5}'
+        else:
+            if re.match(r'\s*[；;:︰]', content):
+                if len(str(allset[num-1])) <= 6 or (len(allset) >= num+2 and len(str(allset[num+1])) <= 6):
+                    allset[num] += '{w=0.5}'
+                else:
+                    allset[num] += '{w=0.3}'
+            elif re.match(r'\s*[.。?？]', content):
+                if len(str(allset[num-1])) <= 12 or (len(allset) >= num+2 and len(str(allset[num+1])) <= 8):
+                    allset[num] += '{w=0.2}'
+                else:
+                    pass
+    allstr = str(allset)
+    return allstr
+
+
 
 
 
