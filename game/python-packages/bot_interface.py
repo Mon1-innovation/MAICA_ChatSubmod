@@ -132,6 +132,58 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
+def is_precisely_a_talk(str):
+    def get_pos(relpos):
+        pos = 0
+        for chopls in allset[:relpos]:
+            pos += len(str(chopls[1]))
+        return pos
+    allset, wordset, puncset, critset, excritset = []
+    pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
+    pattern_crit = r'[.。!！?？~]'
+    pattern_excrit = r'[~!！?？]'
+    str_split = re.split(pattern_common_punc, str)
+    relpos = 0
+    for chop in str_split:
+        if re.match(pattern_common_punc, chop):
+            puncset.append([relpos, chop])
+            if re.search(pattern_crit, chop):
+                critset.append([relpos, chop])
+                if re.search(pattern_excrit, chop):
+                    excritset.append([relpos, chop])
+        else:
+            wordset.append([relpos, chop])
+        allset.append([relpos, chop])
+        relpos += 1
+    if len(critset) <= 2 and len(str) <= 20:
+        # Likely too short to break
+        if not re.search(pattern_excrit, str):
+            return 0
+        else:
+            return get_pos(excritset[-1][0])
+    if len(str) <= 40:
+        if re.search(r'\.\.', critset[-1]):
+            return 0
+        if excritset:
+            return get_pos(excritset[-1][0])
+        if critset:
+            return get_pos(critset[-1][0])
+        else:
+            return 0
+    elif len(str) <= 60:
+        # Something may went wrong, just break
+        if excritset:
+            return get_pos(excritset[-1][0])
+        if critset:
+            return get_pos(critset[-1][0])
+        if puncset:
+            return get_pos(puncset[-1][0])
+        else:
+            return 0
+    else:
+        # Break
+        return 60
+
 
 
 
