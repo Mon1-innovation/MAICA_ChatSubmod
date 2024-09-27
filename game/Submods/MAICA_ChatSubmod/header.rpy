@@ -49,6 +49,8 @@ init 10 python:
         "mspire_interval":60,
         "mspire_session":0,
         "log_level":logging.DEBUG,
+        "provider_id":1,
+
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -159,6 +161,7 @@ init 10 python:
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
+        store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
@@ -215,7 +218,40 @@ init 10 python:
         except Exception as e:
             store.mas_submod_utils.submod_log.error("Failed to eval: {}".format(e))
             return None
+    def log_eventstat():
+        try:
+            #hbox:
+            #    text "Event status"
+            #hbox:
+            #    text "maica_greeting.conditional:[try_eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
+            #hbox:
+            #    text "maica_chr2.conditional: [try_eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
+            #hbox:
+            #    text "maica_chr_gone.conditional:[try_eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
+            #hbox:
+            #    text "maica_chr_corrupted2.conditional:[try_eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
+            #hbox:
+            #    text "maica_wants_preferences2.conditional: [try_eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
+            #hbox:
+            #    text "maica_wants_mspire.conditional:[try_eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
+            #hbox:
+            #    text "maica_mspire.conditional:[try_eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
+            #hbox:
+            #    text "maica_mspire.last_seen:[evhand.event_database.get('maica_mspire',None).last_seen]"
+            #hbox:
+            #    text "=====MaicaAi() Finish====="
 
+            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_greeting').conditional), renpy.seen_label('maica_greeting')))
+            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr2').conditional), renpy.seen_label('maica_chr2')))
+            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr_gone').conditional), renpy.seen_label('maica_chr_gone')))
+            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr_corrupted2').conditional), renpy.seen_label('maica_chr_corrupted2')))
+            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_wants_preferences2').conditional), renpy.seen_label('maica_wants_preferences2')))
+            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_wants_mspire').conditional), renpy.seen_label('maica_wants_mspire')))
+            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_mspire').conditional), renpy.seen_label('maica_mspire')))
+            store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
+
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("Failed to get event stat: {}".format(e))
     if not persistent._maica_reseted:
         maica_reset_setting()
         persistent._maica_reseted = True
@@ -274,6 +310,69 @@ screen maica_setting_pane():
     
         textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
             action Show("maica_setting")
+
+screen maica_node_setting():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+
+        servers = store.maica.maica.MaicaProviderManager.servers
+
+        def set_provider(id):
+            persistent.maica_setting_dict["provider_id"] = id
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+
+                    for item in servers:
+                        hbox:
+                            text "[item.get('id')]|[item.get('name', 'Name not provided')]"
+                            if item.get("isOffifial", False):
+                                textbutton _(" √ MAICA 官方服务器")
+
+                        hbox:
+                            text _("设备: [item.get('deviceName', 'Device not provided')]")
+                        hbox:
+                            text _("当前模型: [item.get('servingModel', 'No model provided')]")
+
+
+                        hbox:
+                            style_prefix "confirm"
+                            textbutton _("使用该节点"):
+                                action [
+                                    Function(set_provider, item.get('id')),
+                                    Hide("maica_node_setting")
+                                ]
+                    
+                    hbox:
+                        textbutton _("关闭"):
+                            action Hide("maica_node_setting")
+
 
 screen maica_advance_setting():
     python:
@@ -477,31 +576,8 @@ screen maica_setting():
                         hbox:
                             text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
                         hbox:
-                            textbutton "输出Event信息到日志"
-                        #hbox:
-                        #    text "len(mas_rev_unseen): [mas_rev_unseen]"
-
-                        #hbox:
-                        #    text "Event status"
-                        #hbox:
-                        #    text "maica_greeting.conditional:[try_eval(mas_getEV('maica_greeting').conditional)]|seen:[renpy.seen_label('maica_greeting')]"
-                        #hbox:
-                        #    text "maica_chr2.conditional: [try_eval(mas_getEV('maica_chr2').conditional)]|seen:[renpy.seen_label('maica_chr2')]"
-                        #hbox:
-                        #    text "maica_chr_gone.conditional:[try_eval(mas_getEV('maica_chr_gone').conditional)]|seen:[renpy.seen_label('maica_chr_gone')]"
-                        #hbox:
-                        #    text "maica_chr_corrupted2.conditional:[try_eval(mas_getEV('maica_chr_corrupted2').conditional)]|seen:[renpy.seen_label('maica_chr_corrupted2')]"
-                        #hbox:
-                        #    text "maica_wants_preferences2.conditional: [try_eval(mas_getEV('maica_wants_preferences2').conditional)]|seen:[renpy.seen_label('maica_wants_preferences2')]"
-                        #hbox:
-                        #    text "maica_wants_mspire.conditional:[try_eval(mas_getEV('maica_wants_mspire').conditional)]|seen:[renpy.seen_label('maica_wants_mspire')]"
-                        #hbox:
-                        #    text "maica_mspire.conditional:[try_eval(mas_getEV('maica_mspire').conditional)]|seen:[renpy.seen_label('maica_mspire')]"
-                        #hbox:
-                        #    text "maica_mspire.last_seen:[evhand.event_database.get('maica_mspire',None).last_seen]"
-                        #hbox:
-                        #    text "=====MaicaAi() Finish====="
-
+                            textbutton "输出Event信息到日志":
+                                action Function(log_eventstat)
                     hbox:
                         text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
 
@@ -515,7 +591,11 @@ screen maica_setting():
                         textbutton _("重置统计数据"):
                             action Function(store.maica.maica.reset_stat)
 
-
+                    hbox:
+                        textbutton _("服务提供节点: [store.maica.maica.MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id'))]"):
+                            action Show("maica_node_setting")
+                            hovered SetField(_tooltip, "value", _("设置服务器节点"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox: 
                         textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
                             action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)

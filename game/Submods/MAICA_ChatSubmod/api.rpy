@@ -21,6 +21,7 @@ init 5 python in maica:
         on_change=change_token,
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+
     #maica.update_screen_func = renpy.pause
     if store.persistent.maica_stat is None:
         store.persistent.maica_stat = maica.stat.copy()

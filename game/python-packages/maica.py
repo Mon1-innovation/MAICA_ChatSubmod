@@ -22,7 +22,6 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiModel:
         maica_main = "maica_main"
         maica_core = "maica_core"
-    
     class MaicaAiLang:
         zh_cn = "zh"
         en = "en"
@@ -84,6 +83,8 @@ class MaicaAi(ChatBotInterface):
         CERTIFI_AUTO_FIX = 13408
         # 等待可用性验证
         WAIT_AVAILABILITY = 13409
+        # 获取节点失败
+        FAILED_GET_NODE = 13410
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -127,7 +128,7 @@ class MaicaAi(ChatBotInterface):
             CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
             CERTIFI_AUTO_FIX:u"证书模块损坏, 但是自动修复成功, 需要重启MAS",
             SEND_SETTING:u"上传设置中",
-
+            FAILED_GET_NODE:u"获取服务节点失败",
         }
         @classmethod
         def get_description(cls, code):
@@ -141,8 +142,29 @@ class MaicaAi(ChatBotInterface):
         #    cls._descriptions[code] = description
         #    setattr(cls, "{}".format(name), code)
 
-    
-    url = "wss://maicadev.monika.love/websocket"
+    class MaicaProviderManager:
+        isMaicaNameServer = True
+        servers = []
+        provider_list = "https://maicadev.monika.love/api/servers"
+        default_url = "wss://maicadev.monika.love/websocket"
+        @classmethod
+        def get_provider(cls):
+            import requests
+            res = requests.post(cls.provider_list, json={}).json()
+            if res["success"]:
+                cls.isMaicaNameServer = res["servers"]
+                cls.servers = res["servers"]["servers"]
+        @classmethod
+        def get_server_by_id(cls, id):
+            for server in cls.servers:
+                if server["id"] == id:
+                    return server
+        @classmethod
+        def get_wssurl_by_id(cls, id):
+            if not id:
+                return cls.default_url
+            return cls.get_server_by_id(id)["wssurl"]
+            
     public_key_pem = """\
 -----BEGIN RSA PUBLIC KEY-----
 MIIBCgKCAQEA2IHJQAPwWuynuivzvu/97/EbN+ttYoNmJyvu9RC/M9CHXCi1Emgc
@@ -207,6 +229,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mspire_session = 0
         self._gen_time = 0.0
         self.in_mas = True
+        self.provider_id = None
 
 
     def reset_stat(self):
@@ -346,7 +369,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.warning("Maica::_init_connect try to create multi connection")
         self.status = self.MaicaAiStatus.NOT_READY
         import websocket
-        self.wss_session = websocket.WebSocketApp(self.url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
+        url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
+        self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
                                                   , on_close=self._on_close)
         self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
@@ -762,6 +786,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
             logger.error("Maica is not serving: {}".format(d["accessibility"]))
+        
+        try:
+            self.MaicaProviderManager.get_provider()
+        except Exception as e:
+            logger.error("Maica get Service Provider Error: {}".format(e))
             
 
         
