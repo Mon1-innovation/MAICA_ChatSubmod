@@ -294,7 +294,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def update_stat(self, new):
         self.stat.update(new)
     def get_message(self):
-        return self.message_list.get()
+        return bot_interface.add_pauses(self.message_list.get())
     def _gen_token(self, account, pwd, token, email = None):
         if token != "":
             self.ciphertext = token
@@ -565,14 +565,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
-            logger.debug("MESSAGE_WAITING_RESPONSE:: status in process: {}".format(data["status"] in ("continue", "streaming_done")))
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self._received = self._received + data['content']
                 if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
                     isnum = 0
                 else:
-                    isnum = is_a_talk(self._received[self._pos:])
+                    isnum = is_precisely_a_talk(self._received[self._pos:])
                 logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
@@ -591,7 +590,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
             if data['status'] == "streaming_done":
-                if "not is_a_talk(self._received[self._pos:])" and len(self._received)- 1 - self._pos > 2:
+                if len(self._received)- 1 - self._pos > 2:
                     raw_message = self._received[self._pos:]
                     res = self.MoodStatus.analyze(raw_message)
                     logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
