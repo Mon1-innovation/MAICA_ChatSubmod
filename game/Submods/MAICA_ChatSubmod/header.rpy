@@ -64,7 +64,8 @@ init 10 python:
         "mf_aggressive":False,
         "sfe_aggressive":False,
         "tnd_aggressive":1,
-        "esc_aggressive":True
+        "esc_aggressive":True,
+        "nsfw_acceptive":False
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -370,6 +371,9 @@ screen maica_node_setting():
                                 ]
                     
                     hbox:
+                        textbutton _("更新节点列表"):
+                            action Function(store.maica.maica.MaicaProviderManager.get_provider)
+
                         textbutton _("关闭"):
                             action Hide("maica_node_setting")
 
@@ -510,6 +514,12 @@ screen maica_advance_setting():
                                 ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
                             hovered SetField(_tooltip, "value", _("当esc_aggressive为true时会调用agent模型对MFocus联网搜集的信息整理一次.\n 启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                        textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
+                            action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
+                                ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
+                            hovered SetField(_tooltip, "value", _("当nsfw_acceptive为true时会改变system指引, 使模型对NSFW场景更为宽容.\n 启用此功能可能提高特定场合表现, 但也可能会造成模型核心能力下降和注意力混乱.\n请注意, 目前为止MAICA尚未使用任何NSFW数据集进行训练, 因此nsfw_acceptive的效果十分薄弱.\n 此后或许会有针对性的改善."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
                     
                     hbox:
                         style_prefix "confirm"

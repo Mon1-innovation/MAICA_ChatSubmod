@@ -150,7 +150,12 @@ class MaicaAi(ChatBotInterface):
         @classmethod
         def get_provider(cls):
             import requests
-            res = requests.post(cls.provider_list, json={}).json()
+            res = requests.post(cls.provider_list, json={})
+            
+            if res.status_code != 200:
+                logger.error("Cannot get providers because server return non 200: {}".format(res.content))
+                raise AiException("Cannot get providers because server error")
+            res = res.json()
             if res["success"]:
                 cls.isMaicaNameServer = res["servers"]
                 cls.servers = res["servers"]["servers"]
