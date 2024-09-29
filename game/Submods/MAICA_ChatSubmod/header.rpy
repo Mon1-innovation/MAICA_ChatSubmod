@@ -75,6 +75,7 @@ init 10 python:
     persistent.maica_setting_dict = maica_default_dict.copy()
     persistent.maica_advanced_setting = maica_advanced_setting.copy()
     persistent.maica_advanced_setting_status = maica_advanced_setting_status.copy()
+    MaicaProviderManager = store.maica.maica.MaicaProviderManager
 
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
@@ -320,9 +321,6 @@ screen maica_node_setting():
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
             _tooltip = None
-
-        servers = store.maica.maica.MaicaProviderManager.servers
-
         def set_provider(id):
             persistent.maica_setting_dict["provider_id"] = id
 
@@ -350,31 +348,33 @@ screen maica_node_setting():
                     xfill True
                     yfill False
 
-                    for item in servers:
-                        hbox:
-                            text "[item.get('id')]|[item.get('name', 'Name not provided')]"
-                            if item.get("isOffifial", False):
-                                textbutton _(" √ MAICA 官方服务器")
-
-                        hbox:
-                            text _("设备: [item.get('deviceName', 'Device not provided')]")
-                        hbox:
-                            text _("当前模型: [item.get('servingModel', 'No model provided')]")
 
 
+                    for provider in MaicaProviderManager.servers:
+                        text str(provider.get('id')) + ' | ' + provider.get('name')
+                        if provider.get("isOffifial", False):
+                            textbutton _(" √ MAICA 官方服务器")
+
                         hbox:
-                            style_prefix "confirm"
-                            textbutton _("使用该节点"):
+                            text _("设备: ") + provider.get('deviceName', 'Device not provided')
+                        hbox:
+                            text _("当前模型: ") + provider.get('servingModel', 'No model provided')
+
+
+                        hbox:
+                            textbutton _("> 使用该节点"):
                                 action [
-                                    Function(set_provider, item.get('id')),
+                                    Function(set_provider, provider.get('id')),
                                     Hide("maica_node_setting")
                                 ]
                     
                     hbox:
                         textbutton _("更新节点列表"):
+                            style_prefix "confirm"
                             action Function(store.maica.maica.MaicaProviderManager.get_provider)
 
                         textbutton _("关闭"):
+                            style_prefix "confirm"
                             action Hide("maica_node_setting")
 
 
@@ -602,7 +602,7 @@ screen maica_setting():
                             action Function(store.maica.maica.reset_stat)
 
                     hbox:
-                        textbutton _("服务提供节点: [store.maica.maica.MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id'))]"):
+                        textbutton _("服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"):
                             action Show("maica_node_setting")
                             hovered SetField(_tooltip, "value", _("设置服务器节点"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)

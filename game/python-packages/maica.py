@@ -143,7 +143,7 @@ class MaicaAi(ChatBotInterface):
         #    setattr(cls, "{}".format(name), code)
 
     class MaicaProviderManager:
-        isMaicaNameServer = True
+        isMaicaNameServer = None
         servers = []
         provider_list = "https://maicadev.monika.love/api/servers"
         default_url = "wss://maicadev.monika.love/websocket"
@@ -151,19 +151,21 @@ class MaicaAi(ChatBotInterface):
         def get_provider(cls):
             import requests
             res = requests.post(cls.provider_list, json={})
-            
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
-                raise AiException("Cannot get providers because server error")
+                raise Exception("Cannot get providers because server error")
             res = res.json()
             if res["success"]:
-                cls.isMaicaNameServer = res["servers"]
-                cls.servers = res["servers"]["servers"]
+                import json
+                res["servers"] = json.loads(res["servers"])
+                cls.isMaicaNameServer = res["servers"].get("isMaicaNameServer")
+                cls.servers = res["servers"].get("servers")
         @classmethod
         def get_server_by_id(cls, id):
             for server in cls.servers:
-                if server["id"] == id:
+                if int(server["id"]) == id:
                     return server
+            raise Exception("Cannot find server by id: {}".format(id))
         @classmethod
         def get_wssurl_by_id(cls, id):
             if not id:
