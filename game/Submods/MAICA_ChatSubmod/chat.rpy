@@ -163,6 +163,7 @@ label maica_prepend_2_listen:
 label maica_prepend_2:
     m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?"
     menu:
+        "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{fast}"
         "太好看了!":
             m 1husdlb "你喜欢就好啦. {w=0.3}{nw}"
             if len(filter(lambda x: "tw4449" in x.author, mas_submod_utils.submod_map.values())): #用过房间sub
@@ -179,7 +180,7 @@ label maica_prepend_2:
     m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
     m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
     menu:
-        "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{nw}"
+        "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{fast}"
         "好的.":
             label init_maica:
                 if persistent.maica_setting_dict['console']:
@@ -395,6 +396,7 @@ label maica_wants_preferences2:
         m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
         m 1eub "你还有什么想补充的吗?"
     menu:
+        "你还有什么想补充的吗?"
         "好的":
             m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
             #在这里呼出输入框
@@ -589,7 +591,7 @@ label maica_wants_mspire:
     extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
     m 1eua "所以你想试试看吗, [player]?"
     menu:
-        "所以你想试试看吗, [player]?"
+        "所以你想试试看吗, [player]?{fast}"
         "好啊":
             m 1hub "谢谢你, [player]!"
             m 4eub "如果你想再调整, 可以在'子模组设置'里面找到'MSpire'的选项."
@@ -642,7 +644,7 @@ label mspire_mods_preferences:
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?"
         menu:
-            "好啊. 你要补充还是删除呢?"
+            "好啊. 你要补充还是删除呢?{fast}"
             "补充":
                 m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
                 call mspire_input_information
