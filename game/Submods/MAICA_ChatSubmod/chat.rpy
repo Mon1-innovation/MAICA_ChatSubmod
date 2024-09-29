@@ -396,7 +396,7 @@ label maica_wants_preferences2:
         m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
         m 1eub "你还有什么想补充的吗?"
     menu:
-        "你还有什么想补充的吗?"
+        "你还有什么想补充的吗?{fast}"
         "好的":
             m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
             #在这里呼出输入框
@@ -434,7 +434,7 @@ label maica_mods_preferences:
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?"
         menu:
-            "好啊. 你要补充还是删除呢?"
+            "好啊. 你要补充还是删除呢?{fast}"
             "补充":
                 m 2dua "稍等片刻.{w=0.3}.{w=0.3}."
                 call maica_input_information
