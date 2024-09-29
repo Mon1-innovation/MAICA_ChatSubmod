@@ -28,6 +28,8 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
+        # websocket正在连接
+        WEBSOCKET_CONNECTING = 10020
         # 账户信息已准备好，准备令牌验证
         WAIT_AUTH = 10100
         # 等待令牌验证结果
@@ -129,6 +131,7 @@ class MaicaAi(ChatBotInterface):
             CERTIFI_AUTO_FIX:u"证书模块损坏, 但是自动修复成功, 需要重启MAS",
             SEND_SETTING:u"上传设置中",
             FAILED_GET_NODE:u"获取服务节点失败",
+            WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
         }
         @classmethod
         def get_description(cls, code):
@@ -147,6 +150,7 @@ class MaicaAi(ChatBotInterface):
         servers = []
         provider_list = "https://maicadev.monika.love/api/servers"
         default_url = "wss://maicadev.monika.love/websocket"
+        def_apiurl = "https://maicadev.monika.love/api/"
         @classmethod
         def get_provider(cls):
             import requests
@@ -169,8 +173,15 @@ class MaicaAi(ChatBotInterface):
         @classmethod
         def get_wssurl_by_id(cls, id):
             if not id:
+                return cls.def_apiurl
+            return cls.get_server_by_id(id)["wsInterface"]
+
+        @classmethod
+        def get_api_url_by_id(cls, id):
+            if not id:
                 return cls.default_url
-            return cls.get_server_by_id(id)["wssurl"]
+            return cls.get_server_by_id(id)["httpInterface"]
+
             
     public_key_pem = """\
 -----BEGIN RSA PUBLIC KEY-----
@@ -374,7 +385,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.debug("_init_connect")
         if not self.multi_lock.acquire(blocking=False):
             return logger.warning("Maica::_init_connect try to create multi connection")
-        self.status = self.MaicaAiStatus.NOT_READY
+        self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
         self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
