@@ -185,15 +185,26 @@ def is_precisely_a_talk(strin):
         # Breakin
         return 60
 def add_pauses(strin):
-    allset = []; wordset = []; puncset = []; critset = []; excritset = []
-    pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
-    pattern_crit = r'[.。!！?？~]'
-    pattern_excrit = r'[~!！]'
+    if not isinstance(strin, (str, unicode)):
+        raise TypeError("Input should be a string or unicode, get {}".format(type(strin)))
+    
+    allset = []
+    wordset = []
+    puncset = []
+    critset = []
+    excritset = []
+    
+    # Define unicode pattern if necessary
+    pattern_common_punc = ur'(\s*[.。!！?？；;，,~]+\s*)'
+    pattern_crit = ur'[.。!！?？~]'
+    pattern_excrit = ur'[~!！]'
+    
     str_split = re.split(pattern_common_punc, strin)
     relpos = 0
+    
     for chop in str_split:
         if chop:
-            print(chop)
+            print(chop)  # Depending on your environment, you might want to encode this if not displaying correctly
             if re.match(pattern_common_punc, chop):
                 puncset.append([relpos, chop])
                 if re.search(pattern_crit, chop):
@@ -202,31 +213,30 @@ def add_pauses(strin):
                         excritset.append([relpos, chop])
             else:
                 wordset.append([relpos, chop])
+                
             allset.append([relpos, chop])
             relpos += 1
+    
     for i in puncset:
-        num = i[0]; content = i[1]
-        if re.match(r'\s*\.\.\.', content):
-            allset[num][1] += '{w=0.5}'
+        num = i[0]
+        content = i[1]
+        if re.match(ur'\s*\.\.\.', content):
+            allset[num][1] += u'{w=0.5}'
         else:
-            if re.match(r'\s*[；;:︰]', content):
-                if len(str(allset[num-1][1]).encode()) >= 12 or (len(allset) >= num+2 and len(str(allset[num+1][1]).encode()) >= 12):
-                    allset[num][1] += '{w=0.5}'
+            if re.match(ur'\s*[；;:︰]', content):
+                if len(allset[num-1][1].encode('utf-8')) >= 12 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 12):
+                    allset[num][1] += u'{w=0.5}'
                 else:
-                    allset[num][1] += '{w=0.2}'
-            elif re.match(r'\s*[.。?？]', content):
-                if len(str(allset[num-1][1]).encode()) >= 24 or (len(allset) >= num+2 and len(str(allset[num+1][1]).encode()) >= 24):
-                    allset[num][1] += '{w=0.3}'
-                else:
-                    pass
+                    allset[num][1] += u'{w=0.2}'
+            elif re.match(ur'\s*[.。?？]', content):
+                if len(allset[num-1][1].encode('utf-8')) >= 24 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 24):
+                    allset[num][1] += u'{w=0.3}'
+    
     allstr = ''
     for chop in allset:
         allstr += chop[1]
+    
     return allstr
-
-
-
-
 
 
 class AiException(Exception):
@@ -257,7 +267,7 @@ class ChatBotInterface():
     def del_conversation(self):
         raise Exception("该类未实现del_conversation()")
 
-    # 从message_list获取消息('renpy表情', 'message')，如果已经阅读完已经生成的句子，但是还在生成返回WRITING,如果已经结束生成并且全部阅读完毕返回END(同时清空),如果有异常则抛出异常
+    # 从message_list获取消息('renpy表情', 'message')
     def get_message(self):
         raise Exception("该类未实现get_message()")
 
