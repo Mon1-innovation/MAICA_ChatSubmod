@@ -138,7 +138,7 @@ def is_precisely_a_talk(str):
         for chopls in allset[:relpos]:
             pos += len(str(chopls[1]))
         return pos
-    allset, wordset, puncset, critset, excritset = []
+    allset = wordset = puncset = critset = excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
     pattern_excrit = r'[~!！]'
@@ -184,7 +184,7 @@ def is_precisely_a_talk(str):
         # Break
         return 60
 def add_pauses(str):
-    allset, wordset, puncset, critset, excritset = []
+    allset = wordset = puncset = critset = excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
     pattern_excrit = r'[~!！]'
