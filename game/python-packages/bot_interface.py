@@ -132,17 +132,17 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
-def is_precisely_a_talk(str):
+def is_precisely_a_talk(strin):
     def get_pos(relpos):
         pos = 0
         for chopls in allset[:relpos]:
             pos += len(str(chopls[1]))
         return pos
-    allset = wordset = puncset = critset = excritset = []
+    allset = []; wordset = []; puncset = []; critset = []; excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
     pattern_excrit = r'[~!！]'
-    str_split = re.split(pattern_common_punc, str)
+    str_split = re.split(pattern_common_punc,strin)
     relpos = 0
     for chop in str_split:
         if re.match(pattern_common_punc, chop):
@@ -155,14 +155,15 @@ def is_precisely_a_talk(str):
             wordset.append([relpos, chop])
         allset.append([relpos, chop])
         relpos += 1
-    if len(critset) <= 2 and len(str) <= 20:
+    print(allset, puncset, critset, excritset)
+    if len(critset) <= 2 and len(strin) <= 20:
         # Likely too short to break
         if not excritset:
             return 0
         else:
             return get_pos(excritset[-1][0])
-    if len(str) <= 40:
-        if re.search(r'\.\.', critset[-1]):
+    if len(strin.encode()) <= 120:
+        if re.search(r'\.\.', critset[-1][1]):
             return 0
         if excritset:
             return get_pos(excritset[-1][0])
@@ -170,7 +171,7 @@ def is_precisely_a_talk(str):
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(str) <= 60:
+    elif len(strin.encode()) <= 180:
         # Something may went wrong, just break
         if excritset:
             return get_pos(excritset[-1][0])
@@ -181,42 +182,46 @@ def is_precisely_a_talk(str):
         else:
             return 0
     else:
-        # Break
+        # Breakin
         return 60
-def add_pauses(str):
-    allset = wordset = puncset = critset = excritset = []
+def add_pauses(strin):
+    allset = []; wordset = []; puncset = []; critset = []; excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
     pattern_excrit = r'[~!！]'
-    str_split = re.split(pattern_common_punc, str)
+    str_split = re.split(pattern_common_punc, strin)
     relpos = 0
     for chop in str_split:
-        if re.match(pattern_common_punc, chop):
-            puncset.append([relpos, chop])
-            if re.search(pattern_crit, chop):
-                critset.append([relpos, chop])
-                if re.search(pattern_excrit, chop):
-                    excritset.append([relpos, chop])
-        else:
-            wordset.append([relpos, chop])
-        allset.append([relpos, chop])
-        relpos += 1
+        if chop:
+            print(chop)
+            if re.match(pattern_common_punc, chop):
+                puncset.append([relpos, chop])
+                if re.search(pattern_crit, chop):
+                    critset.append([relpos, chop])
+                    if re.search(pattern_excrit, chop):
+                        excritset.append([relpos, chop])
+            else:
+                wordset.append([relpos, chop])
+            allset.append([relpos, chop])
+            relpos += 1
     for i in puncset:
         num = i[0]; content = i[1]
         if re.match(r'\s*\.\.\.', content):
-            allset[num] += '{w=0.5}'
+            allset[num][1] += '{w=0.5}'
         else:
             if re.match(r'\s*[；;:︰]', content):
-                if len(str(allset[num-1])) <= 6 or (len(allset) >= num+2 and len(str(allset[num+1])) <= 6):
-                    allset[num] += '{w=0.5}'
+                if len(str(allset[num-1][1]).encode()) >= 12 or (len(allset) >= num+2 and len(str(allset[num+1][1]).encode()) >= 12):
+                    allset[num][1] += '{w=0.5}'
                 else:
-                    allset[num] += '{w=0.3}'
+                    allset[num][1] += '{w=0.2}'
             elif re.match(r'\s*[.。?？]', content):
-                if len(str(allset[num-1])) <= 12 or (len(allset) >= num+2 and len(str(allset[num+1])) <= 8):
-                    allset[num] += '{w=0.2}'
+                if len(str(allset[num-1][1]).encode()) >= 24 or (len(allset) >= num+2 and len(str(allset[num+1][1]).encode()) >= 24):
+                    allset[num][1] += '{w=0.3}'
                 else:
                     pass
-    allstr = str(allset)
+    allstr = ''
+    for chop in allset:
+        allstr += chop[1]
     return allstr
 
 
