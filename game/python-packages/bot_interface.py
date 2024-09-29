@@ -166,7 +166,7 @@ def is_precisely_a_talk(strin):
         if re.search(r'\.\.', critset[-1][1]):
             return 0
         if excritset:
-            return get_pos(excritset[-1][0])
+            return get_pos(excritset[0][0])
         if critset:
             return get_pos(critset[-1][0])
         else:
@@ -174,11 +174,11 @@ def is_precisely_a_talk(strin):
     elif len(strin.encode()) <= 180:
         # Something may went wrong, just break
         if excritset:
-            return get_pos(excritset[-1][0])
+            return get_pos(excritset[0][0])
         if critset:
-            return get_pos(critset[-1][0])
+            return get_pos(critset[0][0])
         if puncset:
-            return get_pos(puncset[-1][0])
+            return get_pos(puncset[0][0])
         else:
             return 0
     else:
