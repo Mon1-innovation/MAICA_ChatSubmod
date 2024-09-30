@@ -168,7 +168,7 @@ def is_precisely_a_talk(strin):
         # Making chops long as possible. It's short now
         if re.search(r'\.\.', critset[-1][1]):
             return 0
-        if excritset:
+        if len(excritset) >= 2:
             pnum = math.floor((len(excritset)*(2/3)))
             return get_pos(excritset[pnum][0])
         if critset:
