@@ -166,10 +166,10 @@ def is_precisely_a_talk(strin):
             return get_pos(excritset[1][0])
     if len(strin.encode()) <= 60:
         # Making chops long as possible. It's short now
-        if re.search(r'\.\.', critset[-1][1]):
+        if critset and re.search(r'\.\.', critset[-1][1]):
             return 0
         if len(excritset) >= 2:
-            pnum = math.floor((len(excritset)*(2/3)))
+            pnum = int(math.floor((len(excritset)*(2/3))))
             return get_pos(excritset[pnum][0])
         if critset:
             return get_pos(critset[-1][0])
@@ -177,7 +177,7 @@ def is_precisely_a_talk(strin):
             return 0
     elif len(strin.encode()) <= 120:
         if excritset:
-            pnum = math.floor((len(excritset)*(1/3)))
+            pnum = int(math.floor((len(excritset)*(1/3))))
             return get_pos(excritset[pnum][0])
         if critset:
             return get_pos(critset[0][0])
