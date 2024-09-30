@@ -345,4 +345,113 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:584
     old "MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"
     new "Use chat session for MSpire\nMay lead to response pattern corruption."
+    
+# TODO: Translation updated at 2024-09-30 08:15
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:96
+    old "验证失败, 请检查账号密码"
+    new "Authentication failed, recheck your account and password"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:98
+    old "验证成功"
+    new "Authentication passed"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:143
+    old "会话已重置, 请重新连接MAICA服务器"
+    new "Session reset, please reconnect to MAICA server"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:147
+    old "已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"
+    new "Exported to game/Submods/MAICA_ChatSubmod/chat_history.txt"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:175
+    old "正在上传设置"
+    new "Uploading settings"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:175
+    old "不能上传设置, 请等待MAICA准备好聊天\n请等待状态码改变后手动上传设置"
+    new "Please ensure connection is ready first"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:275
+    old "> 警告: 与 Better Loading 不兼容"
+    new "> Warning: is not compatible with Better Loading"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:298
+    old "> 手动上传设置"
+    new "> Upload settings"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:301
+    old "> 手动上传设置 [[不能上传, 因为MAICA未准备好/忙碌中]"
+    new "> Upload settings [[Ensure connection ready first]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:304
+    old "> 重置当前对话"
+    new "> Purge current chat session"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:307
+    old "> 导出当前对话"
+    new "> Export current conversation history"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:310
+    old "> 退出当前DCC账号"
+    new "> Logout"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:356
+    old " √ MAICA 官方服务器"
+    new " √ Official MAICA provider"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:359
+    old "设备: "
+    new "Cluster: "
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:361
+    old "当前模型: "
+    new "Mode: "
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:365
+    old "> 使用该节点"
+    new "> Switch to provider"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:372
+    old "更新节点列表"
+    new "Refresh providers list"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:376
+    old "关闭"
+    new "Close"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:520
+    old "当nsfw_acceptive为true时会改变system指引, 使模型对NSFW场景更为宽容.\n 启用此功能可能提高特定场合表现, 但也可能会造成模型核心能力下降和注意力混乱.\n请注意, 目前为止MAICA尚未使用任何NSFW数据集进行训练, 因此nsfw_acceptive的效果十分薄弱.\n 此后或许会有针对性的改善."
+    new "Enabling may improve performance in particular occasion.\nBut also may result in overall performance decrease."
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:605
+    old "服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"
+    new "Current provider: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:607
+    old "设置服务器节点"
+    new "Choose provider"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:695
+    old "范围为维基百科的category页面\n如果无法找到catrgory将会提示错误输入"
+    new "Accepts existing categories of wikipedia\nWill fail if category doesn't exist"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:750
+    old "重置设置"
+    new "Reset defaults"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:751
+    old "设置已重置"
+    new "Reset finished"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:776
+    old "改为用户名登录"
+    new "Use username instead"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:781
+    old "改为邮箱登录"
+    new "Use Email instead"
+
 

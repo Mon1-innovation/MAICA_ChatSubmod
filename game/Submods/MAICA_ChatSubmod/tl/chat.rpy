@@ -1292,3 +1292,25 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/chat.rpy:572
     old "所以你想试试看吗, [player]?"
     new "So do you want to try it out, [player]?"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:165
+    old "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{fast}"
+    new "What do you say, [player]? {w=0.3}You like this place?{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:182
+    old "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{fast}"
+    new "I think I know how to show you that. {w=0.2}Shall we try it now, [player]?{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:398
+    old "你还有什么想补充的吗?{fast}"
+    new "You got anything to implement?{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:436
+    old "好啊. 你要补充还是删除呢?{fast}"
+    new "Okay. Do you want to add or delete something?{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:593
+    old "所以你想试试看吗, [player]?{fast}"
+    new "So do you want to try it out, [player]?{fast}"
