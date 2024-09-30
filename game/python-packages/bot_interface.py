@@ -5,6 +5,7 @@ END = 0
 import ast
 import sys
 import re
+import math
 import logging
 
 logger = logging.getLogger()
@@ -156,19 +157,30 @@ def is_precisely_a_talk(strin):
         allset.append([relpos, chop])
         relpos += 1
     print(allset, puncset, critset, excritset)
-    if len(critset) <= 2 and len(strin) <= 20:
+    if len(critset) <= 2 and len(strin.encode()) <= 30:
         # Likely too short to break
-        if not excritset:
+        if len(excritset) < 2:
             return 0
         else:
-            return get_pos(excritset[-1][0])
-    if len(strin.encode()) <= 120:
+            return get_pos(excritset[1][0])
+            return get_pos(excritset[1][0])
+    if len(strin.encode()) <= 60:
+        # Making chops long as possible. It's short now
         if re.search(r'\.\.', critset[-1][1]):
             return 0
-        if excritset:
-            return get_pos(excritset[0][0])
+        if len(excritset) >= 2:
+            pnum = math.floor((len(excritset)*(2/3)))
+            return get_pos(excritset[pnum][0])
         if critset:
             return get_pos(critset[-1][0])
+        else:
+            return 0
+    elif len(strin.encode()) <= 120:
+        if excritset:
+            pnum = math.floor((len(excritset)*(1/3)))
+            return get_pos(excritset[pnum][0])
+        if critset:
+            return get_pos(critset[0][0])
         else:
             return 0
     elif len(strin.encode()) <= 180:
