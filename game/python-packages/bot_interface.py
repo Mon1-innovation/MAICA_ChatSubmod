@@ -164,9 +164,9 @@ def is_precisely_a_talk(strin):
         else:
             return get_pos(excritset[1][0])
             return get_pos(excritset[1][0])
-    if len(strin.encode()) <= 60:
+    if len(strin.encode()) <= 80:
         # Making chops long as possible. It's short now
-        if critset and re.search(r'\.\.', critset[-1][1]):
+        if critset != [] and re.search(r'\.\.\.', critset[-1][1]):
             return 0
         if len(excritset) >= 2:
             pnum = int(math.floor((len(excritset)*(2/3))))
@@ -175,7 +175,7 @@ def is_precisely_a_talk(strin):
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(strin.encode()) <= 120:
+    elif len(strin.encode()) <= 160:
         if excritset:
             pnum = int(math.floor((len(excritset)*(1/3))))
             return get_pos(excritset[pnum][0])
@@ -183,7 +183,7 @@ def is_precisely_a_talk(strin):
             return get_pos(critset[0][0])
         else:
             return 0
-    elif len(strin.encode()) <= 180:
+    elif len(strin.encode()) <= 240:
         # Something may went wrong, just break
         if excritset:
             return get_pos(excritset[0][0])
@@ -195,7 +195,7 @@ def is_precisely_a_talk(strin):
             return 0
     else:
         # Breakin
-        return 60
+        return len(strin)-1
 def add_pauses(strin):
     if not isinstance(strin, (str, unicode)):
         raise TypeError("Input should be a string or unicode, get {}".format(type(strin)))
