@@ -48,7 +48,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:177
     old "> MAICA对话设置 *部分选项需要重新连接"
-    new "> MAICA chat settings *some options may require reconnection to take effect"
+    new "> MAICA chat settings *some options may need reconnection"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:201
     old "累计对话轮次: [store.maica.maica.stat.get('message_count')]"
@@ -132,7 +132,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:261
     old "导出至根目录"
-    new "Export to submod root directory"
+    new "Export to directory"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:263
     old "导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
@@ -340,7 +340,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:579
     old "使用会话: [persistent.maica_setting_dict.get('mspire_session')]"
-    new "Using chat session: [persistent.maica_setting_dict.get('mspire_session')]"
+    new "Using session: [persistent.maica_setting_dict.get('mspire_session')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:584
     old "MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"
