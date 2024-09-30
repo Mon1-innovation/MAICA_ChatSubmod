@@ -195,7 +195,7 @@ def is_precisely_a_talk(strin):
             return 0
     else:
         # Breakin
-        if not len(re.search('[', allset[-1][1])) == len(re.search(']', allset[-1][1])):
+        if not len(re.findall('[', allset[-1][1])) == len(re.findall(']', allset[-1][1])):
             return 0
         else:
             return len(strin)-1
