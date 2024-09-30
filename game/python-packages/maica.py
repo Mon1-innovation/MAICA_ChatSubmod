@@ -312,7 +312,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def update_stat(self, new):
         self.stat.update(new)
     def get_message(self):
-        return bot_interface.add_pauses(self.message_list.get())
+        res = self.message_list.get()
+        return (res[0], bot_interface.add_pauses(res[1]))
     def _gen_token(self, account, pwd, token, email = None):
         if token != "":
             self.ciphertext = token
