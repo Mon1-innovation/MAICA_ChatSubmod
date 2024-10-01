@@ -235,9 +235,9 @@ def add_pauses(strin):
     lastnum = len(allset)-1
 
     for i in puncset:
+        num = i[0]
         if num == lastnum:
             break
-        num = i[0]
         content = i[1]
         if re.match(ur'\s*\.\.\.', content):
             allset[num][1] += u'{w=0.5}'
