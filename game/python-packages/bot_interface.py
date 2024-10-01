@@ -141,7 +141,7 @@ def is_precisely_a_talk(strin):
             pos += len(str(chopls[1]).decode("utf-8"))
         return pos+1
     allset = []; wordset = []; puncset = []; critset = []; excritset = []
-    pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
+    pattern_common_punc = r'(\s*[.。!！?？；;，,~]*+\s*)'
     pattern_crit = r'[.。!！?？~]'
     pattern_excrit = r'[~!！]'
     str_split = re.split(pattern_common_punc,strin)
