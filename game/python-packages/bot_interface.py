@@ -135,10 +135,11 @@ def is_a_talk(strs):
     return 0
 def is_precisely_a_talk(strin):
     def get_pos(relpos):
+        # This method added 1
         pos = 0
         for chopls in allset[:relpos]:
             pos += len(str(chopls[1]).decode("utf-8"))
-        return pos
+        return pos+1
     allset = []; wordset = []; puncset = []; critset = []; excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
@@ -162,7 +163,6 @@ def is_precisely_a_talk(strin):
         if len(excritset) < 2:
             return 0
         else:
-            return get_pos(excritset[1][0])
             return get_pos(excritset[1][0])
     if len(strin.encode()) <= 80:
         # Making chops long as possible. It's short now
@@ -195,7 +195,7 @@ def is_precisely_a_talk(strin):
             return 0
     else:
         # Breakin
-        if not len(re.findall('[', allset[-1][1])) == len(re.findall(']', allset[-1][1])):
+        if not len(re.findall(r'[', allset[-1][1])) == len(re.findall(r']', allset[-1][1])):
             return 0
         else:
             return len(strin)-1
@@ -232,7 +232,11 @@ def add_pauses(strin):
             allset.append([relpos, chop])
             relpos += 1
     
+    lastnum = len(allset)-1
+
     for i in puncset:
+        if num == lastnum:
+            break
         num = i[0]
         content = i[1]
         if re.match(ur'\s*\.\.\.', content):
