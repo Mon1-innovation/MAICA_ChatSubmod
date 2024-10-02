@@ -138,7 +138,10 @@ def is_precisely_a_talk(strin):
         # This method added 1
         pos = 0
         for chopls in allset[:relpos]:
-            pos += len(str(chopls[1]).decode("utf-8"))
+            if PY2:
+                pos += len(str(chopls[1]).decode("utf-8"))
+            else:
+                pos += len(str(chopls[1]))
         return pos+1
     allset = []; wordset = []; puncset = []; critset = []; excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
@@ -157,7 +160,7 @@ def is_precisely_a_talk(strin):
             wordset.append([relpos, chop])
         allset.append([relpos, chop])
         relpos += 1
-    print(allset, puncset, critset, excritset)
+    #print(allset, puncset, critset, excritset)
     if strin[-1] == '.':
         # In case unfinished
         return 0
@@ -213,9 +216,9 @@ def add_pauses(strin):
     excritset = []
     
     # Define unicode pattern if necessary
-    pattern_common_punc = ur'(\s*[.。!！?？；;，,~]+\s*)'
-    pattern_crit = ur'[.。!！?？~]'
-    pattern_excrit = ur'[~!！]'
+    pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
+    pattern_crit = r'[.。!！?？~]'
+    pattern_excrit = r'[~!！]'
     
     str_split = re.split(pattern_common_punc, strin)
     relpos = 0
@@ -242,15 +245,15 @@ def add_pauses(strin):
         if num == lastnum:
             break
         content = i[1]
-        if re.match(ur'\s*\.\.\.', content):
+        if re.match(r'\s*\.\.\.', content):
             allset[num][1] += u'{w=0.5}'
         else:
-            if re.match(ur'\s*[；;:︰]', content):
+            if re.match(r'\s*[；;:︰]', content):
                 if len(allset[num-1][1].encode('utf-8')) >= 12 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 12):
                     allset[num][1] += u'{w=0.5}'
                 else:
                     allset[num][1] += u'{w=0.2}'
-            elif re.match(ur'\s*[.。?？]', content):
+            elif re.match(r'\s*[.。?？]', content):
                 if len(allset[num-1][1].encode('utf-8')) >= 24 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 24):
                     allset[num][1] += u'{w=0.3}'
     
