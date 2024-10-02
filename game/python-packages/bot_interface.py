@@ -133,7 +133,7 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
-def is_precisely_a_talk(strin):
+def is_precisely_a_talk(strin, maxlimit = 60):
     def get_pos(relpos):
         # This method added 1
         pos = 0
@@ -190,7 +190,7 @@ def is_precisely_a_talk(strin):
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(strin.encode()) <= 240:
+    elif len(strin.encode()) <= maxlimit*4:
         # Something may went wrong, just break
         if excritset:
             return get_pos(excritset[0][0])

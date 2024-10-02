@@ -8,7 +8,10 @@ import websocket
 websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
 
-
+class MaicaAiLangInfo:
+    def __init__(self, lang_code ,spilt_chat_num):
+        self.lang_code = lang_code
+        self.spilt_chat_num = spilt_chat_num
 class MaicaAi(ChatBotInterface):
     ascii_icon = """                                                             
 
@@ -22,9 +25,21 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiModel:
         maica_main = "maica_main"
         maica_core = "maica_core"
+
+    
+
+
     class MaicaAiLang:
-        zh_cn = "zh"
-        en = "en"
+        zh_cn = MaicaAiLangInfo("zh_cn", 60)
+        en = MaicaAiLangInfo("en", 180)
+        @staticmethod
+        def get_lang_info(lang_name):
+            if lang_name == "zh_cn":
+                return MaicaAi.MaicaAiLang.zh_cn
+            elif lang_name == "en":
+                return MaicaAi.MaicaAiLang.en
+            else:
+                raise Exception("Unsupported language")
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
@@ -495,7 +510,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.send(self.ciphertext)
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
+                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang.lang_code}
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
                         self.wss_session.send(
@@ -512,7 +527,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         break 
                     # 发送设置, 切记仅在闲置时进行 
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
-                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
+                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang.lang_code}
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
                         self.wss_session.send(
@@ -577,7 +592,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
             if data['status'] == "thread_ready":
-                self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT            
+                self.status = self.MaicaAiStatus.SEND_SETTING            
         elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
             if not data['status'] in ("ok", "thread_ready"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
@@ -590,7 +605,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
                     isnum = 0
                 else:
-                    isnum = is_precisely_a_talk(self._received[self._pos:])
+                    isnum = is_precisely_a_talk(self._received[self._pos:], self.target_lang.spilt_chat_num)
                 logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]

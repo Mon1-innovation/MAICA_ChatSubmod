@@ -42,7 +42,7 @@ init 10 python:
         "chat_session":1,
         "console":True,
         "console_font":maica_confont,
-        "target_lang":store.maica.maica.MaicaAiLang.zh_cn if config.language == "chinese" else store.maica.maica.MaicaAiLang.en,
+        "target_lang":store.maica.maica.MaicaAiLang.zh_cn.lang_code if config.language == "chinese" else store.maica.maica.MaicaAiLang.en.lang_code,
         "_event_pushed":False,
         "mspire_enable":True,
         "mspire_category":[],
@@ -159,15 +159,15 @@ init 10 python:
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
-        store.maica.maica.target_lang = persistent.maica_setting_dict["target_lang"]
+        store.maica.maica.target_lang = store.maica.maica.MaicaAiLang.get_lang_info(persistent.maica_setting_dict["target_lang"])
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.mas_submod_utils.getAndRunFunctions()
-        if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
+        if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn.lang_code:
             store.maica.maica.MoodStatus.emote_translate = {}
-        elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
+        elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en.lang_code:
             with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
                 store.maica.maica.MoodStatus.emote_translate = json.load(f)
         
@@ -619,7 +619,7 @@ screen maica_setting():
 
                     hbox:
                         textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
+                            action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn.lang_code, store.maica.maica.MaicaAiLang.en.lang_code)
                             hovered SetField(_tooltip, "value", _("你与莫妮卡的沟通语言\n通过system prompt实现, 不能保证输出语言严格正确"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
