@@ -147,16 +147,17 @@ def is_precisely_a_talk(strin):
     str_split = re.split(pattern_common_punc,strin)
     relpos = 0
     for chop in str_split:
-        if re.match(pattern_common_punc, chop):
-            puncset.append([relpos, chop])
-            if re.search(pattern_crit, chop):
-                critset.append([relpos, chop])
-                if re.search(pattern_excrit, chop):
-                    excritset.append([relpos, chop])
-        else:
-            wordset.append([relpos, chop])
-        allset.append([relpos, chop])
-        relpos += 1
+        if chop != '':
+            if re.match(pattern_common_punc, chop):
+                puncset.append([relpos, chop])
+                if re.search(pattern_crit, chop):
+                    critset.append([relpos, chop])
+                    if re.search(pattern_excrit, chop):
+                        excritset.append([relpos, chop])
+            else:
+                wordset.append([relpos, chop])
+            allset.append([relpos, chop])
+            relpos += 1
     print(allset, puncset, critset, excritset)
     if strin[-1] == '.':
         # In case unfinished
@@ -167,23 +168,23 @@ def is_precisely_a_talk(strin):
             return 0
         else:
             return get_pos(excritset[1][0])
-    if len(strin.encode()) <= 80:
+    if len(strin.encode()) <= 160:
         # Making chops long as possible. It's short now
         if critset != [] and re.search(r'\.\.\.', critset[-1][1]):
             return 0
         if len(excritset) >= 2:
             pnum = int(math.floor((len(excritset)*(2/3))))
             return get_pos(excritset[pnum][0])
-        if critset:
+        if len(critset) >= 2:
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(strin.encode()) <= 160:
+    elif len(strin.encode()) <= 200:
         if excritset:
             pnum = int(math.floor((len(excritset)*(1/3))))
             return get_pos(excritset[pnum][0])
         if critset:
-            return get_pos(critset[0][0])
+            return get_pos(critset[-1][0])
         else:
             return 0
     elif len(strin.encode()) <= 240:
@@ -221,7 +222,7 @@ def add_pauses(strin):
     relpos = 0
     
     for chop in str_split:
-        if chop:
+        if chop != '':
             print(chop)  # Depending on your environment, you might want to encode this if not displaying correctly
             if re.match(pattern_common_punc, chop):
                 puncset.append([relpos, chop])
