@@ -137,12 +137,12 @@ def is_precisely_a_talk(strin):
     def get_pos(relpos):
         # This method added 1
         pos = 0
-        for chopls in allset[:relpos]:
+        for chopls in allset[:relpos+1]:
             if PY2:
                 pos += len(str(chopls[1]).decode("utf-8"))
             else:
                 pos += len(str(chopls[1]))
-        return pos+1
+        return pos
     allset = []; wordset = []; puncset = []; critset = []; excritset = []
     pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
     pattern_crit = r'[.。!！?？~]'
