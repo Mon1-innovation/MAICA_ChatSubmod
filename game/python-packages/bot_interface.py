@@ -121,7 +121,7 @@ def is_multiple(n, base):
     else:  # 其他情况下，n不是base的倍数
         return False
 signal = ['。', '！', '~', ".", "!", "?"]
-def is_a_talk(strs):
+def is_a_talk(strs, maxlimit=0):
     if '...' in strs:
         return strs.find('...') + len("...")
     

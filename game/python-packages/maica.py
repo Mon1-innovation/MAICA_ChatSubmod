@@ -9,9 +9,10 @@ websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
 
 class MaicaAiLangInfo:
-    def __init__(self, lang_code ,spilt_chat_num):
+    def __init__(self, lang_code ,spilt_chat_num, spilt_func = bot_interface.is_a_talk):
         self.lang_code = lang_code
         self.spilt_chat_num = spilt_chat_num
+        self.spilt_func = spilt_func
 class MaicaAi(ChatBotInterface):
     ascii_icon = """                                                             
 
@@ -30,7 +31,7 @@ class MaicaAi(ChatBotInterface):
 
 
     class MaicaAiLang:
-        zh_cn = MaicaAiLangInfo("zh_cn", 60)
+        zh_cn = MaicaAiLangInfo("zh_cn", 60, spilt_func=bot_interface.is_precisely_a_talk)
         en = MaicaAiLangInfo("en", 180)
         @staticmethod
         def get_lang_info(lang_name):
@@ -605,7 +606,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
                     isnum = 0
                 else:
-                    isnum = is_precisely_a_talk(self._received[self._pos:], self.target_lang.spilt_chat_num)
+                    isnum = self.target_lang.spilt_func(self._received[self._pos:], self.target_lang.spilt_chat_num)
                 logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
