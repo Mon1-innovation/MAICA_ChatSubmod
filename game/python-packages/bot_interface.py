@@ -171,7 +171,7 @@ def is_precisely_a_talk(strin):
             return 0
         else:
             return get_pos(excritset[1][0])
-    if len(strin.encode()) <= 160:
+    if len(strin.encode()) <= 100:
         # Making chops long as possible. It's short now
         if critset != [] and re.search(r'\.\.\.', critset[-1][1]):
             return 0
@@ -182,7 +182,7 @@ def is_precisely_a_talk(strin):
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(strin.encode()) <= 200:
+    elif len(strin.encode()) <= 140:
         if excritset:
             pnum = int(math.floor((len(excritset)*(1/3))))
             return get_pos(excritset[pnum][0])
@@ -190,19 +190,19 @@ def is_precisely_a_talk(strin):
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(strin.encode()) <= 240:
+    elif len(strin.encode()) <= 180:
         # Something may went wrong, just break
         if excritset:
-            return get_pos(excritset[0][0])
+            return get_pos(excritset[-1][0])
         if critset:
-            return get_pos(critset[0][0])
+            return get_pos(critset[-1][0])
         if puncset:
-            return get_pos(puncset[0][0])
+            return get_pos(puncset[-1][0])
         else:
             return 0
     else:
         # Breakin
-        if not len(re.findall(r'[', allset[-1][1])) == len(re.findall(r']', allset[-1][1])):
+        if not len(re.findall(r'\[', allset[-1][1])) == len(re.findall(r'\]', allset[-1][1])):
             return 0
         else:
             return len(strin)-1
