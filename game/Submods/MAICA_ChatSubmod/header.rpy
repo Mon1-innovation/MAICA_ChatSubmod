@@ -162,7 +162,7 @@ init 10 python:
         store.maica.maica.target_lang = store.maica.maica.MaicaAiLang.get_lang_info(persistent.maica_setting_dict["target_lang"])
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-        store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
+        store.maica.maica.mspire_session = 0
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn.lang_code:
@@ -705,13 +705,13 @@ screen maica_setting():
 
                         textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
 
-                        textbutton _("使用会话: [persistent.maica_setting_dict.get('mspire_session')]"):
-                            action NullAction()
-                        bar:
-                            value DictValue(persistent.maica_setting_dict, "mspire_session", 9, step=1,offset=0 ,style="slider")
-                            xsize 50
-                            hovered SetField(_tooltip, "value", _("MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        #textbutton _("使用会话: [persistent.maica_setting_dict.get('mspire_session')]"):
+                        #    action NullAction()
+                        #bar:
+                        #    value DictValue(persistent.maica_setting_dict, "mspire_session", 9, step=1,offset=0 ,style="slider")
+                        #    xsize 50
+                        #    hovered SetField(_tooltip, "value", _("MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"))
+                        #    unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
                     hbox:
