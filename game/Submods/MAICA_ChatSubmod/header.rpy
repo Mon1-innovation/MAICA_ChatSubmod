@@ -865,3 +865,44 @@ screen maica_message(message = "Non Message", ok_action = Hide("maica_message"))
                 spacing 100
 
                 textbutton _("OK") action ok_action
+
+screen maica_input_screen(prompt):
+    default maica_input = store.maica.MaicaInputValue()
+    style_prefix "input"
+
+    window:
+        hbox:
+            style_prefix "quick"
+            xfill True
+            xmaximum 0#(None if not has_history else 232)
+            xalign 0.4735
+            yalign 0.995
+
+            textbutton _("算了"):
+                selected False
+                action Return("nevermind")
+
+            textbutton _("粘贴"):
+                selected False
+                action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
+
+#            有一点点想实现搜索历史的想法，不过摸了
+#            if has_history:
+#                if renpy.get_screen("ytm_history_submenu") is None:
+#                    textbutton _("Show previous tracks"):
+#                        selected False
+#                        action ShowTransient("ytm_history_submenu")
+#
+#                else:
+#                    textbutton _("Hide previous tracks"):
+#                        selected False
+#                        action Hide("ytm_history_submenu")
+#
+        vbox:
+            align (0.5, 0.5)
+            spacing 30
+
+            text prompt style "input_prompt"
+            input:
+                id "input"
+                value maica_input

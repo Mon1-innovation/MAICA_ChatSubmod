@@ -56,7 +56,8 @@ label maica_talking(mspire = False):
                                 _("说吧, [player]"),
                                 default="",
                                 length=75,
-                                screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
+                                screen="maica_input_screen"
+                                #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
                             ).strip(' \t\n\r') #mas_input
                     if question == "":
                         continue

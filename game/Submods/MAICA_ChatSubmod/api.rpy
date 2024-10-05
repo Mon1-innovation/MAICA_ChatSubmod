@@ -4,6 +4,28 @@ init -1500 python:
 
 init 5 python in maica:
     import store
+
+    class MaicaInputValue(store.InputValue):
+        """
+        Our subclass of InputValue for internal use
+        Allows us to manipulate the user input
+        For more info read renpy docs (haha yeah...docs...renpy...)
+        """
+        def __init__(self):
+            self.default = True
+            self.input_value = ""
+            self.editable = True
+            self.returnable = True
+    
+        def get_text(self):
+            return self.input_value
+    
+        def set_text(self, s):
+            s = str(s)
+            self.input_value = s
+
+
+    import store
     import maica, os, json
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     
