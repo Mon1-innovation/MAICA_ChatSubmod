@@ -121,7 +121,7 @@ def is_multiple(n, base):
     else:  # 其他情况下，n不是base的倍数
         return False
 signal = ['。', '！', '~', ".", "!", "?"]
-def is_a_talk(strs, maxlimit=0):
+def is_a_talk(strs):
     if '...' in strs:
         return strs.find('...') + len("...")
     
@@ -133,7 +133,7 @@ def is_a_talk(strs, maxlimit=0):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
-def is_precisely_a_talk(strin, maxlimit = 60):
+def is_precisely_a_talk(strin):
     def get_pos(relpos):
         # This method added 1
         pos = 0
@@ -190,7 +190,7 @@ def is_precisely_a_talk(strin, maxlimit = 60):
             return get_pos(critset[-1][0])
         else:
             return 0
-    elif len(strin.encode()) <= maxlimit*4:
+    elif len(strin.encode()) <= 180:
         # Something may went wrong, just break
         if excritset:
             return get_pos(excritset[-1][0])
