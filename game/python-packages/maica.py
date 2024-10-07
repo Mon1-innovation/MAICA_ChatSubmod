@@ -627,7 +627,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
                     emote = self.MoodStatus.get_emote()
                     logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
-                    self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+                    #self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
                     self._append_to_message_list(emote, res.strip())
                     logger.debug("Server: {}".format(self._received[self._pos:]))
                 logger.debug("User input: {}".format(self._current_topic))
