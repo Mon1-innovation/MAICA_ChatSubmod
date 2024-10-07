@@ -147,6 +147,17 @@ class MaicaAi(ChatBotInterface):
 
     class MaicaProviderManager:
         isMaicaNameServer = None
+        isfailedresponse = {
+            "id": 0,
+            "name":"ERROR",
+            "deviceName": "Cannot find server",
+            "isOfficial": False,
+            "portalPage": "https://www.google.com",
+            "servingModel": "None",
+            "modelLink": "",
+            "wsInterface": "wss://maicadev.monika.love/websocket",
+            "httpInterface": "https://maicadev.monika.love/api/"
+        }
         servers = []
         provider_list = "https://maicadev.monika.love/api/servers"
         default_url = "wss://maicadev.monika.love/websocket"
@@ -169,7 +180,8 @@ class MaicaAi(ChatBotInterface):
             for server in cls.servers:
                 if int(server["id"]) == id:
                     return server
-            raise Exception("Cannot find server by id: {}".format(id))
+            cls.isfailedresponse["deviceName"] = "Cannot find server by id: {}".format(id)
+            return cls.isfailedresponse
         @classmethod
         def get_wssurl_by_id(cls, id):
             if not id:

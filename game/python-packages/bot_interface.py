@@ -207,8 +207,12 @@ def is_precisely_a_talk(strin):
         else:
             return len(strin)-1
 def add_pauses(strin):
-    if not isinstance(strin, (str, unicode)):
-        raise TypeError("Input should be a string or unicode, get {}".format(type(strin)))
+    if PY2:
+        if not isinstance(strin, (str, unicode)):
+            raise TypeError("Input should be a string or unicode, get {}".format(type(strin)))
+    else:
+        if not isinstance(strin, str):
+            raise TypeError("Input should be a string, get {}".format(type(strin)))
     
     allset = []
     wordset = []

@@ -885,6 +885,10 @@ screen maica_input_screen(prompt):
             textbutton _("粘贴"):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
+            
+            textbutton _("清空"):
+                selected False
+                action Function(maica_input.set_text, "")
 
 #            有一点点想实现搜索历史的想法，不过摸了
 #            if has_history:

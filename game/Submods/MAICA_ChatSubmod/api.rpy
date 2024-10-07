@@ -23,6 +23,9 @@ init 5 python in maica:
         def set_text(self, s):
             s = str(s)
             self.input_value = s
+        def add_text(self, s):
+            s = str(s)
+            self.input_value += s
 
 
     import store
