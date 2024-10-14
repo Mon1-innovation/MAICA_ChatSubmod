@@ -266,7 +266,7 @@ def add_pauses(strin):
     for chop in allset:
         allstr += chop[1]
     
-    return allstr
+    return str(allstr)
 
 
 class AiException(Exception):
