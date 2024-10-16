@@ -288,9 +288,11 @@ screen maica_setting_pane():
         if not maica.maica.is_connected():
             textbutton _("> 生成令牌"):
                 action Show("maica_login")
-                
-            textbutton _("> 使用已保存令牌连接"):
-                action Function(store.maica.maica.init_connect)
+            
+        if maica.maica.has_token():
+            else:
+                textbutton _("> 使用已保存令牌连接"):
+                    action Function(store.maica.maica.init_connect)
 
             
         else:

@@ -360,6 +360,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
             logger.error("Maica::_gen_token response process failed because server return {}".format(response.status_code))
         return
+    
+    def has_token(self):
+        return self.ciphertext is not None or self.ciphertext is not ""
 
     def _verify_token(self):
         """
