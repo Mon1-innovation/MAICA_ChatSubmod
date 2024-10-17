@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.5.7',
+        version='0.5.8',
         settings_pane="maica_setting_pane",
     )
 init -989 python:
@@ -289,13 +289,12 @@ screen maica_setting_pane():
             textbutton _("> 生成令牌"):
                 action Show("maica_login")
             
-        if maica.maica.has_token():
-            else:
-                textbutton _("> 使用已保存令牌连接"):
-                    action Function(store.maica.maica.init_connect)
+        if maica.maica.has_token() and not maica.maica.is_connected():
+            textbutton _("> 使用已保存令牌连接"):
+                action Function(store.maica.maica.init_connect)
 
             
-        else:
+        elif maica.maica.is_connected():
             if maica.maica.is_ready_to_input():
                 textbutton _("> 手动上传设置"):
                     action Function(maica_apply_setting)
@@ -311,6 +310,8 @@ screen maica_setting_pane():
 
             textbutton _("> 退出当前DCC账号"):
                 action Function(store.maica.maica.close_wss_session)
+        else:
+            textbutton _("> 使用已保存令牌连接")
     
         textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
             action Show("maica_setting")

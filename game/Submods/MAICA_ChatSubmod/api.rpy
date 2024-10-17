@@ -21,11 +21,29 @@ init 5 python in maica:
             return self.input_value
     
         def set_text(self, s):
-            s = str(s)
-            self.input_value = s
+            unicode_text = self.ensure_utf8(s)
+            self.input_value = unicode_text
+
         def add_text(self, s):
-            s = str(s)
-            self.input_value += s
+            unicode_text = self.ensure_utf8(s)
+            self.input_value += unicode_text
+
+        def ensure_utf8(self, s):
+            if isinstance(s, str):
+                default_encoding = sys.getdefaultencoding()  # 获取系统默认编码
+                try:
+                    # 尝试解析字符串为 unicode，假定它是 UTF-8。
+                    decoded = s.decode('utf-8')
+                except UnicodeDecodeError:
+                    # 尝试使用系统默认编码解码后再编码为 UTF-8
+                    decoded = s.decode(default_encoding).encode('utf-8').decode('utf-8')
+                return decoded
+            elif isinstance(s, unicode):
+                # 如果是 unicode 类型，直接返回
+                return s
+            else:
+                # 其他非字符串类型，转换为 unicode
+                return unicode(s)   
 
 
     import store

@@ -362,7 +362,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return
     
     def has_token(self):
-        return self.ciphertext is not None or self.ciphertext is not ""
+        return len(self.ciphertext) > 5
 
     def _verify_token(self):
         """
