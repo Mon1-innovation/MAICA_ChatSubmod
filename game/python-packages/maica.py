@@ -441,6 +441,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """返回maica是否可以接受输入消息了"""
         return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE)
 
+    def is_accessable(self):
+        """返回maica是否可用"""
+        return self.__accessable
+
     def is_failed(self):
         """返回maica是否处于异常状态"""
         return self.MaicaAiStatus.is_submod_exception(self.status)\
