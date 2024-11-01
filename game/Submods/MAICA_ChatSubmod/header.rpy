@@ -284,7 +284,9 @@ screen maica_setting_pane():
             xalign 1.0 yalign 0.0
             xoffset -10
             style "main_menu_version"
-        elif not maica.maica.is_connected() and maica.maica.is_accessable():
+        if not maica.maica.is_accessable():
+            textbutton _("> 生成令牌")  
+        elif not maica.maica.is_connected():
             textbutton _("> 生成令牌"):
                 action Show("maica_login")
             
