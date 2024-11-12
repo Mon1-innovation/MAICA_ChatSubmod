@@ -20,6 +20,7 @@ def remove_html_tags(text):
     return html_tag_re.sub('', text)
 def get_log():
     global feedparser
+    import traceback
     data = {
         "title": "",
         "content": []
@@ -32,9 +33,8 @@ def get_log():
         
         return data
     except Exception as e: 
-        raise
         data["title"] = "An Exception is occurred"
-        data["content"].append(str(e))
+        data["content"].append(traceback.format_exc())
     return data 
 
 

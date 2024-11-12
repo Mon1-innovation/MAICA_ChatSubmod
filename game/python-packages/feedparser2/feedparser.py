@@ -195,7 +195,6 @@ else:
 try:
     import sgmllib2 as sgmllib
 except ImportError:
-    raise
     # This is probably Python 3, which doesn't include sgmllib anymore
     _SGML_AVAILABLE = 0
 
