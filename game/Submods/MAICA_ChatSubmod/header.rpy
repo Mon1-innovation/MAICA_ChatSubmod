@@ -3,7 +3,7 @@ init -990 python:
         author="P",
         name="MAICA Blessland",
         description="The official Submod frontend of MAICA",
-        version='0.5.8',
+        version=maica_ver,
         settings_pane="maica_setting_pane",
     )
 init -989 python:
@@ -316,6 +316,9 @@ screen maica_setting_pane():
     
         textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
             action Show("maica_setting")
+        
+        textbutton _("> 更新日志与服务状态"):
+            action Show("maica_log")
 
 screen maica_node_setting():
     python:
@@ -380,6 +383,55 @@ screen maica_node_setting():
                         textbutton _("关闭"):
                             style_prefix "confirm"
                             action Hide("maica_node_setting")
+
+
+screen maica_log():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+        maica_log = maica_rss_provider.get_log()
+
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+        def set_provider(id):
+            persistent.maica_setting_dict["provider_id"] = id
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+
+                    text maica_log.get("title")
+
+                    text "========================================================="
+                    for content in maica_log.get("content"):
+                        text content
+                        text "================================"
+                    hbox:
+
+                        textbutton _("关闭"):
+                            style_prefix "confirm"
+                            action Hide("maica_log")
 
 
 screen maica_advance_setting():
