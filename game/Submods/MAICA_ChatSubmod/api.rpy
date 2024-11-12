@@ -136,12 +136,12 @@ init 5 python in maica:
                         res = requests.get("https://mirror.ghproxy.com/" + "https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
                         res2 = requests.get("https://mirror.ghproxy.com/" + "https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False)
 
-                    if res.status_code == 200:
+                    if res.status_code == 200 and res2.status_code == 200::
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
                             store.maica.maica.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
-                    if res2.status_code == 200:
+                    
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
                             file.write(res2.content)
                             store.maica.maica.status = 13408
