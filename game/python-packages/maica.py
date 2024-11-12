@@ -263,6 +263,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._gen_time = 0.0
         self.in_mas = True
         self.provider_id = None
+        self.is_outdated = None
 
 
     def reset_stat(self):
@@ -830,6 +831,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.MaicaProviderManager.get_provider()
         except Exception as e:
             logger.error("Maica get Service Provider Error: {}".format(e))
+    def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):
+        self.status = status_code
+        self.__accessable = False
+
             
 
         

@@ -271,6 +271,17 @@ screen maica_setting_pane():
         xfill True
         style_prefix "check"
 
+        if store.maica.maica.is_outdated is None:
+            text _("> 无法验证版本号, 如果出现问题请更新至最新版"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
+        elif store.maica.maica.is_outdated is True:
+            text _("> 当前版本已不再支持, 请更新至最新版"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
+
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             text _("> 警告: 与 Better Loading 不兼容"):
                 xalign 1.0 yalign 0.0

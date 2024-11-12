@@ -106,6 +106,17 @@ init 5 python in maica:
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
 
+    def check_is_outdated(version_local):
+        url = "http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/version_data.json"
+        import requests, store
+        try:
+            r = requests.get(url)
+            version_remote = r.json().get("min_version")
+            return store.mas_utils._is_downgrade(version_remote, version_local)
+        except:
+            store.mas_submod_utils.submod_log.warning("MAICA: Check Version Failed")
+            return None
+
 
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
@@ -151,6 +162,10 @@ init 5 python in maica:
                 store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
             
         store.maica.maica.accessable()
+        store.maica.maica.is_outdated = check_is_outdated(maica_ver)
+        if store.maica.maica.is_outdated:
+            store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
+
         if not renpy.seen_label("maica_greeting"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             mas_lockEVL("maica_main", "EVE")
@@ -204,7 +219,7 @@ init -700 python:
         if calculated_sha256 is None:
             return False
         return calculated_sha256 != expected_sha256
-    
+
     maica_chr_exist = os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")))
     if maica_chr_exist:
         maica_chr_changed = check_sha256(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")), '35b4a17edbb003014fa93168e0c93df3149e82a4d46f16a0eec295a2d9b02d59')
