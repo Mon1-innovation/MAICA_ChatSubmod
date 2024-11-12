@@ -87,6 +87,8 @@ class MaicaAi(ChatBotInterface):
         WAIT_AVAILABILITY = 13409
         # 获取节点失败
         FAILED_GET_NODE = 13410
+        # 版本过旧
+        VERSION_OLD = 13411
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -132,6 +134,7 @@ class MaicaAi(ChatBotInterface):
             SEND_SETTING:u"上传设置中",
             FAILED_GET_NODE:u"获取服务节点失败",
             WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
+            VERSION_OLD:u"子模组版本过旧, 请升级至最新版"
         }
         @classmethod
         def get_description(cls, code):
@@ -779,7 +782,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.wss_session:
             self.wss_session.close()
         
-
     def accessable(self):
         """
         检查Maica服务是否可访问
