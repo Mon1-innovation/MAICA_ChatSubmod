@@ -139,7 +139,22 @@ def is_precisely_a_talk(strin):
         pos = 0
         for chopls in allset[:relpos+1]:
             if PY2:
-                pos += len(str(chopls[1]).decode("utf-8"))
+                if isinstance(chopls[1], bytes):
+                    # 如果是字节串，使用 UTF-8 解码
+                    try:
+                        decoded_str = chopls[1].decode('utf-8')
+                    except UnicodeDecodeError as e:
+                        # 处理解码错误，比如记录错误日志或其他处理逻辑
+                        raise Exception("Decode Error: {}".format(e))
+                        continue  # 或者根据需要跳过当前循环
+                elif isinstance(chopls[1], str) or isinstance(chopls[1], unicode):
+                    # Python 2 中，如果是 Unicode 字符串，则不需要解码
+                    decoded_str = chopls[1]
+                else:
+                    # 处理其他数据类型的情况
+                    raise ValueError("Unknown type: {}".format(type(chopls[1])))
+                    continue
+                pos += len(decoded_str)
             else:
                 pos += len(str(chopls[1]))
         return pos
