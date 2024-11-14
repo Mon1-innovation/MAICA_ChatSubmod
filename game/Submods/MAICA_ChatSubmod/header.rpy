@@ -2,7 +2,7 @@ init -990 python:
     store.mas_submod_utils.Submod(
         author="P",
         name="MAICA Blessland",
-        description="The official Submod frontend of MAICA",
+        description=_("MAICA官方前端子模组"),
         version=maica_ver,
         settings_pane="maica_setting_pane",
     )
@@ -874,6 +874,8 @@ screen maica_login():
                         ]
                 textbutton _("取消"):
                     action [Function(_maica_clear), Hide("maica_login")]
+            hbox:
+                text _("※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}")
 
 
 
