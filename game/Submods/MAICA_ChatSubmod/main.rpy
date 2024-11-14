@@ -10,7 +10,7 @@ label maica_talking(mspire = False):
         if mspire:
             ai.send_to_outside_func("<submod> MSpire init...")
         if persistent.maica_setting_dict['console']:
-            store.mas_ptod.write_command("Thank you for using MAICA Blessland !")
+            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
         if not ai.is_connected():
             ai.init_connect()
@@ -105,10 +105,13 @@ label maica_talking(mspire = False):
                     _history_list.pop()
                     continue    
                 message = ai.get_message()
-                store.mas_submod_utils.submod_log.debug("label maica_talking::message: {}".format(message))
+                store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}'".format(message[0], message[1]))
                 renpy.show(u"monika {}".format(message[0]))
-                renpy.say(m, message[1])
-            
+                try:
+                    renpy.say(m, message[1])
+                except Exception as e:
+                    store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(e))
+                    ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
             if mspire:
                 _return = "canceled"
                 afm_pref = renpy.game.preferences.afm_enable
