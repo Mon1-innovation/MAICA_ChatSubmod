@@ -4,6 +4,7 @@ label maica_talking(mspire = False):
         show screen mas_py_console_teaching
     python:
         import time
+        import copy
         from store.maica import maica as ai
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
@@ -65,6 +66,10 @@ label maica_talking(mspire = False):
                         _return = "canceled"
                         ai.content_func = None
                         break
+                    to_history = copy.deepcopy(_history_list[-1])
+                    to_history.who = persistent.playername
+                    to_history.what = question
+                    _history_list.append(to_history)
                     ai.chat(question)
                     is_retry_before_sendmessage = False
                 else:
