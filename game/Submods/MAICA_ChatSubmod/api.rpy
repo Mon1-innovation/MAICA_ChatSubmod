@@ -32,6 +32,7 @@ init 5 python in maica:
             self.input_value += unicode_text
 
         def ensure_utf8(self, s):
+            import sys
             if isinstance(s, str):
                 default_encoding = sys.getdefaultencoding()  # 获取系统默认编码
                 try:
@@ -136,7 +137,7 @@ init 5 python in maica:
                         res = requests.get("https://mirror.ghproxy.com/" + "https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
                         res2 = requests.get("https://mirror.ghproxy.com/" + "https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/06baf319a34c2ef585bc7c0a1e969a7eaa894b35/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False)
 
-                    if res.status_code == 200 and res2.status_code == 200::
+                    if res.status_code == 200 and res2.status_code == 200:
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
                             store.maica.maica.status = 13408
