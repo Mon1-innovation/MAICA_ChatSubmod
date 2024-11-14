@@ -455,3 +455,35 @@ translate english strings:
     new "Use Email instead"
 
 
+# TODO: Translation updated at 2024-11-14 17:15
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:2
+    old "MAICA官方前端子模组"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:275
+    old "> 无法验证版本号, 如果出现问题请更新至最新版"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:280
+    old "> 当前版本已不再支持, 请更新至最新版"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:331
+    old "> 更新日志与服务状态"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:878
+    old "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:950
+    old "算了"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:954
+    old "粘贴"
+    new ""
+
