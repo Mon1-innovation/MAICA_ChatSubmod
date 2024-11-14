@@ -477,7 +477,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:878
     old "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
-    new "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_zh}{i}{u}MAICA TOS{/i}{/u}{/a}"
+    new "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:950
     old "算了"
