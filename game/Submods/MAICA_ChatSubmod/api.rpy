@@ -163,15 +163,15 @@ init 5 python in maica:
                 store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
             
         store.maica.maica.accessable()
-        store.maica.maica.is_outdated = check_is_outdated(maica_ver)
+        store.maica.maica.is_outdated = check_is_outdated(store.maica_ver)
         if store.maica.maica.is_outdated:
             store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
 
         if not renpy.seen_label("maica_greeting"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
-            mas_lockEVL("maica_main", "EVE")
+            store.mas_lockEVL("maica_main", "EVE")
         else:
-            mas_unlockEVL("maica_greeting", "GRE")
+            store.mas_unlockEVL("maica_greeting", "GRE")
                 
                 
 
