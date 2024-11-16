@@ -495,7 +495,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message}
                         self._check_modelconfig()
-                        dict["super_params"] = self.modelconfig
+                        for param in ['model', 'sf_extraction', 'stream_output', 'target_lang', 'max_token']:
+                            if param in self.modelconfig:
+                                dict['model_params'][param] = self.modelconfig[param]
+                        for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive']:
+                            if param in self.modelconfig:
+                                dict['perf_params'][param] = self.modelconfig[param]
+                        for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
+                            if param in self.modelconfig:
+                                dict['super_params'][param] = self.modelconfig[param]
                         dict.update(self.modelconfig)
                         logger.debug(dict)
                         message = json.dumps(dict, ensure_ascii=False) 
