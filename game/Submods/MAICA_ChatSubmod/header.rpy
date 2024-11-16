@@ -563,7 +563,10 @@ screen maica_advance_setting():
                                 value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
                                 xsize 600
                             textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
-                    
+
+                    hbox:
+                        text _("{size=-10}================偏好================")
+
                     hbox:
                         textbutton "tnd_aggressive":
                             action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
@@ -575,9 +578,6 @@ screen maica_advance_setting():
                                 value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 2, step=1,offset=0 ,style="slider")
                                 xsize 100
                             textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
-
-                    hbox:
-                        text _("{size=-10}================偏好================")
                     hbox:
                         textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
