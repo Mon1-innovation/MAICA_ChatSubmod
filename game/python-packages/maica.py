@@ -482,16 +482,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.info("_on_open")
         import time, threading, random
 
-        def update_modelconfig(dict):
-            for param in ['model', 'sf_extraction', 'stream_output', 'target_lang', 'max_token']:
-                if param in self.modelconfig:
-                    dict['model_params'][param] = self.modelconfig[param]
+        def build_setting_config():
+            self._check_modelconfig()
+            data = {}
+            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
             for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive']:
                 if param in self.modelconfig:
-                    dict['perf_params'][param] = self.modelconfig[param]
+                    data['perf_params'][param] = self.modelconfig[param]
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
-                    dict['super_params'][param] = self.modelconfig[param]
+                    data['super_params'][param] = self.modelconfig[param]
+            return data
+            
 
         def send_message():
             try:
@@ -511,9 +513,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message}
-                        self._check_modelconfig()
-                        update_modelconfig(dict)
-                        logger.debug(dict)
                         message = json.dumps(dict, ensure_ascii=False) 
                         #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                         self.wss_session.send(
@@ -522,9 +521,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
                         dict = {"chat_session":self.mspire_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
-                        logger.debug(dict)
-                        self._check_modelconfig()
-                        update_modelconfig(dict)
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
@@ -536,11 +532,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.send(self.ciphertext)
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
-                        self._check_modelconfig()
-                        update_modelconfig(dict)
                         self.wss_session.send(
-                            json.dumps(dict)
+                            json.dumps(build_setting_config())
                         )
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
@@ -554,11 +547,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         break 
                     # 发送设置, 切记仅在闲置时进行 
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
-                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
-                        self._check_modelconfig()
-                        update_modelconfig(dict)
                         self.wss_session.send(
-                            json.dumps(dict)
+                            json.dumps(build_setting_config())
                         )
                         self.status = self.MaicaAiStatus.WAIT_SETTING_RESPONSE
 
