@@ -577,8 +577,6 @@ screen maica_advance_setting():
                             textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
 
                     hbox:
-                        text ""
-                    hbox:
                         text _("{size=-10}================偏好================")
                     hbox:
                         textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
@@ -616,7 +614,7 @@ screen maica_advance_setting():
 
                         textbutton "post_additive":
                             action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
-                            hovered SetField(_tooltip, "value", _("相当于post_additive数值轮次的历史对话将被加入MTrigger.此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."))
+                            hovered SetField(_tooltip, "value", _("相当于post_additive数值轮次的历史对话将被加入MTrigger.\n此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("post_additive", False):
