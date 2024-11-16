@@ -5,9 +5,12 @@ init -1500 python:
     import maica_rss_provider
     maica_rss_provider.set_ua(maica_ver)
 
-init 5 python in maica:
-    import store
+default persistent._maica_updatelog_version_seen = 0
 
+init 5 python in maica:
+    import maica_rss_provider
+    update_info = maica_rss_provider.get_log()
+    import store
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use

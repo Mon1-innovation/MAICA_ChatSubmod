@@ -164,7 +164,7 @@ init 10 python:
         store.maica.maica.target_lang = persistent.maica_setting_dict["target_lang"]
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-        store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
+        store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.mas_submod_utils.getAndRunFunctions()
@@ -269,6 +269,8 @@ screen maica_setting_pane():
         import store.maica as maica
         stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.is_connected() else _("已断开")
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
+        log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
+
     vbox:
         xmaximum 800
         xfill True
@@ -331,8 +333,12 @@ screen maica_setting_pane():
         textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
             action Show("maica_setting")
         
-        textbutton _("> 更新日志与服务状态"):
-            action Show("maica_log")
+        if log_hasupdate:
+            textbutton _("> 更新日志与服务状态 {size=-10}*有新更新"):
+                action Show("maica_log")
+        else:
+            textbutton _("> 更新日志与服务状态"):
+                action Show("maica_log")
 
 screen maica_node_setting():
     python:
@@ -402,8 +408,8 @@ screen maica_node_setting():
 screen maica_log():
     python:
         submods_screen = store.renpy.get_screen("submods", "screens")
-        maica_log = maica_rss_provider.get_log()
-
+        maica_log = store.maica.update_info
+        persistent._maica_updatelog_version_seen = maica_log.get("version", persistent._maica_updatelog_version_seen)
         if submods_screen:
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
@@ -439,13 +445,13 @@ screen maica_log():
 
                     text "========================================================="
                     for content in maica_log.get("content"):
-                        text content
+                        text content:
+                            size 18
                         text "================================"
-                    hbox:
-
-                        textbutton _("关闭"):
-                            style_prefix "confirm"
-                            action Hide("maica_log")
+            hbox:
+                textbutton _("关闭"):
+                    style_prefix "confirm"
+                    action Hide("maica_log")
 
 
 screen maica_advance_setting():
@@ -627,13 +633,13 @@ screen maica_advance_setting():
 
 
                     
-                    hbox:
-                        style_prefix "confirm"
-                        textbutton _("保存设置"):
-                            action [
-                                Function(maica_apply_advanced_setting),
-                                Hide("maica_advance_setting")
-                            ]
+            hbox:
+                style_prefix "confirm"
+                textbutton _("保存设置"):
+                    action [
+                        Function(maica_apply_advanced_setting),
+                        Hide("maica_advance_setting")
+                    ]
                         
                         
             
@@ -758,7 +764,7 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("chat_session为0为单轮对话模式, 不同的对话之间相互独立, 需要分别上传存档"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        textbutton _("单session长度: "):
+                        textbutton _("会话长度: "):
                             action NullAction()
                         bar:
                             value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-5120,step=10,offset=5120 ,style="slider")
@@ -828,13 +834,13 @@ screen maica_setting():
 
                         textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
 
-                        textbutton _("使用会话: [persistent.maica_setting_dict.get('mspire_session')]"):
-                            action NullAction()
-                        bar:
-                            value DictValue(persistent.maica_setting_dict, "mspire_session", 9, step=1,offset=0 ,style="slider")
-                            xsize 50
-                            hovered SetField(_tooltip, "value", _("MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        #textbutton _("使用会话: [persistent.maica_setting_dict.get('mspire_session')]"):
+                        #    action NullAction()
+                        #bar:
+                        #    value DictValue(persistent.maica_setting_dict, "mspire_session", 9, step=1,offset=0 ,style="slider")
+                        #    xsize 50
+                        #    hovered SetField(_tooltip, "value", _("MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"))
+                        #    unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
                     hbox:
@@ -861,22 +867,21 @@ screen maica_setting():
                                 sensitive not persistent.maica_setting_dict.get('_event_pushed')
 
 
-                    hbox:
-                        style_prefix "confirm"
-
-                        textbutton _("保存设置"):
-                            action [
-                                SetDict(persistent.maica_setting_dict, "_event_pushed", False),
-                                Function(store.maica_apply_setting),
-                                Hide("maica_setting")
-                                ]
-                        textbutton _("重置设置"):
-                            action [
-                                Function(store.maica_reset_setting),
-                                Function(store.maica_apply_setting, ininit = True),
-                                Function(renpy.notify, _("设置已重置")),
-                                Hide("maica_setting")
-                            ]
+            hbox:
+                style_prefix "confirm"
+                textbutton _("保存设置"):
+                    action [
+                        SetDict(persistent.maica_setting_dict, "_event_pushed", False),
+                        Function(store.maica_apply_setting),
+                        Hide("maica_setting")
+                        ]
+                textbutton _("重置设置"):
+                    action [
+                        Function(store.maica_reset_setting),
+                        Function(store.maica_apply_setting, ininit = True),
+                        Function(renpy.notify, _("设置已重置")),
+                        Hide("maica_setting")
+                    ]
                 
                  
 
