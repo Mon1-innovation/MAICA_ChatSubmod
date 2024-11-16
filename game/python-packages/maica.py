@@ -486,7 +486,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self._check_modelconfig()
             data = {}
             data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
-            for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive']:
+            for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive']:
                 if param in self.modelconfig:
                     data['perf_params'][param] = self.modelconfig[param]
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:

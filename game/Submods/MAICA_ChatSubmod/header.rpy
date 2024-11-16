@@ -65,7 +65,9 @@ init 10 python:
         "sfe_aggressive":False,
         "tnd_aggressive":1,
         "esc_aggressive":True,
-        "nsfw_acceptive":False
+        "nsfw_acceptive":False,
+        "pre_additive":1,
+        "post_additive":1
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -478,9 +480,19 @@ screen maica_advance_setting():
                     xfill True
                     yfill False
                     hbox:
-                        text _("{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt#L81}{i}{u}MAICA 官方文档{/i}{/u}{/a}")
+                        text _("{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA 官方文档{/i}{/u}{/a}")
                     hbox:
                         text _("{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/i}{/u}{/a}")
+                    hbox:
+                        text _("{size=-10}注意: 只有已被勾选(标记了X)的高级设置才会被使用, 未使用的设置将使用服务端的默认设置")
+                    hbox:
+                        if not persistent.maica_setting_dict.get('use_custom_model_config'):
+                            text _("{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!")
+
+                    hbox:
+                        text ""
+                    hbox:
+                        text _("{size=-10}================超参数================")
 
                     hbox:
                         textbutton "top_p":
@@ -494,7 +506,6 @@ screen maica_advance_setting():
                                 xsize 200
                             
                             textbutton "[persistent.maica_advanced_setting.get('top_p', 'None')]"
-
 
                     hbox:
                         textbutton "temperature":
@@ -565,7 +576,10 @@ screen maica_advance_setting():
                                 xsize 100
                             textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
 
-                    
+                    hbox:
+                        text ""
+                    hbox:
+                        text _("{size=-10}================偏好================")
                     hbox:
                         textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
@@ -587,6 +601,32 @@ screen maica_advance_setting():
                                 ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
                             hovered SetField(_tooltip, "value", _("当nsfw_acceptive为true时会改变system指引, 使模型对NSFW场景更为宽容.\n 启用此功能可能提高特定场合表现, 但也可能会造成模型核心能力下降和注意力混乱.\n请注意, 目前为止MAICA尚未使用任何NSFW数据集进行训练, 因此nsfw_acceptive的效果十分薄弱.\n 此后或许会有针对性的改善."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                    hbox:
+                        textbutton "pre_additive":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "pre_additive")
+                            hovered SetField(_tooltip, "value", _("相当于pre_additive数值轮次的历史对话将被加入MFocus.\n此功能强度越高, 越可能提高MFocus在自然对话中的触发率, 但也越可能干扰MFocus的判断或导致其表现异常."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        if persistent.maica_advanced_setting_status.get("pre_additive", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "pre_additive", 5.0, step=1,offset=0 ,style="slider")
+                                xsize 50
+                            textbutton "[persistent.maica_advanced_setting.get('pre_additive', 'None')]"
+
+                        textbutton "post_additive":
+                            action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
+                            hovered SetField(_tooltip, "value", _("相当于post_additive数值轮次的历史对话将被加入MTrigger.此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        if persistent.maica_advanced_setting_status.get("post_additive", False):
+                            bar:
+                                value DictValue(persistent.maica_advanced_setting, "post_additive", 5.0, step=1,offset=0 ,style="slider")
+                                xsize 50
+                            textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
+
+
+
 
                     
                     hbox:
@@ -666,11 +706,11 @@ screen maica_setting():
                         text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
                     
                     hbox:
-                        text _("每个Session收到的Token: [store.maica.maica.stat.get('received_token_by_session')]")
+                        text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]")
 
                     hbox:
                         text _("当前用户: [store.maica.maica.user_acc]")
-                        
+
                     hbox:
                     
                         textbutton _("重置统计数据"):
