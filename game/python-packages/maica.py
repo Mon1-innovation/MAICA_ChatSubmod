@@ -272,6 +272,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "message_count":0,
             "received_token":0,
             "mspire_count":0,
+            "received_token_by_session":[0] * (self.MAX_CHATSESSION+1),
         }
     def send_to_outside_func(self, content):
         content = u"{}".format(content)
@@ -543,6 +544,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.send(
                             json.dumps({"chat_session":self.chat_session, "purge":True})
                         )
+                        self.stat["received_token_by_session"][self.chat_session] = 0
                         self.status = self.MaicaAiStatus.SESSION_RESETED
                         self.wss_session.close()
                         break 
@@ -622,6 +624,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
+                self.stat["received_token_by_session"][self.chat_session] += 1
                 self._received = self._received + data['content']
                 if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
                     isnum = 0

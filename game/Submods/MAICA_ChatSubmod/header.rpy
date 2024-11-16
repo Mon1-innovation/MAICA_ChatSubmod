@@ -664,6 +664,9 @@ screen maica_setting():
 
                     hbox:
                         text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
+                    
+                    hbox:
+                        text _("每个Session收到的Token: [store.maica.maica.stat.get('received_token_by_session')]")
                     hbox:
                     
                         textbutton _("重置统计数据"):
