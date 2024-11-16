@@ -265,6 +265,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.provider_id = None
         self.is_outdated = None
         self.max_history_token = 28672
+        self._in_mspire = False
+
 
 
     def reset_stat(self):
@@ -474,6 +476,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica server not serving.")
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
+        self._in_mspire = True
+
     def _on_open(self, wsapp):
         logger.info("_on_open")
         import time, threading, random
@@ -624,7 +628,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
-                self.stat["received_token_by_session"][self.chat_session] += 1
+                self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
                 self._received = self._received + data['content']
                 if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
                     isnum = 0
@@ -648,6 +652,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
             if data['status'] == "streaming_done":
+                self._in_mspire = False
                 if len(self._received)- 1 - self._pos > 2:
                     raw_message = self._received[self._pos:]
                     res = self.MoodStatus.analyze(raw_message)
