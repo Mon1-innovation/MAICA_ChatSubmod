@@ -50,7 +50,7 @@ init 10 python:
         "mspire_session":0,
         "log_level":logging.DEBUG,
         "provider_id":1,
-
+        "max_history_token":28672
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -164,6 +164,7 @@ init 10 python:
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
+        store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
@@ -711,6 +712,15 @@ screen maica_setting():
                             action Function(store.change_chatsession)
                             hovered SetField(_tooltip, "value", _("chat_session为0为单轮对话模式, 不同的对话之间相互独立, 需要分别上传存档"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        textbutton _("单session长度: [persistent.maica_setting_dict.get('max_history_token')]")
+                            action NullAction()
+                        bar:
+                            value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-5120, step=10,offset=5120 ,style="slider")
+                            xsize 450
+                            hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
 
                     hbox:
                         textbutton _("输出到控制台: [persistent.maica_setting_dict.get('console')]"):

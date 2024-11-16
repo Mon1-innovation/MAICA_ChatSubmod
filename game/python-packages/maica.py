@@ -264,6 +264,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.in_mas = True
         self.provider_id = None
         self.is_outdated = None
+        self.max_history_token = 28672
 
 
     def reset_stat(self):
@@ -493,8 +494,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message}
-                        #self._check_modelconfig()
-                        #dict.update(self.modelconfig)
+                        self._check_modelconfig()
+                        dict["super_params"] = self.modelconfig
+                        dict.update(self.modelconfig)
                         logger.debug(dict)
                         message = json.dumps(dict, ensure_ascii=False) 
                         #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
@@ -506,6 +508,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         dict = {"chat_session":self.mspire_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
                         logger.debug(dict)
                         self._check_modelconfig()
+                        dict["super_params"] = self.modelconfig
                         dict.update(self.modelconfig)
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         self.wss_session.send(
@@ -518,7 +521,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.send(self.ciphertext)
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
+                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
                         self.wss_session.send(
@@ -535,7 +538,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         break 
                     # 发送设置, 切记仅在闲置时进行 
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
-                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang}
+                        dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
                         self._check_modelconfig()
                         dict.update(self.modelconfig)
                         self.wss_session.send(
