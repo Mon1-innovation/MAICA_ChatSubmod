@@ -713,13 +713,14 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("chat_session为0为单轮对话模式, 不同的对话之间相互独立, 需要分别上传存档"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        textbutton _("单session长度: [persistent.maica_setting_dict.get('max_history_token')]")
+                        textbutton _("单session长度: "):
                             action NullAction()
                         bar:
-                            value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-5120, step=10,offset=5120 ,style="slider")
+                            value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-5120,step=10,offset=5120 ,style="slider")
                             xsize 450
                             hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                        textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
 
 
                     hbox:
