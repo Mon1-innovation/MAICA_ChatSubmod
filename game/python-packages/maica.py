@@ -476,6 +476,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _on_open(self, wsapp):
         logger.info("_on_open")
         import time, threading, random
+
+        def update_modelconfig(dict):
+            for param in ['model', 'sf_extraction', 'stream_output', 'target_lang', 'max_token']:
+                if param in self.modelconfig:
+                    dict['model_params'][param] = self.modelconfig[param]
+            for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive']:
+                if param in self.modelconfig:
+                    dict['perf_params'][param] = self.modelconfig[param]
+            for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
+                if param in self.modelconfig:
+                    dict['super_params'][param] = self.modelconfig[param]
+
         def send_message():
             try:
                 import json
@@ -495,16 +507,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message}
                         self._check_modelconfig()
-                        for param in ['model', 'sf_extraction', 'stream_output', 'target_lang', 'max_token']:
-                            if param in self.modelconfig:
-                                dict['model_params'][param] = self.modelconfig[param]
-                        for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive']:
-                            if param in self.modelconfig:
-                                dict['perf_params'][param] = self.modelconfig[param]
-                        for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
-                            if param in self.modelconfig:
-                                dict['super_params'][param] = self.modelconfig[param]
-                        dict.update(self.modelconfig)
+                        update_modelconfig(dict)
                         logger.debug(dict)
                         message = json.dumps(dict, ensure_ascii=False) 
                         #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
@@ -516,8 +519,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         dict = {"chat_session":self.mspire_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
                         logger.debug(dict)
                         self._check_modelconfig()
-                        dict["super_params"] = self.modelconfig
-                        dict.update(self.modelconfig)
+                        update_modelconfig(dict)
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
@@ -531,7 +533,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                         dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
                         self._check_modelconfig()
-                        dict.update(self.modelconfig)
+                        update_modelconfig(dict)
                         self.wss_session.send(
                             json.dumps(dict)
                         )
@@ -548,7 +550,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
                         dict = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
                         self._check_modelconfig()
-                        dict.update(self.modelconfig)
+                        update_modelconfig(dict)
                         self.wss_session.send(
                             json.dumps(dict)
                         )
