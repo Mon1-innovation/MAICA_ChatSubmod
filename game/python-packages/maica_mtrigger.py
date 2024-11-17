@@ -40,6 +40,12 @@ class MTriggerManager:
     
     def add_trigger(self, trigger):
         self.triggers.append(trigger)
+    
+    def build_data(self):
+        res = []
+        for i in self.triggers:
+            res.append(i.build())
+        return res
 
     def triggered(self, name = "", param=None):
         for t in self.triggers:
@@ -66,6 +72,7 @@ class MTriggerBase(object):
         self.callback = callback
         self.action = action
         self.exprop = exprop
+        self.description = description if description != "" else self.name
 
     def build(self):
         return {

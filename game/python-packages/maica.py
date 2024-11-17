@@ -516,7 +516,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         else:
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
-                        dict = {"chat_session":self.chat_session, "query":message}
+                        dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data()}
                         message = json.dumps(dict, ensure_ascii=False) 
                         #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
                         self.wss_session.send(
