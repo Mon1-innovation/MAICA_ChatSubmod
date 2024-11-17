@@ -58,7 +58,7 @@ def null_callback(*args,**kwargs):
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh, usage_en, callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop()):
+    def __init__(self, template, name, usage_zh, usage_en, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop()):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en

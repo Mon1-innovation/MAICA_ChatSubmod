@@ -7,7 +7,7 @@ def print_callback(param):
 
 class AffTrigger(MTriggerBase):
     def __init__(self, template, name, callback):
-        super().__init__(template, name, "triggered aff", "triggered aff", callback)
+        super().__init__(template, name, "triggered aff", "triggered aff", callback=callback)
     
     def triggered(self, data):
         return self.callback(data.get("affection", 0.2))
