@@ -67,7 +67,8 @@ init 10 python:
         "esc_aggressive":True,
         "nsfw_acceptive":False,
         "pre_additive":1,
-        "post_additive":1
+        "post_additive":1,
+        "amt_aggressive":True
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -628,6 +629,13 @@ screen maica_advance_setting():
                                 value DictValue(persistent.maica_advanced_setting, "post_additive", 5, step=1,offset=0 ,style="slider")
                                 xsize 50
                             textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
+
+                        textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
+                            action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
+                                ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
+                            hovered SetField(_tooltip, "value", _("当amt_aggressive为true时会要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
 
 
 
