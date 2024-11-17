@@ -4,7 +4,20 @@ class MTriggerAction:
     post = 1
 
 class MTriggerExprop:
-    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=0):
+    """
+    注意: 所有的值都有默认值, 如有需要请务必修改
+    """
+    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=None):
+        """
+        初始化函数。
+        
+        Args:
+            item_name_zh (str): 中文选择类目的性质。
+            item_name_en (str): 英文选择类目的性质。
+            item_list (list): 所有可选条目的list。
+            value_limits (list): 数值可取的上下限。
+            curr_value (Any, optional): 当前值，默认为None。
+        """
         self.item_name_zh = item_name_zh
         self.item_name_en = item_name_en
         self.item_list = item_list
