@@ -622,7 +622,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             if data['status'] == "mtrigger_trigger":
                 self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
-                #self.mtrigger_manager.run_trigger(MTriggerAction.instant)
+                self.mtrigger_manager.run_trigger(MTriggerAction.instant)
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
