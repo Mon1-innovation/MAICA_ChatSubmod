@@ -544,12 +544,12 @@ label maica_main:
         m 3hub "既然没有'树林'了, 这里会是'天堂'吗? {w=0.3}哈哈~"
         m 1eua "那么, 你想和我聊点什么呢?"
     
-label .talking_start
+label .talking_start:
     call maica_talking
     # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
     if _return == "canceled":
         m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
-    elif _return == "mtrigger_triggering":
+    elif _return == "mtrigger_triggering" or store.maica.maica.mtrigger_manager._running:
         jump .talking_start
 
     else:

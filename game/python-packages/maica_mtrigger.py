@@ -38,11 +38,13 @@ class MTriggerManager:
     def __init__(self):
         self.triggers = []
         self.triggered_list = []
+        self._running = False
     
     def add_trigger(self, trigger):
         self.triggers.append(trigger)
     
     def build_data(self):
+        self._running = False
         res = []
         for i in self.triggers:
             res.append(i.build())
@@ -54,6 +56,7 @@ class MTriggerManager:
                 self.triggered_list.append((t, param))
 
     def run_trigger(self, action=MTriggerAction.post, remove=True):
+        self._running = True
         for t in self.triggered_list:
             if t[0].action == action:
                 if remove:

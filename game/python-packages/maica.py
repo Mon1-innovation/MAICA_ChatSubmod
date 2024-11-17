@@ -609,6 +609,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if data["status"] == "nickname":
             self.user_acc = data["content"]
             logger.info("maica: Login as '{}'".format(self.user_acc))
+        if data['status'] == "mtrigger_trigger":
+            self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
+            self.mtrigger_manager.run_trigger(MTriggerAction.instant)
+
 
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
@@ -620,9 +624,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
-            if data['status'] == "mtrigger_trigger":
-                self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
-                self.mtrigger_manager.run_trigger(MTriggerAction.instant)
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
@@ -782,6 +783,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session.send(
             json.dumps({"chat_session":self.chat_session, "purge":True})
         )
+        self.stat["received_token_by_session"][self.chat_session] = 0
         self.status = self.MaicaAiStatus.SESSION_RESETED
         self.history_status = None
         self.wss_session.close()
