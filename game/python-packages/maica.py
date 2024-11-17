@@ -5,6 +5,8 @@ import bot_interface
 import emotion_analyze_v2
 
 import websocket
+import maica_mtrigger
+from maica_mtrigger import MTriggerAction
 websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
 
@@ -266,6 +268,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.is_outdated = None
         self.max_history_token = 28672
         self._in_mspire = False
+        self.mtrigger_manager = maica_mtrigger.MTriggerManager()
+
 
 
 
@@ -616,6 +620,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
+            if data['status'] == "mtrigger_trigger":
+                self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
+                self.mtrigger_manager.run_trigger(MTriggerAction.instant)
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1

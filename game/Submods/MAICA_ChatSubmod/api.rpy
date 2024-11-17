@@ -176,7 +176,6 @@ init 5 python in maica:
         else:
             store.mas_unlockEVL("maica_greeting", "GRE")
                 
-                
 
 init -700 python:
     maica_can_update_cacert = False

@@ -1,0 +1,77 @@
+
+class MTriggerAction:
+    instant = 0
+    post = 1
+
+class MTriggerExprop:
+    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=0):
+        self.item_name_zh = item_name_zh
+        self.item_name_en = item_name_en
+        self.item_list = item_list
+        self.value_limits = value_limits
+        self.curr_value = curr_value
+
+class MTriggerTemplate(object):
+    def __init__(self, name, datakey=None):
+        pass
+
+common_affection_template = MTriggerTemplate("common_affection_template", "affection")
+common_switch_template = MTriggerTemplate("common_switch_template", "selection")
+common_meter_template = MTriggerTemplate("common_meter_template", "value")
+customize_template = MTriggerTemplate("customize", None)
+
+class MTriggerManager:
+    def __init__(self):
+        self.triggers = []
+        self.triggered_list = []
+    
+    def add_trigger(self, trigger):
+        self.triggers.append(trigger)
+
+    def triggered(self, name = "", param=None):
+        for t in self.triggers:
+            if t.name == name:
+                self.triggered_list.append((t, param))
+
+    def run_trigger(self, action=MTriggerAction.post, remove=True):
+        for t in self.triggered_list:
+            if t[0].action == action:
+                t[0].triggered(t[1])
+                if remove:
+                    self.triggered_list.remove(t)
+
+def null_callback(*args,**kwargs):
+    pass
+
+class MTriggerBase(object):
+
+    def __init__(self, template, name, usage_zh, usage_en, callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop()):
+        self.name = name
+        self.usage_zh = usage_zh
+        self.usage_en = usage_en
+        self.template = template
+        self.callback = callback
+        self.action = action
+        self.exprop = exprop
+
+    def build(self):
+        return {
+            "template": self.template.name,
+            "name": self.name,
+            "usage":{
+                "zh": self.usage_zh,
+                "en": self.usage_en
+            },
+            "exprop":{
+                "item_name":{
+                    "zh": self.exprop.item_name_zh,
+                    "en": self.exprop.item_name_en
+                },
+                "item_list": self.exprop.item_list,
+                "value_limits": self.exprop.value_limits,
+                "curr_value": self.exprop.curr_value
+            }
+        }
+    
+    def triggered(self, data={}):
+        return self.callback(data.get(self.template.datakey))

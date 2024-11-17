@@ -6,6 +6,7 @@ label maica_talking(mspire = False):
         import time
         import copy
         from store.maica import maica as ai
+        from maica_mtrigger import MTriggerAction 
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
         if mspire:
@@ -117,6 +118,7 @@ label maica_talking(mspire = False):
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(e))
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
+            ai.mtrigger_manager.run_trigger(MTriggerAction.post)
             if mspire:
                 _return = "canceled"
                 afm_pref = renpy.game.preferences.afm_enable
