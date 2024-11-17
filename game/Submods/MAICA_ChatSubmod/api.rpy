@@ -5,9 +5,12 @@ init -1500 python:
     import maica_rss_provider
     maica_rss_provider.set_ua(maica_ver)
 
-init 5 python in maica:
-    import store
+default persistent._maica_updatelog_version_seen = 0
 
+init 5 python in maica:
+    import maica_rss_provider
+    update_info = maica_rss_provider.get_log()
+    import store
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use
@@ -68,6 +71,14 @@ init 5 python in maica:
         on_change=change_token,
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    maica.ascii_icon = """                                                             
+    __  ___ ___     ____ ______ ___ 
+   /  |/  //   |   /  _// ____//   |
+  / /|_/ // /| |   / / / /    / /| |
+ / /  / // ___ | _/ / / /___ / ___ |
+/_/  /_//_/  |_|/___/ \____//_/  |_|  v{}
+
+""".format(store.maica_ver)
 
     #maica.update_screen_func = renpy.pause
     if store.persistent.maica_stat is None:
@@ -172,7 +183,6 @@ init 5 python in maica:
             store.mas_lockEVL("maica_main", "EVE")
         else:
             store.mas_unlockEVL("maica_greeting", "GRE")
-                
                 
 
 init -700 python:

@@ -23,18 +23,21 @@ def get_log():
     import traceback
     data = {
         "title": "",
-        "content": []
+        "content": [],
+        "ver":0
     }
     try:
         feed = feedparser.parse(feed_url)
         for item in feed.entries:
             data["title"] = item['title']
             data["content"].append(remove_html_tags(item['summary']))
+            data["ver"] = int(item['link'].split('/')[-1])
         
         return data
     except Exception as e: 
         data["title"] = "An Exception is occurred"
         data["content"].append(traceback.format_exc())
+        data["ver"] = 0
     return data 
 
 
