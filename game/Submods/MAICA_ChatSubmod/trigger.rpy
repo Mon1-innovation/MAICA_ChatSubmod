@@ -16,7 +16,7 @@ init 999 python in maica:
         elif affection > 0:
             store.mas_gainAffection(affection)
 
-    aff_trigger = AffTrigger(common_affection_template, "aff", callback=aff_callback)
+    aff_trigger = AffTrigger(common_affection_template, "alter_affection", callback=aff_callback)
     maica.mtrigger_manager.add_trigger(aff_trigger)
 
 
