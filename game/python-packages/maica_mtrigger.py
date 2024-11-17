@@ -1,7 +1,7 @@
 
 class MTriggerAction:
-    instant = 0
-    post = 1
+    instant = 0     #收到以后立刻触发
+    post = 1        #当前轮对话结束后触发
 
 class MTriggerExprop:
     """
@@ -26,7 +26,8 @@ class MTriggerExprop:
 
 class MTriggerTemplate(object):
     def __init__(self, name, datakey=None):
-        pass
+        self.name = name
+        self.datakey = datakey
 
 common_affection_template = MTriggerTemplate("common_affection_template", "affection")
 common_switch_template = MTriggerTemplate("common_switch_template", "selection")
@@ -55,9 +56,10 @@ class MTriggerManager:
     def run_trigger(self, action=MTriggerAction.post, remove=True):
         for t in self.triggered_list:
             if t[0].action == action:
-                t[0].triggered(t[1])
                 if remove:
                     self.triggered_list.remove(t)
+                t[0].triggered(t[1])
+                
 
 def null_callback(*args,**kwargs):
     pass

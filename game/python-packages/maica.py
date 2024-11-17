@@ -18,7 +18,7 @@ class MaicaAi(ChatBotInterface):
    /  |/  //   |   /  _// ____//   |
   / /|_/ // /| |   / / / /    / /| |
  / /  / // ___ | _/ / / /___ / ___ |
-/_/  /_//_/  |_|/___/ \____//_/  |_|
+/_/  /_//_/  |_|/___/ \____//_/  |_| v
                                     
 """
     class MaicaAiModel:
@@ -483,7 +483,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._in_mspire = True
 
     def _on_open(self, wsapp):
-        logger.info("_on_open")
         import time, threading, random
 
         def build_setting_config():
@@ -518,7 +517,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data()}
                         message = json.dumps(dict, ensure_ascii=False) 
-                        #print(f"_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {message}")
+                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
+
                         self.wss_session.send(
                             message
                         )   
@@ -608,7 +608,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.wss_session.close()
         if data["status"] == "nickname":
             self.user_acc = data["content"]
-            logger.info("Login as '{}'".format(self.user_acc))
+            logger.info("maica: Login as '{}'".format(self.user_acc))
 
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
@@ -622,7 +622,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             if data['status'] == "mtrigger_trigger":
                 self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
-                self.mtrigger_manager.run_trigger(MTriggerAction.instant)
+                #self.mtrigger_manager.run_trigger(MTriggerAction.instant)
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1

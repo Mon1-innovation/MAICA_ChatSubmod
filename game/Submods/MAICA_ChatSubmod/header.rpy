@@ -614,7 +614,7 @@ screen maica_advance_setting():
                         
                         if persistent.maica_advanced_setting_status.get("pre_additive", False):
                             bar:
-                                value DictValue(persistent.maica_advanced_setting, "pre_additive", 5.0, step=1,offset=0 ,style="slider")
+                                value DictValue(persistent.maica_advanced_setting, "pre_additive", 5, step=1,offset=0 ,style="slider")
                                 xsize 50
                             textbutton "[persistent.maica_advanced_setting.get('pre_additive', 'None')]"
 
@@ -625,7 +625,7 @@ screen maica_advance_setting():
                         
                         if persistent.maica_advanced_setting_status.get("post_additive", False):
                             bar:
-                                value DictValue(persistent.maica_advanced_setting, "post_additive", 5.0, step=1,offset=0 ,style="slider")
+                                value DictValue(persistent.maica_advanced_setting, "post_additive", 5, step=1,offset=0 ,style="slider")
                                 xsize 50
                             textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
 
@@ -936,7 +936,7 @@ screen maica_login():
                 textbutton _("取消"):
                     action [Function(_maica_clear), Hide("maica_login")]
             hbox:
-                text _("※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}")
+                text _("{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}")
 
 
 

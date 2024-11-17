@@ -115,6 +115,7 @@ label maica_talking(mspire = False):
                 renpy.show(u"monika {}".format(message[0]))
                 try:
                     renpy.say(m, message[1])
+                    ai.mtrigger_manager.run_trigger(MTriggerAction.instant)
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(e))
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))

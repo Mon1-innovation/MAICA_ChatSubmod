@@ -71,6 +71,14 @@ init 5 python in maica:
         on_change=change_token,
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    maica.ascii_icon = """                                                             
+    __  ___ ___     ____ ______ ___ 
+   /  |/  //   |   /  _// ____//   |
+  / /|_/ // /| |   / / / /    / /| |
+ / /  / // ___ | _/ / / /___ / ___ |
+/_/  /_//_/  |_|/___/ \____//_/  |_|  v{}
+
+""".format(store.maica_ver)
 
     #maica.update_screen_func = renpy.pause
     if store.persistent.maica_stat is None:
