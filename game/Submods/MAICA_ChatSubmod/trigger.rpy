@@ -19,6 +19,7 @@ init 999 python in maica:
     aff_trigger = AffTrigger(common_affection_template, "alter_affection", callback=aff_callback)
     maica.mtrigger_manager.add_trigger(aff_trigger)
 
+#################################################################################
 
     class ClothesTrigger(MTriggerBase):
         def __init__(self, template, name):
@@ -58,6 +59,7 @@ init 999 python in maica:
     clothes_trigger = ClothesTrigger(common_switch_template, "clothes")
     maica.mtrigger_manager.add_trigger(clothes_trigger)
 
+#################################################################################
 
     unlocked_games_dict = {
         ev.prompt: ev.eventlabel
@@ -68,7 +70,7 @@ init 999 python in maica:
     def minigame_callback(item):
         maica.send_to_outside_func("<mtrigger> minigame_callback called")
         game_label = unlocked_games_dict[item]
-        renpy.call(game_label)
+        store.renpy.call(game_label)
     
     minigame_trigger = MTriggerBase(common_switch_template, "minigame", "玩小游戏", "play minigame", callback=minigame_callback,
         exprop=MTriggerExprop(
@@ -76,8 +78,10 @@ init 999 python in maica:
             item_name_en="minigame",
             item_list=unlocked_games_dict.keys(),
         ))
+    maica.mtrigger_manager.add_trigger(minigame_trigger)
     
 
+#################################################################################
 
 
 
