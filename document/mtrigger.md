@@ -10,8 +10,8 @@ from maica_mtrigger import *
 example_mtrigger = MTriggerBase(
     template,
     name,
-    usage_zh,
-    usage_en,
+    usage_zh="",
+    usage_en="",
     description = "",
     callback=null_callback,
     action=MTriggerAction.post,
