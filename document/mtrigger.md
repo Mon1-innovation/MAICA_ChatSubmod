@@ -85,3 +85,15 @@ example_mtrigger = MTriggerBase(
 
 * `condition`
   * 触发器条件, 默认为`null_condition`, 只有当`condition`的函数返回为`True`时, 触发器才会提交给模型. 默认情况下将永远返回True
+
+通过将`example_mtrigger`添加到`Maica`实例中即可使用该触发器：
+
+```python
+maica_instance.mtrigger_manager.add_trigger(clothes_trigger)
+```
+
+你可以用以下方式找到`Maica`实例
+
+```python
+maica_instance = store.maica.maica
+```
