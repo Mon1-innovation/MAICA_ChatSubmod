@@ -487,7 +487,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         def build_setting_config():
             self._check_modelconfig()
-            data = {}
+            data = {
+                "model_params":{},
+                "perf_params":{},
+                "super_params":{}
+            }
             data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
             for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
                 if param in self.modelconfig:
