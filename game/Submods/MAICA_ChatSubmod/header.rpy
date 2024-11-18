@@ -405,6 +405,60 @@ screen maica_node_setting():
                             style_prefix "confirm"
                             action Hide("maica_node_setting")
 
+screen maica_triggers():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+        maica_triggers = store.maica.maica.mtrigger_manager
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+
+                    for trigger in maica_triggers.triggers:
+                        label trigger.name
+                        text trigger.description:
+                            size 15
+                        
+                        hbox:
+                            if maica_triggers.trigger_status(trigger.name):
+                                textbutton _("√ 已启用"):
+                                    action Function(maica_triggers.disable_trigger, trigger.name)
+                            else:
+                                textbutton _("× 已禁用"):
+                                    action Function(maica_triggers.enable_trigger, trigger.name)
+                            
+                            if not trigger.condition():
+                                textbutton _("※ 当前不满足触发条件")
+
+            hbox:
+                style_prefix "confirm"
+                textbutton _("关闭"):
+                    action Hide("maica_triggers")
+
 
 screen maica_log():
     python:
@@ -857,6 +911,9 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
+                    hbox:
+                        textbutton _("MTrigger 列表"):
+                            action Show("maica_triggers")
 
 
                     if renpy.config.debug:

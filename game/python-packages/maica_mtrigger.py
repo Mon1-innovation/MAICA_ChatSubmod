@@ -38,17 +38,35 @@ class MTriggerManager:
     def __init__(self):
         self.triggers = []
         self.triggered_list = []
+        self.enable_map = {}
         self._running = False
     
     def add_trigger(self, trigger):
         self.triggers.append(trigger)
+        self.enable_map[trigger.name] = True
     
+    def enable_trigger(self, name, enable=True):
+        self.enable_map[name] = enable
+    
+    def disable_trigger(self, name):
+        self.enable_trigger(name, False)
+    
+    def remove_trigger(self, name):
+        for i in self.triggers:
+            if i.name == name:
+                self.triggers.remove(i)
+
+
+    def trigger_status(self, name):
+        return self.enable_map[name] if name in self.enable_map else False
+    
+
     def build_data(self):
         self.triggered_list.clear()
         self._running = False
         res = []
         for i in self.triggers:
-            if i.condition():
+            if i.condition() and self.trigger_status(i.name):
                 res.append(i.build())
         return res
 

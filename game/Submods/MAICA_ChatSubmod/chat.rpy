@@ -550,7 +550,7 @@ label .talking_start:
     if _return == "canceled":
         m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
     elif store.maica.maica.mtrigger_manager._running:
-        store.maica.maica.mtrigger_manager._running = False
+        $ store.maica.maica.mtrigger_manager._running = False
         jump .talking_start
     else:
         if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:

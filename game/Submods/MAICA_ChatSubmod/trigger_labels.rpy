@@ -19,3 +19,14 @@ label mtrigger_kiss:
     if mas_shouldKiss(1):
         call monika_kissing_motion_short
     return 
+
+label mtrigger_leave: 
+    m "你要离开了吗, [player]?"
+    menu:
+        "是的.":
+            m 1eka "一会见, [player]!"
+            return "quit"
+        "再过一会吧":
+            m 1eka "谢谢你多陪我一会, [player]."
+            return
+    return "quit"
