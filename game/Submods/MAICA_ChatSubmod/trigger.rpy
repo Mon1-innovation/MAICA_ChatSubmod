@@ -48,15 +48,11 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             maica.send_to_outside_func("<mtrigger> clothes_callback called")
+            if not clothes in self.clothes_data:
+                maica.send_to_outside_func("<mtrigger> {} is not a vaild outfit", clothes)
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid outfit".format(clothes))
+                return
             return store.renpy.call("mtrigger_change_clothes", clothes)
-            outfit_name = self.clothes_data[clothes]
-            outfit_to_wear = store.mas_sprites.get_sprite(
-                store.mas_sprites.SP_CLOTHES,
-                outfit_name
-            )
-            if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
-                pass
-                #store.monika_chr.change_clothes(outfit_to_wear, by_user=True, outfit_mode=True)
 
     clothes_trigger = ClothesTrigger(common_switch_template, "clothes")
     maica.mtrigger_manager.add_trigger(clothes_trigger)
@@ -70,7 +66,11 @@ init 999 python in maica:
     }
 
     def minigame_callback(item):
-        maica.send_to_outside_func("<mtrigger> minigame_callback called")
+        
+        if not item in unlocked_games_dict:
+            maica.send_to_outside_func("<mtrigger> {} is not a vaild minigame", item)
+            store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
+            return
         game_label = unlocked_games_dict[item]
         store.renpy.call(game_label)
     
@@ -101,33 +101,35 @@ init 999 python in maica:
 
     def mtrigger_leave_callback():
         store.renpy.call("mtrigger_leave")
-    leave_trigger = MTriggerBase(customize_template, "leave", callback=store.renpy.mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
+    leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
     maica.mtrigger_manager.add_trigger(leave_trigger)
 
 #################################################################################
 
     class WeatherTrigger(MTriggerBase):
-        def __init__(self, template, name):
+        def __init__(self):
             self.weathers = self.get_weather_dict()
+            self.weathers_list = self.get_weather_list()
             super(WeatherTrigger, self).__init__(
                 common_switch_template,
                 "weather",
                 exprop=MTriggerExprop(
                     item_name_zh="天气",
                     item_name_en="weather",
-                    item_list=self.weathers,
-                    curr_value=store.mas_current_weather
-                )
+                    item_list=self.weathers_list,
+                    curr_value=store.mas_current_weather.prompt
+                ),
                 callback = self.callback,
                 description = _("内置 | 更换天气"),
                 condition = self.condition
             )
 
         def condition(self):
-            return mas_isMoniAff(higher=True)
+            return store.mas_isMoniAff(higher=True)
             
         def build(self):
             self.weathers = self.get_weather_dict()
+            self.weathers_list = self.get_weather_list()
             return super(WeatherTrigger, self).build()
 
         def get_weather_list(self):
@@ -137,7 +139,7 @@ init 999 python in maica:
             import store.mas_weather as mas_weather
 
             # Default weather at the top
-            weathers = {mas_weather_def.prompt: mas_weather_def}
+            weathers = {store.mas_weather_def.prompt: store.mas_weather_def}
 
             # Build and sort other weather list
             other_weathers = {
@@ -153,6 +155,10 @@ init 999 python in maica:
             return weathers
 
         def callback(self, selection):
+            if not selection in self.weathers_list:
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid weather!".format(selection))
+                maica.send_to_outside_func("<mtrigger> {} is not a valid weather!".format(selection))
+                return
             weather = self.weathers[selection]
             store.renpy.call("mas_change_weather", weather, by_user=True, set_persistent=True)
     weather_trigger = WeatherTrigger()

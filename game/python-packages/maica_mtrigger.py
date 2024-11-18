@@ -62,7 +62,7 @@ class MTriggerManager:
     
 
     def build_data(self):
-        self.triggered_list.clear()
+        self.triggered_list = []
         self._running = False
         res = []
         for i in self.triggers:
