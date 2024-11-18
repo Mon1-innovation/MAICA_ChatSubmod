@@ -62,6 +62,7 @@ class MTriggerManager:
                 if remove:
                     self.triggered_list.remove(t)
                 t[0].triggered(t[1])
+        self._running = False
                 
 
 def null_callback(*args,**kwargs):
