@@ -90,7 +90,7 @@ example_mtrigger = MTriggerBase(
 通过将`example_mtrigger`添加到`Maica`实例中即可使用该触发器：
 
 ```python
-maica_instance.mtrigger_manager.add_trigger(clothes_trigger)
+maica_instance.mtrigger_manager.add_trigger(example_mtrigger)
 ```
 
 你可以用以下方式找到`Maica`实例
