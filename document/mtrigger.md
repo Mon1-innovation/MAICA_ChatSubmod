@@ -29,8 +29,8 @@ example_mtrigger = MTriggerBase(
 
 参数解析：
 
-* `template` **必填**
-  所使用的template模板, 目前有`common_affection_template`(通用好感度), `common_switch_template`(通用选择模板), `common_meter_template`(通用调整模板), `customize_template`(自定义模板)
+* `template` **必填**  
+  * 所使用的template模板, 目前有`common_affection_template`(通用好感度), `common_switch_template`(通用选择模板), `common_meter_template`(通用调整模板), `customize_template`(自定义模板)
   
 
   * `common_affection_template`
