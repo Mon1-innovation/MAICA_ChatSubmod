@@ -636,7 +636,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     isnum = 0
                 else:
                     isnum = is_precisely_a_talk(self._received[self._pos:])
-                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum))
+                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum)) if isnum else None
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
                     res = self.MoodStatus.analyze(raw_message)

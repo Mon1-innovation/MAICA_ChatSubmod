@@ -549,9 +549,9 @@ label .talking_start:
     # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
     if _return == "canceled":
         m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
-    elif _return == "mtrigger_triggering" or store.maica.maica.mtrigger_manager._running:
+    elif store.maica.maica.mtrigger_manager._running:
+        store.maica.maica.mtrigger_manager._running = False
         jump .talking_start
-
     else:
         if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
             m 2rusdlb "...好像你的令牌还没有设置好."

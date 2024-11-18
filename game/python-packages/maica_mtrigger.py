@@ -44,6 +44,7 @@ class MTriggerManager:
         self.triggers.append(trigger)
     
     def build_data(self):
+        self.triggered_list.clear()
         self._running = False
         res = []
         for i in self.triggers:
