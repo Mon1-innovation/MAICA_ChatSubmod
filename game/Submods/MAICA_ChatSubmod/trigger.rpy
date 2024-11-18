@@ -83,6 +83,16 @@ init 999 python in maica:
 
 #################################################################################
 
+    def mtrigger_kiss_condition():
+        return store.mas_shouldKiss(1)
+
+    def mtrigger_kiss_callback():
+        store.renpy.call("mtrigger_kiss")
+
+    kiss_trigger = MTriggerBase(customize_template, "kiss", "亲吻", "kiss", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback)
+    maica.mtrigger_manager.add_trigger(kiss_trigger)
+
+#################################################################################
 
 
 

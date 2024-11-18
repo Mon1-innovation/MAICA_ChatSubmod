@@ -47,7 +47,8 @@ class MTriggerManager:
         self._running = False
         res = []
         for i in self.triggers:
-            res.append(i.build())
+            if i.condition():
+                res.append(i.build())
         return res
 
     def triggered(self, name = "", param=None):
@@ -68,9 +69,12 @@ class MTriggerManager:
 def null_callback(*args,**kwargs):
     pass
 
+def null_condition():
+    return True
+
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh, usage_en, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop()):
+    def __init__(self, template, name, usage_zh, usage_en, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en
@@ -79,6 +83,7 @@ class MTriggerBase(object):
         self.action = action
         self.exprop = exprop
         self.description = description if description != "" else self.name
+        self.condition = condition
 
     def build(self):
         return {
