@@ -64,6 +64,7 @@ example_mtrigger = MTriggerBase(
 * `callback`
   * 触发器回调函数, 默认为`null_callback`, 当触发器触发时, 执行该函数
   * 该函数有一个入参, 表示模型所选择的值
+  * 入参并不一定是你所期待的类型, 建议对其进行显式转换
   
 * `action`
   * 触发器执行动作, 默认为`MTriggerAction.post`

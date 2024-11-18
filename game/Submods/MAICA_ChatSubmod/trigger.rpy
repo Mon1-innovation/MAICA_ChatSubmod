@@ -10,11 +10,13 @@ init 999 python in maica:
             return self.callback(data.get("affection", 0.1))
 
     def aff_callback(affection):
+        #from math import ceil
+        affection = float(affection)
         maica.send_to_outside_func("<mtrigger> aff_callback called")
         if affection < 0:
-            store.mas_loseAffection(-affection)
+            store.mas_loseAffection(1, -affection)
         elif affection > 0:
-            store.mas_gainAffection(affection)
+            store.mas_gainAffection(1, affection)
 
     aff_trigger = AffTrigger(common_affection_template, "alter_affection", callback=aff_callback)
     maica.mtrigger_manager.add_trigger(aff_trigger)
