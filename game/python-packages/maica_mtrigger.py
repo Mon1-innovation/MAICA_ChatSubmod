@@ -106,4 +106,4 @@ class MTriggerBase(object):
         }
     
     def triggered(self, data={}):
-        return self.callback(data.get(self.template.datakey))
+        return self.callback(data.get(self.template.datakey)) if data.get(self.template.datakey) else None
