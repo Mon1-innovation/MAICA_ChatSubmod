@@ -38,6 +38,10 @@ def get_log():
         data["title"] = "An Exception is occurred"
         data["content"].append(traceback.format_exc())
         data["ver"] = 0
+    if len(data["content"]) == 0:
+        data["content"].append("Cannot fetch log")
+        data["ver"] = 0
+        data["title"] = "DCC server error"
     return data 
 
 

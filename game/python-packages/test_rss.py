@@ -9,7 +9,7 @@ feedparser.USER_AGENT = f"MAICA_Blessland/0.5.6"
 # 解析 RSS feed
 feed = feedparser.parse(feed_url)
 
-#print(f"{feed.entries}")
+print(f"{feed}")
 
 for item in feed.entries:
     print(item['title'])

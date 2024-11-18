@@ -23,10 +23,18 @@ label mtrigger_kiss:
 label mtrigger_leave: 
     m "你要离开了吗, [player]?"
     menu:
+        "你要离开了吗, [player]?{nw}{fast}"
         "是的.":
             m 1eka "一会见, [player]!"
-            return "quit"
+            jump mtrigger_quit
+            return
         "再过一会吧":
             m 1eka "谢谢你多陪我一会, [player]."
             return
-    return "quit"
+    return
+    
+label mtrigger_quit:
+    $ persistent.closed_self = True #Monika happily closes herself
+    $ mas_clearNotifs()
+    jump _quit
+    return

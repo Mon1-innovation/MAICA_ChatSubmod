@@ -68,7 +68,7 @@ init 999 python in maica:
     def minigame_callback(item):
         
         if not item in unlocked_games_dict:
-            maica.send_to_outside_func("<mtrigger> {} is not a vaild minigame", item)
+            maica.send_to_outside_func("<mtrigger> {} is not a vaild minigame".format(item))
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
@@ -90,7 +90,7 @@ init 999 python in maica:
     def mtrigger_kiss_condition():
         return store.mas_shouldKiss(1)
 
-    def mtrigger_kiss_callback():
+    def mtrigger_kiss_callback(arg):
         store.renpy.call("mtrigger_kiss")
 
     kiss_trigger = MTriggerBase(customize_template, "kiss", "亲吻", "kiss", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
@@ -99,7 +99,8 @@ init 999 python in maica:
 
 #################################################################################
 
-    def mtrigger_leave_callback():
+    def mtrigger_leave_callback(arg):
+        maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
     leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
     maica.mtrigger_manager.add_trigger(leave_trigger)
