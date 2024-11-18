@@ -74,7 +74,7 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh, usage_en, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition):
+    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en
