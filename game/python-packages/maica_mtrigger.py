@@ -25,14 +25,17 @@ class MTriggerExprop:
         self.curr_value = curr_value
 
 class MTriggerTemplate(object):
-    def __init__(self, name, datakey=None):
+    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True), usage=False):
         self.name = name
         self.datakey = datakey
+        self.exprop = exprop
+        self.usage = usage
 
-common_affection_template = MTriggerTemplate("common_affection_template", "affection")
-common_switch_template = MTriggerTemplate("common_switch_template", "selection")
-common_meter_template = MTriggerTemplate("common_meter_template", "value")
-customize_template = MTriggerTemplate("customize", None)
+
+common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False))
+common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, False, True, True))
+common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True), usage=True)
+customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False), usage=True)
 
 class MTriggerManager:
     def __init__(self):
@@ -105,23 +108,30 @@ class MTriggerBase(object):
         self.condition = condition
 
     def build(self):
-        return {
+        data = {
             "template": self.template.name,
             "name": self.name,
-            "usage":{
-                "zh": self.usage_zh,
-                "en": self.usage_en
-            },
             "exprop":{
-                "item_name":{
-                    "zh": self.exprop.item_name_zh,
-                    "en": self.exprop.item_name_en
-                },
-                "item_list": self.exprop.item_list,
-                "value_limits": self.exprop.value_limits,
-                "curr_value": self.exprop.curr_value
             }
         }
+
+        if self.template.usage:
+            data["usage"] = {
+                "zh": self.usage_zh,
+                "en": self.usage_en
+            }
+        if self.template.exprop.item_name_zh:
+            data["exprop"]["item_name"] = {"zh": self.exprop.item_name_zh, "en": self.exprop.item_name_en} 
+        if self.template.exprop.item_list:
+            data["exprop"]["item_list"] = self.exprop.item_list
+        if self.template.exprop.value_limits:
+            data["exprop"]["value_limits"] = self.exprop.value_limits
+        if self.template.exprop.curr_value:
+            data["exprop"]["curr_value"] = self.exprop.curr_value
+        if data["exprop"] == {}:
+            del data["exprop"]
+        return data
+
     
     def triggered(self, data={}):
         return self.callback(data.get(self.template.datakey) if self.template.datakey else None)

@@ -38,3 +38,11 @@ label mtrigger_quit:
     $ mas_clearNotifs()
     jump _quit
     return
+
+label mtrigger_location: 
+    if mas_isMoniEnamored(higher=True):
+        call monika_change_background
+    else:
+        m 1eua "我们似乎没别的地方可去呢..."
+        m 1eka "抱歉喽, [player]."
+    return

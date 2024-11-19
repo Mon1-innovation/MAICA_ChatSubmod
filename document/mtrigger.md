@@ -35,7 +35,7 @@ example_mtrigger = MTriggerBase(
 
   * `common_affection_template`
     * 该模板的触发器会根据用户输入与上文内容, 决策对好感度应做的调整.
-    * 该模板下`MTriggerExprop`仅考虑`value_limits`
+    * 该模板`exprop`不需要填参数
     * 使用该模板, `name`必须为`alter_affection`
 
   * `common_switch_template`

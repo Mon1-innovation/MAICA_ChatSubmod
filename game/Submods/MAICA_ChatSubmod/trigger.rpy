@@ -4,7 +4,7 @@ init 999 python in maica:
     import store
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, "triggered aff", "triggered aff", callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"), exprop=MTriggerExprop(value_limits=[-1, 3]))
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"))
         
         def triggered(self, data):
             return self.callback(data.get("affection", 0.1))
@@ -25,13 +25,13 @@ init 999 python in maica:
 
     class ClothesTrigger(MTriggerBase):
         def __init__(self, template, name):
-            self.clothes_data = {key: store.mas_selspr.CLOTH_SEL_MAP[key].name for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
-            super(ClothesTrigger, self).__init__(template, name, "衣服", "clothes", description=_("内置 | 更换衣服"),callback=self.clothes_callback, 
+            self.clothes_data = {store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
+            super(ClothesTrigger, self).__init__(template, name, description=_("内置 | 更换衣服"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
                     item_name_zh = "衣服",
                     item_name_en = "outfit",
                     item_list = self.clothes_data.keys(),
-                    curr_value = store.monika_chr.clothes.name,
+                    curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
                 action = MTriggerAction.post
             )
@@ -44,15 +44,14 @@ init 999 python in maica:
         def triggered(self, data):
             clothes = data.get("selection", None)
             if clothes is not None:
-                self.callback(self.clothes_data[clothes])
+                self.callback(clothes)
 
         def clothes_callback(self, clothes):
-            maica.send_to_outside_func("<mtrigger> clothes_callback called")
             if not clothes in self.clothes_data:
-                maica.send_to_outside_func("<mtrigger> {} is not a vaild outfit", clothes)
+                maica.send_to_outside_func("<mtrigger> {} is not a vaild outfit".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid outfit".format(clothes))
                 return
-            return store.renpy.call("mtrigger_change_clothes", clothes)
+            return store.renpy.call("mtrigger_change_clothes", self.clothes_data[clothes])
 
     clothes_trigger = ClothesTrigger(common_switch_template, "clothes")
     maica.mtrigger_manager.add_trigger(clothes_trigger)
@@ -74,7 +73,7 @@ init 999 python in maica:
         game_label = unlocked_games_dict[item]
         store.renpy.call(game_label)
     
-    minigame_trigger = MTriggerBase(common_switch_template, "minigame", "玩小游戏", "play minigame", callback=minigame_callback,
+    minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
         exprop=MTriggerExprop(
             item_name_zh="小游戏",
             item_name_en="minigame",
@@ -93,7 +92,7 @@ init 999 python in maica:
     def mtrigger_kiss_callback(arg):
         store.renpy.call("mtrigger_kiss")
 
-    kiss_trigger = MTriggerBase(customize_template, "kiss", "亲吻", "kiss", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
+    kiss_trigger = MTriggerBase(customize_template, "kiss", "亲吻玩家", "kiss player", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
         description = _("内置 | 调用亲吻事件"))
     maica.mtrigger_manager.add_trigger(kiss_trigger)
 
@@ -102,7 +101,7 @@ init 999 python in maica:
     def mtrigger_leave_callback(arg):
         maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
-    leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
+    leave_trigger = MTriggerBase(customize_template, "leave", "离开游戏", "quit game", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
     maica.mtrigger_manager.add_trigger(leave_trigger)
 
 #################################################################################
@@ -167,6 +166,17 @@ init 999 python in maica:
 
 #################################################################################
 
+    def mtrigger_location_condition():
+        return store.mas_isMoniEnamored(True)
+
+    def mtrigger_location_callback(arg):
+        store.renpy.call("mtrigger_location")
+
+    location_trigger = MTriggerBase(customize_template, "location", "换个位置", "change location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
+        description = _("内置 | 调用切换房间"))
+    maica.mtrigger_manager.add_trigger(location_trigger)
+
+#################################################################################
 
 
 
