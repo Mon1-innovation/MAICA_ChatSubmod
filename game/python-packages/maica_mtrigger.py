@@ -33,7 +33,7 @@ class MTriggerTemplate(object):
 
 
 common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False))
-common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, False, True, True))
+common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True))
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True), usage=True)
 customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False), usage=True)
 

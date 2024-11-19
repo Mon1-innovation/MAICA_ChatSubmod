@@ -14,6 +14,7 @@ label mtrigger_change_clothes(outfit_name):
         renpy.pause(4.0, hard=True)
 
     call mas_transition_from_emptydesk("monika 1eua")
+    return
 
 label mtrigger_kiss:
     if mas_shouldKiss(1):
