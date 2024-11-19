@@ -71,7 +71,9 @@ init 999 python in maica:
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
+        store.renpy.call("maica_hide_console")
         store.renpy.call(game_label)
+        store.renpy.call("maica_show_console")
     
     minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
         exprop=MTriggerExprop(
@@ -101,7 +103,7 @@ init 999 python in maica:
     def mtrigger_leave_callback(arg):
         maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
-    leave_trigger = MTriggerBase(customize_template, "leave", "离开游戏", "quit game", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
+    leave_trigger = MTriggerBase(customize_template, "leave", "帮助玩家离开游戏", "help player quit game", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
     maica.mtrigger_manager.add_trigger(leave_trigger)
 
 #################################################################################
@@ -155,7 +157,8 @@ init 999 python in maica:
             return weathers
 
         def callback(self, selection):
-            if not selection in self.weathers_list:
+            selection = u"\u6674\u5929" if selection == "Clear" and u"\u6674\u5929" in self.weathers else selection
+            if not selection in self.weathers:
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid weather!".format(selection))
                 maica.send_to_outside_func("<mtrigger> {} is not a valid weather!".format(selection))
                 return
@@ -177,6 +180,19 @@ init 999 python in maica:
     maica.mtrigger_manager.add_trigger(location_trigger)
 
 #################################################################################
+
+    def mtrigger_backup_condition():
+        return store.mas_submod_utils.isSubmodInstalled("Extra Plus")
+
+    def mtrigger_backup_callback(arg):
+        store.renpy.call("mas_backup")
+
+    backup_trigger = MTriggerBase(customize_template, "backup", "备份存档", "backup savefile", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
+        description = _("内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"))
+    maica.mtrigger_manager.add_trigger(backup_trigger)
+
+#################################################################################
+
 
 
 

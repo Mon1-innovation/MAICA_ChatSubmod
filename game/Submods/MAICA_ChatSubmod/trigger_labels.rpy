@@ -1,4 +1,5 @@
 label mtrigger_change_clothes(outfit_name):
+    call maica_hide_console
     call mas_transition_to_emptydesk
 
     python:
@@ -14,11 +15,14 @@ label mtrigger_change_clothes(outfit_name):
         renpy.pause(4.0, hard=True)
 
     call mas_transition_from_emptydesk("monika 1eua")
+    call maica_show_console
     return
 
 label mtrigger_kiss:
     if mas_shouldKiss(1):
+        call maica_hide_console
         call monika_kissing_motion_short
+        call maica_show_console
     return 
 
 label mtrigger_leave: 

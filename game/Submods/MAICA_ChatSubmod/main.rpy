@@ -138,3 +138,12 @@ label maica_talking(mspire = False):
         show monika at t11
     return _return
 
+label maica_show_console:
+    if persistent.maica_setting_dict['console']:
+        show screen mas_py_console_teaching
+        show monika at t22
+
+label maica_hide_console:
+    if persistent.maica_setting_dict['console']:
+        hide screen mas_py_console_teaching
+        show monika at t11
