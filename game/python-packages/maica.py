@@ -759,7 +759,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 {
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
-                    "lines": lines
+                    "rounds": lines
                 },
             )
         )
