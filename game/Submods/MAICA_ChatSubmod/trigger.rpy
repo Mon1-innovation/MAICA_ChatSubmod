@@ -63,7 +63,6 @@ init 999 python in maica:
         for ev in store.mas_games.game_db.values()
         if store.mas_isGameUnlocked(ev.prompt)
     }
-
     def minigame_callback(item):
         
         if not item in unlocked_games_dict:
@@ -71,9 +70,7 @@ init 999 python in maica:
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
-        store.renpy.call("maica_hide_console")
-        store.renpy.call(game_label)
-        store.renpy.call("maica_show_console")
+        store.renpy.call("mttrigger_minigame", game_label)
     
     minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
         exprop=MTriggerExprop(

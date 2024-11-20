@@ -636,7 +636,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     isnum = 0
                 else:
                     isnum = is_precisely_a_talk(self._received[self._pos:])
-                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum)) if isnum else None
+                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum)) if isnum > 0 else None
                 if isnum:
                     raw_message = self._received[self._pos:self._pos + isnum]
                     res = self.MoodStatus.analyze(raw_message)
@@ -655,7 +655,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.wss_session.close()
             if data['status'] == "streaming_done":
                 self._in_mspire = False
-                if len(self._received)- 1 - self._pos > 2:
+                if len(self._received)- 1 - self._pos > 0:
                     raw_message = self._received[self._pos:]
                     res = self.MoodStatus.analyze(raw_message)
                     logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))

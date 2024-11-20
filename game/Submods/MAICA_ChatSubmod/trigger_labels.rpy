@@ -24,6 +24,12 @@ label mtrigger_kiss:
         call monika_kissing_motion_short
         call maica_show_console
     return 
+label mttrigger_minigame(game):
+    call maica_hide_console
+    $ renpy.call(game)
+    call maica_show_console
+    return
+
 
 label mtrigger_leave: 
     m "你要离开了吗, [player]?"
