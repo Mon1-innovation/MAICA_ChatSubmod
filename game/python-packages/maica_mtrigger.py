@@ -54,6 +54,13 @@ class MTriggerManager:
     def disable_trigger(self, name):
         self.enable_trigger(name, False)
     
+    def output_settings(self):
+        return self.enable_map
+    
+    def import_settings(self, settings):
+        for k, v in settings.items():
+            self.enable_map[k] = v
+    
     def remove_trigger(self, name):
         for i in self.triggers:
             if i.name == name:

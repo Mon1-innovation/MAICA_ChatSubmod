@@ -85,6 +85,12 @@ init 5 python in maica:
         store.persistent.maica_stat = maica.stat.copy()
     else:    
         maica.update_stat(store.persistent.maica_stat)
+    
+    if store.persistent.maica_mtrigger_status is None:
+        store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
+    else:
+        maica.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
+
 
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
@@ -117,6 +123,7 @@ init 5 python in maica:
         maica.auto_reconnect = False
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
+        store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
 
     def check_is_outdated(version_local):
         url = "http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/version_data.json"

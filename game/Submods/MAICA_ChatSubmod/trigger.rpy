@@ -33,7 +33,7 @@ init 999 python in maica:
                     item_list = self.clothes_data.keys(),
                     curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
-                action = MTriggerAction.post
+                action = MTriggerAction.post,
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """
