@@ -626,7 +626,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT            
         elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
-            if not data['status'] in ("ok", "thread_ready"):
+            if not data['status'] in ("ok", "thread_ready", "params_set"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
