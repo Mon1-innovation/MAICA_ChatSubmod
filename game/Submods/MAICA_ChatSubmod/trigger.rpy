@@ -106,6 +106,14 @@ init 999 python in maica:
 
 #################################################################################
 
+    def mtrigger_idle_callback(arg):
+        maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
+        store.renpy.call("mtrigger_leave")
+    idle_trigger = MTriggerBase(customize_template, "idle", "帮助玩家短暂休息", "help player afk short time", callback=mtrigger_idle_callback, description=_("内置 | 暂离"))
+    maica.mtrigger_manager.add_trigger(idle_trigger)
+
+#################################################################################
+
     class WeatherTrigger(MTriggerBase):
         def __init__(self):
             self.weathers = self.get_weather_dict()

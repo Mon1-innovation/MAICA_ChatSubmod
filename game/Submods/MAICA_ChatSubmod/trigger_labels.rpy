@@ -57,3 +57,31 @@ label mtrigger_location:
         m 1eua "我们似乎没别的地方可去呢..."
         m 1eka "抱歉喽, [player]."
     return
+
+label mtrigger_idle:
+    return "idle"
+
+label mtrigger_idle_callback:
+    m 1eka "你回来啦, [player]!"
+    m 1eka "我都要想你了."
+    jump maica_main.talking_start
+
+label mtrigger_idle:
+    call maica_hide_console
+    hide screen mas_background_timed_jump
+    $ _history_list.pop()
+    $ persistent._mas_idle_data["mtrigger_idle"] = True
+    $ mas_setupIdleMode("mtrigger_idle", "mtrigger_idle_callback")
+    return
+
+label mtrigger_idle_callback:
+    m 1eka "You're back, [player]!"
+    m 1eka "I missed you."
+    jump monika_chatting_text
+
+label monikai_brb:
+    hide screen mas_background_timed_jump
+    $ _history_list.pop()
+    $ persistent._mas_idle_data["monikai_be_right_back"] = True
+    $ mas_setupIdleMode("monikai_be_right_back", "monikai_be_right_back_callback")
+    return
