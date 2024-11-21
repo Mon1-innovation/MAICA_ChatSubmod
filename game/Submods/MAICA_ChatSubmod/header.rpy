@@ -149,6 +149,17 @@ init 10 python:
             f.write(store.maica.maica.get_history().get("history", {}))
         renpy.notify(_("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
+    def upload_chat_history():
+        import json
+        with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
+            history = f.read()
+        try:
+            history = json.loads(history)
+        except:
+            pass
+        res = store.maica.maica.upload_history(history)
+        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败"))
+    
     def maica_apply_setting(ininit=False):
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
             persistent.maica_setting_dict["mspire_interval"] = 10
@@ -834,6 +845,10 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
+
+                    hbox:
+                        textbutton _("上传对话历史到会话 '[store.maica.maica.chat_session]'"):
+                            action Function(upload_chat_history)
 
 
                     hbox:

@@ -269,6 +269,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.max_history_token = 28672
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
+        self.ws_cookie = ""
 
 
 
@@ -616,6 +617,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if data['status'] == "mtrigger_trigger":
             self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
+        if data['status'] == "ws_cookie":
+            self.ws_cookie = data['content']
 
 
         # 发送令牌，等待回应
@@ -764,7 +767,33 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             )
         )
         return res.json()
-    
+    def upload_history(self, history):
+        """
+        将历史记录上传到Maica服务器
+        
+        Args:
+            history (dict): 
+        
+        Returns:
+            bool: True表示成功，False表示失败
+        
+        """
+
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
+        import requests, json
+        res = requests.post(
+            "https://maicadev.monika.love/api/history",
+            data = json.dumps(
+                {
+                    "access_token": self.ciphertext,
+                    "chat_session": self.chat_session,
+                    "history": history
+                },
+            )
+        )
+        return res.json()
+        
     def reset_chat_session(self):
         """
         重置当前聊天会话。
