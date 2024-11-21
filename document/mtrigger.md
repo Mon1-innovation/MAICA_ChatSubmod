@@ -42,6 +42,7 @@ example_mtrigger = MTriggerBase(
     * 根据用户所给出的类目进行选择
     * `name`, `MTriggerExprop`的命名必须符合所给类目的用途.
     * 该模板下`MTriggerExprop`考虑`item_name_zh`, `item_name_en`, `item_list`, `curr_value`
+    * 如果`item_list`超过72, 后端将随机抽取其中的72个
   
   * `common_meter_template`
     * 用于调整数值的模板
