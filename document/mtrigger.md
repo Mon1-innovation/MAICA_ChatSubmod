@@ -43,15 +43,18 @@ example_mtrigger = MTriggerBase(
     * `name`, `MTriggerExprop`的命名必须符合所给类目的用途.
     * 该模板下`MTriggerExprop`考虑`item_name_zh`, `item_name_en`, `item_list`, `curr_value`
     * 如果`item_list`超过72, 后端将随机抽取其中的72个
+    * 如果`common_switch_template`超过6个, 后端将随机抽取其中的6个
   
   * `common_meter_template`
     * 用于调整数值的模板
     * `name`, `MTriggerExprop`的命名必须符合所给类目的用途.
     * 模板下`MTriggerExprop`考虑`item_name_zh`, `item_name_en`, `value_limits`, `curr_value`
+    * 如果`common_switch_template`超过6个, 后端将随机抽取其中的6个
   
   * `customize_template`
     * 自定义模板, 由模型自行选择是否触发
     * 该模板不考虑`exprop`参数
+    * 如果`customize_template`超过20个, 后端将随机抽取其中的20个
 
 * `name` **必填**
   * 触发器名称, 除`common_affection_template`外, 可以自由命名, 建议尽可能表明用途
