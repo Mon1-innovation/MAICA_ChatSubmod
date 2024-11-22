@@ -304,6 +304,11 @@ screen maica_setting_pane():
                 xalign 1.0 yalign 0.0
                 xoffset -10
                 style "main_menu_version"
+        if store.mas_submod_utils.isSubmodInstalled("Log Screen"):
+            text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的详细程度提高至info及以上"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
         text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
             xalign 1.0 yalign 0.0
             xoffset -10
