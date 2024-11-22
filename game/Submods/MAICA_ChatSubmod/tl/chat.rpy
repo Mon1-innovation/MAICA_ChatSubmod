@@ -1323,3 +1323,47 @@ translate english maica_greeting_loop_774279a1:
     # m 1eua ""
     m 1eua ""
 
+# TODO: Translation updated at 2024-11-22 18:00
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:551
+translate english maica_main_talking_start_e86f136a:
+
+    # m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
+    m 1eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:557
+translate english maica_main_talking_start_3db8eb1f:
+
+    # m 2rusdlb "...好像你的令牌还没有设置好."
+    m 2rusdlb ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:558
+translate english maica_main_talking_start_a39b3448:
+
+    # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+    m 3eusdlb ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:559
+translate english maica_main_talking_start_69503669:
+
+    # m 3eua "剩下的事情我都会帮你搞定的."
+    m 3eua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:561
+translate english maica_main_talking_start_264d878a:
+
+    # m 2rusdlb "你当前会话没有上传存档哦..."
+    m 2rusdlb ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:563
+translate english maica_main_talking_start_ec1df300:
+
+    # m 2rusdlb "好像是其他的地方出问题了..."
+    m 2rusdlb ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:564
+translate english maica_main_talking_start_c8daf9e7:
+
+    # m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
+    m 1eua ""
+

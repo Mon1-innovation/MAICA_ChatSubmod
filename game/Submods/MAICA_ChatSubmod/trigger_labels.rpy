@@ -74,11 +74,6 @@ label mtrigger_idle:
     $ mas_setupIdleMode("mtrigger_idle", "mtrigger_idle_callback")
     return
 
-label mtrigger_idle_callback:
-    m 1eka "You're back, [player]!"
-    m 1eka "I missed you."
-    jump monika_chatting_text
-
 label monikai_brb:
     hide screen mas_background_timed_jump
     $ _history_list.pop()
