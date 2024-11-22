@@ -493,81 +493,81 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:349
     old "> 更新日志与服务状态 {size=-10}*有新更新"
-    new ""
+    new "> Update and service status tracker {size=-10}* Update available"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:459
     old "√ 已启用"
-    new ""
+    new "√ Enabled"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:462
     old "× 已禁用"
-    new ""
+    new "× Disabled"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:466
     old "※ 当前不满足触发条件"
-    new ""
+    new "※ Trigger condition not satisfied"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:555
     old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
-    new ""
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA Official API references{/i}{/u}{/a}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:559
     old "{size=-10}注意: 只有已被勾选(标记了X)的高级设置才会被使用, 未使用的设置将使用服务端的默认设置"
-    new ""
+    new "{size=-10}Notice: Only checked (X) advanced settings will take effect, unchecked ones will remain default"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:562
     old "{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!"
-    new ""
+    new "{size=-10}You have not enabled advanced parameters, thus settings on this page will not take effect!"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:567
     old "{size=-10}================超参数================"
-    new ""
+    new "{size=-10}================Super params================"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:640
     old "{size=-10}================偏好================"
-    new ""
+    new "{size=-10}================Preferences================"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:678
     old "相当于pre_additive数值轮次的历史对话将被加入MFocus.\n此功能强度越高, 越可能提高MFocus在自然对话中的触发率, 但也越可能干扰MFocus的判断或导致其表现异常."
-    new ""
+    new "Rounds equal to pre_additive value will be added for MFocus to analyze.\nMay improve MFocus accuracy performance, but may also result in misbehavior."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:689
     old "相当于post_additive数值轮次的历史对话将被加入MTrigger.\n此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."
-    new ""
+    new "Rounds equal to post_additive value will be added for MTrigger to analyze.\nMay improve MTrigger accuracy performance, but may also result in misbehavior."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:701
     old "当amt_aggressive为true时会要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."
-    new ""
+    new "Set to true to pre-analyze MTrigger items by MFocus(if both exists) to inform core model if request could be done. \nMay improve synchronousity of MTrigger, but also increases delay."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:786
     old "每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]"
-    new ""
+    new "Overall tokens recieved: [store.maica.maica.stat.get('received_token_by_session')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:789
     old "当前用户: [store.maica.maica.user_acc]"
-    new ""
+    new "Current user: [store.maica.maica.user_acc]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:840
     old "会话长度: "
-    new ""
+    new "Chat session length: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:845
     old "此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."
-    new ""
+    new "This setting is intended to reduce performance issue when history goes too long. Choose a reasonable value or model coherence may be impacted."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:847
     old "[persistent.maica_setting_dict.get('max_history_token')]"
-    new ""
+    new "[persistent.maica_setting_dict.get('max_history_token')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:850
     old "上传对话历史到会话 '[store.maica.maica.chat_session]'"
-    new ""
+    new "Recover history to chat session '[store.maica.maica.chat_session]'"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:930
     old "MTrigger 列表"
-    new ""
+    new "Mtrigger trigger list"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1019
     old "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
-    new ""
+    new "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_zh}{i}{u}MAICA TOS{/i}{/u}{/a}"
 
