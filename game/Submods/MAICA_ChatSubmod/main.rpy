@@ -7,6 +7,7 @@ label maica_talking(mspire = False):
         import copy
         from store.maica import maica as ai
         from maica_mtrigger import MTriggerAction 
+        import traceback
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
         if mspire:
@@ -116,7 +117,7 @@ label maica_talking(mspire = False):
                 try:
                     renpy.say(m, message[1])
                 except Exception as e:
-                    store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(e))
+                    store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
             _return = "mtrigger_triggering"
 
