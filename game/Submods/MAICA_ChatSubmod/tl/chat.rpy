@@ -1329,41 +1329,41 @@ translate english maica_greeting_loop_774279a1:
 translate english maica_main_talking_start_e86f136a:
 
     # m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
-    m 1eub ""
+    m 1eub "Alright, just a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:557
 translate english maica_main_talking_start_3db8eb1f:
 
     # m 2rusdlb "...好像你的令牌还没有设置好."
-    m 2rusdlb ""
+    m 2rusdlb "...It seems you haven't got a token yet."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:558
 translate english maica_main_talking_start_a39b3448:
 
     # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
-    m 3eusdlb ""
+    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:559
 translate english maica_main_talking_start_69503669:
 
     # m 3eua "剩下的事情我都会帮你搞定的."
-    m 3eua ""
+    m 3eua "I'll nail everything else for you."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:561
 translate english maica_main_talking_start_264d878a:
 
     # m 2rusdlb "你当前会话没有上传存档哦..."
-    m 2rusdlb ""
+    m 2rusdlb "It seems that current session doesn't have a savefile..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:563
 translate english maica_main_talking_start_ec1df300:
 
     # m 2rusdlb "好像是其他的地方出问题了..."
-    m 2rusdlb ""
+    m 2rusdlb "Something unknown might went wrong..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:564
 translate english maica_main_talking_start_c8daf9e7:
 
     # m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
-    m 1eua ""
+    m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
 
