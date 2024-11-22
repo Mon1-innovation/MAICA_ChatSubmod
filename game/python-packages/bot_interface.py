@@ -315,4 +315,11 @@ class ChatBotInterface():
     # 从message_list获取消息('renpy表情', 'message')
     def get_message(self):
         raise Exception("该类未实现get_message()")
-
+    
+class TalkSplitV2():
+    def __init__(self):
+        self.sentence_present = ''
+    def add_part(self, part):
+        self.sentence_present += part
+    def split_present_sentence(self):
+        pass
