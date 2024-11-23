@@ -659,11 +659,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
                 self.TalkSpilter.add_part(data['content'])
-                try:
-                    isnum = data['content'][-1].isdigit()
-                except:
-                    isnum = False
-                if len(self.message_list) == 0 and not isnum:
+                if len(self.message_list) == 0:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
                         res = self.MoodStatus.analyze(res)
