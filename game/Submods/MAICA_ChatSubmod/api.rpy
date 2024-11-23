@@ -10,7 +10,7 @@ default persistent._maica_updatelog_version_seen = 0
 init 5 python in maica:
     import maica_rss_provider
     update_info = maica_rss_provider.get_log()
-    import store
+    import store, chardet
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use
@@ -27,30 +27,22 @@ init 5 python in maica:
             return self.input_value
     
         def set_text(self, s):
-            unicode_text = self.ensure_utf8(s)
-            self.input_value = unicode_text
+            if isinstance(s, unicode):
+                # 's' is already Unicode
+                self.input_value = s
+            else:
+                # Detect encoding and decode to Unicode
+                encoding_info = chardet.detect(s)
+                encoding = encoding_info['encoding']
+                if encoding is not None:
+                    self.input_value = s.decode(encoding)
+                else:
+                    self.input_value = s.decode('utf-8', errors='replace')
 
         def add_text(self, s):
             unicode_text = self.ensure_utf8(s)
             self.input_value += unicode_text
 
-        def ensure_utf8(self, s):
-            # 如果输入是字节字符串，检测其编码
-            if isinstance(s, bytes):
-                # 使用 chardet 检测字符串编码
-                detected = chardet.detect(s)
-                encoding = detected.get('encoding', 'utf-8')  # 默认使用 'utf-8'
-                # 将字节字符串解码为 Unicode 字符串
-                s = s.decode(encoding, errors='replace')
-            
-            # 如果输入已是 Unicode 字符串，或被解码为 Unicode 字符串
-            if isinstance(s, str):
-                # 确保最终输出为 UTF-8 编码的字节字符串
-                return s.encode('utf-8')
-            
-            # 如果输入不是字节或字符串，抛出异常
-            raise ValueError("Input must be an instance of bytes or str.")
-            
 
 
     import store

@@ -11,7 +11,7 @@ label text_split:
         while pos < text_length:
             for i in range(pos + 1, text_length + 1):
                 sub_text = text[pos:i]
-                res = bot_interface.is_precisely_a_talk(sub_text, store.mas_ptod.write_command)
+                res = bot_interface.is_precisely_a_talk(sub_text, store.mas_ptod._update_console_history)
                 if res != 0:
                     renpy.say(m, sub_text[:res])
                     pos += res  # 跳跃已识别的段落

@@ -143,8 +143,9 @@ label maica_show_console:
     if persistent.maica_setting_dict['console']:
         show screen mas_py_console_teaching
         show monika at t22
-
+    return
 label maica_hide_console:
     if persistent.maica_setting_dict['console']:
         hide screen mas_py_console_teaching
         show monika at t11
+    return
