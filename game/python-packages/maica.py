@@ -660,7 +660,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
                 self.TalkSpilter.add_part(data['content'])
                 try:
-                    isnum = int(data['content'])
+                    isnum = data['content'][-1].isdigit()
                 except:
                     isnum = False
                 if len(self.message_list) == 0 and not isnum:
@@ -734,10 +734,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
     def _append_to_message_list(self, emote, message):
-        if message[0] == " ":
-            message = message[1:]
-        elif len(message) == 0:
+        if len(message) == 0:
             return
+        elif message[0] == " ":
+            message = message[1:]
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict, session=1):
         """

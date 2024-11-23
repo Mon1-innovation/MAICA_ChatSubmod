@@ -145,8 +145,9 @@ init 10 python:
         store.maica.maica.reset_chat_session()
         renpy.notify(_("会话已重置, 请重新连接MAICA服务器"))
     def output_chat_history():
+        import json
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
-            f.write(store.maica.maica.get_history().get("history", {}))
+            f.write(json.dumps(store.maica.maica.get_history().get("history"), []))
         renpy.notify(_("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def upload_chat_history():
@@ -155,13 +156,10 @@ init 10 python:
             renpy.notify(_("未找到game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
-            history = f.read()
-        try:
-            history = json.loads(history)
-        except:
-            pass
+            history = json.load(f)
         res = store.maica.maica.upload_history(history)
-        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败"))
+        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败, {}".format(res.get("exception", "未知错误"))))
+
     
     def maica_apply_setting(ininit=False):
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
@@ -344,6 +342,9 @@ screen maica_setting_pane():
 
             textbutton _("> 导出当前对话"):
                 action Function(output_chat_history)
+            
+            textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
+                action Function(upload_chat_history)
 
             textbutton _("> 退出当前DCC账号"):
                 action Function(store.maica.maica.close_wss_session)
@@ -791,6 +792,20 @@ screen maica_setting():
                                 hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
                                 sensitive not persistent.maica_setting_dict.get('_event_pushed')
+                        hbox:
+                            textbutton "推送聊天loop":
+                                action [
+                                    Function(store.MASEventList.push, "maica_main.talking_start"),
+                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True)
+                                    ]
+                                sensitive not persistent.maica_setting_dict.get('_event_pushed')
+                            textbutton "推送MSpire":
+                                action [
+                                    Function(store.MASEventList.push, "maica_mspire"),
+                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True)
+                                    ]
+                                sensitive not persistent.maica_setting_dict.get('_event_pushed')
+
 
 
 
@@ -866,12 +881,6 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
-
-                    hbox:
-                        textbutton _("上传对话历史到会话 '[store.maica.maica.chat_session]'"):
-                            action Function(upload_chat_history)
-                            hovered SetField(_tooltip, "value", _("读取chat_history.txt到会话 '[store.maica.maica.chat_session]'"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
                     hbox:
@@ -954,20 +963,6 @@ screen maica_setting():
                             action Show("maica_triggers")
 
 
-                    if renpy.config.debug:
-                        hbox:
-                            textbutton "MASEventList.push(maica_talking)":
-                                action [
-                                    Function(store.MASEventList.push, "maica_talking"),
-                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True)
-                                    ]
-                                sensitive not persistent.maica_setting_dict.get('_event_pushed')
-                            textbutton "MASEventList.push(maica_mspire)":
-                                action [
-                                    Function(store.MASEventList.push, "maica_mspire"),
-                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True)
-                                    ]
-                                sensitive not persistent.maica_setting_dict.get('_event_pushed')
 
 
             hbox:
