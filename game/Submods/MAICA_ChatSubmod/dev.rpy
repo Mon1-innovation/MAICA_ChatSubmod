@@ -10,7 +10,7 @@ label text_split:
         for i in range(len(text)):
             spilter.add_part(text[i])
             res = spilter.split_present_sentence()
-            if text:
+            if not res is None:
                 renpy.say(m, res)
         fin = spilter.announce_stop()
         for i in fin:
