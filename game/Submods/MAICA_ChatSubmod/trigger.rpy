@@ -28,8 +28,8 @@ init 999 python in maica:
             self.clothes_data = {store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
             super(ClothesTrigger, self).__init__(template, name, description=_("内置 | 更换衣服"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
-                    item_name_zh = "衣服",
-                    item_name_en = "outfit",
+                    item_name_zh = "莫妮卡的衣服",
+                    item_name_en = "Monika's outfit",
                     item_list = self.clothes_data.keys(),
                     curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
@@ -126,8 +126,8 @@ init 999 python in maica:
                 common_switch_template,
                 "weather",
                 exprop=MTriggerExprop(
-                    item_name_zh="天气",
-                    item_name_en="weather",
+                    item_name_zh="游戏内天气",
+                    item_name_en="in-game weather",
                     item_list=self.weathers_list,
                     curr_value=store.mas_current_weather.prompt
                 ),
