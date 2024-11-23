@@ -659,7 +659,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
                 self.TalkSpilter.add_part(data['content'])
-                if len(self.message_list) == 0:
+                try:
+                    isnum = int(data['content'])
+                except:
+                    isnum = False
+                if len(self.message_list) == 0 and not isnum:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
                         res = self.MoodStatus.analyze(res)
@@ -703,9 +707,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 #                    #self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
 #                    self._append_to_message_list(emote, res.strip())
 #                    logger.debug("Server: {}".format(self.TalkSpilter[self._pos:]))
-                logger.debug("User input: {}".format(self._current_topic))
-                logger.debug("Responsed message: {}".format(self.TalkSpilter))
-                self._pos = 0
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
                 self.MoodStatus.reset()
                 self._gen_time = time.time()
@@ -733,6 +734,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
     def _append_to_message_list(self, emote, message):
+        if message[0] == " ":
+            message = message[1:]
+        elif len(message) == 0:
+            return
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
     def upload_save(self, dict, session=1):
         """
