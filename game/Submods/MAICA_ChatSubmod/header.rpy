@@ -151,6 +151,9 @@ init 10 python:
     
     def upload_chat_history():
         import json
+        if not os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt")):
+            renpy.notify(_("未找到game/Submods/MAICA_ChatSubmod/chat_history.txt"))
+            return
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
             history = f.read()
         try:
@@ -867,6 +870,8 @@ screen maica_setting():
                     hbox:
                         textbutton _("上传对话历史到会话 '[store.maica.maica.chat_session]'"):
                             action Function(upload_chat_history)
+                            hovered SetField(_tooltip, "value", _("读取chat_history.txt到会话 '[store.maica.maica.chat_session]'"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
                     hbox:
