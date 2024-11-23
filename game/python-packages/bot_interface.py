@@ -351,6 +351,7 @@ class TalkSplitV2():
     def add_part(self, part):
         self.sentence_present += part
     def split_present_sentence(self):
+        length_present = len(self.sentence_present.encode())
         if length_present <= 60:
             return None
         def is_decimal(four_related_cells):
@@ -402,9 +403,8 @@ class TalkSplitV2():
                 self.slc.append([cell_i, cell])
             elif self.pattern_semiright.match(cell):
                 self.src.append([cell_i, cell])
-        length_present = len(self.sentence_present.encode())
-        if length_present <= 60:
-            return None
+        # if length_present <= 60:
+        #     return None
         if self.epc:
             for char in reversed(self.epc):
                 if 180 <= get_real_len(char[0]) <= 30 and check_sanity_pos(char[0]):
