@@ -5,6 +5,7 @@ label text_split:
     python:
         import bot_interface
         text = bot_interface.key_replace(text, bot_interface.renpy_symbol)
+        last_pos = 0
         pos = 0
         text_length = len(text)
 
@@ -15,8 +16,11 @@ label text_split:
                 if res != 0:
                     renpy.say(m, sub_text[:res])
                     pos += res  # 跳跃已识别的段落
+                    last_pos = pos
                     break
             else:
                 pos += 1  # 如果没有任何匹配，在当前位置后继续
+        if last_pos != pos:
+            renpy.say(m, text[last_pos:])
     call maica_hide_console
     return
