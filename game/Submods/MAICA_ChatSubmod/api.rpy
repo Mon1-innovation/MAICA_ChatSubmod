@@ -35,22 +35,22 @@ init 5 python in maica:
             self.input_value += unicode_text
 
         def ensure_utf8(self, s):
-            import sys
+            # 如果输入是字节字符串，检测其编码
+            if isinstance(s, bytes):
+                # 使用 chardet 检测字符串编码
+                detected = chardet.detect(s)
+                encoding = detected.get('encoding', 'utf-8')  # 默认使用 'utf-8'
+                # 将字节字符串解码为 Unicode 字符串
+                s = s.decode(encoding, errors='replace')
+            
+            # 如果输入已是 Unicode 字符串，或被解码为 Unicode 字符串
             if isinstance(s, str):
-                default_encoding = sys.getdefaultencoding()  # 获取系统默认编码
-                try:
-                    # 尝试解析字符串为 unicode，假定它是 UTF-8。
-                    decoded = s.decode('utf-8')
-                except UnicodeDecodeError:
-                    # 尝试使用系统默认编码解码后再编码为 UTF-8
-                    decoded = s.decode(default_encoding).encode('utf-8').decode('utf-8')
-                return decoded
-            elif isinstance(s, unicode):
-                # 如果是 unicode 类型，直接返回
-                return s
-            else:
-                # 其他非字符串类型，转换为 unicode
-                return unicode(s)   
+                # 确保最终输出为 UTF-8 编码的字节字符串
+                return s.encode('utf-8')
+            
+            # 如果输入不是字节或字符串，抛出异常
+            raise ValueError("Input must be an instance of bytes or str.")
+            
 
 
     import store
