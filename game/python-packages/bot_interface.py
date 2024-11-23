@@ -321,9 +321,122 @@ class ChatBotInterface():
         raise Exception("该类未实现get_message()")
     
 class TalkSplitV2():
+
+    # 简单文档:
+    # 先实例化. 一个实例原理上可以用到连接死为止, 也可以每轮对话重建
+    # 每次收到消息片段时, 调用instance.add_part(str(消息片段))
+    # 这个断句方法是"已知消息越长, 判断越准". 尽可能拖延时间, 最好不要每次收到片段都尝试断句
+    # 当然我做了节流阀, 每次收到都断也行
+    # 当已收到消息总长达到180字节(60汉字)时达到完整精度且不可能返回None, 具体的缓冲区大小由开发者决定
+    # 当需要执行一次断句时, 调用instance.split_present_sentence(), 返回值是断句产生的句子(str)
+    # 每次调用断句方法都会返回断句产生的下一个句子. 如果当前字数太少导致无法决定断句, 则会返回None.
+    # 当收到1000 streaming_done时, 调用instance.announce_stop(), 注意其输出是一个list! 是一个list! 是一个list!
+    # 这个list会包含所有剩余部分的断句. 如果断句调用得频繁, 这里一般就一项. 如果不用流式输出, 也可以直接用这个功能全部断完
+    # 这个方法会自动重置实例. 也可以调用instance.init1()手动重置实例, 比直接重建实例省一套编译正则的计算量
+    # 我知道你懒得做优化, 所以随你的便吧. 我能替你优化的部分基本都优化到最佳了
+    # 理论上能规避小数点, 也会尽可能避免拆括号, 还有未封闭就不是我的锅了
+
     def __init__(self):
         self.sentence_present = ''
+        self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
+        self.pattern_all_punc = re.compile(r'[.。!！?？；;，,~]')
+        self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
+        self.pattern_excrit_punc = re.compile(r'[!！~]')
+        self.pattern_numeric = re.compile(r'[0123456789]')
+        self.pattern_semileft = re.compile(r'[(（\[]')
+        self.pattern_semiright = re.compile(r'[)）\]]')
+    def init1(self):
+        self.sentence_present = ''
+        self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
     def add_part(self, part):
         self.sentence_present += part
     def split_present_sentence(self):
-        pass
+        if length_present <= 60:
+            return None
+        def is_decimal(four_related_cells):
+            if four_related_cells[1] == '.':
+                if len(self.pattern_numeric.findall(four_related_cells)) >= 2:
+                    return True
+            return False
+        def get_real_len(pos):
+            sce = self.sentence_present[0:pos]
+            return len(sce.encode())
+        def check_sanity_pos(pos):
+            if self.slc:
+                lc = 0
+                for l in self.slc:
+                    lc += 1
+                    if l[0] > pos:
+                        lc -= 1
+                        break
+            else:
+                lc = 0
+            if self.src:
+                rc = 0
+                for r in self.src:
+                    rc += 1
+                    if r[0] > pos:
+                        rc -= 1
+                        break
+            else:
+                rc = 0
+            if lc == rc:
+                return True
+            else:
+                return False
+        def split_at_pos(pos):
+            sce = self.sentence_present[0:pos]
+            self.sentence_present = self.sentence_present[pos+1:]
+            return sce
+        cell_i = -1
+        for cell in self.sentence_present:
+            cell_i += 1
+            if self.pattern_all_punc.match(cell):
+                if not (cell_i >= 1 and is_decimal(self.sentence_present[cell_i-1:cell_i+2])):
+                    self.apc.append([cell_i, cell])
+                if self.pattern_crit_punc.match(cell):
+                    self.cpc.append([cell_i, cell])
+                    if self.pattern_excrit_punc.match(cell):
+                        self.epc.append([cell_i, cell])
+            elif self.pattern_semileft.match(cell):
+                self.slc.append([cell_i, cell])
+            elif self.pattern_semiright.match(cell):
+                self.src.append([cell_i, cell])
+        length_present = len(self.sentence_present.encode())
+        if length_present <= 60:
+            return None
+        if self.epc:
+            for char in reversed(self.epc):
+                if 180 <= get_real_len(char[0]) <= 30 and check_sanity_pos(char[0]):
+                    return split_at_pos(char[0])
+        # No epc or none fits
+        if length_present <= 100:
+            return None
+        if self.cpc:
+            for char in reversed(self.cpc):
+                if 180 <= get_real_len(char[0]) <= 30 and check_sanity_pos(char[0]):
+                    return split_at_pos(char[0])
+        # No cpc or still none fits
+        if length_present <= 150:
+            return None
+        if self.apc:
+            for char in reversed(self.apc):
+                if 180 <= get_real_len(char[0]) <= 150 and check_sanity_pos(char[0]):
+                    return split_at_pos(char[0])
+        # Force stop
+        if length_present <= 180:
+            return None
+        else:
+            return split_at_pos(180)
+    def announce_stop(self):
+        sce = []
+        res = True
+        while res:
+            res = self.split_present_sentence()
+            if res:
+                sce.append(res)
+        sce.append(self.sentence_present)
+        self.init1()
+        return sce
+
+
