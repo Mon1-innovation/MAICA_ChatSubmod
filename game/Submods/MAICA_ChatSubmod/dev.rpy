@@ -5,22 +5,16 @@ label text_split:
     python:
         import bot_interface
         text = bot_interface.key_replace(text, bot_interface.renpy_symbol)
-        last_pos = 0
-        pos = 0
-        text_length = len(text)
 
-        while pos < text_length:
-            for i in range(pos + 1, text_length + 1):
-                sub_text = text[pos:i]
-                res = bot_interface.is_precisely_a_talk(sub_text, store.mas_ptod._update_console_history)
-                if res != 0:
-                    renpy.say(m, sub_text[:res])
-                    pos += res  # 跳跃已识别的段落
-                    last_pos = pos
-                    break
-            else:
-                pos += 1  # 如果没有任何匹配，在当前位置后继续
-        if last_pos != pos:
-            renpy.say(m, text[last_pos:])
+        spilter = bot_interface.TalkSplitV2()
+        for i in range(len(text)):
+            spilter.add_part(text[i])
+            res = spilter.split_present_sentence()
+            if text:
+                renpy.say(m, res)
+        fin = spilter.announce_stop()
+        for i in fin:
+            renpy.say(m, i)
+
     call maica_hide_console
     return
