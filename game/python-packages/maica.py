@@ -575,8 +575,26 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_thread.start()
     _pos = 0
     def send_settings(self):
-        if self.is_ready_to_input():
-            self.status = self.MaicaAiStatus.SEND_SETTING
+        import json
+        def build_setting_config():
+            self._check_modelconfig()
+            data = {
+                "model_params":{},
+                "perf_params":{},
+                "super_params":{}
+            }
+            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
+            for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
+                if param in self.modelconfig:
+                    data['perf_params'][param] = self.modelconfig[param]
+            for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
+                if param in self.modelconfig:
+                    data['super_params'][param] = self.modelconfig[param]
+            return data
+        if self.is_connected():
+            self.wss_session.send(
+                json.dumps(build_setting_config())
+            )
             return True
         else:
             return False
