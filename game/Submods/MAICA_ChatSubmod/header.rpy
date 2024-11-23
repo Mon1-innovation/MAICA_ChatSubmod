@@ -778,6 +778,19 @@ screen maica_setting():
                         hbox:
                             textbutton "输出Event信息到日志":
                                 action Function(log_eventstat)
+                        hbox:
+                            textbutton "推送分句测试":
+                                action [
+                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True),
+                                    Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
+                                    Function(store.MASEventList.push, "text_split")
+                                ]
+                                hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                                sensitive not persistent.maica_setting_dict.get('_event_pushed')
+
+
+
                     hbox:
                         text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
 

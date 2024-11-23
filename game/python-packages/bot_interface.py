@@ -133,7 +133,11 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
-def is_precisely_a_talk(strin):
+def print_func(a):
+    print(a)
+
+def is_precisely_a_talk(strin, debug_printfunc=print_func):
+
     def get_pos(relpos):
         # This method added 1
         pos = 0
@@ -176,7 +180,7 @@ def is_precisely_a_talk(strin):
                 wordset.append([relpos, chop])
             allset.append([relpos, chop])
             relpos += 1
-    #print(allset, puncset, critset, excritset)
+    debug_printfunc(allset, puncset, critset, excritset)
     if strin[-1] == '.':
         # In case unfinished
         return 0
