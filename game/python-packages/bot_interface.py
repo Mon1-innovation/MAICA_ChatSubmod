@@ -338,7 +338,6 @@ class TalkSplitV2():
 
     def __init__(self):
         self.sentence_present = ''
-        self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
         self.pattern_all_punc = re.compile(r'[.。!！?？；;，,~]')
         self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
         self.pattern_excrit_punc = re.compile(r'[!！~]')
@@ -351,6 +350,7 @@ class TalkSplitV2():
     def add_part(self, part):
         self.sentence_present += part
     def split_present_sentence(self):
+        self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
         length_present = len(self.sentence_present.encode())
         if length_present <= 60:
             return None
@@ -386,7 +386,7 @@ class TalkSplitV2():
             else:
                 return False
         def split_at_pos(pos):
-            sce = self.sentence_present[0:pos]
+            sce = self.sentence_present[0:pos+1]
             self.sentence_present = self.sentence_present[pos+1:]
             return sce
         cell_i = -1
@@ -403,25 +403,26 @@ class TalkSplitV2():
                 self.slc.append([cell_i, cell])
             elif self.pattern_semiright.match(cell):
                 self.src.append([cell_i, cell])
+        #print(self.apc);print(self.cpc);print(self.epc);print(length_present)
         # if length_present <= 60:
         #     return None
         if self.epc:
             for char in reversed(self.epc):
-                if 180 <= get_real_len(char[0]) <= 30 and check_sanity_pos(char[0]):
+                if 30 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No epc or none fits
         if length_present <= 100:
             return None
         if self.cpc:
             for char in reversed(self.cpc):
-                if 180 <= get_real_len(char[0]) <= 30 and check_sanity_pos(char[0]):
+                if 30 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No cpc or still none fits
         if length_present <= 150:
             return None
         if self.apc:
             for char in reversed(self.apc):
-                if 180 <= get_real_len(char[0]) <= 150 and check_sanity_pos(char[0]):
+                if 150 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # Force stop
         if length_present <= 180:
