@@ -63,7 +63,11 @@ init 999 python in maica:
         for ev in store.mas_games.game_db.values()
         if store.mas_isGameUnlocked(ev.prompt)
     }
+    
     unlocked_games_dict["玩家自行选择"] = "mas_pick_a_game"
+    unlocked_games_dict["Pong"] = "game_pong"
+    if store.mas_isGameUnlocked("Hangman") or store.mas_isGameUnlocked("上吊小人"):
+        unlocked_games_dict["Hangman"] = "game_hangman"
     def minigame_callback(item):
         
         if not item in unlocked_games_dict:
