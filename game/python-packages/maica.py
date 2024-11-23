@@ -252,7 +252,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.content_func = None
         # 待发送消息队列
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
-        self._received = ""
+        self.TalkSpilter = bot_interface.TalkSplitV2()
         self._current_topic = ""
         self.status = self.MaicaAiStatus.WAIT_AVAILABILITY
         self.target_lang = self.MaicaAiLang.zh_cn
@@ -338,6 +338,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.stat.update(new)
     def get_message(self):
         res = self.message_list.get()
+        if len(self.message_list) < 1:
+            talk = self.TalkSpilter.split_present_sentence()
+            if talk:
+                talk = self.MoodStatus.analyze(talk)
+                emote = self.MoodStatus.get_emote()
+                self._append_to_message_list(emote,talk)
         return (res[0], bot_interface.add_pauses(res[1]))
     def _gen_token(self, account, pwd, token, email = None):
         if token != "":
@@ -652,43 +658,54 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
-                self._received = self._received + data['content']
-                if re.match(r"[0-9]\s*\.\s*$", self._received[self._pos:]):
-                    isnum = 0
-                else:
-                    isnum = is_precisely_a_talk(self._received[self._pos:])
-                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum)) if isnum > 0 else None
-                if isnum:
-                    raw_message = self._received[self._pos:self._pos + isnum]
-                    res = self.MoodStatus.analyze(raw_message)
-                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
-                    emote = self.MoodStatus.get_emote()
-                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
-                    logger.debug("MESSAGE_WAITING_RESPONSE::MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-                    self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-
-                    self._append_to_message_list(emote, res.strip())
-                    logger.debug("Server:{}".format(self._received[self._pos:self._pos + isnum]))
-                    self._pos = self._pos + isnum
+                self.TalkSpilter.add_part(data['content'])
+                if len(self.message_list) == 0:
+                    res = self.TalkSpilter.split_present_sentence()
+                    if res:
+                        res = self.MoodStatus.analyze(res)
+                        emote = self.MoodStatus.get_emote()
+                        self._append_to_message_list(emote,res)
+#                self.TalkSpilter = self.TalkSpilter + data['content']
+#                if re.match(r"[0-9]\s*\.\s*$", self.TalkSpilter[self._pos:]):
+#                    isnum = 0
+#                else:
+#                    isnum = is_precisely_a_talk(self.TalkSpilter[self._pos:])
+#                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum)) if isnum > 0 else None
+#                if isnum:
+#                    raw_message = self.TalkSpilter[self._pos:self._pos + isnum]
+#                    res = self.MoodStatus.analyze(raw_message)
+#                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
+#                    emote = self.MoodStatus.get_emote()
+#                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
+#                    logger.debug("MESSAGE_WAITING_RESPONSE::MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+#                    self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+#
+#                    self._append_to_message_list(emote, res.strip())
+#                    logger.debug("Server:{}".format(self.TalkSpilter[self._pos:self._pos + isnum]))
+#                    self._pos = self._pos + isnum
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
             if data['status'] == "streaming_done":
                 self._in_mspire = False
-                if len(self._received)- 1 - self._pos > 0:
-                    raw_message = self._received[self._pos:]
-                    res = self.MoodStatus.analyze(raw_message)
-                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
+                talks = self.TalkSpilter.announce_stop()
+                for item in talks:
+                    t = self.MoodStatus.analyze(item)
                     emote = self.MoodStatus.get_emote()
-                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
-                    #self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-                    self._append_to_message_list(emote, res.strip())
-                    logger.debug("Server: {}".format(self._received[self._pos:]))
+                    self._append_to_message_list(emote,t)
+#                if len(self.TalkSpilter)- 1 - self._pos > 0:
+#                    raw_message = self.TalkSpilter[self._pos:]
+#                    res = self.MoodStatus.analyze(raw_message)
+#                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
+#                    emote = self.MoodStatus.get_emote()
+#                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
+#                    #self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
+#                    self._append_to_message_list(emote, res.strip())
+#                    logger.debug("Server: {}".format(self.TalkSpilter[self._pos:]))
                 logger.debug("User input: {}".format(self._current_topic))
-                logger.debug("Responsed message: {}".format(self._received))
+                logger.debug("Responsed message: {}".format(self.TalkSpilter))
                 self._pos = 0
-                self._received = ""
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
                 self.MoodStatus.reset()
                 self._gen_time = time.time()
@@ -708,6 +725,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
         if not self.__accessable:
             return logger.error("Maica is not serving")
+        
         message = str(message)
         self.senddata_queue.clear()
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
