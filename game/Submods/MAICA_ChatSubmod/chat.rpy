@@ -499,7 +499,7 @@ init 5 python:
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
             },
-        )
+        ),
         restartBlacklist=True,
     )
 
