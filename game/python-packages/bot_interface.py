@@ -7,7 +7,6 @@ import sys
 import re
 import math
 import logging
-
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
@@ -170,7 +169,7 @@ def is_precisely_a_talk(strin, debug_printfunc=fuckprint):
     relpos = 0
     for chop in str_split:
         if chop != '':
-            if re.match(pattern_common_punc, chop):
+            if re.findall(pattern_common_punc, chop):
                 puncset.append([relpos, chop])
                 if re.search(pattern_crit, chop):
                     critset.append([relpos, chop])
@@ -240,9 +239,9 @@ def add_pauses(strin):
     excritset = []
     
     # Define unicode pattern if necessary
-    pattern_common_punc = r'(\s*[.。!！?？；;，,~]+\s*)'
-    pattern_crit = r'[.。!！?？~]'
-    pattern_excrit = r'[~!！]'
+    pattern_common_punc = r'(\s*[.!?;,~]+\s*)'
+    pattern_crit = r'[.!?~]'
+    pattern_excrit = r'[~!]'
     
     str_split = re.split(pattern_common_punc, strin)
     relpos = 0
@@ -250,7 +249,7 @@ def add_pauses(strin):
     for chop in str_split:
         if chop != '':
             print(chop)  # Depending on your environment, you might want to encode this if not displaying correctly
-            if re.match(pattern_common_punc, chop):
+            if re.findall(pattern_common_punc, chop):
                 puncset.append([relpos, chop])
                 if re.search(pattern_crit, chop):
                     critset.append([relpos, chop])
@@ -269,15 +268,15 @@ def add_pauses(strin):
         if num == lastnum:
             break
         content = i[1]
-        if re.match(r'\s*\.\.\.', content):
+        if re.findall(r'\s*\.\.\.', content):
             allset[num][1] += u'{w=0.5}'
         else:
-            if re.match(r'\s*[；;:︰]', content):
+            if re.findall(r'\s*[；;:︰]', content):
                 if len(allset[num-1][1].encode('utf-8')) >= 12 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 12):
                     allset[num][1] += u'{w=0.5}'
                 else:
                     allset[num][1] += u'{w=0.2}'
-            elif re.match(r'\s*[.。?？]', content):
+            elif re.findall(r'\s*[.。?？]', content):
                 if len(allset[num-1][1].encode('utf-8')) >= 24 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 24):
                     allset[num][1] += u'{w=0.3}'
     
@@ -338,12 +337,21 @@ class TalkSplitV2():
 
     def __init__(self, print_func = fuckprint):
         self.sentence_present = ''
-        self.pattern_all_punc = re.compile(r'[.。!！?？；;，,~]')
-        self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
-        self.pattern_excrit_punc = re.compile(r'[!！~]')
-        self.pattern_numeric = re.compile(r'[0123456789]')
-        self.pattern_semileft = re.compile(r'[(（\[]')
-        self.pattern_semiright = re.compile(r'[)）\]]')
+        if PY3:
+            self.pattern_all_punc = re.compile(r'[.。!！?？；;，,~]')
+            self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
+            self.pattern_excrit_punc = re.compile(r'[!！~]')
+            self.pattern_numeric = re.compile(r'[0123456789]')
+            self.pattern_semileft = re.compile(r'[(（\[]')
+            self.pattern_semiright = re.compile(r'[)）\]]')
+        elif PY2:
+            import datapy2
+            self.pattern_all_punc = datapy2.pattern_all_punc
+            self.pattern_crit_punc = datapy2.pattern_crit_punc
+            self.pattern_excrit_punc = datapy2.pattern_excrit_punc
+            self.pattern_numeric = datapy2.pattern_numeric
+            self.pattern_semileft = datapy2.pattern_semileft
+            self.pattern_semiright = datapy2.pattern_semiright
         self.print_func = print_func
 
     def test_patterns(self, text):
@@ -409,16 +417,16 @@ class TalkSplitV2():
         cell_i = -1
         for cell in self.sentence_present:
             cell_i += 1
-            if self.pattern_all_punc.match(cell):
+            if self.pattern_all_punc.findall(cell):
                 if not (cell_i >= 1 and is_decimal(self.sentence_present[cell_i-1:cell_i+2])):
                     self.apc.append([cell_i, cell])
-                if self.pattern_crit_punc.match(cell):
+                if self.pattern_crit_punc.findall(cell):
                     self.cpc.append([cell_i, cell])
-                    if self.pattern_excrit_punc.match(cell):
+                    if self.pattern_excrit_punc.findall(cell):
                         self.epc.append([cell_i, cell])
-            elif self.pattern_semileft.match(cell):
+            elif self.pattern_semileft.findall(cell):
                 self.slc.append([cell_i, cell])
-            elif self.pattern_semiright.match(cell):
+            elif self.pattern_semiright.findall(cell):
                 self.src.append([cell_i, cell])
         self.print_func(self.apc);self.print_func(self.cpc);self.print_func(self.epc);self.print_func(length_present)
         # if length_present <= 60:
