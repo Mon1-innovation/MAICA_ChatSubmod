@@ -123,7 +123,6 @@ label maica_talking(mspire = False):
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
-            store.mas_submod_utils.submod_log.debug("label maica_talking::USER INPUT:'{}'".format(question))
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             _return = "mtrigger_triggering"
             ai.mtrigger_manager.run_trigger(MTriggerAction.post)
