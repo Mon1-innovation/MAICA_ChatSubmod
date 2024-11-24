@@ -342,6 +342,7 @@ class TalkSplitV2():
             self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
             self.pattern_excrit_punc = re.compile(r'[!！~]')
             self.pattern_numeric = re.compile(r'[0123456789]')
+            self.pattern_spacial = re.compile(r'[\s]')
             self.pattern_semileft = re.compile(r'[(（\[]')
             self.pattern_semiright = re.compile(r'[)）\]]')
         elif PY2:
@@ -379,9 +380,10 @@ class TalkSplitV2():
         self.print_func("length_present: {}".format(length_present))
         if length_present <= 60:
             return None
-        def is_decimal(four_related_cells):
-            if four_related_cells[1] == '.':
-                if len(self.pattern_numeric.findall(four_related_cells)) >= 2:
+        def is_decimal(five_related_cells):
+            if five_related_cells[2] == '.':
+                nums = len(self.pattern_numeric.findall(five_related_cells)); spcs = len(self.pattern_spacial.findall(five_related_cells))
+                if nums>=2 or nums+spcs>=3:
                     return True
             return False
         def get_real_len(pos):
@@ -418,7 +420,7 @@ class TalkSplitV2():
         for cell in self.sentence_present:
             cell_i += 1
             if self.pattern_all_punc.findall(cell):
-                if not (cell_i >= 1 and is_decimal(self.sentence_present[cell_i-1:cell_i+2])):
+                if not is_decimal(('  '+self.sentence_present+'  ')[cell_i:cell_i+4]):
                     self.apc.append([cell_i, cell])
                 if self.pattern_crit_punc.findall(cell):
                     self.cpc.append([cell_i, cell])
