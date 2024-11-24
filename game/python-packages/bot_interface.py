@@ -338,20 +338,22 @@ class TalkSplitV2():
     def __init__(self, print_func = fuckprint):
         self.sentence_present = ''
         if PY3:
-            self.pattern_all_punc = re.compile(r'[.。!！?？；;，,~]')
+            self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]')
+            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;~]')
             self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
             self.pattern_excrit_punc = re.compile(r'[!！~]')
-            self.pattern_numeric = re.compile(r'[0123456789]')
-            self.pattern_spacial = re.compile(r'[\s]')
+            self.pattern_numeric = re.compile(r'[0-9]')
+            self.pattern_content = re.compile(r'[一-龥A-Za-z]')
             self.pattern_semileft = re.compile(r'[(（\[]')
             self.pattern_semiright = re.compile(r'[)）\]]')
         elif PY2:
             import datapy2
             self.pattern_all_punc = datapy2.pattern_all_punc
+            self.pattern_uncrit_punc = datapy2.pattern_uncrit_punc
             self.pattern_crit_punc = datapy2.pattern_crit_punc
             self.pattern_excrit_punc = datapy2.pattern_excrit_punc
             self.pattern_numeric = datapy2.pattern_numeric
-            self.pattern_spacial = datapy2.pattern_spacial
+            self.pattern_content = datapy2.pattern_content
             self.pattern_semileft = datapy2.pattern_semileft
             self.pattern_semiright = datapy2.pattern_semiright
         self.print_func = print_func
@@ -372,19 +374,19 @@ class TalkSplitV2():
 
     def init1(self):
         self.sentence_present = ''
-        self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
+        self.apc=[];self.upc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
     def add_part(self, part):
         self.sentence_present += part
     def split_present_sentence(self):
-        self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
+        self.apc=[];self.upc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
         length_present = len(self.sentence_present.encode())
         self.print_func("length_present: {}".format(length_present))
         if length_present <= 60:
             return None
         def is_decimal(five_related_cells):
             if five_related_cells[2] == '.':
-                nums = len(self.pattern_numeric.findall(five_related_cells)); spcs = len(self.pattern_spacial.findall(five_related_cells))
-                if nums>=2 or nums+spcs>=3:
+                nums = len(self.pattern_numeric.findall(five_related_cells)); cnts = len(self.pattern_content.findall(five_related_cells))
+                if nums>=2 or cnts<=1:
                     return True
             return False
         def get_real_len(pos):
@@ -421,17 +423,19 @@ class TalkSplitV2():
         for cell in self.sentence_present:
             cell_i += 1
             if self.pattern_all_punc.findall(cell):
+                self.apc.append([cell_i, cell])
                 if not is_decimal(('  '+self.sentence_present+'  ')[cell_i:cell_i+4]):
-                    self.apc.append([cell_i, cell])
-                if self.pattern_crit_punc.findall(cell):
-                    self.cpc.append([cell_i, cell])
-                    if self.pattern_excrit_punc.findall(cell):
-                        self.epc.append([cell_i, cell])
+                    if self.pattern_uncrit_punc.findall(cell):
+                        self.upc.append([cell_i, cell])
+                        if self.pattern_crit_punc.findall(cell):
+                            self.cpc.append([cell_i, cell])
+                            if self.pattern_excrit_punc.findall(cell):
+                                self.epc.append([cell_i, cell])
             elif self.pattern_semileft.findall(cell):
                 self.slc.append([cell_i, cell])
             elif self.pattern_semiright.findall(cell):
                 self.src.append([cell_i, cell])
-        self.print_func(self.apc);self.print_func(self.cpc);self.print_func(self.epc);self.print_func(length_present)
+        self.print_func(self.apc);self.print_func(self.upc);self.print_func(self.cpc);self.print_func(self.epc);self.print_func(length_present)
         # if length_present <= 60:
         #     return None
         if self.epc:
@@ -446,17 +450,26 @@ class TalkSplitV2():
                 if 30 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No cpc or still none fits
+        if length_present <= 125:
+            return None
+        if self.upc:
+            for char in reversed(self.upc):
+                if 10 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
+                    return split_at_pos(char[0])
+        # No upc or still none fits
         if length_present <= 150:
             return None
         if self.apc:
             for char in reversed(self.apc):
-                if 150 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
+                if 3 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
-        # Force stop
-        if length_present <= 180:
-            return None
-        else:
-            return split_at_pos(180)
+        # Falling back -- sanity given up
+            if length_present <= 180:
+                return None
+            for char in reversed(self.apc):
+                if 3 <= get_real_len(char[0]) <= 200:
+                    return split_at_pos(char[0])
+        return split_at_pos(get_real_len(200))
     def announce_stop(self):
         sce = []
         res = True
