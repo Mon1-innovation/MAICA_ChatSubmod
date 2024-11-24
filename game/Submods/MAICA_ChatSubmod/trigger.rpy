@@ -209,8 +209,17 @@ init 999 python in maica:
 
 #################################################################################
 
+    def mtrigger_hold_condition():
+        return store.renpy.seen_label("monika_holdme_prep")
 
+    def mtrigger_hold_callback(arg):
+        store.renpy.call("mtrigger_hold")
 
+    hold_trigger = MTriggerBase(customize_template, "hold", "拥抱玩家", "hold player", condition=mtrigger_hold_condition, callback=mtrigger_hold_callback,
+        description = _("内置 | 拥抱"))
+    maica.mtrigger_manager.add_trigger(hold_trigger)
+
+#################################################################################
 
         
 

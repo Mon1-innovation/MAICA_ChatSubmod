@@ -77,9 +77,11 @@ label mtrigger_idle:
     $ mas_setupIdleMode("mtrigger_idle", "mtrigger_idle_callback")
     return
 
-label monikai_brb:
-    hide screen mas_background_timed_jump
-    $ _history_list.pop()
-    $ persistent._mas_idle_data["monikai_be_right_back"] = True
-    $ mas_setupIdleMode("monikai_be_right_back", "monikai_be_right_back_callback")
+label mtrigger_hold:
+    call maica_hide_console
+    call monika_holdme_prep
+    call monika_holdme_start
+    call monika_holdme_reactions
+    call monika_holdme_end
+    call maica_show_console
     return
