@@ -7,6 +7,19 @@ text = "你知道世界音乐奖吗, [player]? 这是一个每年评选出来的
 import bot_interface
 
 spilter = bot_interface.TalkSplitV2(print)
+
+test_strings = [
+    "Hello, world! (Test 123)",
+    "你好，世界。测试：456",
+    "Is this correct? Yes, it is.",
+    "No special chars here",
+    "Critical Punctuation~ Check!",
+    "Brackets [and] parentheses (are) tricky."
+]
+
+for i in test_strings:
+    spilter.test_patterns(i)
+
 for i in range(len(text)):
     spilter.add_part(text[i])
     #res = spilter.split_present_sentence()

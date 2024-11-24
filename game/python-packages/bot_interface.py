@@ -346,6 +346,20 @@ class TalkSplitV2():
         self.pattern_semiright = re.compile(r'[)）\]]')
         self.print_func = print_func
 
+    def test_patterns(self, text):
+        self.print_func("test_patterns text: {}".format(text))
+        results = {
+            "all_punc": self.pattern_all_punc.findall(text),
+            "crit_punc": self.pattern_crit_punc.findall(text),
+            "excrit_punc": self.pattern_excrit_punc.findall(text),
+            "numeric": self.pattern_numeric.findall(text),
+            "semileft": self.pattern_semileft.findall(text),
+            "semiright": self.pattern_semiright.findall(text)
+        }
+
+        for pattern_name, matches in results.items():
+            self.print_func("{}: {}".format(pattern_name, matches))
+
     def init1(self):
         self.sentence_present = ''
         self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
