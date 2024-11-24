@@ -500,6 +500,7 @@ init 5 python:
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
             },
         )
+        restartBlacklist=True,
     )
 
 label maica_main:
