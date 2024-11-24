@@ -775,7 +775,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 }
             )
         res = requests.post(
-            "https://maicadev.monika.love/api/restore",
+            "https://maicadev.monika.love/api/savefile",
             data = content
         )
         if res.status_code == 200:
@@ -832,7 +832,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.post(
-            "https://maicadev.monika.love/api/history",
+            "https://maicadev.monika.love/api/restore",
             data = json.dumps(
                 {
                     "access_token": self.ciphertext,
