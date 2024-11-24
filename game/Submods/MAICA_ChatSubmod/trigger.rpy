@@ -68,7 +68,6 @@ init 999 python in maica:
     unlocked_games_dict["Pong"] = "game_pong"
     if "NOU" in unlocked_games_dict:
         unlocked_games_dict["UNO"] = unlocked_games_dict["NOU"]
-        del unlocked_games_dict["NOU"]
     if store.mas_isGameUnlocked("Hangman") or store.mas_isGameUnlocked("上吊小人"):
         unlocked_games_dict["Hangman"] = "game_hangman"
     def minigame_callback(item):
