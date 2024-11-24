@@ -133,10 +133,10 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
-def print_func(a):
-    print(a)
+def fuckprint(*args, **kwargs):
+    return
 
-def is_precisely_a_talk(strin, debug_printfunc=print_func):
+def is_precisely_a_talk(strin, debug_printfunc=fuckprint):
 
     def get_pos(relpos):
         # This method added 1
@@ -336,7 +336,7 @@ class TalkSplitV2():
     # 我知道你懒得做优化, 所以随你的便吧. 我能替你优化的部分基本都优化到最佳了
     # 理论上能规避小数点, 也会尽可能避免拆括号, 还有未封闭就不是我的锅了
 
-    def __init__(self):
+    def __init__(self, print_func = fuckprint):
         self.sentence_present = ''
         self.pattern_all_punc = re.compile(r'[.。!！?？；;，,~]')
         self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
@@ -344,6 +344,8 @@ class TalkSplitV2():
         self.pattern_numeric = re.compile(r'[0123456789]')
         self.pattern_semileft = re.compile(r'[(（\[]')
         self.pattern_semiright = re.compile(r'[)）\]]')
+        self.print_func = print_func
+
     def init1(self):
         self.sentence_present = ''
         self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
@@ -352,6 +354,7 @@ class TalkSplitV2():
     def split_present_sentence(self):
         self.apc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
         length_present = len(self.sentence_present.encode())
+        self.print_func("length_present: {}".format(length_present))
         if length_present <= 60:
             return None
         def is_decimal(four_related_cells):
@@ -403,7 +406,7 @@ class TalkSplitV2():
                 self.slc.append([cell_i, cell])
             elif self.pattern_semiright.match(cell):
                 self.src.append([cell_i, cell])
-        #print(self.apc);print(self.cpc);print(self.epc);print(length_present)
+        self.print_func(self.apc);self.print_func(self.cpc);self.print_func(self.epc);self.print_func(length_present)
         # if length_present <= 60:
         #     return None
         if self.epc:

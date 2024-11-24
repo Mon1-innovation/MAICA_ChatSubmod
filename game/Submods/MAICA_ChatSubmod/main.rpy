@@ -85,7 +85,7 @@ label maica_talking(mspire = False):
 
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
-                        
+            received_message = ""
             gentime = 0.0
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.is_responding():
@@ -113,14 +113,16 @@ label maica_talking(mspire = False):
                     continue    
                 message = ai.get_message()
                 store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}'".format(message[0], message[1]))
+                received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
                 try:
                     renpy.say(m, message[1])
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
+            store.mas_submod_utils.submod_log.debug("label maica_talking::USER INPUT:'{}'".format(question))
+            store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             _return = "mtrigger_triggering"
-
             ai.mtrigger_manager.run_trigger(MTriggerAction.post)
             if mspire:
                 _return = "canceled"
