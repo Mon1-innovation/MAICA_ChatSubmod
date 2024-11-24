@@ -351,6 +351,7 @@ class TalkSplitV2():
             self.pattern_crit_punc = datapy2.pattern_crit_punc
             self.pattern_excrit_punc = datapy2.pattern_excrit_punc
             self.pattern_numeric = datapy2.pattern_numeric
+            self.pattern_spacial = datapy2.pattern_spacial
             self.pattern_semileft = datapy2.pattern_semileft
             self.pattern_semiright = datapy2.pattern_semiright
         self.print_func = print_func
