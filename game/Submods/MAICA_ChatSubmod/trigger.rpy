@@ -26,6 +26,8 @@ init 999 python in maica:
     class ClothesTrigger(MTriggerBase):
         def __init__(self, template, name):
             self.clothes_data = {store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
+            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
+            self.clothes_data[False] = "mas_pick_a_clothes"
             super(ClothesTrigger, self).__init__(template, name, description=_("内置 | 更换衣服"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
                     item_name_zh = "莫妮卡的衣服",
@@ -65,6 +67,7 @@ init 999 python in maica:
     }
     
     unlocked_games_dict["玩家自行选择"] = "mas_pick_a_game"
+    unlocked_games_dict[False] = "mas_pick_a_game"
     unlocked_games_dict["Pong"] = "game_pong"
     if "NOU" in unlocked_games_dict:
         unlocked_games_dict["UNO"] = unlocked_games_dict["NOU"]

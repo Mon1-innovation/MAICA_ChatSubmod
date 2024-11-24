@@ -9,7 +9,14 @@ import maica_mtrigger
 from maica_mtrigger import MTriggerAction
 websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
+import datetime
 
+def milliseconds_to_hms(timestamp_ms):
+    # 将毫秒转换为秒
+    timestamp_s = timestamp_ms / 1000.0
+    # 创建一个UTC时间戳对应的datetime对象
+    dt = datetime.datetime.utcfromtimestamp(timestamp_s)
+    return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
     ascii_icon = """                                                             
@@ -270,8 +277,22 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.ws_cookie = ""
+        self._ping_start = 0.0
+        self._ping_last_received = 0.0
+        self.ping_interval = 10.0
+        self._think_is_ping_blockingtime = 3.5
 
 
+
+    def start_ping(self):
+        import json, time
+        if time.time() - self._ping_start < self.ping_interval:
+            return
+        self.wss_session.send(json.dumps({"type": "ping"}))
+        self._ping_start = time.time()
+    
+    def is_ping_blocking(self):
+        return self._ping_last_received < self._ping_start
 
 
     def reset_stat(self):
@@ -614,14 +635,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def __on_message(self, wsapp, message):
         import json, time
         data = json.loads(message)
-        logger.debug("_on_message: {}".format(data))    
+        logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
+            (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
+            data["status"] if "status" in data else "unknown status",
+            data["type"] if "type" in data else "unknown type",
+            data["code"] if "code" in data else "unknown code",
+            data["content"] if "content" in data else "unknown content"
+        ))    
         if data.get("type", False) != "carriage":
             self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
         if 500 <= int(data.get("code", 200)) < 600:
             self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
-        # 到达上限状态接收
+        if data["status"] == "ping_reaction":
+            self._ping_last_received = time.time()
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
         elif data["status"] == "delete":
@@ -643,6 +671,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
         if data['status'] == "ws_cookie":
             self.ws_cookie = data['content']
+        
+        # data处理：
+        # 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
+        # 直接将data.status改写为streaming_done
+        if self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE and data['status'] == "ping_reaction":
+            data['status'] = "streaming_done"
+            data['content'] = "streaming_done losted!"
+            logger.warning("streaming_done likely losted")
+            self.send_to_outside_func("!!SUBMOD WARN: streaming_done maybe losted")
+
 
 
         # 发送令牌，等待回应
@@ -655,6 +693,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
+            self._gen_time = time.time()
             if data['status'] == "continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
@@ -665,24 +704,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         res = self.MoodStatus.analyze(res)
                         emote = self.MoodStatus.get_emote()
                         self._append_to_message_list(emote,res)
-#                self.TalkSpilter = self.TalkSpilter + data['content']
-#                if re.match(r"[0-9]\s*\.\s*$", self.TalkSpilter[self._pos:]):
-#                    isnum = 0
-#                else:
-#                    isnum = is_precisely_a_talk(self.TalkSpilter[self._pos:])
-#                logger.debug("MESSAGE_WAITING_RESPONSE:: isnum: {}".format(isnum)) if isnum > 0 else None
-#                if isnum:
-#                    raw_message = self.TalkSpilter[self._pos:self._pos + isnum]
-#                    res = self.MoodStatus.analyze(raw_message)
-#                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
-#                    emote = self.MoodStatus.get_emote()
-#                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
-#                    logger.debug("MESSAGE_WAITING_RESPONSE::MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-#                    self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{:.2f}/r{:.2f}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-#
-#                    self._append_to_message_list(emote, res.strip())
-#                    logger.debug("Server:{}".format(self.TalkSpilter[self._pos:self._pos + isnum]))
-#                    self._pos = self._pos + isnum
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
@@ -694,18 +715,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     t = self.MoodStatus.analyze(item)
                     emote = self.MoodStatus.get_emote()
                     self._append_to_message_list(emote,t)
-#                if len(self.TalkSpilter)- 1 - self._pos > 0:
-#                    raw_message = self.TalkSpilter[self._pos:]
-#                    res = self.MoodStatus.analyze(raw_message)
-#                    logger.debug("MESSAGE_WAITING_RESPONSE::res: {}".format(res))
-#                    emote = self.MoodStatus.get_emote()
-#                    logger.debug("MESSAGE_WAITING_RESPONSE::emote: {}".format(emote))
-#                    #self.send_to_outside_func("<submod> MoodStatus: pre_mood:{} strength:m{}/r{}".format(self.MoodStatus.pre_mood, self.MoodStatus.main_strength, self.MoodStatus.repeat_strength))
-#                    self._append_to_message_list(emote, res.strip())
-#                    logger.debug("Server: {}".format(self.TalkSpilter[self._pos:]))
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
                 self.MoodStatus.reset()
-                self._gen_time = time.time()
+                
         if self.update_screen_func:
             self.update_screen_func(0)
     def _on_error(self, wsapp, error):
@@ -735,7 +747,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif message[0] == " ":
             message = message[1:]
         self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
-    def upload_save(self, dict, session=1):
+    def upload_save(self, dict):
         """
         向Maica服务上传并保存存档数据。
         
@@ -758,12 +770,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         content = json.dumps(
                 {
                     "access_token": self.ciphertext,
-                    "chat_session": session,
+                    "chat_session": self.chat_session,
                     "content": dict
                 }
             )
         res = requests.post(
-            "https://maicadev.monika.love/api/savefile",
+            "https://maicadev.monika.love/api/restore",
             data = content
         )
         if res.status_code == 200:

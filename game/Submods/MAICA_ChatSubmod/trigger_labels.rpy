@@ -1,7 +1,10 @@
 label mtrigger_change_clothes(outfit_name):
     call maica_hide_console
+    if outfit_name == "mas_pick_a_clothes":
+        call monika_clothes_select 
+        call maica_show_console
+        return 
     call mas_transition_to_emptydesk
-
     python:
         renpy.pause(1.0, hard=True)
 
