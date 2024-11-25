@@ -550,7 +550,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data()}
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
-
                         self.wss_session.send(
                             message
                         )   
@@ -568,9 +567,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.send(self.ciphertext)
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                        self.wss_session.send(
-                            json.dumps(build_setting_config())
-                        )
+                        self.send_settings()
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
@@ -619,6 +616,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data['super_params'][param] = self.modelconfig[param]
             return data
         if self.is_connected():
+            logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
             self.wss_session.send(
                 json.dumps(build_setting_config())
             )
