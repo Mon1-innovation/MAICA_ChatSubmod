@@ -239,9 +239,15 @@ def add_pauses(strin):
     excritset = []
     
     # Define unicode pattern if necessary
-    pattern_common_punc = r'(\s*[.!?;,~]+\s*)'
-    pattern_crit = r'[.!?~]'
-    pattern_excrit = r'[~!]'
+    if PY3:
+        pattern_common_punc = r'(\s*[.!?;,~]+\s*)'
+        pattern_crit = r'[.!?~]'
+        pattern_excrit = r'[~!]'
+    else:
+        import datapy2
+        pattern_common_punc = datapy2.pattern_common_punc
+        pattern_crit = datapy2.pattern_crit
+        pattern_excrit = datapy2.pattern_excrit
     
     str_split = re.split(pattern_common_punc, strin)
     relpos = 0
@@ -263,20 +269,29 @@ def add_pauses(strin):
     
     lastnum = len(allset)-1
 
+    if PY3:
+        pr1 = r'\s*\.\.\.'
+        pr2 = r'\s*[；;:︰]'
+        pr3 = r'\s*[.。?？]'
+    else:
+        import datapy2
+        pr1 = datapy2.pr1
+        pr2 = datapy2.pr2
+        pr3 = datapy2.pr3
     for i in puncset:
         num = i[0]
         if num == lastnum:
             break
         content = i[1]
-        if re.findall(r'\s*\.\.\.', content):
+        if re.findall(pr1, content):
             allset[num][1] += u'{w=0.5}'
         else:
-            if re.findall(r'\s*[；;:︰]', content):
+            if re.findall(pr2, content):
                 if len(allset[num-1][1].encode('utf-8')) >= 12 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 12):
                     allset[num][1] += u'{w=0.5}'
                 else:
                     allset[num][1] += u'{w=0.2}'
-            elif re.findall(r'\s*[.。?？]', content):
+            elif re.findall(pr3, content):
                 if len(allset[num-1][1].encode('utf-8')) >= 24 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 24):
                     allset[num][1] += u'{w=0.3}'
     

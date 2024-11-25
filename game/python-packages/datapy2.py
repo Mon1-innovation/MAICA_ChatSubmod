@@ -7,3 +7,14 @@ pattern_numeric = re.compile(ur'[0-9]')
 pattern_content = re.compile(ur'[一-龥A-Za-z]')
 pattern_semileft = re.compile(ur'[(（\[]')
 pattern_semiright = re.compile(ur'[)）\]]')
+
+
+
+pattern_common_punc = ur'(\s*[.!?;,~]+\s*)'
+pattern_crit = ur'[.!?~]'
+pattern_excrit = ur'[~!]'
+
+
+pr1 = ur'\s*\.\.\.'
+pr2 = ur'\s*[；;:︰]'
+pr3 = ur'\s*[.。?？]'
