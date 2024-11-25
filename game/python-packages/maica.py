@@ -684,7 +684,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
             if data['status'] == "thread_ready":
-                self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT            
+                self.status = self.MaicaAiStatus.SESSION_CREATED            
         elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
             if not data['status'] in ("ok", "thread_ready", "params_set"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
