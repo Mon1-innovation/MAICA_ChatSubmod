@@ -191,7 +191,7 @@ init 999 python in maica:
     def mtrigger_location_callback(arg):
         store.renpy.call("mtrigger_location")
 
-    location_trigger = MTriggerBase(customize_template, "location", "换个位置", "change location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
+    location_trigger = MTriggerBase(customize_template, "location", "切换游戏内场景", "change in-game location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
         description = _("内置 | 调用切换房间"))
     maica.mtrigger_manager.add_trigger(location_trigger)
 
