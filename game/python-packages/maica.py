@@ -670,16 +670,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if data['status'] == "ws_cookie":
             self.ws_cookie = data['content']
         
-        # data处理：
-        # 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
-        # 直接将data.status改写为streaming_done
-        if self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE and data['status'] == "ping_reaction":
-            data['status'] = "streaming_done"
-            data['content'] = "streaming_done losted!"
-            logger.warning("streaming_done likely losted")
-            self.send_to_outside_func("!!SUBMOD WARN: streaming_done maybe losted")
-
-
+        ## data处理：
+        ## 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
+        ## 直接将data.status改写为streaming_done
+        #if self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE and data['status'] == "ping_reaction":
+        #    data['status'] = "streaming_done"
+        #    data['content'] = "streaming_done losted!"
+        #    logger.warning("streaming_done likely losted")
+        #    self.send_to_outside_func("!!SUBMOD WARN: streaming_done maybe losted")
 
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
@@ -706,7 +704,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
-            if data['status'] == "streaming_done":
+            if data['status'] == "mtrigger_done":
                 self._in_mspire = False
                 talks = self.TalkSpilter.announce_stop()
                 for item in talks:
