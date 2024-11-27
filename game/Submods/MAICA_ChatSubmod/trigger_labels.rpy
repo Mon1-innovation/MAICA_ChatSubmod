@@ -1,4 +1,5 @@
 label mtrigger_change_clothes(outfit_name):
+    call maica_reconnect
     call maica_hide_console
     if outfit_name == "mas_pick_a_clothes":
         call monika_clothes_select 
@@ -22,12 +23,14 @@ label mtrigger_change_clothes(outfit_name):
     return
 
 label mtrigger_kiss:
+    call maica_reconnect
     if mas_shouldKiss(1):
         call maica_hide_console
         call monika_kissing_motion_short
         call maica_show_console
     return 
 label mttrigger_minigame(game):
+    call maica_reconnect
     call maica_hide_console
     $ renpy.call(game)
     call maica_show_console
@@ -35,6 +38,7 @@ label mttrigger_minigame(game):
 
 
 label mtrigger_leave: 
+    call maica_reconnect
     m "你要离开了吗, [player]?"
     menu:
         "你要离开了吗, [player]?{nw}{fast}"
@@ -54,6 +58,7 @@ label mtrigger_quit:
     return
 
 label mtrigger_location: 
+    call maica_reconnect
     if mas_isMoniEnamored(higher=True):
         call monika_change_background
     else:
@@ -65,6 +70,7 @@ label mtrigger_idle:
     return "idle"
 
 label mtrigger_idle_callback:
+    call maica_reconnect
     m 1eka "你回来啦, [player]!"
     m 1eka "我都要想你了."
     jump maica_main.talking_start
@@ -78,6 +84,7 @@ label mtrigger_idle:
     return
 
 label mtrigger_hold:
+    call maica_reconnect
     call maica_hide_console
     call monika_holdme_prep
     call monika_holdme_start

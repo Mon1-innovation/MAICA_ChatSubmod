@@ -153,3 +153,9 @@ label maica_hide_console:
         hide screen mas_py_console_teaching
         show monika at t11
     return
+
+label maica_reconnect:
+    python:
+        store.maica.maica.close_wss_session()
+        store.maica.maica.init_connect()
+    return

@@ -69,6 +69,7 @@ Parameter explanation:
   * This function has one parameter representing the value chosen by the model.
   * **The parameter may not be of the expected type and is not guaranteed to be a value set in `exprop`, so validation is required.**
   * This action will not automatically hide the console. To control console display (e.g., if using a jump), call the labels `maica_show_console` and `maica_hide_console` for related operations.
+  * In the callback, using operations like call or jump may lead to packet loss in the next round of conversation. Please call the label `maica_reconnect` to avoid such situations.
 
 * `action`
   * Action executed by the trigger, default is `MTriggerAction.post`.

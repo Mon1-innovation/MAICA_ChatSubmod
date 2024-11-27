@@ -70,6 +70,7 @@ example_mtrigger = MTriggerBase(
   * 该函数有一个入参, 表示模型所选择的值
   * **入参并不一定是你所期待的类型, 也不能保证一定是你`exprop`所设置的值, 必须进行检查**
   * 该操作不会自动隐藏控制台, 如果需要控制控制台的显示（如使用了jump）, 请call label `maica_show_console` 和 `maica_hide_console` 进行相关操作.
+  * 在callback中使用call, jump等操作, 可能导致下一轮对话出现丢包, 请call label `maica_reconnect` 来避免此类情况
   
 * `action`
   * 触发器执行动作, 默认为`MTriggerAction.post`
