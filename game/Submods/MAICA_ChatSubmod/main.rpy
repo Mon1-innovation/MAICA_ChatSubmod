@@ -157,5 +157,4 @@ label maica_hide_console:
 label maica_reconnect:
     python:
         store.maica.maica.close_wss_session()
-        store.maica.maica.init_connect()
     return
