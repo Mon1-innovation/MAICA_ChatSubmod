@@ -421,7 +421,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_mods_preferences",
             prompt="调整[player]的爱好",
-            category=["你", "我们", "模组", "maica"],
+            category=["你", "我们", "模组", "MAICA"],
             pool=True,
             random=False,
             unlocked=False,
@@ -494,7 +494,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_main",
             prompt="我们去天堂树林吧",
-            category=["你", "我们", "模组", "maica"],
+            category=["你", "我们", "模组", "MAICA"],
             pool=True,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
