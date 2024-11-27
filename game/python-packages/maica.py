@@ -277,22 +277,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.ws_cookie = ""
-        self._ping_start = 0.0
-        self._ping_last_received = 0.0
-        self.ping_interval = 10.0
-        self._think_is_ping_blockingtime = 3.5
-
-
-
-    def start_ping(self):
-        import json, time
-        if time.time() - self._ping_start < self.ping_interval:
-            return
-        self.wss_session.send(json.dumps({"type": "ping"}))
-        self._ping_start = time.time()
-    
-    def is_ping_blocking(self):
-        return self._ping_last_received < self._ping_start
 
 
     def reset_stat(self):
@@ -646,8 +630,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
-        if data["status"] == "ping_reaction":
-            self._ping_last_received = time.time()
         if data["status"] == "delete_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
         elif data["status"] == "delete":

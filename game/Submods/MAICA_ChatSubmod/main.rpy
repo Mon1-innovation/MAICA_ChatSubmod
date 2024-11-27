@@ -109,12 +109,9 @@ label maica_talking(mspire = False):
                     #renpy.show(monika 1eua)
                     store.mas_ptod.write_command("Wait message...")
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                    ai.start_ping()
                     _history_list.pop()
                     continue    
                 message = ai.get_message()
-                if ai.is_responding():
-                    ai.start_ping()
                 store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}'".format(message[0], message[1]))
                 received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
