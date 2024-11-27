@@ -270,7 +270,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr2",
-            prompt="树林重要吗?",
+            prompt="天堂树林的文件",
             conditional="renpy.seen_label('maica_end_1')",
             action=EV_ACT_QUEUE,
             rules={
@@ -297,7 +297,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr_gone",
-            prompt="树林没了",
+            prompt="天堂树林去哪了",
             pool=False,
             conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
@@ -326,7 +326,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr_corrupted2",
-            prompt="树林坏了",
+            prompt="天堂树林好像坏了",
             pool=False,
             conditional="maica_chr_changed and store.seen_event('maica_chr2')",
             action=EV_ACT_PUSH,
@@ -421,7 +421,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_mods_preferences",
             prompt="调整[player]的爱好",
-            category=["你", "我们", "模组"],
+            category=["你", "我们", "模组", "maica"],
             pool=True,
             random=False,
             unlocked=False,
@@ -494,7 +494,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_main",
             prompt="我们去天堂树林吧",
-            category=["你", "我们", "模组"],
+            category=["你", "我们", "模组", "maica"],
             pool=True,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
