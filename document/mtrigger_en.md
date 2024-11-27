@@ -76,6 +76,7 @@ Parameter explanation:
     * `MTriggerAction.post` is a post-trigger that activates after a conversation round is complete.
     * ~~`MTriggerAction.instant` triggers immediately, executing the trigger as soon as the model activates it~~ No longer recommended.
         > Note: This trigger cannot execute `renpy.call` or other renpy statements.
+        
         > Note: Due to backend changes, the `instant` trigger will execute after the main model response is completed, making `post` and `instant` essentially identical in behavior.
 
 
