@@ -559,7 +559,7 @@ label .talking_start:
             m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
             m 3eua "剩下的事情我都会帮你搞定的."
         elif store.maica.maica.status == store.maica.maica.MaicaAiStatus.SAVEFILE_NOTFOUND:
-            m 2rusdlb "你当前会话没有上传存档哦..."
+            m 2rusdlb "好像上传存档出了点问题..."
         else:
             m 2rusdlb "好像是其他的地方出问题了..."
         m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."

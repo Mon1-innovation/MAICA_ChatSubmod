@@ -137,7 +137,7 @@ init 999 python in maica:
                     curr_value=store.mas_current_weather.prompt
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换天气"),
+                description = _("内置 | 更换天气 {size=-5}* 在天堂树林内不启用"),
                 condition = self.condition
             )
 

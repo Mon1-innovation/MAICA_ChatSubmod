@@ -39,14 +39,14 @@ label mttrigger_minigame(game):
 
 label mtrigger_leave: 
     call maica_reconnect
-    m "你要离开了吗, [player]?"
+    m "要走了吗, [player]?"
     menu:
-        "你要离开了吗, [player]?{nw}{fast}"
-        "是的.":
+        "要走了吗, [player]?{nw}{fast}"
+        "是的":
             m 1eka "一会见, [player]!"
             jump mtrigger_quit
             return
-        "再过一会吧":
+        "还没呢":
             m 1eka "谢谢你多陪我一会, [player]."
             return
     return
@@ -62,8 +62,8 @@ label mtrigger_location:
     if mas_isMoniEnamored(higher=True):
         call monika_change_background
     else:
-        m 1eua "我们似乎没别的地方可去呢..."
-        m 1eka "抱歉喽, [player]."
+        m 1eua "我们好像还没别的地方可去..."
+        m 1eksdlb "抱歉啦, [player]."
     return
 
 label mtrigger_idle:

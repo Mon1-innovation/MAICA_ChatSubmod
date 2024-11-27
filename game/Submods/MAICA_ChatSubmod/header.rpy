@@ -55,16 +55,16 @@ init 10 python:
     mdef_setting = copy.deepcopy(maica_default_dict)
     maica_advanced_setting = {
         "top_p":0.7,
-        "temperature":0.4,
-        "max_tokens":1024,
-        "frequency_penalty":0.3,
-        "presence_penalty":0.0,
+        "temperature":0.2,
+        "max_tokens":1600,
+        "frequency_penalty":0.4,
+        "presence_penalty":0.4,
         "seed":0.0,
         "mf_aggressive":False,
         "sfe_aggressive":False,
         "tnd_aggressive":1,
         "esc_aggressive":True,
-        "nsfw_acceptive":False,
+        "nsfw_acceptive":True,
         "pre_additive":1,
         "post_additive":1,
         "amt_aggressive":True
@@ -187,7 +187,7 @@ init 10 python:
                 store.maica.maica.MoodStatus.emote_translate = json.load(f)
         
         if not ininit:
-            renpy.notify(_("正在上传设置") if store.maica.maica.send_settings() else _("不能上传设置, 请等待MAICA准备好聊天\n请等待状态码改变后手动上传设置"))
+            renpy.notify(_("正在上传设置") if store.maica.maica.send_settings() else _("暂未上传设置, 请等待MAICA准备好聊天\n待状态码改变后手动上传设置"))
             
             
     
@@ -333,7 +333,7 @@ screen maica_setting_pane():
                 textbutton _("> 手动上传设置"):
                     action Function(maica_apply_setting)
             else:
-                textbutton _("> 手动上传设置 [[不能上传, 因为MAICA未准备好/忙碌中]")
+                textbutton _("> 手动上传设置 [[请先使MAICA完成连接]")
                     
 
             textbutton _("> 重置当前对话"):
@@ -350,7 +350,7 @@ screen maica_setting_pane():
         else:
             textbutton _("> 使用已保存令牌连接")
     
-        textbutton _("> MAICA对话设置 *部分选项需要重新连接"):
+        textbutton _("> MAICA对话设置 {size=-10}*部分选项重新连接生效"):
             action Show("maica_setting")
         
         if log_hasupdate:
@@ -606,7 +606,7 @@ screen maica_advance_setting():
 
                         if persistent.maica_advanced_setting_status.get("max_tokens", False):
                             bar:
-                                value DictValue(persistent.maica_advanced_setting, "max_tokens", 1024, step=1,offset=0 ,style="slider")
+                                value DictValue(persistent.maica_advanced_setting, "max_tokens", 2048, step=1,offset=0 ,style="slider")
                                 xsize 200
                             textbutton "[persistent.maica_advanced_setting.get('max_tokens', 'None')]"
                     
@@ -625,7 +625,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "presence_penalty":
                             action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
-                            hovered SetField(_tooltip, "value", _("正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"))
+                            hovered SetField(_tooltip, "value", _("重现惩罚, 正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("presence_penalty", False):
@@ -650,7 +650,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "tnd_aggressive":
                             action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
-                            hovered SetField(_tooltip, "value", _("0时只调用MFocus直接选择的工具. 当其为1时总是会调用时间与节日工具. 当其为2时还会额外调用日期工具.\n为2时, 且mas_geolocation存在, tnd_aggressive还会额外调用当前天气工具.\n可能补偿MFocus命中率低下的问题, 但也可能会干扰模型对部分问题的判断."))
+                            hovered SetField(_tooltip, "value", _("当其为0时只调用MFocus直接选择的工具. 为1时总是会调用时间与节日工具. 为2时还会额外调用日期工具.\n当其为2且mas_geolocation存在时, tnd_aggressive还会额外调用当前天气工具.\n越高越可能补偿MFocus命中率低下的问题, 但也越可能会干扰模型对部分问题的判断."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
@@ -662,22 +662,27 @@ screen maica_advance_setting():
                         textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
-                            hovered SetField(_tooltip, "value", _("总是尽可能使用MFocus的最终输出替代指导构型信息. 启用此功能可能提升模型的复杂信息梳理能力 \n但也可能会造成人称或格式的混乱"))
+                            hovered SetField(_tooltip, "value", _("总是尽可能使用MFocus的最终输出替代指导构型信息.\n启用可能提升模型的复杂信息梳理能力, 但也可能会造成速度下降或专注扰乱"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
-                            hovered SetField(_tooltip, "value", _("指定sfe_aggressive为true将总是以用户的真名替代prompt中的[[player]字段. \n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"))
+                            hovered SetField(_tooltip, "value", _("总是以用户的真名替代prompt中的[[player]字段.\n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
-                            hovered SetField(_tooltip, "value", _("当esc_aggressive为true时会调用agent模型对MFocus联网搜集的信息整理一次.\n 启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."))
+                            hovered SetField(_tooltip, "value", _("调用agent模型对MFocus联网搜集的信息整理一次.\n启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
+                            action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
+                                ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
+                            hovered SetField(_tooltip, "value", _("要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
                                 ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
-                            hovered SetField(_tooltip, "value", _("当nsfw_acceptive为true时会改变system指引, 使模型对NSFW场景更为宽容.\n 启用此功能可能提高特定场合表现, 但也可能会造成模型核心能力下降和注意力混乱.\n请注意, 目前为止MAICA尚未使用任何NSFW数据集进行训练, 因此nsfw_acceptive的效果十分薄弱.\n 此后或许会有针对性的改善."))
+                            hovered SetField(_tooltip, "value", _("改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
@@ -703,11 +708,6 @@ screen maica_advance_setting():
                                 xsize 50
                             textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
 
-                        textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
-                            action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
-                                ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
-                            hovered SetField(_tooltip, "value", _("当amt_aggressive为true时会要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
 
@@ -1089,7 +1089,7 @@ screen maica_input_screen(prompt):
             xalign 0.4735
             yalign 0.995
 
-            textbutton _("算了"):
+            textbutton _("就这样吧"):
                 selected False
                 action Return("nevermind")
 
