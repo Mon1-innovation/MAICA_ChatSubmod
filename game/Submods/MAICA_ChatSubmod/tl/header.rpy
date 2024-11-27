@@ -571,3 +571,59 @@ translate english strings:
     old "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
     new "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_zh}{i}{u}MAICA TOS{/i}{/u}{/a}"
 
+# TODO: Translation updated at 2024-11-28 07:51
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:155
+    old "未找到game/Submods/MAICA_ChatSubmod/chat_history.txt"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:190
+    old "暂未上传设置, 请等待MAICA准备好聊天\n待状态码改变后手动上传设置"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:308
+    old "> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的详细程度提高至info及以上"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:336
+    old "> 手动上传设置 [[请先使MAICA完成连接]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:345
+    old "> 上传对话历史到会话 '[store.maica.maica.chat_session]'"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:353
+    old "> MAICA对话设置 {size=-10}*部分选项重新连接生效"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:628
+    old "重现惩罚, 正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:653
+    old "当其为0时只调用MFocus直接选择的工具. 为1时总是会调用时间与节日工具. 为2时还会额外调用日期工具.\n当其为2且mas_geolocation存在时, tnd_aggressive还会额外调用当前天气工具.\n越高越可能补偿MFocus命中率低下的问题, 但也越可能会干扰模型对部分问题的判断."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:665
+    old "总是尽可能使用MFocus的最终输出替代指导构型信息.\n启用可能提升模型的复杂信息梳理能力, 但也可能会造成速度下降或专注扰乱"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:670
+    old "总是以用户的真名替代prompt中的[[player]字段.\n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:675
+    old "调用agent模型对MFocus联网搜集的信息整理一次.\n启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:680
+    old "要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:685
+    old "改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."
+    new ""
+

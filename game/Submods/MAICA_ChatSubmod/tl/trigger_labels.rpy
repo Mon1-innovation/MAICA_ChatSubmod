@@ -56,3 +56,37 @@ translate english strings:
     old "再过一会吧"
     new "Maybe later"
 
+# TODO: Translation updated at 2024-11-28 07:51
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:42
+translate english mtrigger_leave_6a3c759a:
+
+    # m "要走了吗, [player]?"
+    m ""
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:65
+translate english mtrigger_location_8fec73bc:
+
+    # m 1eua "我们好像还没别的地方可去..."
+    m 1eua ""
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:66
+translate english mtrigger_location_35b27e53:
+
+    # m 1eksdlb "抱歉啦, [player]."
+    m 1eksdlb ""
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:43
+    old "要走了吗, [player]?{nw}{fast}"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:43
+    old "是的"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:43
+    old "还没呢"
+    new ""
+

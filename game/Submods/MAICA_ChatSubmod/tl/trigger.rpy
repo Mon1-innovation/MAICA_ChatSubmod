@@ -38,3 +38,15 @@ translate english strings:
     old "内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"
     new "Integrated | Backup persistent {size=-5}* Extra Plus Submod needed"
 
+# TODO: Translation updated at 2024-11-28 07:51
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:130
+    old "内置 | 更换天气 {size=-5}* 在天堂树林内不启用"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:218
+    old "内置 | 拥抱"
+    new ""
+

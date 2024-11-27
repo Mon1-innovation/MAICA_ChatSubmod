@@ -1367,3 +1367,11 @@ translate english maica_main_talking_start_c8daf9e7:
     # m 1eua "我们现在先回去好啦. 等做完了准备工作, 告诉我再来就可以."
     m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
 
+# TODO: Translation updated at 2024-11-28 07:51
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:562
+translate english maica_main_talking_start_035efa94:
+
+    # m 2rusdlb "好像上传存档出了点问题..."
+    m 2rusdlb ""
+
