@@ -183,10 +183,11 @@ class MaicaAi(ChatBotInterface):
                 raise Exception("Cannot get providers because server error")
             res = res.json()
             if res["success"]:
-                import json
-                res["servers"] = json.loads(res["servers"])
                 cls.isMaicaNameServer = res["servers"].get("isMaicaNameServer")
                 cls.servers = res["servers"].get("servers")
+            else:
+                cls.isfailedresponse["deviceName"] = res["exception"]
+                cls.servers.append(cls.isfailedresponse)
         @classmethod
         def get_server_by_id(cls, id):
             for server in cls.servers:
