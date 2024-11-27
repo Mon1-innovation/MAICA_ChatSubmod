@@ -784,19 +784,20 @@ screen maica_setting():
                         hbox:
                             textbutton "推送分句测试":
                                 action [
+                                    Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
                                     Function(renpy.jump, "text_split")
                                 ]
-                                hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
                         hbox:
                             textbutton "推送聊天loop":
                                 action [
+                                    Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
                                     Function(renpy.jump, "maica_main.talking_start")
                                     ]
                             textbutton "推送MSpire":
                                 action [
+                                    Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
                                     Function(renpy.jump, "maica_mspire")
                                     ]
@@ -894,10 +895,10 @@ screen maica_setting():
 
                         textbutton _("编辑信息"):
                             action [
+                                Hide("maica_setting"),
                                 Function(store.maica_apply_setting),
                                 Function(renpy.jump, "maica_mods_preferences")
                                 ]
-                            hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
 
 
                         textbutton _("导出至根目录"):
@@ -912,12 +913,10 @@ screen maica_setting():
 
                         textbutton _("对话范围编辑"):
                             action [
+                                Hide("maica_setting"),
                                 Function(store.maica_apply_setting),
                                 Function(renpy.jump, "mspire_mods_preferences")
                                 ]
-                            hovered SetField(_tooltip, "value", _("范围为维基百科的category页面\n如果无法找到catrgory将会提示错误输入"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
                         textbutton _("间隔"):
                             action NullAction()
                         bar:
