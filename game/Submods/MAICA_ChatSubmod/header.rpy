@@ -43,7 +43,6 @@ init 10 python:
         "console":True,
         "console_font":maica_confont,
         "target_lang":store.maica.maica.MaicaAiLang.zh_cn if config.language == "chinese" else store.maica.maica.MaicaAiLang.en,
-        "_event_pushed":False,
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
@@ -782,39 +781,25 @@ screen maica_setting():
                         hbox:
                             textbutton "输出Event信息到日志":
                                 action Function(log_eventstat)
-                        if persistent.maica_setting_dict['_event_pushed']
-                            hbox:
-                                textbutton "推送分句测试":
-                                    action [
-                                        SetDict(persistent.maica_setting_dict, "_event_pushed", True),
-                                        Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
-                                        Function(store.MASEventList.push, "text_split")
+                        hbox:
+                            textbutton "推送分句测试":
+                                action [
+                                    Function(store.maica_apply_setting),
+                                    Function(renpy.jump, "text_split")
+                                ]
+                                hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                        hbox:
+                            textbutton "推送聊天loop":
+                                action [
+                                    Function(store.maica_apply_setting),
+                                    Function(renpy.jump, "maica_main.talking_start")
                                     ]
-                                    hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
-                                    sensitive not persistent.maica_setting_dict.get('_event_pushed')
-                            hbox:
-                                textbutton "推送聊天loop":
-                                    action [
-                                        Function(store.MASEventList.push, "maica_main.talking_start"),
-                                        SetDict(persistent.maica_setting_dict, "_event_pushed", True)
-                                        ]
-                                    sensitive not persistent.maica_setting_dict.get('_event_pushed')
-                                textbutton "推送MSpire":
-                                    action [
-                                        Function(store.MASEventList.push, "maica_mspire"),
-                                        SetDict(persistent.maica_setting_dict, "_event_pushed", True)
-                                        ]
-                                    sensitive not persistent.maica_setting_dict.get('_event_pushed')
-                        else:
-                            hbox:
-                                textbutton "推送分句测试":
-                                    sensitive False
-                            hbox:
-                                textbutton "推送聊天loop":
-                                    sensitive False
-                                textbutton "推送MSpire":
-                                    sensitive False
+                            textbutton "推送MSpire":
+                                action [
+                                    Function(store.maica_apply_setting),
+                                    Function(renpy.jump, "maica_mspire")
+                                    ]
 
                     hbox:
                         text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
@@ -907,17 +892,12 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("由你补充的一些数据, 增删后需要重新上传存档"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        if not persistent.maica_setting_dict['_event_pushed']:
-                            textbutton _("编辑信息"):
-                                action [
-                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True),
-                                    Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
-                                    Function(store.MASEventList.push, "maica_mods_preferences")
-                                    ]
-                                hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
-                        else:
-                            textbutton _("编辑信息"):
-                                sensitive False
+                        textbutton _("编辑信息"):
+                            action [
+                                Function(store.maica_apply_setting),
+                                Function(renpy.jump, "maica_mods_preferences")
+                                ]
+                            hovered SetField(_tooltip, "value", _("点击后将推送相关事件"))
 
 
                         textbutton _("导出至根目录"):
@@ -930,18 +910,13 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响, 需要关闭重复对话"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        if not persistent.maica_setting_dict['_event_pushed']:
-                            textbutton _("对话范围编辑"):
-                                action [
-                                    SetDict(persistent.maica_setting_dict, "_event_pushed", True),
-                                    Function(renpy.notify, _("增加信息的事件将于关闭设置后推送")),
-                                    Function(store.MASEventList.push, "mspire_mods_preferences")
-                                    ]
-                                hovered SetField(_tooltip, "value", _("范围为维基百科的category页面\n如果无法找到catrgory将会提示错误输入"))
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
-                        else:
-                            textbutton _("对话范围编辑"):
-                                sensitive False
+                        textbutton _("对话范围编辑"):
+                            action [
+                                Function(store.maica_apply_setting),
+                                Function(renpy.jump, "mspire_mods_preferences")
+                                ]
+                            hovered SetField(_tooltip, "value", _("范围为维基百科的category页面\n如果无法找到catrgory将会提示错误输入"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("间隔"):
                             action NullAction()
@@ -979,7 +954,6 @@ screen maica_setting():
                 style_prefix "confirm"
                 textbutton _("保存设置"):
                     action [
-                        SetDict(persistent.maica_setting_dict, "_event_pushed", False),
                         Function(store.maica_apply_setting),
                         Hide("maica_setting")
                         ]
