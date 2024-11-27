@@ -75,9 +75,9 @@ example_mtrigger = MTriggerBase(
 * `action`
   * 触发器执行动作, 默认为`MTriggerAction.post`
     * `MTriggerAction.post`为后置触发, 一轮对话完毕后触发
-    * `MTriggerAction.instant`为立刻触发, 当模型触发该触发器时, 立刻执行该触发器
+    * ~~`MTriggerAction.instant`为立刻触发, 当模型触发该触发器时, 立刻执行该触发器~~ 不再推荐使用
         > 注意: 该触发器无法执行`renpy.call`等renpy语句
-
+        > 注意: 由于后端更改, instant触发器将在主模型响应完成后执行, 这导致post和instant在表现上是一样的
   
 * `exprop`
   * 触发器属性, 默认值为上述代码中的值

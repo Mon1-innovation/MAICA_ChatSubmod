@@ -72,10 +72,12 @@ Parameter explanation:
   * In the callback, using operations like call or jump may lead to packet loss in the next round of conversation. Please call the label `maica_reconnect` to avoid such situations.
 
 * `action`
-  * Action executed by the trigger, default is `MTriggerAction.post`.
-    * `MTriggerAction.post` means post-trigger, which activates after a round of dialogue.
-    * `MTriggerAction.instant` means instant-trigger, executed immediately when the model triggers it.
-        > Note: This trigger cannot execute `renpy.call` or similar renpy statements.
+  * The trigger executes an action, defaulting to `MTriggerAction.post`.
+    * `MTriggerAction.post` is a post-trigger that activates after a conversation round is complete.
+    * ~~`MTriggerAction.instant` triggers immediately, executing the trigger as soon as the model activates it~~ No longer recommended.
+        > Note: This trigger cannot execute `renpy.call` or other renpy statements.
+        > Note: Due to backend changes, the `instant` trigger will execute after the main model response is completed, making `post` and `instant` essentially identical in behavior.
+
 
 * `exprop`
   * Properties of the trigger, with default values as in the above code.
