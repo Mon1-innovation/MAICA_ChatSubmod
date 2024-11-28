@@ -786,20 +786,20 @@ screen maica_setting():
                                 action [
                                     Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
-                                    Function(renpy.jump, "text_split")
+                                    Function(store.MASEventList.push, "text_split")
                                 ]
                         hbox:
                             textbutton "推送聊天loop":
                                 action [
                                     Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
-                                    Function(renpy.jump, "maica_main.talking_start")
+                                    Function(store.MASEventList.push, "maica_main.talking_start")
                                     ]
                             textbutton "推送MSpire":
                                 action [
                                     Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
-                                    Function(renpy.jump, "maica_mspire")
+                                    Function(store.MASEventList.push, "maica_mspire")
                                     ]
 
                     hbox:

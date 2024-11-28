@@ -221,8 +221,123 @@ init 999 python in maica:
 
 #################################################################################
 
+    class MusicTrigger(MTriggerBase):
+        def __init__(self):
+            self.musics = []
+            super(MusicTrigger, self).__init__(
+                common_switch_template,
+                "music",
+                exprop=MTriggerExprop(
+                    item_name_zh="游戏背景音乐",
+                    item_name_en="in-game music",
+                    item_list=self.musics,
+                    curr_value=store.songs.current_track
+                ),
+                callback = self.callback,
+                description = _("内置 | 更换背景音乐")
+            )
         
+        def song_list(self):
+            m = []
+            for s in store.songs.music_choices:
+                m.append(s[0])
+            m.append("玩家自行选择")
+            return m
 
+        def build(self):
+            self.musics = self.song_list()
+            return super(MusicTrigger, self).build()
+        
+        def find(self,selection):
+            return [x for x in store.songs.music_choices if selection in x][0]
+
+        def callback(self, selection):
+            if selection == "玩家自行选择":
+                store.renpy.call("maica_reconnect")
+                store.renpy.call("display_music_menu")
+                return
+            if not selection in self.musics:
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
+                maica.send_to_outside_func("<mtrigger> {} is not a valid music!".format(selection))
+                return
+            store.mas_play_song(self.find(selection))
+    music_trigger = MusicTrigger()
+    maica.mtrigger_manager.add_trigger(music_trigger)
+
+#################################################################################
+
+    class HairTrigger(MTriggerBase):
+        def __init__(self, template, name):
+            self.clothes_data = {store.mas_selspr.HAIR_SEL_MAP[key].display_name:key for key in store.mas_selspr.HAIR_SEL_MAP if self.outfit_has_and_unlocked(key)}
+            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
+            self.clothes_data[False] = "mas_pick_a_clothes"
+            super(HairTrigger, self).__init__(template, name, description=_("内置 | 更换发型"),callback=self.clothes_callback, 
+                exprop=MTriggerExprop(
+                    item_name_zh = "更换游戏内发型",
+                    item_name_en = "change in-game hair",
+                    item_list = self.clothes_data.keys(),
+                    curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
+                ),
+                action = MTriggerAction.post,
+            )
+        def outfit_has_and_unlocked(self, outfit_name):
+            """
+            Returns True if we have the outfit and it's unlocked
+            """
+            return outfit_name in store.mas_selspr.HAIR_SEL_MAP and store.mas_selspr.HAIR_SEL_MAP[outfit_name].unlocked
+
+        def triggered(self, data):
+            clothes = data.get("selection", None)
+            if clothes is not None:
+                self.callback(clothes)
+
+        def clothes_callback(self, clothes):
+            if not clothes in self.clothes_data:
+                maica.send_to_outside_func("<mtrigger> {} is not a vaild hair".format(clothes))
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid hair".format(clothes))
+                return
+            return store.renpy.call("mtrigger_change_hair", self.clothes_data[clothes])
+
+    hair_trigger = HairTrigger(common_switch_template, "hair")
+    maica.mtrigger_manager.add_trigger(hair_trigger)
+
+#################################################################################
+
+    class AcsTrigger(MTriggerBase):
+        def __init__(self, template, name):
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name:key for key in store.mas_selspr.ACS_SEL_MAP if self.outfit_has_and_unlocked(key)}
+            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
+            self.clothes_data[False] = "mas_pick_a_clothes"
+            super(AcsTrigger, self).__init__(template, name, description=_("内置 | 更换饰品"),callback=self.clothes_callback, 
+                exprop=MTriggerExprop(
+                    item_name_zh = "更换游戏内饰品",
+                    item_name_en = "change in-game accessory",
+                    item_list = self.clothes_data.keys(),
+                ),
+                action = MTriggerAction.post,
+            )
+        def outfit_has_and_unlocked(self, outfit_name):
+            """
+            Returns True if we have the outfit and it's unlocked
+            """
+            return outfit_name in store.mas_selspr.ACS_SEL_MAP and store.mas_selspr.ACS_SEL_MAP[outfit_name].unlocked
+
+        def triggered(self, data):
+            clothes = data.get("selection", None)
+            if clothes is not None:
+                self.callback(clothes)
+
+        def clothes_callback(self, clothes):
+            if not clothes in self.clothes_data:
+                maica.send_to_outside_func("<mtrigger> {} is not a vaild acs".format(clothes))
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid acs".format(clothes))
+                return
+            return store.renpy.call("mtrigger_change_acs", self.clothes_data[clothes])
+
+    acs_trigger = AcsTrigger(common_switch_template, "acs")
+    maica.mtrigger_manager.add_trigger(acs_trigger)
+                    
+#################################################################################
 
 
 
