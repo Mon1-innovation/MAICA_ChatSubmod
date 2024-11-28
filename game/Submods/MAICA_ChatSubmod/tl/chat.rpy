@@ -1373,5 +1373,5 @@ translate english maica_main_talking_start_c8daf9e7:
 translate english maica_main_talking_start_035efa94:
 
     # m 2rusdlb "好像上传存档出了点问题..."
-    m 2rusdlb ""
+    m 2rusdlb "Seems we're having some problem uploading the savefile..."
 

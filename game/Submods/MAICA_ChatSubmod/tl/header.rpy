@@ -260,7 +260,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:330
     old "submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"
-    new "Log level of submod_log.log: [logging.getLevelName(store.mas_submod_utils.submod_log.level)]"
+    new "submod_log.log verbosity: [logging.getLevelName(store.mas_submod_utils.submod_log.level)]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:332
     old "这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"
@@ -577,53 +577,53 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:155
     old "未找到game/Submods/MAICA_ChatSubmod/chat_history.txt"
-    new ""
+    new "game/Submods/MAICA_ChatSubmod/chat_history.txt not found"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:190
     old "暂未上传设置, 请等待MAICA准备好聊天\n待状态码改变后手动上传设置"
-    new ""
+    new "Please ensure connection is ready before uploading settings"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:308
     old "> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的详细程度提高至info及以上"
-    new ""
+    new "> Warning: set verbosity to 'info' or lower when using with Log Screen"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:336
     old "> 手动上传设置 [[请先使MAICA完成连接]"
-    new ""
+    new "> Manually upload settings [[Ensure connection is ready first]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:345
     old "> 上传对话历史到会话 '[store.maica.maica.chat_session]'"
-    new ""
+    new "> Upload chat history to session '[store.maica.maica.chat_session]'"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:353
     old "> MAICA对话设置 {size=-10}*部分选项重新连接生效"
-    new ""
+    new "> MAICA chat settings {size=-10}*May need restarting to take effect"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:628
     old "重现惩罚, 正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"
-    new ""
+    new "Higher Presence penalty prevents model from repeating the input, enhances the possibility of topic switching."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:653
     old "当其为0时只调用MFocus直接选择的工具. 为1时总是会调用时间与节日工具. 为2时还会额外调用日期工具.\n当其为2且mas_geolocation存在时, tnd_aggressive还会额外调用当前天气工具.\n越高越可能补偿MFocus命中率低下的问题, 但也越可能会干扰模型对部分问题的判断."
-    new ""
+    new "Set 0 for no MFocus enforcing. Set 1 for enforcing time and events.\nSet 2 for enforcing time, date, events and weather(if possible).\nMay offset low MFocus hit rate but may also cause misunderstanding of queries."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:665
     old "总是尽可能使用MFocus的最终输出替代指导构型信息.\n启用可能提升模型的复杂信息梳理能力, 但也可能会造成速度下降或专注扰乱"
-    new ""
+    new "Set true for always using MFocus final answer instead of combined instructs if possible.\nMay improve capability of concluding information but may also result in confusion in personality and response format."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:670
     old "总是以用户的真名替代prompt中的[[player]字段.\n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"
-    new ""
+    new "Set true for always using player name in place of [[player]s in prompts.\nMay help model understanding player's name but may also result in overall performance decline and information makeups."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:675
     old "调用agent模型对MFocus联网搜集的信息整理一次.\n启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."
-    new ""
+    new "Set true for concluding internet information gathered by AgentLM again.\nHelps model focusing on search results but will lag specific responses."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:680
     old "要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."
-    new ""
+    new "Set true to request MFocus pre-analyzing MTrigger triggers on query's possibility.\nMay benefit on core-trigger sync but will lag specific responses.\nWill not take effect if no trigger aside from affection is activated."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:685
     old "改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."
-    new ""
+    new "Set true to guide core model being more tolerant on toxic scenes.\nMay improve overall core performance (unexpectedly but proved true) but may also decrease attention performance and cause confusion."
 
