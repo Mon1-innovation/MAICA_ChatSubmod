@@ -44,9 +44,9 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:130
     old "内置 | 更换天气 {size=-5}* 在天堂树林内不启用"
-    new ""
+    new "Integrated | Change weather {size=-5}* Unavaliable in heaven forest"
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:218
     old "内置 | 拥抱"
-    new ""
+    new "Integrated | Hug"
 
