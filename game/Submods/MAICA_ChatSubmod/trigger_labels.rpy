@@ -72,23 +72,23 @@ label mtrigger_change_acs(outfit_name):
 label mtrigger_acs_select:
 
     menu:
-        "[store.mas_selspr.PROMPT_MAP['choker']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('choker'))]" if 'choker' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['clothes']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('clothes'))]" if 'clothes' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['clothes']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['earrings']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('earrings'))]" if 'earrings' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['earrings']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['hair']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('hair'))]" if 'hair' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['hair']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['hat']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('hat'))]" if 'hat' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['hat']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['left-hair-clip']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-clip'))]" if 'left-hair-clip' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-clip']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['left-hair-flower']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]" if 'left-hair-flower' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-flower']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['necklace']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]" if 'necklace' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['necklace']['_ev'])
-        "[store.mas_selspr.PROMPT_MAP['ribbon']['change']]":
+        "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]" if 'ribbon' in store.mas_selspr.PROMPT_MAP:
             $ renpy.call(store.mas_selspr.PROMPT_MAP['ribbon']['_ev'])
     return
 
