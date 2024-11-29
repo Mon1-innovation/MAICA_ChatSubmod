@@ -1084,9 +1084,9 @@ screen maica_input_screen(prompt):
     window:
         hbox:
             style_prefix "quick"
-            xfill True
-            xmaximum 0#(None if not has_history else 232)
-            xalign 0.4735
+            #xfill True
+            #xmaximum 0#(None if not has_history else 232)
+            xalign 0.5
             yalign 0.995
 
             textbutton _("就这样吧"):
