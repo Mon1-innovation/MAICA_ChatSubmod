@@ -223,7 +223,7 @@ init 999 python in maica:
 
     class MusicTrigger(MTriggerBase):
         def __init__(self):
-            self.musics = []
+            self.musics = self.song_list()
             super(MusicTrigger, self).__init__(
                 common_switch_template,
                 "music",
