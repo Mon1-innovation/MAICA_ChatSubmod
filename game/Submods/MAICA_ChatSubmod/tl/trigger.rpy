@@ -50,3 +50,19 @@ translate english strings:
     old "内置 | 拥抱"
     new "Integrated | Hug"
 
+# TODO: Translation updated at 2024-11-29 20:06
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:227
+    old "内置 | 更换背景音乐"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:274
+    old "内置 | 更换发型"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:311
+    old "内置 | 更换饰品"
+    new ""
+

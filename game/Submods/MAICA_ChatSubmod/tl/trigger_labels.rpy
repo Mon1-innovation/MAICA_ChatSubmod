@@ -90,3 +90,43 @@ translate english strings:
     old "还没呢"
     new "Not yet"
 
+# TODO: Translation updated at 2024-11-29 20:06
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('choker'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('clothes'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('earrings'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('hair'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('hat'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-clip'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
+    old "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]"
+    new ""
+
