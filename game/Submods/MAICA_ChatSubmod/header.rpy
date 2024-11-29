@@ -138,26 +138,26 @@ init 10 python:
                 except:
                     d[i] = "REMOVED"
         res = store.maica.maica.upload_save(d)
-        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败"))
+        renpy.notify(_("MAICA: 存档上传成功") if res.get("success", False) else _("MAICA: 存档上传失败"))
 
     def reset_session():
         store.maica.maica.reset_chat_session()
-        renpy.notify(_("会话已重置, 请重新连接MAICA服务器"))
+        renpy.notify(_("MAICA: 会话已重置"))
     def output_chat_history():
         import json
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
             f.write(json.dumps(store.maica.maica.get_history().get("history"), []))
-        renpy.notify(_("已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
+        renpy.notify(_("MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def upload_chat_history():
         import json
         if not os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt")):
-            renpy.notify(_("未找到game/Submods/MAICA_ChatSubmod/chat_history.txt"))
+            renpy.notify(_("MAICA: 未找到历史game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
             history = json.load(f)
         res = store.maica.maica.upload_history(history)
-        renpy.notify(_("上传成功") if res.get("success", False) else _("上传失败, {}".format(res.get("exception", "未知错误"))))
+        renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, {}".format(res.get("exception", "未知错误"))))
 
     
     def maica_apply_setting(ininit=False):
@@ -187,7 +187,7 @@ init 10 python:
                 store.maica.maica.MoodStatus.emote_translate = json.load(f)
         
         if not ininit:
-            renpy.notify(_("正在上传设置") if store.maica.maica.send_settings() else _("暂未上传设置, 请等待MAICA准备好聊天\n待状态码改变后手动上传设置"))
+            renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
             
             
     
@@ -211,7 +211,7 @@ init 10 python:
     def export_player_information():
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
-        renpy.notify("已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
+        renpy.notify("MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
 
     def update_model_setting(ininit = False):
         import os, json
@@ -220,7 +220,7 @@ init 10 python:
                 store.maica.maica.modelconfig = json.load(f)
         except Exception as e:
             if not ininit:
-                renpy.notify(_("加载高级参数失败, 查看submod_log.log来获取详细原因").format(e))
+                renpy.notify(_("MAICA: 加载高级参数失败, 查看submod_log.log获取详细原因").format(e))
             store.mas_submod_utils.submod_log.error("Failed to load custom model config: {}".format(e))
     
     def change_loglevel():
@@ -960,7 +960,7 @@ screen maica_setting():
                     action [
                         Function(store.maica_reset_setting),
                         Function(store.maica_apply_setting, ininit = True),
-                        Function(renpy.notify, _("设置已重置")),
+                        Function(renpy.notify, _("MAICA: 设置已重置")),
                         Hide("maica_setting")
                     ]
                 
