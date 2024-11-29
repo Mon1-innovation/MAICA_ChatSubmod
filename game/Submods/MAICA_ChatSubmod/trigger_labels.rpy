@@ -75,21 +75,21 @@ label mtrigger_acs_select:
         "[store.mas_selspr.PROMPT_MAP['choker']['change']]":
             $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['clothes']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['clothes']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['earrings']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['earrings']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['hair']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['hair']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['hat']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['hat']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['left-hair-clip']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-clip']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['left-hair-flower']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-flower']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['necklace']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['necklace']['_ev'])
         "[store.mas_selspr.PROMPT_MAP['ribbon']['change']]":
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['ribbon']['_ev'])
     return
 
 label mtrigger_kiss:
