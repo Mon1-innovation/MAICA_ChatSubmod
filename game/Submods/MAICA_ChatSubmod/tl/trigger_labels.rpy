@@ -96,37 +96,37 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('choker'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('choker'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('clothes'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('clothes'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('earrings'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('earrings'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('hair'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('hair'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('hat'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('hat'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-clip'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-clip'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]"
 

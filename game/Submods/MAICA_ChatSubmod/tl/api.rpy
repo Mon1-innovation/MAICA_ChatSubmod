@@ -20,5 +20,5 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:58
     old "MAICA: 请在子模组界面使用已保存的令牌重新连接"
-    new ""
+    new "MAICA: Now you can reconnect with saved token"
 
