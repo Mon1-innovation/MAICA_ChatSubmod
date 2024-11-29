@@ -24,6 +24,11 @@ class MTriggerExprop:
         self.value_limits = value_limits
         self.curr_value = curr_value
 
+class MTriggerMethod:
+    all = -1
+    request = 0
+    table = 1
+
 class MTriggerTemplate(object):
     def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True), usage=False):
         self.name = name
@@ -38,6 +43,8 @@ common_meter_template = MTriggerTemplate("common_meter_template", "value", expro
 customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False), usage=True)
 
 class MTriggerManager:
+    MAX_LENGTH_REQUEST = 4096
+    MAX_LENGTH_TABLE = 100000
     def __init__(self):
         self.triggers = []
         self.triggered_list = []
@@ -71,7 +78,7 @@ class MTriggerManager:
         return self.enable_map[name] if name in self.enable_map else False
     
 
-    def build_data(self):
+    def build_data(self, method=MTriggerMethod.all):
         self.triggered_list = []
         self._running = False
         res = []
@@ -103,7 +110,7 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition):
+    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en
@@ -113,6 +120,7 @@ class MTriggerBase(object):
         self.exprop = exprop
         self.description = description if description != "" else self.name
         self.condition = condition
+        self.method = method
 
     def build(self):
         data = {
@@ -142,3 +150,6 @@ class MTriggerBase(object):
     
     def triggered(self, data={}):
         return self.callback(data.get(self.template.datakey) if self.template.datakey else None)
+
+    def __len__(self):
+        return len(self.build())
