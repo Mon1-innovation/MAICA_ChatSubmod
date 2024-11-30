@@ -32,7 +32,7 @@ init 999 python in maica:
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内服装",
                     item_name_en = "change in-game outfit",
-                    item_list = self.clothes_data.keys(),
+                    item_list = list(self.clothes_data.keys()),
                     curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
                 action = MTriggerAction.post,
@@ -86,7 +86,7 @@ init 999 python in maica:
         exprop=MTriggerExprop(
             item_name_zh="小游戏",
             item_name_en="minigame",
-            item_list=unlocked_games_dict.keys(),
+            item_list=list(unlocked_games_dict.keys()),
         ),
         description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
     )
@@ -151,7 +151,7 @@ init 999 python in maica:
             return super(WeatherTrigger, self).build()
 
         def get_weather_list(self):
-            return self.weathers.keys()
+            return list(self.weathers.keys())
 
         def get_weather_dict(self):
             import store.mas_weather as mas_weather
@@ -275,7 +275,7 @@ init 999 python in maica:
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内发型",
                     item_name_en = "change in-game hair",
-                    item_list = self.clothes_data.keys(),
+                    item_list = list(self.clothes_data.keys()),
                     curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
                 ),
                 action = MTriggerAction.post,
