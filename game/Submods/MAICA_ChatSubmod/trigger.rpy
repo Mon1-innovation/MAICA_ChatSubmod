@@ -4,7 +4,7 @@ init 999 python in maica:
     import store
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"))
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"),method=MTriggerMethod.table)
         
         def triggered(self, data):
             return self.callback(data.get("affection", 0.1))
@@ -32,7 +32,7 @@ init 999 python in maica:
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内服装",
                     item_name_en = "change in-game outfit",
-                    item_list = self.clothes_data.keys(),
+                    item_list = list(self.clothes_data.keys()),
                     curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
                 action = MTriggerAction.post,
@@ -86,9 +86,9 @@ init 999 python in maica:
         exprop=MTriggerExprop(
             item_name_zh="小游戏",
             item_name_en="minigame",
-            item_list=unlocked_games_dict.keys(),
+            item_list=list(unlocked_games_dict.keys()),
         ),
-        description = _("内置 | 拉起小游戏")
+        description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
     )
     maica.mtrigger_manager.add_trigger(minigame_trigger)
     
@@ -110,7 +110,7 @@ init 999 python in maica:
     def mtrigger_leave_callback(arg):
         maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
-    leave_trigger = MTriggerBase(customize_template, "leave", "帮助玩家离开游戏", "help player quit game", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"))
+    leave_trigger = MTriggerBase(customize_template, "leave", "帮助玩家离开游戏", "help player quit game", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"),method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(leave_trigger)
 
 #################################################################################
@@ -118,7 +118,7 @@ init 999 python in maica:
     def mtrigger_idle_callback(arg):
         maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
-    idle_trigger = MTriggerBase(customize_template, "idle", "帮助玩家短暂休息", "help player afk short time", callback=mtrigger_idle_callback, description=_("内置 | 暂离"))
+    idle_trigger = MTriggerBase(customize_template, "idle", "帮助玩家短暂休息", "help player afk short time", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(idle_trigger)
 
 #################################################################################
@@ -151,7 +151,7 @@ init 999 python in maica:
             return super(WeatherTrigger, self).build()
 
         def get_weather_list(self):
-            return self.weathers.keys()
+            return list(self.weathers.keys())
 
         def get_weather_dict(self):
             import store.mas_weather as mas_weather
@@ -192,7 +192,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_location")
 
     location_trigger = MTriggerBase(customize_template, "location", "切换游戏内场景", "change in-game location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
-        description = _("内置 | 调用切换房间"))
+        description = _("内置 | 调用切换房间"), method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(location_trigger)
 
 #################################################################################
@@ -204,7 +204,7 @@ init 999 python in maica:
         store.renpy.call("mas_backup")
 
     backup_trigger = MTriggerBase(customize_template, "backup", "备份存档", "backup savefile", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
-        description = _("内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"))
+        description = _("内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"), method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(backup_trigger)
 
 #################################################################################
@@ -216,7 +216,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_hold")
 
     hold_trigger = MTriggerBase(customize_template, "hold", "拥抱玩家", "hold player", condition=mtrigger_hold_condition, callback=mtrigger_hold_callback,
-        description = _("内置 | 拥抱"))
+        description = _("内置 | 拥抱"), method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(hold_trigger)
 
 #################################################################################
@@ -275,7 +275,7 @@ init 999 python in maica:
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内发型",
                     item_name_en = "change in-game hair",
-                    item_list = self.clothes_data.keys(),
+                    item_list = list(self.clothes_data.keys()),
                     curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
                 ),
                 action = MTriggerAction.post,
@@ -312,9 +312,10 @@ init 999 python in maica:
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内饰品",
                     item_name_en = "change in-game accessory",
-                    item_list = self.clothes_data.keys(),
+                    item_list = list(self.clothes_data.keys()),
                 ),
                 action = MTriggerAction.post,
+                method=MTriggerMethod.table
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """

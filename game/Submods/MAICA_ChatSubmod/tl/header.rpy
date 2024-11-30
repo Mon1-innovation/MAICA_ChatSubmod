@@ -625,7 +625,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:685
     old "改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."
-    new "Set true to guide core model being more tolerant on toxic scenes.\nMay improve overall core performance (unexpectedly but proved true) but may also decrease attention performance and cause confusion."
+    new "Set true to guide core model being more tolerant on toxic scenes.\nMay improve overall core performance (unexpectedly but proved true)\n but may also decrease attention performance and cause confusion."
 
 # TODO: Translation updated at 2024-11-29 20:06
 

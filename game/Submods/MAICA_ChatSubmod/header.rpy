@@ -313,7 +313,8 @@ screen maica_setting_pane():
             xalign 1.0 yalign 0.0
             xoffset -10
             style "main_menu_version"
-        text _("> Websocket:[stat]"):
+
+        text renpy.substitute(_("> Websocket:")) + renpy.substitute(stat):
             xalign 1.0 yalign 0.0
             xoffset -10
             style "main_menu_version"
@@ -403,9 +404,9 @@ screen maica_node_setting():
                             textbutton _(" √ MAICA 官方服务器")
 
                         hbox:
-                            text _("设备: ") + provider.get('deviceName', 'Device not provided')
+                            text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
                         hbox:
-                            text _("当前模型: ") + provider.get('servingModel', 'No model provided')
+                            text renpy.substitute(_("当前模型: ")) + provider.get('servingModel', 'No model provided')
 
 
                         hbox:
@@ -457,18 +458,44 @@ screen maica_triggers():
                     xfill True
                     yfill False
 
+                    text _("MTrigger空间使用情况: ")
+                    text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
+                        color ("#FF0000" if maica_triggers.get_length(0) > 3850 else gui.interface_text_color)
+                    text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
+                        color ("#FF0000" if maica_triggers.get_length(1) > 97500 else gui.interface_text_color)
+
                     for trigger in maica_triggers.triggers:
                         label trigger.name
+                        if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
+                            hbox:
+                                text _("空间占用: -"):
+                                    size 15
+                        elif trigger.method == 0:
+                            hbox:
+                                text _("空间占用: request"):
+                                    size 15
+                                text str(len(trigger)):
+                                    size 15
+                        elif trigger.method == 1:
+                            hbox:
+                                text _("空间占用: table"):
+                                    size 15
+                                text str(len(trigger)):
+                                    size 15
                         text trigger.description:
                             size 15
+                        
+                        
                         
                         hbox:
                             if maica_triggers.trigger_status(trigger.name):
                                 textbutton _("√ 已启用"):
                                     action Function(maica_triggers.disable_trigger, trigger.name)
+                                    selected maica_triggers.trigger_status(trigger.name)
                             else:
                                 textbutton _("× 已禁用"):
                                     action Function(maica_triggers.enable_trigger, trigger.name)
+                                    selected maica_triggers.trigger_status(trigger.name)
                             
                             if not trigger.condition():
                                 textbutton _("※ 当前不满足触发条件")
@@ -679,6 +706,7 @@ screen maica_advance_setting():
                                 ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
                             hovered SetField(_tooltip, "value", _("要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                    hbox:
                         textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
                                 ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]

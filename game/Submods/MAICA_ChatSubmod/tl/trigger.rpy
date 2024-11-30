@@ -64,5 +64,5 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:311
     old "内置 | 更换饰品"
-    new "Integrated | Change decorations"
+    new "Integrated | Change accessories"
 

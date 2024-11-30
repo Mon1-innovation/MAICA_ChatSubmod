@@ -1,3 +1,5 @@
+import requests, json
+
 
 class MTriggerAction:
     instant = 0     #收到以后立刻触发
@@ -83,9 +85,22 @@ class MTriggerManager:
         self._running = False
         res = []
         for i in self.triggers:
-            if i.condition() and self.trigger_status(i.name):
+            if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
                 res.append(i.build())
         return res
+
+    def send_to_table(self, token, session, data):
+        req = {
+            "access_token": token,
+            "chat_session": session,
+            "content": data
+        }
+        res = requests.post("https://maicadev.monika.love/api/trigger", json=req)
+        return res
+        
+
+    def get_length(self, method=MTriggerMethod.all):
+        return len(json.dumps(self.build_data(method=method), ensure_ascii=False))
 
     def triggered(self, name = "", param=None):
         for t in self.triggers:
@@ -152,4 +167,4 @@ class MTriggerBase(object):
         return self.callback(data.get(self.template.datakey) if self.template.datakey else None)
 
     def __len__(self):
-        return len(self.build())
+        return len(json.dumps(self.build(), ensure_ascii=False))

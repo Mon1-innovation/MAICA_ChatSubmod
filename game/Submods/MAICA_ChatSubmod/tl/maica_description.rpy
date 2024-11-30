@@ -1,7 +1,7 @@
 translate english python in maica:
     maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
-        maica.MaicaAiStatus.WAIT_AVAILABILITY:u"需要验证可用性, 请重启以执行MaicaAi.accessable(), 卡在此则意味着存在网络问题, 请检查mas.log",
+        maica.MaicaAiStatus.WAIT_AVAILABILITY:u"Service status acquiring failed, restart the game for MaicaAi.accessable()",
         maica.MaicaAiStatus.WAIT_AUTH: u"Account acquired, verifying",
         maica.MaicaAiStatus.WAIT_SERVER_TOKEN: u"Waiting for token verification",
         maica.MaicaAiStatus.WAIT_USE_TOKEN: u"Waiting for token",

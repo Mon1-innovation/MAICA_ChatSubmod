@@ -22,7 +22,8 @@ example_mtrigger = MTriggerBase(
         value_limits=[0, 1],
         curr_value=None
     ),
-    condition=null_condition
+    condition=null_condition,
+    method=MTriggerMethod.request
 )
 
 ```
@@ -93,6 +94,13 @@ Parameter explanation:
 
 * `condition`
   * The condition for the trigger, default is `null_condition`. The trigger is only submitted to the model if the `condition` function returns `True`. By default, it always returns True.
+
+* `method`
+  * The trigger upload method, default is `MTriggerMethod.request`.
+  * You can check the usage in the MTrigger list.
+    * `MTriggerMethod.request` uploads during each dialogue round, suitable for frequently updated triggers, with a limit of 4096 characters.
+    * `MTriggerMethod.table` uploads to the **current session** during the initial connection, suitable for infrequently updated triggers, with a limit of 100,000 characters.
+      > This means that if the session is switched halfway, the trigger will become invalid. Setting the current session to 1 allows other sessions to use the trigger.
 
 To use this trigger, add `example_mtrigger` to the `Maica` instance:
 
