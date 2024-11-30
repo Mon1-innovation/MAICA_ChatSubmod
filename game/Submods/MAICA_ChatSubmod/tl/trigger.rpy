@@ -56,7 +56,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:227
     old "内置 | 更换背景音乐"
-    new "Integrated | Change background music"
+    new "Integrated | Change BGM"
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:274
     old "内置 | 更换发型"
@@ -64,5 +64,5 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:311
     old "内置 | 更换饰品"
-    new "Integrated | Change accessory"
+    new "Integrated | Change accessories"
 

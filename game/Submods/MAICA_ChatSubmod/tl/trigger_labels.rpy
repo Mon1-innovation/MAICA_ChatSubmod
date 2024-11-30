@@ -120,7 +120,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]"
-    new ""
+    new "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]"
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:74
     old "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]"
