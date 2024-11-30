@@ -569,7 +569,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1019
     old "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
-    new "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_zh}{i}{u}MAICA TOS{/i}{/u}{/a}"
+    new "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
 
 # TODO: Translation updated at 2024-11-28 07:51
 
