@@ -419,7 +419,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def init_connect(self):
         import threading
         threading.Thread(target=self._init_connect).start()
+        threading.Thread(target=self.send_mtrigger).start()
 
+    
     def _init_connect(self):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
@@ -519,6 +521,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             try:
                 import json
                 from websocket import WebSocketConnectionClosedException
+                from maica_mtrigger import MTriggerMethod
                 while True:
                     if not self.is_connected():
                         logger.info("websocket is closed")
@@ -532,7 +535,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         else:
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
-                        dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data()}
+                        dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
                         self.wss_session.send(
@@ -863,6 +866,23 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         if self.wss_session:
             self.wss_session.close()
+    
+    def send_mtrigger(self):
+        try:
+            from maica_mtrigger import MTriggerMethod
+            res = self.mtrigger_manager.send_to_table(self.ciphertext, self.chat_session, self.mtrigger_manager.build_data(MTriggerMethod.table))
+            if res.json().get('success', False):
+                logger.info("send_mtrigger success")
+
+            else:
+                logger.error("send_mtrigger failed: {}".format(res.json()))
+
+        except:
+            import traceback
+            logger.error("send_mtrigger error: {}".format(traceback.format_exc()))
+
+
+
         
     def accessable(self):
         """
@@ -912,6 +932,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.MaicaProviderManager.get_provider()
         except Exception as e:
             logger.error("Maica get Service Provider Error: {}".format(e))
+
+
     def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):
         self.status = status_code
         self.__accessable = False

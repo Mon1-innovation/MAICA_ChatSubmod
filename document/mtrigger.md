@@ -22,7 +22,8 @@ example_mtrigger = MTriggerBase(
         value_limits=[0, 1],
         curr_value=None
     ),
-    condition=null_condition
+    condition=null_condition,
+    method=MTriggerMethod.request
 )
 
 ```
@@ -92,6 +93,13 @@ example_mtrigger = MTriggerBase(
 
 * `condition`
   * 触发器条件, 默认为`null_condition`, 只有当`condition`的函数返回为`True`时, 触发器才会提交给模型. 默认情况下将永远返回True
+
+* `method`
+  * 触发器上传方法, 默认为`MTriggerMethod.request`
+  * 你可以在MTrigger列表中查看占用
+    * `MTriggerMethod.request` 会在每轮对话时上传, 适用于更新频繁的触发器, 上限4096字符
+    * `MTriggerMethod.table` 会在初始化连接时上传至**当前会话**, 适用于更新不频繁的触发器, 上限100000字符
+      > 也就是说中途会话切换后, 触发器将失效, 将当前会话设置为1即可让其他会话使用该触发器
 
 通过将`example_mtrigger`添加到`Maica`实例中即可使用该触发器：
 

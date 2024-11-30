@@ -457,10 +457,34 @@ screen maica_triggers():
                     xfill True
                     yfill False
 
+                    text _("MTrigger空间使用情况: ")
+                    text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
+                        color ("#FF0000" if maica_triggers.get_length(0) > 3850 else gui.interface_text_color)
+                    text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
+                        color ("#FF0000" if maica_triggers.get_length(1) > 97500 else gui.interface_text_color)
+
                     for trigger in maica_triggers.triggers:
                         label trigger.name
+                        if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
+                            hbox:
+                                text _("空间占用: 0"):
+                                    size 15
+                        elif trigger.method == 0:
+                            hbox:
+                                text _("空间占用: request"):
+                                    size 15
+                                text str(len(trigger)):
+                                    size 15
+                        elif trigger.method == 1:
+                            hbox:
+                                text _("空间占用: table"):
+                                    size 15
+                                text str(len(trigger)):
+                                    size 15
                         text trigger.description:
                             size 15
+                        
+                        
                         
                         hbox:
                             if maica_triggers.trigger_status(trigger.name):
