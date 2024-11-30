@@ -102,7 +102,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_kiss")
 
     kiss_trigger = MTriggerBase(customize_template, "kiss", "亲吻玩家", "kiss player", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
-        description = _("内置 | 调用亲吻事件"),method=MTriggerMethod.table)
+        description = _("内置 | 调用亲吻事件"))
     maica.mtrigger_manager.add_trigger(kiss_trigger)
 
 #################################################################################
