@@ -312,7 +312,7 @@ init 999 python in maica:
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内饰品",
                     item_name_en = "change in-game accessory",
-                    item_list = self.clothes_data.keys(),
+                    item_list = list(self.clothes_data.keys()),
                 ),
                 action = MTriggerAction.post,
                 method=MTriggerMethod.table
