@@ -625,7 +625,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:685
     old "改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."
-    new "Set true to guide core model being more tolerant on toxic scenes.\nMay improve overall core performance (unexpectedly but proved true) but may also decrease attention performance and cause confusion."
+    new "Set true to guide core model being more tolerant on toxic scenes.\nMay improve overall core performance (unexpectedly but proved true)\n but may also decrease attention performance and cause confusion."
 
 # TODO: Translation updated at 2024-11-29 20:06
 
@@ -633,41 +633,53 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:141
     old "MAICA: 存档上传成功"
-    new ""
+    new "MAICA: persistent uploaded successfully"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:141
     old "MAICA: 存档上传失败"
-    new ""
+    new "MAICA: persistent failed to upload"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:145
     old "MAICA: 会话已重置"
-    new ""
+    new "MAICA: Session resetted"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:150
     old "MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"
-    new ""
+    new "MAICA: Chat history exported to game/Submods/MAICA_ChatSubmod/chat_history.txt"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:155
     old "MAICA: 未找到历史game/Submods/MAICA_ChatSubmod/chat_history.txt"
-    new ""
+    new "MAICA: History file not found at game/Submods/MAICA_ChatSubmod/chat_history.txt"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:160
     old "MAICA: 历史上传成功"
-    new ""
+    new "MAICA: History uploaded successfully"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:190
     old "MAICA: 已上传设置"
-    new ""
+    new "MAICA: Settings uploaded"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:190
     old "MAICA: 请等待连接就绪后手动上传"
-    new ""
+    new "MAICA: Please wait until connection is ready then manually upload"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:223
     old "MAICA: 加载高级参数失败, 查看submod_log.log获取详细原因"
-    new ""
+    new "MAICA: Failed loading advanced parameters, check submod_log.log for details"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:960
     old "MAICA: 设置已重置"
-    new ""
+    new "MAICA: Settings reseted"
+
+    old "空间占用: -"
+    new "Space used: -"
+
+    old "空间占用: request"
+    new "Space used: request"
+
+    old "空间占用: table"
+    new "Space used: table"
+
+    old "MTrigger空间使用情况: "
+    new "MTrigger space usage: "
 

@@ -56,13 +56,13 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:227
     old "内置 | 更换背景音乐"
-    new ""
+    new "Integrated | Change background music"
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:274
     old "内置 | 更换发型"
-    new ""
+    new "Integrated | Change hairstyle"
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:311
     old "内置 | 更换饰品"
-    new ""
+    new "Integrated | Change accessory"
 
