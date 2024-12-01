@@ -585,7 +585,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:308
     old "> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的详细程度提高至info及以上"
-    new "> Warning: set verbosity to 'info' or lower when using with Log Screen"
+    new "> Warning: set 'submod_log' logger verbosity to 'info' or lower when using with Log Screen"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:336
     old "> 手动上传设置 [[请先使MAICA完成连接]"
