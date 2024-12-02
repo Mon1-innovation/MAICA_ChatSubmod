@@ -666,6 +666,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.user_acc = data["content"]
             logger.info("maica: Login as '{}'".format(self.user_acc))
         if data['status'] == "mtrigger_trigger":
+            param = data['content'][1]
             self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
         if data['status'] == "ws_cookie":

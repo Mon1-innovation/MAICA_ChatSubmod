@@ -32,15 +32,16 @@ class MTriggerMethod:
     table = 1
 
 class MTriggerTemplate(object):
-    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True), usage=False):
+    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True), usage=False, suggestion=False):
         self.name = name
         self.datakey = datakey
         self.exprop = exprop
         self.usage = usage
+        self.suggestion = suggestion
 
 
 common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False))
-common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True))
+common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True), suggestion=True)
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True), usage=True)
 customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False), usage=True)
 
@@ -125,7 +126,7 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request):
+    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, suggestion = False):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en
@@ -136,6 +137,7 @@ class MTriggerBase(object):
         self.description = description if description != "" else self.name
         self.condition = condition
         self.method = method
+        self.suggestion = suggestion
 
     def build(self):
         data = {
@@ -150,6 +152,8 @@ class MTriggerBase(object):
                 "zh": self.usage_zh,
                 "en": self.usage_en
             }
+        if self.template.suggestion:
+            data["suggestion"] = True
         if self.template.exprop.item_name_zh:
             data["exprop"]["item_name"] = {"zh": self.exprop.item_name_zh, "en": self.exprop.item_name_en} 
         if self.template.exprop.item_list:
@@ -164,7 +168,10 @@ class MTriggerBase(object):
 
     
     def triggered(self, data={}):
-        return self.callback(data.get(self.template.datakey) if self.template.datakey else None)
+        value = data.get(self.template.datakey) if self.template.datakey else None
+        if not value and self.template.suggestion and "suggestion" in data:
+            value = data.get("suggestion")
+        return self.callback(value)
 
     def __len__(self):
         return len(json.dumps(self.build(), ensure_ascii=False))

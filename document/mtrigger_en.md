@@ -68,6 +68,7 @@ Parameter explanation:
 * `callback`
   * Callback function of the trigger, default is `null_callback`. It is executed when the trigger is activated.
   * This function has one parameter representing the value chosen by the model.
+  * If MTrigger does not select any items, the parameter is `False`. If `suggestion` is True, then use the suggested value from MTrigger as the parameter.
   * **The parameter may not be of the expected type and is not guaranteed to be a value set in `exprop`, so validation is required.**
   * This action will not automatically hide the console. To control console display (e.g., if using a jump), call the labels `maica_show_console` and `maica_hide_console` for related operations.
   * In the callback, using operations like call or jump may lead to packet loss in the next round of conversation. Please call the label `maica_reconnect` to avoid such situations.
@@ -102,6 +103,9 @@ Parameter explanation:
     * `MTriggerMethod.table` uploads to the **current session** during the initial connection, suitable for infrequently updated triggers, with a limit of 100,000 characters.
       > This means that if the session is switched halfway, the trigger will become invalid. Setting the current session to 1 allows other sessions to use the trigger.
 
+* `suggestion`
+  * It is only effective in `common_switch_template`. When the callback parameter is `False`, it will attempt to use the suggested value from MTrigger as the callback parameter. The suggested value is not in the `item_list`.
+  
 To use this trigger, add `example_mtrigger` to the `Maica` instance:
 
 ```python

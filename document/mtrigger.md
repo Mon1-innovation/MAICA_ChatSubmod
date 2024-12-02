@@ -69,6 +69,7 @@ example_mtrigger = MTriggerBase(
 * `callback`
   * 触发器回调函数, 默认为`null_callback`, 当触发器触发时, 执行该函数
   * 该函数有一个入参, 表示模型所选择的值
+  * 如果MTrigger没有选择任何项目, 入参为`False`, 如果`suggestion`为True, 则使用MTrigger建议值作为入参
   * **入参并不一定是你所期待的类型, 也不能保证一定是你`exprop`所设置的值, 必须进行检查**
   * 该操作不会自动隐藏控制台, 如果需要控制控制台的显示（如使用了jump）, 请call label `maica_show_console` 和 `maica_hide_console` 进行相关操作.
   * 在callback中使用call, jump等操作, 可能导致下一轮对话出现丢包, 请call label `maica_reconnect` 来避免此类情况
@@ -100,6 +101,9 @@ example_mtrigger = MTriggerBase(
     * `MTriggerMethod.request` 会在每轮对话时上传, 适用于更新频繁的触发器, 上限4096字符
     * `MTriggerMethod.table` 会在初始化连接时上传至**当前会话**, 适用于更新不频繁的触发器, 上限100000字符
       > 也就是说中途会话切换后, 触发器将失效, 将当前会话设置为1即可让其他会话使用该触发器
+  
+* `suggestion`
+  * 仅在`common_switch_template`中有效, 当回调参数为`False`时, 将尝试使用MTrigger建议值作为回调参数使用. 建议值不在`item_list`中
 
 通过将`example_mtrigger`添加到`Maica`实例中即可使用该触发器：
 
