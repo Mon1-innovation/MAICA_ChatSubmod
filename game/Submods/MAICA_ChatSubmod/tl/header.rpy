@@ -699,3 +699,5 @@ translate english strings:
     old "搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"
     new "Search type: [persistent.maica_setting_dict.get('mspire_search_type')]"
 
+    old "{size=-10}* 如果对话卡住了, 点我断开连接"
+    new "{size=-10}* If chat is stuck, click me to disconnect"

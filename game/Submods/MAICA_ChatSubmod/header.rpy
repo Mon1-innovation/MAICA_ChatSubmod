@@ -348,7 +348,17 @@ screen maica_setting_pane():
             textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
                 action Function(upload_chat_history)
 
-            textbutton _("> 退出当前DCC账号"):
+            textbutton renpy.substitute(_("> 退出当前DCC账号")) + renpy.substitute(_("{size=-10}* 如果对话卡住了, 点我断开连接")):
+                action Function(store.maica.maica.export_chat_history)
+
+            textbutton _("> 清除所有对话记录"):
+                action Function(clear_all_chat_history)
+
+            textbutton _("> 清除对话记录"):
+                action Function(clear_chat_history)
+
+            textbutton _("> 关闭当前连接 {size=-10}
+
                 action Function(store.maica.maica.close_wss_session)
         else:
             textbutton _("> 使用已保存令牌连接")
