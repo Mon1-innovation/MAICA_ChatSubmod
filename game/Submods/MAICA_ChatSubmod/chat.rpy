@@ -712,15 +712,6 @@ label mspire_type:
         "in_fuzzy_all":
             $ persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_all"
             "根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-        
-    m "确定要用这个吗?"
-    
-    menu:
-        "确定要用这个吗?{fast}{nw}"
-        "是的":
-            pass
-        "不是":
-            jump mspire_type
     $ store.maica_apply_setting()
     return
             

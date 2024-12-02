@@ -558,7 +558,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             "sample":250,
                             "tltle": random.choice(self.mspire_category),
 
-                        }}
+                        }if len(self.mspire_category) else True}
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
