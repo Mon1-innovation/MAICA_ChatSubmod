@@ -145,7 +145,7 @@ label mtrigger_idle_callback:
     m 1eka "我都要想你了."
     jump maica_main.talking_start
 
-label mtrigger_idle:
+label mtrigger_brb:
     call maica_hide_console
     hide screen mas_background_timed_jump
     $ _history_list.pop()

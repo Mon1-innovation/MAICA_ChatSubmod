@@ -116,8 +116,8 @@ init 999 python in maica:
 #################################################################################
 
     def mtrigger_idle_callback(arg):
-        maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
-        store.renpy.call("mtrigger_leave")
+        maica.send_to_outside_func("<mtrigger> mtrigger_idle_callback called")
+        store.renpy.call("mtrigger_brb")
     idle_trigger = MTriggerBase(customize_template, "idle", "帮助玩家短暂休息", "help player afk short time", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(idle_trigger)
 
