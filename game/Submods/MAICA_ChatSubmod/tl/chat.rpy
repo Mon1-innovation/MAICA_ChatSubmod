@@ -1375,3 +1375,83 @@ translate english maica_main_talking_start_035efa94:
     # m 2rusdlb "好像上传存档出了点问题..."
     m 2rusdlb "Seems we're having some problem uploading the savefile..."
 
+# TODO: Translation updated at 2024-12-02 17:16
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:702
+translate english mspire_type_b5344e5d:
+
+    # "仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快."
+    ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:705
+translate english mspire_type_b0e6ca98:
+
+    # "根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快."
+    ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:708
+translate english mspire_type_fd1066fa:
+
+    # "先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
+    ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:711
+translate english mspire_type_8f258768:
+
+    # "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
+    ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:714
+translate english mspire_type_e92c9b86:
+
+    # "根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
+    ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:716
+translate english mspire_type_39995531:
+
+    # m "确定要用这个吗?"
+    m ""
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:670
+    old "请输入搜索关键词:"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:699
+    old "percise_page"
+    new "percise_page"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:699
+    old "fuzzy_page"
+    new "fuzzy_page"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:699
+    old "in_percise_category"
+    new "in_percise_category"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:699
+    old "in_fuzzy_category"
+    new "in_fuzzy_category"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:699
+    old "in_fuzzy_all"
+    new "in_fuzzy_all"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:718
+    old "确定要用这个吗?{fast}{nw}"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:718
+    old "不是"
+    new ""
+
+# TODO: Translation updated at 2024-12-02 17:16
+
+# game/Submods/MAICA_ChatSubmod/dev.rpy:3
+translate english text_split_ad85c970:
+
+    # m "你想让我说什么呢?"
+    m ""
+

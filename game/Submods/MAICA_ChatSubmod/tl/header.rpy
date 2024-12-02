@@ -671,3 +671,31 @@ translate english strings:
     old "MAICA: 设置已重置"
     new "MAICA: Settings reset"
 
+# TODO: Translation updated at 2024-12-02 17:16
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:319
+    old "> Websocket:"
+    new "> Websocket:"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:463
+    old "MTrigger空间使用情况: "
+    new "MTrigger space usage: "
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:473
+    old "空间占用: -"
+    new "Space used: -"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:477
+    old "空间占用: request"
+    new "Space used: request"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:483
+    old "空间占用: table"
+    new "Space used: table"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:960
+    old "搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"
+    new "Search type: [persistent.maica_setting_dict.get('mspire_search_type')]"
+
