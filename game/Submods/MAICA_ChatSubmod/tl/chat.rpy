@@ -1381,43 +1381,43 @@ translate english maica_main_talking_start_035efa94:
 translate english mspire_type_b5344e5d:
 
     # "仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快."
-    ""
+    "Select the most relative wiki page, thus the sample parameter will not take effect. This choice makes MSpire faster since no recursive search used."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:705
 translate english mspire_type_b0e6ca98:
 
     # "根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快."
-    ""
+    "Select one from multiple most relative pages. This choice makes MSpire faster since no recursive search used."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:708
 translate english mspire_type_fd1066fa:
 
     # "先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-    ""
+    "Select the most relative category, then recursively search categories and pages included. The recursive search part will delay MSpire respond."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:711
 translate english mspire_type_8f258768:
 
     # "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-    ""
+    "Select one from multiple most relative categories, then recursively search categories and pages included. The recursive search part will delay MSpire respond."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:714
 translate english mspire_type_e92c9b86:
 
     # "根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-    ""
+    "Recursively search related categories and pages. The recursive search part will delay MSpire respond."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:716
 translate english mspire_type_39995531:
 
     # m "确定要用这个吗?"
-    m ""
+    m "Are you sure with that?"
 
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:670
     old "请输入搜索关键词:"
-    new ""
+    new "Enter MSpire keyword:"
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:699
     old "percise_page"
@@ -1441,11 +1441,11 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:718
     old "确定要用这个吗?{fast}{nw}"
-    new ""
+    new "Are you sure with that?"
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:718
     old "不是"
-    new ""
+    new "No"
 
 # TODO: Translation updated at 2024-12-02 17:16
 
@@ -1453,5 +1453,5 @@ translate english strings:
 translate english text_split_ad85c970:
 
     # m "你想让我说什么呢?"
-    m ""
+    m "What do you want me to talk about?"
 
