@@ -25,6 +25,8 @@ translate english python in maica:
         maica.MaicaAiStatus.WRONE_INPUT:u"Wrong input, check for possible typo",
         maica.MaicaAiStatus.CERTIFI_BROKEN:u"You have a corrupted copy of MAS--likely because of other submods. Reinstallation required",
         maica.MaicaAiStatus.CERTIFI_AUTO_FIX:u"Launched an autofix to cert module--restart the game to take effect",
+        maica.MaicaAiStatus.TOOLONG_CONTENT_LENGTH:u"Content too long, you should turn off big MTrigger.",
+
     })
     store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["You", "Us", "Mod", "MAICA"])

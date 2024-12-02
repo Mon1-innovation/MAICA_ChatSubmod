@@ -106,6 +106,8 @@ class MaicaAi(ChatBotInterface):
         FAILED_GET_NODE = 13410
         # 版本过旧
         VERSION_OLD = 13411
+        # 发送内容过长
+        TOOLONG_CONTENT_LENGTH = 13412
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -151,7 +153,8 @@ class MaicaAi(ChatBotInterface):
             SEND_SETTING:u"上传设置中",
             FAILED_GET_NODE:u"获取服务节点失败",
             WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
-            VERSION_OLD:u"子模组版本过旧, 请升级至最新版"
+            VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
+            TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看MTrigger列表并关闭不需要的触发器",
         }
         @classmethod
         def get_description(cls, code):
@@ -661,6 +664,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         elif data.get("status") == "unauthorized":
             self.send_to_outside_func("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
+            self.wss_session.close()
+        elif data.get("status") == "length_exceeded":
+            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("Content too long!"))
+            self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
             self.wss_session.close()
         if data["status"] == "nickname":
             self.user_acc = data["content"]
