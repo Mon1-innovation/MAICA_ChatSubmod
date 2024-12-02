@@ -19,6 +19,7 @@ def milliseconds_to_hms(timestamp_ms):
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
+    SUPPORT_BACKEND = 1.0005
     ascii_icon = """                                                             
 
     __  ___ ___     ____ ______ ___ 
@@ -34,6 +35,13 @@ class MaicaAi(ChatBotInterface):
     class MaicaAiLang:
         zh_cn = "zh"
         en = "en"
+    class MaicaMSpiretype:
+        percise_page = "percise_page"
+        fuzzy_page = "fuzzy_page"
+        in_percise_category = "in_percise_category"
+        in_fuzzy_category = "in_fuzzy_category"
+        in_fuzzy_all = "in_fuzzy_all"
+
     class MaicaAiStatus:
         # 未准备好
         NOT_READY = 10000
@@ -270,6 +278,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.auto_reconnect = False
         self.mspire_category = []
         self.mspire_session = 0
+        self.mspire_sample = 250
+        self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
         self._gen_time = 0.0
         self.in_mas = True
         self.provider_id = None
@@ -543,7 +553,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {"chat_session":self.mspire_session, "inspire":True if len(self.mspire_category) == 0 else self.mspire_category[random.randint(0, len(self.mspire_category)-1)]}
+                        dict = {"chat_session":self.mspire_session, "inspire":{
+                            "type":"",
+                            "sample":250,
+                            "tltle": random.choice(self.mspire_category),
+
+                        }}
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 

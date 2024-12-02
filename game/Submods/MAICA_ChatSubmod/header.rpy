@@ -46,6 +46,7 @@ init 10 python:
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
+        "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
         "log_level":logging.DEBUG,
         "provider_id":1,
@@ -175,6 +176,7 @@ init 10 python:
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
         store.maica.maica.target_lang = persistent.maica_setting_dict["target_lang"]
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
+        store.maica.maica.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
@@ -898,7 +900,7 @@ screen maica_setting():
                             action NullAction()
                         bar:
                             value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-5120,step=10,offset=5120 ,style="slider")
-                            xsize 450
+                            xsize 375
                             hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
@@ -949,20 +951,18 @@ screen maica_setting():
                             action NullAction()
                         bar:
                             value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=10 ,style="slider")
-                            xsize 200
+                            xsize 150
                             hovered SetField(_tooltip, "value", _("MSpire对话的最低间隔分钟"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
 
-                        #textbutton _("使用会话: [persistent.maica_setting_dict.get('mspire_session')]"):
-                        #    action NullAction()
-                        #bar:
-                        #    value DictValue(persistent.maica_setting_dict, "mspire_session", 9, step=1,offset=0 ,style="slider")
-                        #    xsize 50
-                        #    hovered SetField(_tooltip, "value", _("MSpire所使用的会话\nMSpire使用过多可能会导致模型定位混乱"))
-                        #    unhovered SetField(_tooltip, "value", _tooltip.default)
-
+                        textbutton _("搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
+                            action [
+                                Hide("maica_setting"),
+                                Function(store.maica_apply_setting),
+                                Function(renpy.jump, "mspire_type")
+                            ]
 
                     hbox:
                         textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):

@@ -668,7 +668,7 @@ label mspire_input_information:
     python:
         while True:
             i = mas_input(
-                    _("请输入你想添加的分类:"),
+                    _("请输入搜索关键词:"),
                     default="",
                     length=50,
                     screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
@@ -695,3 +695,32 @@ label mspire_delete_information:
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
     return
            
+label mspire_type:
+    menu:
+        "percise_page":
+            $ persistent.maica_setting_dict["mspire_search_type"] = "percise_page"
+            "仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快."
+        "fuzzy_page":
+            $ persistent.maica_setting_dict["mspire_search_type"] = "fuzzy_page"
+            "根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快."
+        "in_percise_category":
+            $ persistent.maica_setting_dict["mspire_search_type"] = "in_percise_category"
+            "先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
+        "in_fuzzy_category":
+            $ persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_category"
+            "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
+        "in_fuzzy_all":
+            $ persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_all"
+            "根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
+        
+    m "确定要用这个吗?"
+    
+    menu:
+        "确定要用这个吗?{fast}{nw}"
+        "是的":
+            pass
+        "不是":
+            jump mspire_type
+    $ store.maica_apply_setting()
+    return
+            
