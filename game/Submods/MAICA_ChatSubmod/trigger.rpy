@@ -234,7 +234,7 @@ init 999 python in maica:
                     curr_value=store.songs.current_track
                 ),
                 callback = self.callback,
-                description = renpy.substitute(_("内置 | 更换背景音乐")) + renpy.substitute(_("{size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和Youtube Music子模组")),
+                description = renpy.substitute(_("内置 | 更换背景音乐")) + renpy.substitute(_("{size=-5}* 支持{a='https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas'}{i}Netease Music{/i}{/a}和{a='https://github.com/Booplicate/MAS-Submods-YouTubeMusic'}{i}Youtube Music{/i}{/s}子模组")),
                 suggestion=True
             )
         
