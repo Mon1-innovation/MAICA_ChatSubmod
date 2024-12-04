@@ -162,3 +162,19 @@ label mtrigger_hold:
     call monika_holdme_end
     call maica_show_console
     return
+
+label mtrigger_music_menu:
+    call maica_reconnect
+    call maica_hide_console
+    call display_music_menu
+    call maica_show_console
+    return
+
+label mtrigger_neteasemusic_search(keyword):
+    call maica_reconnect
+    call maica_hide_console
+    $ store.np_util.Music_Search(np_globals.Search_Word)
+    call np_menu_display
+    call maica_show_console
+    return
+

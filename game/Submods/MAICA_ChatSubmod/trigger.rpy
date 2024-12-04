@@ -234,7 +234,8 @@ init 999 python in maica:
                     curr_value=store.songs.current_track
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换背景音乐")
+                description = renpy.substitute(_("内置 | 更换背景音乐")) + renpy.substitute(_("{size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}")),
+                suggestion=True
             )
         
         def song_list(self):
@@ -253,10 +254,13 @@ init 999 python in maica:
 
         def callback(self, selection):
             if selection == "玩家自行选择":
-                store.renpy.call("maica_reconnect")
-                store.renpy.call("display_music_menu")
+                store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:
+                if selection != False:
+                    if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
+                        store.renpy.call("mtrigger_neteasemusic_search")
+                        return
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
                 maica.send_to_outside_func("<mtrigger> {} is not a valid music!".format(selection))
                 return
