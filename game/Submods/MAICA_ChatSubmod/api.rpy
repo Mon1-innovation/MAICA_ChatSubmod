@@ -25,23 +25,30 @@ init 5 python in maica:
     
         def get_text(self):
             return self.input_value
-    
-        def set_text(self, s):
+        
+        def process_str(self, s):
+            res = ""
             if isinstance(s, unicode):
                 # 's' is already Unicode
-                self.input_value = s
+                res = s
             else:
                 # Detect encoding and decode to Unicode
                 encoding_info = chardet.detect(s)
                 encoding = encoding_info['encoding']
                 if encoding is not None:
-                    self.input_value = s.decode(encoding)
+                    res = s.decode(encoding)
                 else:
-                    self.input_value = s.decode('utf-8', errors='replace')
+                    res = s.decode('utf-8', errors='replace')
+            if len(res) > 375:
+                res = res[:375]
+            return res
+
+
+        def set_text(self, s):
+            self.input_value = self.process_str(s)
 
         def add_text(self, s):
-            unicode_text = self.ensure_utf8(s)
-            self.input_value += unicode_text
+            self.input_value += self.process_str(s)
 
 
 
