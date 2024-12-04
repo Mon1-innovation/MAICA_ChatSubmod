@@ -179,6 +179,8 @@ label mtrigger_neteasemusic_search(keyword):
     return
 
 label mtrigger_youtubemusic_search(keyword):
+    call maica_reconnect
+    call maica_hide_console
     if ytm_utils.is_online():
         if not ytm_globals.is_playing:
             m 1eub "Of course!"
@@ -269,4 +271,5 @@ label mtrigger_youtubemusic_search(keyword):
                     $ del menu_list
 
     $ del response_quips, response_quip, raw_search_request, lower_search_request
+    call maica_show_console
     return
