@@ -58,7 +58,7 @@ label maica_talking(mspire = False):
                     question = mas_input(
                                 _("说吧, [player]"),
                                 default="",
-                                length=75,
+                                length=75 if not config.language == "english" else 375,
                                 screen="maica_input_screen"
                                 #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
                             ).strip(' \t\n\r') #mas_input
