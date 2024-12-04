@@ -178,3 +178,95 @@ label mtrigger_neteasemusic_search(keyword):
     call maica_show_console
     return
 
+label mtrigger_youtubemusic_search(keyword):
+    if ytm_utils.is_online():
+        if not ytm_globals.is_playing:
+            m 1eub "Of course!"
+    else:
+        m 1rksdla "..."
+        m 1rksdlb "We need an internet connection to listen to music online, [player]..."
+        return
+
+    python:
+        ready = False
+
+
+    label .input_loop:
+        show monika 1eua at t11
+        $ raw_search_request = keyword
+        $ lower_search_request = raw_search_request.lower()
+
+        if lower_search_request == "":
+            if not ytm_globals.is_playing or renpy.music.get_pause():
+                m 1eka "Oh...{w=0.2}I really would like to listen to music with you!"
+                m 1eub "Let me know when you have time~"
+
+            else:
+                m 1eka "Oh, okay."
+
+        else:
+            if ytm_utils.is_youtube_url(raw_search_request):
+                pass
+            else:
+                $ ytm_utils.add_search_history(
+                    lower_search_request,
+                    lower_search_request
+                )
+
+                # Since I don't have plans to expand this, I'll leave it as is
+                if (
+                    not renpy.seen_label("ytm_monika_find_music.reaction_your_reality")
+                    and "your reality" in lower_search_request
+                ):
+                    label .reaction_your_reality:
+                        m 3hua "Good choice, [player]~"
+
+                elif (
+                    not renpy.seen_label("ytm_monika_find_music.reaction_ily")
+                    and "i love you" in lower_search_request
+                ):
+                    label .reaction_ily:
+                        m 1hubsa "I love you too! Ehehe~"
+
+                m 1dsa "Let me see what I can find.{w=0.5}{nw}"
+
+                $ ytm_threading.update_thread_args(ytm_threading.search_music, [raw_search_request])
+                call ytm_search_loop
+                $ menu_list = _return
+
+                label .menu_display:
+                    if menu_list:
+                        m 1eub "Alright! Look what I've found!"
+                        show monika 1eua at t21
+                        call screen mas_gen_scrollable_menu(menu_list, ytm_globals.SCR_MENU_AREA, ytm_globals.SCR_MENU_XALIGN, *ytm_globals.SCR_MENU_LAST_ITEMS)
+                        show monika at t11
+
+                        if isinstance(_return, ytm_utils.VideoInfo):
+                            call .ytm_process_audio_info(_return.url, add_to_search_hist=False, add_to_audio_hist=True)
+                            if not _return:
+                                jump .menu_display
+
+                        elif _return == ytm_globals.SCR_MENU_CHANGED_MIND:
+                            if not ytm_globals.is_playing:
+                                m 1eka "Oh...{w=0.2}{nw}"
+                                extend 3ekb "I really love to listen to music with you!"
+                                m 1eua "Let me know when you have time~"
+                            else:
+                                m 1eka "Oh, okay."
+
+                        elif _return == ytm_globals.SCR_MENU_ANOTHER_SING:
+                            m 1eub "Alright!"
+                            jump .input_loop
+
+                        else:
+                            # aka the part you will never get to
+                            m 2tfu "{cps=*2}Reading this doesn't seem like the best use of your time, [player].{/cps}{nw}"
+                            $ _history_list.pop()
+
+                    else:
+                        m 1eud "Sorry, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}I couldn't find anything."
+
+                    $ del menu_list
+
+    $ del response_quips, response_quip, raw_search_request, lower_search_request
+    return

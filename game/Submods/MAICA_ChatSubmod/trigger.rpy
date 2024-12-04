@@ -234,7 +234,7 @@ init 999 python in maica:
                     curr_value=store.songs.current_track
                 ),
                 callback = self.callback,
-                description = renpy.substitute(_("内置 | 更换背景音乐")) + renpy.substitute(_("{size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}")),
+                description = renpy.substitute(_("内置 | 更换背景音乐")) + renpy.substitute(_("{size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和Youtube Music子模组")),
                 suggestion=True
             )
         
@@ -260,6 +260,9 @@ init 999 python in maica:
                 if selection != False:
                     if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
                         store.renpy.call("mtrigger_neteasemusic_search")
+                        return
+                    elif store.mas_submod_utils.isSubmodInstalled("Youtube Music"):
+                        store.renpy.call("mtrigger_youtubemusic_search")
                         return
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
                 maica.send_to_outside_func("<mtrigger> {} is not a valid music!".format(selection))
