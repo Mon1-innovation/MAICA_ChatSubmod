@@ -36,6 +36,7 @@ init 999 python in maica:
                     curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
                 action = MTriggerAction.post,
+                method = MTriggerMethod.table
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """
@@ -286,6 +287,7 @@ init 999 python in maica:
                     curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
                 ),
                 action = MTriggerAction.post,
+                method = MTriggerMethod.table
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """
