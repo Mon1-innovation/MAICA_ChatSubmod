@@ -349,7 +349,7 @@ screen maica_setting_pane():
                 action Function(upload_chat_history)
 
             textbutton renpy.substitute(_("> 退出当前DCC账号")) + renpy.substitute(_("{size=-10}* 如果对话卡住了, 点我断开连接")):
-                action Function(store.maica.maica.export_chat_history)
+                action Function(store.maica.maica.close_wss_session)
 
         else:
             textbutton _("> 使用已保存令牌连接")
