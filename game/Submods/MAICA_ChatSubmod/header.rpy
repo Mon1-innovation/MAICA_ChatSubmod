@@ -1047,6 +1047,8 @@ screen maica_login():
                     action [Function(_maica_clear), Hide("maica_login")]
             hbox:
                 text _("{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}")
+            hbox:
+                text _("{size=-10}※ 还没有DCC账号? {a=https://forum.monika.love/signup}{i}{u}注册一个{/u}{/i}{/a}")
 
 
 

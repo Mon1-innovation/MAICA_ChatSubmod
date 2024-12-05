@@ -701,3 +701,6 @@ translate english strings:
 
     old "{size=-10}* 如果对话卡住了, 点我断开连接"
     new "{size=-10}* If chat is stuck, click me to disconnect"
+
+    old "{size=-10}※ 还没有DCC账号? {a=https://forum.monika.love/signup}{i}{u}注册一个{/u}{/i}{/a}"
+    new "{size=-10}※ Don't have DCC account yet? {a=https://forum.monika.love/signup}{i}{u}Sign up.{/u}{/i}{/a}"
