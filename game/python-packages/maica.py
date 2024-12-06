@@ -432,7 +432,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def init_connect(self):
         import threading
         threading.Thread(target=self._init_connect).start()
-        threading.Thread(target=self.send_mtrigger).start()
+        
 
     
     def _init_connect(self):
@@ -575,6 +575,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                         self.send_settings()
+                        threading.Thread(target=self.send_mtrigger).start()
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
