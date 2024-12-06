@@ -24,23 +24,23 @@ def get_log():
     data = {
         "title": "",
         "content": [],
-        "ver":0
+        "version":0
     }
     try:
         feed = feedparser.parse(feed_url)
         for item in feed.entries:
             data["title"] = item['title']
             data["content"].append(remove_html_tags(item['summary']))
-            data["ver"] = int(item['link'].split('/')[-1])
+            data["version"] = int(item['link'].split('/')[-1])
         
         return data
     except Exception as e: 
         data["title"] = "An Exception is occurred"
         data["content"].append(traceback.format_exc())
-        data["ver"] = 0
+        data["version"] = 0
     if len(data["content"]) == 0:
         data["content"].append("Cannot fetch log")
-        data["ver"] = 0
+        data["version"] = 0
         data["title"] = "DCC server error"
     return data 
 
