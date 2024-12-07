@@ -715,7 +715,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
-            if data['status'] == ("mtrigger_done" if not self._in_mspire else "streaming_done"):
+            if data['status'] == "loop_finished":
                 self._in_mspire = False
                 talks = self.TalkSpilter.announce_stop()
                 for item in talks:
