@@ -457,7 +457,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         finally:
             if self.multi_lock.acquire(blocking=False):
                 self.multi_lock.release()
-                logger.info("Maica::_init_connect released lock because error")
+                logger.info("Maica::_init_connect released lock because wss closed")
         
         
     # 检查参数合法性
