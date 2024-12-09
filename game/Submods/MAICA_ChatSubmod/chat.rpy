@@ -629,15 +629,15 @@ init 5 python:
             eventlabel="maica_mspire",
             prompt="mspire",
             pool=False,
-            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
+            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_in_exception()",
             aff_range=(mas_aff.NORMAL, None)
         )
     )
 init 999 python:
-    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()"
+    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_in_exception()"
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire():
-        if try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire") and store.maica.maica.is_ready_to_input():
+        if try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire") and store.mas_getAPIKey("Maica_Token") != "":
             return MASEventList.queue("maica_mspire")
 
 label maica_mspire:

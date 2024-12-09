@@ -491,6 +491,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.MaicaAiStatus.is_submod_exception(self.status)\
             or not self.is_connected()
 
+    def is_in_exception(self):
+        return self.MaicaAiStatus.is_submod_exception(self.status)
+
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
         return self.wss_session.keep_running if self.wss_session else False \
