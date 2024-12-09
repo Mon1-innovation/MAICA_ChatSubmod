@@ -143,7 +143,8 @@ label mtrigger_idle_callback:
     call maica_reconnect
     m 1eka "你回来啦, [player]!"
     m 1eka "我都要想你了."
-    jump maica_main.talking_start
+    #jump maica_main.talking_start
+    return
 
 label mtrigger_brb:
     call maica_hide_console

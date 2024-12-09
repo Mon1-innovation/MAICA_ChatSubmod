@@ -10,6 +10,7 @@ label maica_talking(mspire = False):
         import traceback
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
+        store.action = {}
         if mspire:
             ai.send_to_outside_func("<submod> MSpire init...")
         if persistent.maica_setting_dict['console']:
@@ -55,6 +56,12 @@ label maica_talking(mspire = False):
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             if ai.is_ready_to_input():
                 if mspire is False:
+                    if "stop" in store.action:
+                        if store.action["stop"]:
+                            store.action = {}
+                            _return = "canceled"
+                            break
+
                     question = mas_input(
                                 _("说吧, [player]"),
                                 default="",
@@ -122,7 +129,11 @@ label maica_talking(mspire = False):
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             _return = "mtrigger_triggering"
-            ai.mtrigger_manager.run_trigger(MTriggerAction.post)
+            store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
+            ai.send_to_outside_func("<chat_action> {}".format(store.action))
+            if store.action['stop']:
+                _return = "canceled"
+                break
             if mspire:
                 _return = "canceled"
                 afm_pref = renpy.game.preferences.afm_enable
@@ -133,7 +144,7 @@ label maica_talking(mspire = False):
 
     # store.mas_ptod._update_console_history([])
 
-    
+label maica_talking.end:
     if persistent.maica_setting_dict['console']:    
         $ store.mas_ptod.clear_console()
         hide screen mas_py_console_teaching

@@ -1,5 +1,15 @@
 import requests, json
 
+try:
+    basestring  # 套路检查
+except NameError:
+    basestring = str  # Python 3 统一用 str
+
+def check_and_search(sub, target):
+    if isinstance(target, basestring):
+        return sub in target
+    else:
+        return False
 
 class MTriggerAction:
     instant = 0     #收到以后立刻触发
@@ -109,13 +119,22 @@ class MTriggerManager:
                 self.triggered_list.append((t, param))
 
     def run_trigger(self, action=MTriggerAction.post, remove=True):
+        doact = {
+            "stop":False,
+        }
         self._running = True
         for t in self.triggered_list:
+
+
             if t[0].action == action:
                 if remove:
                     self.triggered_list.remove(t)
-                t[0].triggered(t[1])
+                res = t[0].triggered(t[1])
+                if check_and_search("stop", res):
+                    doact["stop"] = True
+
         self._running = False
+        return doact
                 
 
 def null_callback(*args,**kwargs):
