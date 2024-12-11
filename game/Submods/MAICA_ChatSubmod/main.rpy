@@ -38,7 +38,7 @@ label maica_talking(mspire = False):
             if ai.is_ready_to_input() and not printed:
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 printed = True
-            elif ai.is_failed():
+            if ai.is_failed():
                 if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
                     store.mas_ptod.write_command("Login failed, please check your token.")
                 elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
