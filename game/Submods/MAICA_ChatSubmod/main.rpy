@@ -44,6 +44,7 @@ label maica_talking(mspire = False):
                 elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
                     store.mas_ptod.write_command("Savedata not found, please check your setting.")
                 else:
+                    store.mas_submod_utils.submod_log.error("maica_talking:: Unknown Error: ai.is_failed() = {}, ai.status = {}, ai.is_connected() = {}".format(ai.is_failed(), ai.status, ai.is_connected()))
                     store.mas_ptod.write_command("An error occurred, please check your submog_log.log")
                 renpy.pause(2.0)
                 renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))

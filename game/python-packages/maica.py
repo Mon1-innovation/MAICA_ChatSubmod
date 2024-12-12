@@ -560,13 +560,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {"chat_session":self.mspire_session, "inspire":{
-                            "type":"",
-                            "sample":250,
-                            "tltle": random.choice(self.mspire_category),
-
-                        }if len(self.mspire_category) else True}
+                        dict = {
+                            "chat_session":self.mspire_session, 
+                            "inspire":{
+                                    "type":"",
+                                    "sample":250,
+                                    "tltle": random.choice(self.mspire_category),
+                                } if len(self.mspire_category) else True
+                            }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
+
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
                         )
