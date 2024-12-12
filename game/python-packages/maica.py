@@ -256,7 +256,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.__accessable = False
         self._serving_status = ""
         self.stat = {}
-        self.multi_lock = threading.RLock()
+        self.multi_lock = threading.Lock()
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
@@ -439,9 +439,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         logger.debug("_init_connect")
-        if not self.multi_lock.acquire(blocking=False):
+        if self.multi_lock.locked():
             return logger.warning("Maica::_init_connect try to create multi connection")
         self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
+        self.multi_lock.acquire()
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
         self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
@@ -455,7 +456,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("wss_session.run_forever() failed: {}".format(e))
             logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
-            if self.multi_lock.acquire(blocking=False):
+            if self.multi_lock.locked():
                 self.multi_lock.release()
                 logger.info("Maica::_init_connect released lock because wss closed")
         
@@ -563,9 +564,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         dict = {
                             "chat_session":self.mspire_session, 
                             "inspire":{
-                                    "type":"",
+                                    "type":self.mspire_type,
                                     "sample":250,
-                                    "tltle": random.choice(self.mspire_category),
+                                    "title": random.choice(self.mspire_category),
                                 } if len(self.mspire_category) else True
                             }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
@@ -740,9 +741,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.close_wss_session()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
-        if close_status_code or close_msg:
-            logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        self.multi_lock.release()
+        logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
+        if self.multi_lock.locked():
+                self.multi_lock.release()
+
         
     def chat(self, message):
         
