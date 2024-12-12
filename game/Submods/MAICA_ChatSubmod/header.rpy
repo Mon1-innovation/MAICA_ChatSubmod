@@ -50,7 +50,8 @@ init 10 python:
         "mspire_session":0,
         "log_level":logging.DEBUG,
         "provider_id":1,
-        "max_history_token":28672
+        "max_history_token":28672,
+        "status_update_time":0.25
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -278,7 +279,10 @@ init 10 python:
         persistent._maica_reseted = True
     maica_apply_setting(True)
         
-            
+
+init python:
+    def scr_nullfunc():
+        return            
 
 screen maica_setting_pane():
     python:
@@ -287,10 +291,13 @@ screen maica_setting_pane():
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
 
+
     vbox:
         xmaximum 800
         xfill True
         style_prefix "check"
+
+        timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
 
         if store.maica.maica.is_outdated is None:
             text _("> 无法验证版本号, 如果出现问题请更新至最新版"):
@@ -972,6 +979,16 @@ screen maica_setting():
                             action Function(store.change_loglevel)
                             hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        textbutton _("状态码更新速度")
+                        bar:
+                            value DictValue(persistent.maica_setting_dict, "status_update_time", 3.0, step=0.1, offset=0.1,style="slider")
+                            xsize 150
+                            hovered SetField(_tooltip, "value", _("在Submod界面处的状态码更新频率"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        textbutton "[persistent.maica_setting_dict.get('status_update_time')]s"
+
 
                     hbox:
                         textbutton _("MTrigger 列表"):
