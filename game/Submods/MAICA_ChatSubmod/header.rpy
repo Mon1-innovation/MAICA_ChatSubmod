@@ -263,13 +263,20 @@ init 10 python:
             #hbox:
             #    text "=====MaicaAi() Finish====="
 
-            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_greeting').conditional), renpy.seen_label('maica_greeting')))
-            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr2').conditional), renpy.seen_label('maica_chr2')))
-            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr_gone').conditional), renpy.seen_label('maica_chr_gone')))
-            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr_corrupted2').conditional), renpy.seen_label('maica_chr_corrupted2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_wants_preferences2').conditional), renpy.seen_label('maica_wants_preferences2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_wants_mspire').conditional), renpy.seen_label('maica_wants_mspire')))
-            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_mspire').conditional), renpy.seen_label('maica_mspire')))
+            def get_conditional(name):
+                try:
+                    if mas_getEV(name):
+                        return mas_getEV(name).conditional
+                except Exception as e:
+                    store.mas_submod_utils.submod_log.error("Failed to get conditional: {}".format(e))
+                    return None
+            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_greeting')), renpy.seen_label('maica_greeting')))
+            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr2')), renpy.seen_label('maica_chr2')))
+            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_gone')), renpy.seen_label('maica_chr_gone')))
+            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_corrupted2')), renpy.seen_label('maica_chr_corrupted2')))
+            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_preferences2')), renpy.seen_label('maica_wants_preferences2')))
+            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
+            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
 
         except Exception as e:
