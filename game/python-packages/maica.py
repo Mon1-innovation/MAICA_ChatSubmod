@@ -498,7 +498,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
         return self.wss_session.keep_running if self.wss_session else False \
-            and self.wss_thread.is_alive() if self.wss_thread else False
+            or self.wss_thread.is_alive() if self.wss_thread else False
 
     def get_status_description(self):
         """返回maica当前状态描述"""

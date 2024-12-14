@@ -24,7 +24,7 @@ label maica_talking(mspire = False):
             if not ai.is_connected():
                 store.mas_ptod.write_command("Init Connecting...")
                 renpy.pause(0.3, True)
-                if not ai.is_connected() and not ai.is_failed():
+                if not ai.is_connected() and not ai.is_in_exception():
                     continue
             if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
@@ -38,7 +38,7 @@ label maica_talking(mspire = False):
             if ai.is_ready_to_input() and not printed:
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 printed = True
-            if ai.is_failed():
+            if ai.is_in_exception():
                 if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
                     store.mas_ptod.write_command("Login failed, please check your token.")
                 elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
