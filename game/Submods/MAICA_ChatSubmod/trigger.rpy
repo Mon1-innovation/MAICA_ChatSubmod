@@ -261,7 +261,7 @@ init 999 python in maica:
             if not selection in self.musics:
                 if selection != False:
                     if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
-                        store.renpy.call("mtrigger_neteasemusic_search")
+                        store.renpy.call("mtrigger_neteasemusic_search", selection)
                         return
                     elif store.mas_submod_utils.isSubmodInstalled("Youtube Music"):
                         store.renpy.call("mtrigger_youtubemusic_search")
