@@ -244,7 +244,9 @@ init 999 python in maica:
             m = []
             for s in store.songs.music_choices:
                 m.append(s[0])
-            if not (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
+            if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
+                pass
+            else:
                 m.append("玩家自行选择")
             return m
 
@@ -260,7 +262,7 @@ init 999 python in maica:
                 store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:
-                if selection != False:
+                if selection != False or selection.lower() != "false":
                     if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
                         store.renpy.call("mtrigger_neteasemusic_search", selection)
                         return
