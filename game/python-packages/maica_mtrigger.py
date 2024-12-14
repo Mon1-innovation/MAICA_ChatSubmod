@@ -172,7 +172,7 @@ class MTriggerBase(object):
                 "en": self.usage_en
             }
         if self.template.exprop.suggestion:
-            data["exprop"]["suggestion"] = True
+            data["exprop"]["suggestion"] = self.exprop.suggestion
         if self.template.exprop.item_name_zh:
             data["exprop"]["item_name"] = {"zh": self.exprop.item_name_zh, "en": self.exprop.item_name_en} 
         if self.template.exprop.item_list:
