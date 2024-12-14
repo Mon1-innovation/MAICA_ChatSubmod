@@ -233,11 +233,12 @@ init 999 python in maica:
                     item_name_zh="游戏背景音乐",
                     item_name_en="in-game music",
                     item_list=self.musics,
-                    curr_value=store.songs.current_track
+                    curr_value=store.songs.current_track,
+                    suggestion=store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
+
                 ),
                 callback = self.callback,
                 description = _("内置 | 更换背景音乐 {size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和{a=https://github.com/Booplicate/MAS-Submods-YouTubeMusic}{i}Youtube Music{/i}{/s}子模组"),
-                suggestion=store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
             )
         
         def song_list(self):
@@ -246,8 +247,7 @@ init 999 python in maica:
                 m.append(s[0])
             if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
                 pass
-            else:
-                m.append("玩家自行选择")
+            m.append("玩家自行选择")
             return m
 
         def build(self):

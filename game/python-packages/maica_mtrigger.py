@@ -19,7 +19,7 @@ class MTriggerExprop:
     """
     注意: 所有的值都有默认值, 如有需要请务必修改
     """
-    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=None):
+    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=None, suggestion=False):
         """
         初始化函数。
         
@@ -35,6 +35,7 @@ class MTriggerExprop:
         self.item_list = item_list
         self.value_limits = value_limits
         self.curr_value = curr_value
+        self.suggestion = suggestion
 
 class MTriggerMethod:
     all = -1
@@ -42,18 +43,17 @@ class MTriggerMethod:
     table = 1
 
 class MTriggerTemplate(object):
-    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True), usage=False, suggestion=False):
+    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True,True), usage=False):
         self.name = name
         self.datakey = datakey
         self.exprop = exprop
         self.usage = usage
-        self.suggestion = suggestion
 
 
-common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False))
-common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True), suggestion=True)
-common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True), usage=True)
-customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False), usage=True)
+common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False, False))
+common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True, True))
+common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False), usage=True)
+customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False, False), usage=True)
 
 class MTriggerManager:
     MAX_LENGTH_REQUEST = 4096
@@ -171,8 +171,8 @@ class MTriggerBase(object):
                 "zh": self.usage_zh,
                 "en": self.usage_en
             }
-        if self.template.suggestion:
-            data["suggestion"] = True
+        if self.template.exprop.suggestion:
+            data["exprop"]["suggestion"] = True
         if self.template.exprop.item_name_zh:
             data["exprop"]["item_name"] = {"zh": self.exprop.item_name_zh, "en": self.exprop.item_name_en} 
         if self.template.exprop.item_list:
