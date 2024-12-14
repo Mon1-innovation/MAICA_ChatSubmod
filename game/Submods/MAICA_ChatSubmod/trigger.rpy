@@ -244,7 +244,8 @@ init 999 python in maica:
             m = []
             for s in store.songs.music_choices:
                 m.append(s[0])
-            m.append("玩家自行选择")
+            if not (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
+                m.append("玩家自行选择")
             return m
 
         def build(self):

@@ -554,7 +554,7 @@ label .talking_start:
         $ store.maica.maica.mtrigger_manager._running = False
         jump .talking_start
     else:
-        $ store.mas_submod_utils.submod_log("maica_talking returned {}".format(_return))
+        $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(_return))
         if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
             m 2rusdlb "...好像你的令牌还没有设置好."
             m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
