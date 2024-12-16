@@ -145,7 +145,7 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, suggestion = False):
+    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en
@@ -156,7 +156,6 @@ class MTriggerBase(object):
         self.description = description if description != "" else self.name
         self.condition = condition
         self.method = method
-        self.suggestion = suggestion
 
     def build(self):
         data = {
@@ -188,7 +187,7 @@ class MTriggerBase(object):
     
     def triggered(self, data={}):
         value = data.get(self.template.datakey) if self.template.datakey else None
-        if not value and self.template.suggestion and "suggestion" in data:
+        if not value and self.template.exprop.suggestion and "suggestion" in data:
             value = data.get("suggestion")
         return self.callback(value)
 

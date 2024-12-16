@@ -230,8 +230,8 @@ init 999 python in maica:
                 common_switch_template,
                 "music",
                 exprop=MTriggerExprop(
-                    item_name_zh="游戏背景音乐",
-                    item_name_en="in-game music",
+                    item_name_zh="播放音乐",
+                    item_name_en="play music",
                     item_list=self.musics,
                     curr_value=store.songs.current_track,
                     suggestion=store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
