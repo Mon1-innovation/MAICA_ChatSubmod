@@ -239,6 +239,7 @@ init 999 python in maica:
                 ),
                 callback = self.callback,
                 description = _("内置 | 更换背景音乐 {size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和{a=https://github.com/Booplicate/MAS-Submods-YouTubeMusic}{i}Youtube Music{/i}{/s}子模组"),
+                perf_suggestion=True,
             )
         
         def song_list(self):

@@ -20,10 +20,12 @@ example_mtrigger = MTriggerBase(
         item_name_en="",
         item_list=[],
         value_limits=[0, 1],
-        curr_value=None
+        curr_value=None,
+        suggestion=False
     ),
     condition=null_condition,
-    method=MTriggerMethod.request
+    method=MTriggerMethod.request,
+    perf_suggestion=False
 )
 
 ```
@@ -106,6 +108,9 @@ example_mtrigger = MTriggerBase(
     * `MTriggerMethod.request` 会在每轮对话时上传, 适用于更新频繁的触发器, 上限4096字符
     * `MTriggerMethod.table` 会在初始化连接时上传至**当前会话**, 适用于更新不频繁的触发器, 上限100000字符
       > 也就是说中途会话切换后, 触发器将失效, 将当前会话设置为1即可让其他会话使用该触发器
+
+* `perf_suggestion`
+  * 是否优先使用建议值, 仅在`exprop.suggestion`为True时有效
   
 
 通过将`example_mtrigger`添加到`Maica`实例中即可使用该触发器：
