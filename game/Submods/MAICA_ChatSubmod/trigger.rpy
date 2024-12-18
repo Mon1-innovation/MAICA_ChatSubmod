@@ -249,6 +249,7 @@ init 999 python in maica:
             if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
                 pass
             m.append("玩家自行选择")
+            m.append("停止/静音")
             return m
 
         def build(self):
@@ -273,6 +274,10 @@ init 999 python in maica:
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
                 maica.send_to_outside_func("<mtrigger> {} is not a valid music!".format(selection))
                 return
+            if selection == "停止/静音":
+                store.mas_play_song(None)
+                return
+
             store.mas_play_song(self.find(selection))
     music_trigger = MusicTrigger()
     maica.mtrigger_manager.add_trigger(music_trigger)
