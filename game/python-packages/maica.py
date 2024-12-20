@@ -183,8 +183,6 @@ class MaicaAi(ChatBotInterface):
         }
         servers = []
         provider_list = "https://maicadev.monika.love/api/servers"
-        default_url = "wss://maicadev.monika.love/websocket"
-        def_apiurl = "https://maicadev.monika.love/api/"
         @classmethod
         def get_provider(cls):
             import requests
@@ -209,13 +207,13 @@ class MaicaAi(ChatBotInterface):
         @classmethod
         def get_wssurl_by_id(cls, id):
             if not id:
-                return cls.def_apiurl
+                return cls.isfailedresponse["wsInterface"]
             return cls.get_server_by_id(id)["wsInterface"]
 
         @classmethod
         def get_api_url_by_id(cls, id):
             if not id:
-                return cls.default_url
+                return cls.isfailedresponse["httpInterface"]
             return cls.get_server_by_id(id)["httpInterface"]
 
             
@@ -933,6 +931,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             无
         """
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
+            logger.error("accessable(): certifi auto fix, need restart")
             self.__accessable = False
             return
         if self.in_mas:
@@ -940,7 +939,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 import certifi
                 certifi.set_parent_dir
             except AttributeError:
-                logger.error("certifi is broken")
+                logger.error("accessable(): certifi is broken")
                 self.status = self.MaicaAiStatus.CERTIFI_BROKEN
                 self.__accessable = False
                 return
@@ -953,19 +952,19 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if d.get("accessibility", None) != "serving":
                 self.status = self.MaicaAiStatus.SERVER_MAINTAIN
                 self.__accessable = False
-                logger.error("Maica is not serving: {}".format(d["accessibility"]))
+                logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
             else:
                 self.__accessable = True
                 self.status = self.MaicaAiStatus.NOT_READY
         else:
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
-            logger.error("Maica is not serving: {}".format(d["accessibility"]))
+            logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
         
         try:
             self.MaicaProviderManager.get_provider()
         except Exception as e:
-            logger.error("Maica get Service Provider Error: {}".format(e))
+            logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
 
 
     def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):
