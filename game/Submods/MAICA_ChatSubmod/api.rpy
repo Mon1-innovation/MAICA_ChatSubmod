@@ -5,6 +5,8 @@ init -1500 python:
     import maica_rss_provider
     maica_rss_provider.set_ua(maica_ver)
 
+    cn_mas_mobile_min_timescamp = 1733179724
+
 default persistent._maica_updatelog_version_seen = 0
 
 init 5 python in maica:
@@ -140,7 +142,7 @@ init 5 python in maica:
     def start_maica():
         import time
         store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(build.time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(build.time)))))
-        if renpy.android and build.time < 1733179724:
+        if renpy.android and build.time < cn_mas_mobile_min_timescamp:
             store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")

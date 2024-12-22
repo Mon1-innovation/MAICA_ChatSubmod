@@ -305,7 +305,12 @@ screen maica_setting_pane():
         style_prefix "check"
 
         timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
-
+        
+        if build.time < cn_mas_mobile_min_timescamp and renpy.android:
+            text _("> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
         if store.maica.maica.is_outdated is None:
             text _("> 无法验证版本号, 如果出现问题请更新至最新版"):
                 xalign 1.0 yalign 0.0
