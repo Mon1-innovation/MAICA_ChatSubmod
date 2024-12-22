@@ -175,7 +175,7 @@ label mtrigger_neteasemusic_search(keyword):
     call maica_reconnect
     call maica_hide_console
     $ store.np_util.Music_Search(keyword)
-    call  
+    call np_menu_display
     call maica_show_console
     return
 
