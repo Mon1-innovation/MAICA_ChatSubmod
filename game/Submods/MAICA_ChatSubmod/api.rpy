@@ -138,6 +138,11 @@ init 5 python in maica:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        import time
+        store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(build.time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(build.time)))))
+        if renpy.android and build.time < 1733179724:
+            store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
+            return
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
         if store.mas_getAPIKey("Maica_Token") != "":
