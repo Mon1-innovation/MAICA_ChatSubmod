@@ -96,10 +96,11 @@ init 10 python:
 
     def _maica_verify_token():
         res = store.maica.maica._verify_token()
-        if not res:
-            renpy.show_screen("maica_message", message=_("验证失败, 请检查账号密码"))
-        else:
+        if res.get("success"):
             renpy.show_screen("maica_message", message=_("验证成功"))
+        else:
+            renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + res.get("exception"))
+            
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def upload_persistent_dict():

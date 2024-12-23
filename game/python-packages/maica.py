@@ -414,17 +414,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
-                    return True
+                    return res
                 else:
                     logger.warning("Maica::_verify_token not passed: {}".format(res))
-                    return False
+                    return res
             else:
                 logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
-                return False
+                return {"success":False, "exception": "Maica::_verify_token requests.post failed"}
+
         except Exception as e:
             import traceback
             logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
-            return False
+            return {"success":False, "exception": "Maica::_verify_token failed"}
 
 
     def init_connect(self):
