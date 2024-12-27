@@ -48,7 +48,7 @@ init 10 python:
         "mspire_interval":60,
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
-        "log_level":logging.DEBUG,
+        "log_level":logging.INFO,
         "provider_id":1,
         "max_history_token":28672,
         "status_update_time":0.25
@@ -67,7 +67,7 @@ init 10 python:
         "tnd_aggressive":1,
         "esc_aggressive":True,
         "nsfw_acceptive":True,
-        "pre_additive":1,
+        "pre_additive":0,
         "post_additive":1,
         "amt_aggressive":True
     }
