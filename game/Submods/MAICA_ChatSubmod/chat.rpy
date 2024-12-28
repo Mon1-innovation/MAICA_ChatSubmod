@@ -56,7 +56,7 @@ init 5 python:
                 prompt="maica敲门",
                 unlocked=False,
                 conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
-                aff_range=(mas_aff.HAPPY, None),
+                aff_range=(mas_aff.AFFECTIONATE, None),
                 rules=ev_rules,
             ),
             code="GRE"
