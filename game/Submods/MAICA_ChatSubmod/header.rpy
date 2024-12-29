@@ -99,6 +99,8 @@ init 10 python:
         if res.get("success"):
             renpy.show_screen("maica_message", message=_("验证成功"))
         else:
+            store.mas_api_keys.api_keys.update({"Maica_Token":""})
+            store.maica.maica.ciphertext = ""
             renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + res.get("exception"))
             
 
