@@ -615,6 +615,8 @@ init 4 python:
             "maica_mspire",
             None
         )
+        if spire_ev is not None and not spire_ev.last_seen:
+            return True
         return (
             spire_ev is not None
             and spire_ev.last_seen is not None
