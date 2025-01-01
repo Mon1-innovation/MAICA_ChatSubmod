@@ -29,23 +29,23 @@ label maica_talking(mspire = False):
             if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
                 renpy.pause(0.3, True)
-                store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
+                store.mas_ptod._update_console_history(renpy.substitute(_("Websocket连接断开, 正在自动重连...")))
             if not ai.is_ready_to_input() and not ai.is_failed():
-                store.mas_ptod.write_command("Wait login...")
+                store.mas_ptod.write_command(renpy.substitute(_("正在登录...")))
                 renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                 _history_list.pop()
                 continue
             if ai.is_ready_to_input() and not printed:
-                store.mas_ptod.write_command("Login successful, ready to chat!")
+                store.mas_ptod.write_command(renpy.substitute(_("登录完成, 请开始对话.")))
                 printed = True
             if ai.is_failed():
                 if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
-                    store.mas_ptod.write_command("Login failed, please check your token.")
+                    store.mas_ptod.write_command(renpy.substitute(_("登陆失败, 请检查你的Token")))
                 elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
-                    store.mas_ptod.write_command("Savedata not found, please check your setting.")
+                    store.mas_ptod.write_command(renpy.substitute(_("未找到存档信息, 请检查你的设置")))
                 else:
                     store.mas_submod_utils.submod_log.error("maica_talking:: Unknown Error: ai.is_failed() = {}, ai.status = {}, ai.is_connected() = {}".format(ai.is_failed(), ai.status, ai.is_connected()))
-                    store.mas_ptod.write_command("An error occurred, please check your submog_log.log")
+                    store.mas_ptod.write_command(renpy.substitute(_("发生了一个错误, 请查看submog_log.log文件")))
                 renpy.pause(2.0)
                 renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
                 _return = "disconnected"
@@ -87,7 +87,7 @@ label maica_talking(mspire = False):
             if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
                 renpy.pause(0.3, True)
-                store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
+                store.mas_ptod._update_console_history(renpy.substitute(_("Websocket连接断开, 正在自动重连...")))
                 is_retry_before_sendmessage = question
                 continue
 
@@ -102,7 +102,7 @@ label maica_talking(mspire = False):
                     gentime = ai._gen_time
                 if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                     ai.init_connect()
-                    store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
+                    store.mas_ptod._update_console_history(renpy.substitute(_("Websocket连接断开, 正在自动重连...")))
 
                 store.mas_ptod.write_command("Maica.status:{} | message_queue: {}/{}token | time: {}".format(
                     ai.status, ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
@@ -115,7 +115,7 @@ label maica_talking(mspire = False):
                         break
                 if ai.len_message_queue() == 0:
                     #renpy.show(monika 1eua)
-                    store.mas_ptod.write_command("Wait message...")
+                    store.mas_ptod.write_command(renpy.substitute(_("等待服务器响应...")))
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                     _history_list.pop()
                     continue    
