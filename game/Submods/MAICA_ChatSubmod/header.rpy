@@ -101,7 +101,7 @@ init 10 python:
         else:
             store.mas_api_keys.api_keys.update({"Maica_Token":""})
             store.maica.maica.ciphertext = ""
-            renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + res.get("exception"))
+            renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + renpy.substitute(_("失败原因:")) + res.get("exception"))
             
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
