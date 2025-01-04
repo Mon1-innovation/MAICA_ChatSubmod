@@ -532,7 +532,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
                     data['super_params'][param] = self.modelconfig[param]
-            if self.enable_strict_mode:
+            if self.enable_strict_mode and self.ws_cookie != "":
                 data['cookie'] = self.ws_cookie
             return data
             
@@ -556,7 +556,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
-                        if self.enable_strict_mode:
+                        if self.enable_strict_mode and self.ws_cookie != "":
                             dict["cookie"] = self.ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
@@ -575,7 +575,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
-                        if self.enable_strict_mode:
+                        if self.enable_strict_mode and self.ws_cookie != "":
                             dict["cookie"] = self.ws_cookie
 
                         self.wss_session.send(
@@ -594,7 +594,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
                         dict = {"chat_session":self.chat_session, "purge":True}
-                        if self.enable_strict_mode:
+                        if self.enable_strict_mode and self.ws_cookie != "":
                             dict["cookie"] = self.ws_cookie
 
                         self.wss_session.send(
@@ -640,6 +640,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
                     data['super_params'][param] = self.modelconfig[param]
+            if self.enable_strict_mode and self.ws_cookie != "":
+                data['cookie'] = self.ws_cookie
             return data
         if self.is_connected():
             logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
@@ -752,6 +754,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
+        self.ws_cookie = ""
         if self.multi_lock.locked():
                 self.multi_lock.release()
 
@@ -889,7 +892,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
         dict = {"chat_session":self.chat_session, "purge":True}
-        if self.enable_strict_mode:
+        if self.enable_strict_mode and self.ws_cookie != "":
             dict["cookie"] = self.ws_cookie
         self.wss_session.send(
             json.dumps(dict)
