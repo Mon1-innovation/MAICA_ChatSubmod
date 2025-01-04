@@ -429,8 +429,7 @@ screen maica_node_setting():
 
                     for provider in MaicaProviderManager.servers:
                         text str(provider.get('id')) + ' | ' + provider.get('name')
-                        if provider.get("isOfficial", False):
-                            textbutton _(" √ MAICA 官方服务器")
+                        
 
                         hbox:
                             text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
@@ -444,6 +443,9 @@ screen maica_node_setting():
                                     Function(set_provider, provider.get('id')),
                                     Hide("maica_node_setting")
                                 ]
+                            
+                            if provider.get("isOfficial", False):
+                                textbutton _(" √ MAICA 官方服务器")
                     
                     hbox:
                         textbutton _("更新节点列表"):
