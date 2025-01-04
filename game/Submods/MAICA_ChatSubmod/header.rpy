@@ -429,7 +429,7 @@ screen maica_node_setting():
 
                     for provider in MaicaProviderManager.servers:
                         text str(provider.get('id')) + ' | ' + provider.get('name')
-                        if provider.get("isOffifial", False):
+                        if provider.get("isOfficial", False):
                             textbutton _(" √ MAICA 官方服务器")
 
                         hbox:
@@ -1002,7 +1002,8 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
-                        textbutton _("状态码更新速度")
+                        textbutton _("状态码更新速度"):
+                            action NullAction()
                         bar:
                             value DictValue(persistent.maica_setting_dict, "status_update_time", 3.0, step=0.1, offset=0.1,style="slider")
                             xsize 150
