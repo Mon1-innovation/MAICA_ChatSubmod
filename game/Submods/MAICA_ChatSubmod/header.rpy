@@ -49,7 +49,7 @@ init 10 python:
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
         "log_level":logging.INFO,
-        "provider_id":1,
+        "provider_id":1 if not renpy.android else 2,
         "max_history_token":28672,
         "status_update_time":0.25
     }
