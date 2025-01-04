@@ -145,7 +145,7 @@ init 10 python:
                     d[i] = "REMOVED"
         res = store.maica.maica.upload_save(d)
         if not res.get("success", False):
-            store.mas_submod_utils.submod_log("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
+            store.mas_submod_utils.submod_log.info("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
         renpy.notify(_("MAICA: 存档上传成功") if res.get("success", False) else _("MAICA: 存档上传失败"))
 
     def reset_session():
