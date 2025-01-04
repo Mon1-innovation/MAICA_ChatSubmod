@@ -51,7 +51,8 @@ init 10 python:
         "log_level":logging.INFO,
         "provider_id":1 if not renpy.android else 2,
         "max_history_token":28672,
-        "status_update_time":0.25
+        "status_update_time":0.25,
+        "strict_mode": False
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -187,6 +188,7 @@ init 10 python:
         store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
+        store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
@@ -886,6 +888,11 @@ screen maica_setting():
                         textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
                             action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
                             hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        textbutton _("严格反劫持: [persistent.maica_setting_dict.get('strict_mode')]"):
+                            action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
+                            hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:
                         textbutton _("当前MAICA模型: [persistent.maica_setting_dict.get('maica_model')]"):
