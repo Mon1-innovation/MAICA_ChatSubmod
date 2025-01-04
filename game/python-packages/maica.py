@@ -289,6 +289,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.ws_cookie = ""
+        self.enable_strict_mode = False
 
 
     def reset_stat(self):
@@ -437,13 +438,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _init_connect(self):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
-        logger.debug("_init_connect")
         if self.multi_lock.locked():
             return logger.warning("Maica::_init_connect try to create multi connection")
         self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
         self.multi_lock.acquire()
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
+        logger.debug("_init_connect to {}".format(url))
         self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
                                                   , on_close=self._on_close)
         self.wss_session.ping_payload = "PING"
@@ -531,6 +532,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
                     data['super_params'][param] = self.modelconfig[param]
+            if self.enable_strict_mode:
+                data['cookie'] = self.ws_cookie
             return data
             
 
@@ -553,6 +556,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
+                        if self.enable_strict_mode:
+                            dict["cookie"] = self.ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
                         self.wss_session.send(
@@ -570,6 +575,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
+                        if self.enable_strict_mode:
+                            dict["cookie"] = self.ws_cookie
 
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
@@ -586,8 +593,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
+                        dict = {"chat_session":self.chat_session, "purge":True}
+                        if self.enable_strict_mode:
+                            dict["cookie"] = self.ws_cookie
+
                         self.wss_session.send(
-                            json.dumps({"chat_session":self.chat_session, "purge":True})
+                            json.dumps(dict)
                         )
                         self.stat["received_token_by_session"][self.chat_session] = 0
                         self.status = self.MaicaAiStatus.SESSION_RESETED
@@ -877,8 +888,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
+        dict = {"chat_session":self.chat_session, "purge":True}
+        if self.enable_strict_mode:
+            dict["cookie"] = self.ws_cookie
         self.wss_session.send(
-            json.dumps({"chat_session":self.chat_session, "purge":True})
+            json.dumps(dict)
         )
         self.stat["received_token_by_session"][self.chat_session] = 0
         self.status = self.MaicaAiStatus.SESSION_RESETED
