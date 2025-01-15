@@ -10,6 +10,7 @@ label maica_talking(mspire = False):
         import traceback
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
+        store.action = {}
         if mspire:
             ai.send_to_outside_func("<submod> MSpire init...")
         if persistent.maica_setting_dict['console']:
@@ -23,7 +24,7 @@ label maica_talking(mspire = False):
             if not ai.is_connected():
                 store.mas_ptod.write_command("Init Connecting...")
                 renpy.pause(0.3, True)
-                if not ai.is_connected() and not ai.is_failed():
+                if not ai.is_failed():
                     continue
             if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
@@ -37,12 +38,13 @@ label maica_talking(mspire = False):
             if ai.is_ready_to_input() and not printed:
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 printed = True
-            elif ai.is_failed():
+            if ai.is_failed():
                 if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
                     store.mas_ptod.write_command("Login failed, please check your token.")
                 elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
                     store.mas_ptod.write_command("Savedata not found, please check your setting.")
                 else:
+                    store.mas_submod_utils.submod_log.error("maica_talking:: Unknown Error: ai.is_failed() = {}, ai.status = {}, ai.is_connected() = {}".format(ai.is_failed(), ai.status, ai.is_connected()))
                     store.mas_ptod.write_command("An error occurred, please check your submog_log.log")
                 renpy.pause(2.0)
                 renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
@@ -55,10 +57,16 @@ label maica_talking(mspire = False):
             renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
             if ai.is_ready_to_input():
                 if mspire is False:
+                    if "stop" in store.action:
+                        if store.action["stop"]:
+                            store.action = {}
+                            _return = "canceled"
+                            break
+
                     question = mas_input(
                                 _("说吧, [player]"),
                                 default="",
-                                length=75,
+                                length=75 if not config.language == "english" else 375,
                                 screen="maica_input_screen"
                                 #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
                             ).strip(' \t\n\r') #mas_input
@@ -122,7 +130,11 @@ label maica_talking(mspire = False):
                     ai.send_to_outside_func("!!SUBMOD ERROR when chatting: {}".format(e))
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             _return = "mtrigger_triggering"
-            ai.mtrigger_manager.run_trigger(MTriggerAction.post)
+            store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
+            ai.send_to_outside_func("<chat_action> {}".format(store.action))
+            if store.action['stop']:
+                _return = "canceled"
+                break
             if mspire:
                 _return = "canceled"
                 afm_pref = renpy.game.preferences.afm_enable
@@ -133,7 +145,7 @@ label maica_talking(mspire = False):
 
     # store.mas_ptod._update_console_history([])
 
-    
+label maica_talking.end:
     if persistent.maica_setting_dict['console']:    
         $ store.mas_ptod.clear_console()
         hide screen mas_py_console_teaching

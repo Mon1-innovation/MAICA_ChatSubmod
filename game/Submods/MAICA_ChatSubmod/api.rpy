@@ -1,9 +1,17 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.1.5'
+    maica_ver = '1.1.21'
     import maica_rss_provider
     maica_rss_provider.set_ua(maica_ver)
+
+    cn_mas_mobile_min_timescamp = 1733179724
+
+    def get_build_timescamp():
+        try:
+            return build.time
+        except:
+            return 0.0
 
 default persistent._maica_updatelog_version_seen = 0
 
@@ -25,23 +33,30 @@ init 5 python in maica:
     
         def get_text(self):
             return self.input_value
-    
-        def set_text(self, s):
+        
+        def process_str(self, s):
+            res = ""
             if isinstance(s, unicode):
                 # 's' is already Unicode
-                self.input_value = s
+                res = s
             else:
                 # Detect encoding and decode to Unicode
                 encoding_info = chardet.detect(s)
                 encoding = encoding_info['encoding']
                 if encoding is not None:
-                    self.input_value = s.decode(encoding)
+                    res = s.decode(encoding)
                 else:
-                    self.input_value = s.decode('utf-8', errors='replace')
+                    res = s.decode('utf-8', errors='replace')
+            if len(res) > 375:
+                res = res[:375]
+            return res
+
+
+        def set_text(self, s):
+            self.input_value = self.process_str(s)
 
         def add_text(self, s):
-            unicode_text = self.ensure_utf8(s)
-            self.input_value += unicode_text
+            self.input_value += self.process_str(s)
 
 
 
@@ -131,6 +146,10 @@ init 5 python in maica:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        import time
+        store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
+        if renpy.android and store.get_build_timescamp() < store.cn_mas_mobile_min_timescamp:
+            store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
         if store.mas_getAPIKey("Maica_Token") != "":

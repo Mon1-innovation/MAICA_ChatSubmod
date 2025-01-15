@@ -2,17 +2,42 @@
 # -*- coding: utf-8 -*- 
 
 import maica, os
-import emotion_analyze
+import emotion_analyze_v2
 t = ""
 with open("token.txt", "r") as f:
     t = f.read().strip()
-    
+   
+class NothingEmoSelector(emotion_analyze_v2.EmoSelector):
 
-ai = maica.MaicaAi("", "", token = t)
+    def __init__(self, selector=None, storage=None, sentiment=None, eoc=None):
+        super().__init__(selector, storage, sentiment, eoc)
+    def get_emote(self, idle=False):
+        return '1eua'
+    
+    def analyze(self, message):
+        import re
+        # 正则表达式模式
+        pattern = r'\[(.*?)\]'
+        # 查找所有匹配的内容
+        matches = re.findall(pattern, message)
+        # 处理每个匹配的内容
+        for match in matches:
+            # 如果匹配内容在字典的键中，去除匹配的字符串
+            if match == "player":
+                continue
+            message = message.replace('[{}]'.format(match), '')
+            
+        return message
+
+
+ai = maica.MaicaAi("", "", "")
+ai._gen_token(None, None, t)
+
+ai.in_mas = False
 print(ai.ciphertext)
 ai.sf_extraction = True
 ai.model = ai.MaicaAiModel.maica_main
-ai.MoodStatus = emotion_analyze.MoodStatus()
+ai.MoodStatus = NothingEmoSelector()
 ai.MoodStatus.main_strength = 0.0
 ai.MoodStatus.repeat_strength = 0.0
 ai.MoodStatus.pre_mood = ""
@@ -20,50 +45,19 @@ ai.chat_session = 0
 ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
 ai.accessable()
+ai.provider_id = 1
 ai.init_connect()
 import time
-print("读取表情信息")
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
-# 表情代码
-with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion.txt"), "r", encoding='utf-8') as e:
-    for i in e.readlines():
-        line = i.split(":")
-        if len(line) != 2:
-            continue
-        line[1] = line[1].strip()
-        if line[1] not in data:
-            data[line[1]] = {"sentiment":-2}
-        if not len(line[0]) in data[line[1]]:
-            data[line[1]][len(line[0])] = []
-        data[line[1]][len(line[0])].append(line[0])
-    
-    for i in data:
-        for n in i:
-            n = set(n)
-# 表情正负性
-with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_sentiment.txt"), "r", encoding='utf-8') as s:
-    for i in s.readlines():
-        line = i.split(":")
-        if len(line) != 2:
-            continue
-        line[1] = line[1].strip()
-        if line[0] in data:
-            data[line[0]]["sentiment"] = [line[1]]
-emotion_analyze.add_emotedata(data)
-
-# 表情相关性
-import json
-with open(os.path.join(basedir, "game\Submods\MAICA_ChatSubmod", "emotion_influence.json"), "r", encoding='utf-8') as s:
-    emotion_analyze.add_emoteeffectdata(
-        json.load(s)
-    )
 
 try:
     
     while True:
+        time.sleep(0.5)
         if ai.is_failed():
+            print("Maica ai 连接失败")
             break
         if not ai.status in (ai.MaicaAiStatus.MESSAGE_WAIT_INPUT, ai.MaicaAiStatus.MESSAGE_DONE):
             #print("等待Maica返回中")
@@ -71,19 +65,19 @@ try:
             time.sleep(1)
             continue
         if ai.status == ai.MaicaAiStatus.MESSAGE_DONE and len(ai.message_list) > 0:
-            print("message_list.get: ", ai.message_list.get())
+            print("[RESPONSE] message_list.get: ", ai.message_list.get())
             continue
         if not ai.wss_session.keep_running:
             break
         #ai.status = ai.MaicaAiStatus.REQUEST_RESET_SESSION
         print("开始chat")
-        #ai.sf_extraction = True
-        #m = input("请输入内容：\n")
-        #if m == "":
-        #    continue
-        #ai.chat(m)
+        ai.sf_extraction = True
+        m = input("请输入内容：\n")
+        if m == "":
+            continue
+        ai.chat(m)
         time.sleep(10.0)
-        ai.start_MSpire()
+        #ai.start_MSpire()
         
         
     print("wss 关闭，主进程停止")

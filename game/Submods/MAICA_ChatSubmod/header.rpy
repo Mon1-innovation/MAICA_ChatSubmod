@@ -48,9 +48,11 @@ init 10 python:
         "mspire_interval":60,
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
-        "log_level":logging.DEBUG,
-        "provider_id":1,
-        "max_history_token":28672
+        "log_level":logging.INFO,
+        "provider_id":1 if not renpy.android else 2,
+        "max_history_token":28672,
+        "status_update_time":0.25,
+        "strict_mode": False
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -66,7 +68,7 @@ init 10 python:
         "tnd_aggressive":1,
         "esc_aggressive":True,
         "nsfw_acceptive":True,
-        "pre_additive":1,
+        "pre_additive":0,
         "post_additive":1,
         "amt_aggressive":True
     }
@@ -95,10 +97,13 @@ init 10 python:
 
     def _maica_verify_token():
         res = store.maica.maica._verify_token()
-        if not res:
-            renpy.show_screen("maica_message", message=_("验证失败, 请检查账号密码"))
-        else:
+        if res.get("success"):
             renpy.show_screen("maica_message", message=_("验证成功"))
+        else:
+            store.mas_api_keys.api_keys.update({"Maica_Token":""})
+            store.maica.maica.ciphertext = ""
+            renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + renpy.substitute(_("失败原因:")) + res.get("exception"))
+            
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def upload_persistent_dict():
@@ -139,6 +144,8 @@ init 10 python:
                 except:
                     d[i] = "REMOVED"
         res = store.maica.maica.upload_save(d)
+        if not res.get("success", False):
+            store.mas_submod_utils.submod_log.info("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
         renpy.notify(_("MAICA: 存档上传成功") if res.get("success", False) else _("MAICA: 存档上传失败"))
 
     def reset_session():
@@ -181,6 +188,7 @@ init 10 python:
         store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
+        store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
@@ -260,13 +268,20 @@ init 10 python:
             #hbox:
             #    text "=====MaicaAi() Finish====="
 
-            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_greeting').conditional), renpy.seen_label('maica_greeting')))
-            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr2').conditional), renpy.seen_label('maica_chr2')))
-            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr_gone').conditional), renpy.seen_label('maica_chr_gone')))
-            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_chr_corrupted2').conditional), renpy.seen_label('maica_chr_corrupted2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_wants_preferences2').conditional), renpy.seen_label('maica_wants_preferences2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_wants_mspire').conditional), renpy.seen_label('maica_wants_mspire')))
-            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(mas_getEV('maica_mspire').conditional), renpy.seen_label('maica_mspire')))
+            def get_conditional(name):
+                try:
+                    if mas_getEV(name):
+                        return mas_getEV(name).conditional
+                except Exception as e:
+                    store.mas_submod_utils.submod_log.error("Failed to get conditional: {}".format(e))
+                    return None
+            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_greeting')), renpy.seen_label('maica_greeting')))
+            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr2')), renpy.seen_label('maica_chr2')))
+            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_gone')), renpy.seen_label('maica_chr_gone')))
+            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_corrupted2')), renpy.seen_label('maica_chr_corrupted2')))
+            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_preferences2')), renpy.seen_label('maica_wants_preferences2')))
+            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
+            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
 
         except Exception as e:
@@ -276,7 +291,10 @@ init 10 python:
         persistent._maica_reseted = True
     maica_apply_setting(True)
         
-            
+
+init python:
+    def scr_nullfunc():
+        return            
 
 screen maica_setting_pane():
     python:
@@ -285,11 +303,19 @@ screen maica_setting_pane():
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
 
+
     vbox:
         xmaximum 800
         xfill True
         style_prefix "check"
 
+        timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
+        
+        if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
+            text _("> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"):
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
         if store.maica.maica.is_outdated is None:
             text _("> 无法验证版本号, 如果出现问题请更新至最新版"):
                 xalign 1.0 yalign 0.0
@@ -348,8 +374,9 @@ screen maica_setting_pane():
             textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
                 action Function(upload_chat_history)
 
-            textbutton _("> 退出当前DCC账号"):
+            textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住了, 点我断开连接")):
                 action Function(store.maica.maica.close_wss_session)
+
         else:
             textbutton _("> 使用已保存令牌连接")
     
@@ -402,8 +429,7 @@ screen maica_node_setting():
 
                     for provider in MaicaProviderManager.servers:
                         text str(provider.get('id')) + ' | ' + provider.get('name')
-                        if provider.get("isOffifial", False):
-                            textbutton _(" √ MAICA 官方服务器")
+                        
 
                         hbox:
                             text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
@@ -417,6 +443,9 @@ screen maica_node_setting():
                                     Function(set_provider, provider.get('id')),
                                     Hide("maica_node_setting")
                                 ]
+                            
+                            if provider.get("isOfficial", False):
+                                textbutton _(" √ MAICA 官方服务器")
                     
                     hbox:
                         textbutton _("更新节点列表"):
@@ -862,6 +891,11 @@ screen maica_setting():
                             action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
                             hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        textbutton _("严格反劫持: [persistent.maica_setting_dict.get('strict_mode')]"):
+                            action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
+                            hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:
                         textbutton _("当前MAICA模型: [persistent.maica_setting_dict.get('maica_model')]"):
                             action ToggleDict(persistent.maica_setting_dict, "maica_model", store.maica.maica.MaicaAiModel.maica_main, store.maica.maica.MaicaAiModel.maica_core)
@@ -969,6 +1003,17 @@ screen maica_setting():
                             action Function(store.change_loglevel)
                             hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        textbutton _("状态码更新速度"):
+                            action NullAction()
+                        bar:
+                            value DictValue(persistent.maica_setting_dict, "status_update_time", 3.0, step=0.1, offset=0.1,style="slider")
+                            xsize 150
+                            hovered SetField(_tooltip, "value", _("在Submod界面处的状态码更新频率"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        
+                        textbutton "[persistent.maica_setting_dict.get('status_update_time')]s"
+
 
                     hbox:
                         textbutton _("MTrigger 列表"):
@@ -1046,6 +1091,8 @@ screen maica_login():
                     action [Function(_maica_clear), Hide("maica_login")]
             hbox:
                 text _("{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}")
+            hbox:
+                text _("{size=-10}※ 还没有DCC账号? {a=https://forum.monika.love/signup}{i}{u}注册一个{/u}{/i}{/a}")
 
 
 

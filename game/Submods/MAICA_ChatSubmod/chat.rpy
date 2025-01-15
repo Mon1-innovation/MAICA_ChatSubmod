@@ -56,7 +56,7 @@ init 5 python:
                 prompt="maica敲门",
                 unlocked=False,
                 conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
-                aff_range=(mas_aff.HAPPY, None),
+                aff_range=(mas_aff.AFFECTIONATE, None),
                 rules=ev_rules,
             ),
             code="GRE"
@@ -554,6 +554,7 @@ label .talking_start:
         $ store.maica.maica.mtrigger_manager._running = False
         jump .talking_start
     else:
+        $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(_return))
         if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
             m 2rusdlb "...好像你的令牌还没有设置好."
             m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
@@ -614,6 +615,8 @@ init 4 python:
             "maica_mspire",
             None
         )
+        if spire_ev is not None and not spire_ev.last_seen:
+            return True
         return (
             spire_ev is not None
             and spire_ev.last_seen is not None
@@ -629,15 +632,15 @@ init 5 python:
             eventlabel="maica_mspire",
             prompt="mspire",
             pool=False,
-            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()",
+            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_in_exception()",
             aff_range=(mas_aff.NORMAL, None)
         )
     )
 init 999 python:
-    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_failed()"
+    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_in_exception()"
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire():
-        if try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire") and store.maica.maica.is_ready_to_input():
+        if try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire") and store.mas_getAPIKey("Maica_Token") != "" and len(mas_rev_unseen) == 0:
             return MASEventList.queue("maica_mspire")
 
 label maica_mspire:

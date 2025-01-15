@@ -36,6 +36,7 @@ init 999 python in maica:
                     curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
                 ),
                 action = MTriggerAction.post,
+                method = MTriggerMethod.table
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """
@@ -116,9 +117,10 @@ init 999 python in maica:
 #################################################################################
 
     def mtrigger_idle_callback(arg):
-        maica.send_to_outside_func("<mtrigger> mtrigger_leave_callback called")
-        store.renpy.call("mtrigger_leave")
-    idle_trigger = MTriggerBase(customize_template, "idle", "帮助玩家短暂休息", "help player afk short time", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table)
+        maica.send_to_outside_func("<mtrigger> mtrigger_idle_callback called")
+        store.MASEventList.push("mtrigger_brb")
+        return "stop"
+    idle_trigger = MTriggerBase(customize_template, "idle", "让玩家短暂休息(<1小时)", "help player afk short time(<1 hour)", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table)
     maica.mtrigger_manager.add_trigger(idle_trigger)
 
 #################################################################################
@@ -228,20 +230,26 @@ init 999 python in maica:
                 common_switch_template,
                 "music",
                 exprop=MTriggerExprop(
-                    item_name_zh="游戏背景音乐",
-                    item_name_en="in-game music",
+                    item_name_zh="播放音乐",
+                    item_name_en="play music",
                     item_list=self.musics,
-                    curr_value=store.songs.current_track
+                    curr_value=store.songs.current_track,
+                    suggestion=store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
+
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换背景音乐")
+                description = _("内置 | 更换背景音乐 {size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和{a=https://github.com/Booplicate/MAS-Submods-YouTubeMusic}{i}Youtube Music{/i}{/s}子模组"),
+                perf_suggestion=True,
             )
         
         def song_list(self):
             m = []
             for s in store.songs.music_choices:
                 m.append(s[0])
+            if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
+                pass
             m.append("玩家自行选择")
+            m.append("停止/静音")
             return m
 
         def build(self):
@@ -253,13 +261,23 @@ init 999 python in maica:
 
         def callback(self, selection):
             if selection == "玩家自行选择":
-                store.renpy.call("maica_reconnect")
-                store.renpy.call("display_music_menu")
+                store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:
+                if selection != False or selection.lower() != "false":
+                    if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
+                        store.renpy.call("mtrigger_neteasemusic_search", selection)
+                        return
+                    elif store.mas_submod_utils.isSubmodInstalled("Youtube Music"):
+                        store.renpy.call("mtrigger_youtubemusic_search")
+                        return
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
                 maica.send_to_outside_func("<mtrigger> {} is not a valid music!".format(selection))
                 return
+            if selection == "停止/静音":
+                store.mas_play_song(None)
+                return
+
             store.mas_play_song(self.find(selection))
     music_trigger = MusicTrigger()
     maica.mtrigger_manager.add_trigger(music_trigger)
@@ -279,6 +297,7 @@ init 999 python in maica:
                     curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
                 ),
                 action = MTriggerAction.post,
+                method = MTriggerMethod.table
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """

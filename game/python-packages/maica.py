@@ -106,6 +106,8 @@ class MaicaAi(ChatBotInterface):
         FAILED_GET_NODE = 13410
         # 版本过旧
         VERSION_OLD = 13411
+        # 发送内容过长
+        TOOLONG_CONTENT_LENGTH = 13412
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -151,7 +153,8 @@ class MaicaAi(ChatBotInterface):
             SEND_SETTING:u"上传设置中",
             FAILED_GET_NODE:u"获取服务节点失败",
             WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
-            VERSION_OLD:u"子模组版本过旧, 请升级至最新版"
+            VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
+            TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看MTrigger列表并关闭不需要的触发器",
         }
         @classmethod
         def get_description(cls, code):
@@ -180,8 +183,6 @@ class MaicaAi(ChatBotInterface):
         }
         servers = []
         provider_list = "https://maicadev.monika.love/api/servers"
-        default_url = "wss://maicadev.monika.love/websocket"
-        def_apiurl = "https://maicadev.monika.love/api/"
         @classmethod
         def get_provider(cls):
             import requests
@@ -206,13 +207,13 @@ class MaicaAi(ChatBotInterface):
         @classmethod
         def get_wssurl_by_id(cls, id):
             if not id:
-                return cls.def_apiurl
+                return cls.isfailedresponse["wsInterface"]
             return cls.get_server_by_id(id)["wsInterface"]
 
         @classmethod
         def get_api_url_by_id(cls, id):
             if not id:
-                return cls.default_url
+                return cls.isfailedresponse["httpInterface"]
             return cls.get_server_by_id(id)["httpInterface"]
 
             
@@ -253,7 +254,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.__accessable = False
         self._serving_status = ""
         self.stat = {}
-        self.multi_lock = threading.RLock()
+        self.multi_lock = threading.Lock()
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
@@ -288,6 +289,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.ws_cookie = ""
+        self.enable_strict_mode = False
 
 
     def reset_stat(self):
@@ -413,34 +415,36 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
-                    return True
+                    return res
                 else:
                     logger.warning("Maica::_verify_token not passed: {}".format(res))
-                    return False
+                    return res
             else:
                 logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
-                return False
+                return {"success":False, "exception": "Maica::_verify_token requests.post failed"}
+
         except Exception as e:
             import traceback
             logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
-            return False
+            return {"success":False, "exception": "Maica::_verify_token failed"}
 
 
     def init_connect(self):
         import threading
         threading.Thread(target=self._init_connect).start()
-        threading.Thread(target=self.send_mtrigger).start()
+        
 
     
     def _init_connect(self):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
-        logger.debug("_init_connect")
-        if not self.multi_lock.acquire(blocking=False):
+        if self.multi_lock.locked():
             return logger.warning("Maica::_init_connect try to create multi connection")
         self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
+        self.multi_lock.acquire()
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
+        logger.debug("_init_connect to {}".format(url))
         self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
                                                   , on_close=self._on_close)
         self.wss_session.ping_payload = "PING"
@@ -452,8 +456,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("wss_session.run_forever() failed: {}".format(e))
             logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
-            self.multi_lock.release()
-            logger.info("Maica::_init_connect released lock because error")
+            if self.multi_lock.locked():
+                self.multi_lock.release()
+                logger.info("Maica::_init_connect released lock because wss closed")
         
         
     # 检查参数合法性
@@ -476,7 +481,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE)
+        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
 
     def is_accessable(self):
         """返回maica是否可用"""
@@ -487,10 +492,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.MaicaAiStatus.is_submod_exception(self.status)\
             or not self.is_connected()
 
+    def is_in_exception(self):
+        return self.MaicaAiStatus.is_submod_exception(self.status)
+
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
-        return self.wss_session.keep_running if self.wss_session else False \
-            and self.wss_thread.is_alive() if self.wss_thread else False
+        return self.wss_session.keep_running if self.wss_session else False #\
+            #or self.wss_thread.is_alive() if self.wss_thread else False
 
     def get_status_description(self):
         """返回maica当前状态描述"""
@@ -524,6 +532,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
                     data['super_params'][param] = self.modelconfig[param]
+            if self.enable_strict_mode and self.ws_cookie != "":
+                data['cookie'] = self.ws_cookie
             return data
             
 
@@ -533,7 +543,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 from websocket import WebSocketConnectionClosedException
                 from maica_mtrigger import MTriggerMethod
                 while True:
-                    if not self.is_connected():
+                    if not wsapp.keep_running:
                         logger.info("websocket is closed")
                         break
                     time.sleep(1)
@@ -546,6 +556,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
+                        if self.enable_strict_mode and self.ws_cookie != "":
+                            dict["cookie"] = self.ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
                         self.wss_session.send(
@@ -553,13 +565,19 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         )   
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {"chat_session":self.mspire_session, "inspire":{
-                            "type":"",
-                            "sample":250,
-                            "tltle": random.choice(self.mspire_category),
-
-                        }if len(self.mspire_category) else True}
+                        dict = {
+                            "chat_session":self.mspire_session, 
+                            "inspire":{
+                                    "type":self.mspire_type,
+                                    "sample":250,
+                                    "title": random.choice(self.mspire_category),
+                                } if len(self.mspire_category) else True
+                            }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
+                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
+                        if self.enable_strict_mode and self.ws_cookie != "":
+                            dict["cookie"] = self.ws_cookie
+
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
                         )
@@ -571,11 +589,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                         self.send_settings()
+                        threading.Thread(target=self.send_mtrigger).start()
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
+                        dict = {"chat_session":self.chat_session, "purge":True}
+                        if self.enable_strict_mode and self.ws_cookie != "":
+                            dict["cookie"] = self.ws_cookie
+
                         self.wss_session.send(
-                            json.dumps({"chat_session":self.chat_session, "purge":True})
+                            json.dumps(dict)
                         )
                         self.stat["received_token_by_session"][self.chat_session] = 0
                         self.status = self.MaicaAiStatus.SESSION_RESETED
@@ -617,6 +640,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
                     data['super_params'][param] = self.modelconfig[param]
+            if self.enable_strict_mode and self.ws_cookie != "":
+                data['cookie'] = self.ws_cookie
             return data
         if self.is_connected():
             logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
@@ -662,6 +687,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.send_to_outside_func("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
+        elif data.get("status") == "length_exceeded":
+            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("Content too long!"))
+            self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
+            self.wss_session.close()
         if data["status"] == "nickname":
             self.user_acc = data["content"]
             logger.info("maica: Login as '{}'".format(self.user_acc))
@@ -706,7 +735,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
-            if data['status'] == "mtrigger_done":
+            if data['status'] == "loop_finished":
                 self._in_mspire = False
                 talks = self.TalkSpilter.announce_stop()
                 for item in talks:
@@ -724,9 +753,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.close_wss_session()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
-        if close_status_code or close_msg:
-            logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        self.multi_lock.release()
+        logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
+        self.ws_cookie = ""
+        if self.multi_lock.locked():
+                self.multi_lock.release()
+
         
     def chat(self, message):
         
@@ -860,8 +891,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
+        dict = {"chat_session":self.chat_session, "purge":True}
+        if self.enable_strict_mode and self.ws_cookie != "":
+            dict["cookie"] = self.ws_cookie
         self.wss_session.send(
-            json.dumps({"chat_session":self.chat_session, "purge":True})
+            json.dumps(dict)
         )
         self.stat["received_token_by_session"][self.chat_session] = 0
         self.status = self.MaicaAiStatus.SESSION_RESETED
@@ -915,6 +949,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             无
         """
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
+            logger.error("accessable(): certifi auto fix, need restart")
             self.__accessable = False
             return
         if self.in_mas:
@@ -922,7 +957,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 import certifi
                 certifi.set_parent_dir
             except AttributeError:
-                logger.error("certifi is broken")
+                logger.error("accessable(): certifi is broken")
                 self.status = self.MaicaAiStatus.CERTIFI_BROKEN
                 self.__accessable = False
                 return
@@ -935,19 +970,19 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if d.get("accessibility", None) != "serving":
                 self.status = self.MaicaAiStatus.SERVER_MAINTAIN
                 self.__accessable = False
-                logger.error("Maica is not serving: {}".format(d["accessibility"]))
+                logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
             else:
                 self.__accessable = True
                 self.status = self.MaicaAiStatus.NOT_READY
         else:
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
-            logger.error("Maica is not serving: {}".format(d["accessibility"]))
+            logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
         
         try:
             self.MaicaProviderManager.get_provider()
         except Exception as e:
-            logger.error("Maica get Service Provider Error: {}".format(e))
+            logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
 
 
     def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):

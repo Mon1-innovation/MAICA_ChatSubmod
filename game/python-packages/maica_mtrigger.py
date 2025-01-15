@@ -1,5 +1,15 @@
 import requests, json
 
+try:
+    basestring  # 套路检查
+except NameError:
+    basestring = str  # Python 3 统一用 str
+
+def check_and_search(sub, target):
+    if isinstance(target, basestring):
+        return sub in target
+    else:
+        return False
 
 class MTriggerAction:
     instant = 0     #收到以后立刻触发
@@ -9,7 +19,7 @@ class MTriggerExprop:
     """
     注意: 所有的值都有默认值, 如有需要请务必修改
     """
-    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=None):
+    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=None, suggestion=False):
         """
         初始化函数。
         
@@ -25,6 +35,7 @@ class MTriggerExprop:
         self.item_list = item_list
         self.value_limits = value_limits
         self.curr_value = curr_value
+        self.suggestion = suggestion
 
 class MTriggerMethod:
     all = -1
@@ -32,18 +43,17 @@ class MTriggerMethod:
     table = 1
 
 class MTriggerTemplate(object):
-    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True), usage=False, suggestion=False):
+    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True,True), usage=False):
         self.name = name
         self.datakey = datakey
         self.exprop = exprop
         self.usage = usage
-        self.suggestion = suggestion
 
 
-common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False))
-common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True), suggestion=True)
-common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True), usage=True)
-customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False), usage=True)
+common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False, False))
+common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True, True))
+common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False), usage=True)
+customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False, False), usage=True)
 
 class MTriggerManager:
     MAX_LENGTH_REQUEST = 4096
@@ -109,13 +119,22 @@ class MTriggerManager:
                 self.triggered_list.append((t, param))
 
     def run_trigger(self, action=MTriggerAction.post, remove=True):
+        doact = {
+            "stop":False,
+        }
         self._running = True
         for t in self.triggered_list:
+
+
             if t[0].action == action:
                 if remove:
                     self.triggered_list.remove(t)
-                t[0].triggered(t[1])
+                res = t[0].triggered(t[1])
+                if check_and_search("stop", res):
+                    doact["stop"] = True
+
         self._running = False
+        return doact
                 
 
 def null_callback(*args,**kwargs):
@@ -126,7 +145,7 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, suggestion = False):
+    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False):
         self.name = name
         self.usage_zh = usage_zh
         self.usage_en = usage_en
@@ -137,7 +156,7 @@ class MTriggerBase(object):
         self.description = description if description != "" else self.name
         self.condition = condition
         self.method = method
-        self.suggestion = suggestion
+        self.perf_suggestion = perf_suggestion
 
     def build(self):
         data = {
@@ -152,8 +171,8 @@ class MTriggerBase(object):
                 "zh": self.usage_zh,
                 "en": self.usage_en
             }
-        if self.template.suggestion:
-            data["suggestion"] = True
+        if self.template.exprop.suggestion:
+            data["exprop"]["suggestion"] = self.exprop.suggestion
         if self.template.exprop.item_name_zh:
             data["exprop"]["item_name"] = {"zh": self.exprop.item_name_zh, "en": self.exprop.item_name_en} 
         if self.template.exprop.item_list:
@@ -169,7 +188,9 @@ class MTriggerBase(object):
     
     def triggered(self, data={}):
         value = data.get(self.template.datakey) if self.template.datakey else None
-        if not value and self.template.suggestion and "suggestion" in data:
+        if self.perf_suggestion and "suggestion" in data:
+            return self.callback(data.get("suggestion"))
+        if not value and self.template.exprop.suggestion and "suggestion" in data:
             value = data.get("suggestion")
         return self.callback(value)
 

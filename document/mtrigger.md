@@ -20,10 +20,12 @@ example_mtrigger = MTriggerBase(
         item_name_en="",
         item_list=[],
         value_limits=[0, 1],
-        curr_value=None
+        curr_value=None,
+        suggestion=False
     ),
     condition=null_condition,
-    method=MTriggerMethod.request
+    method=MTriggerMethod.request,
+    perf_suggestion=False
 )
 
 ```
@@ -73,6 +75,8 @@ example_mtrigger = MTriggerBase(
   * **入参并不一定是你所期待的类型, 也不能保证一定是你`exprop`所设置的值, 必须进行检查**
   * 该操作不会自动隐藏控制台, 如果需要控制控制台的显示（如使用了jump）, 请call label `maica_show_console` 和 `maica_hide_console` 进行相关操作.
   * 在callback中使用call, jump等操作, 可能导致下一轮对话出现丢包, 请call label `maica_reconnect` 来避免此类情况
+  * `callback`的返回值将会执行某些特殊操作, 例如：
+    * 如果包括`"stop"`, 将在所有Trigger运行完后停止聊天流程
   
 * `action`
   * 触发器执行动作, 默认为`MTriggerAction.post`
@@ -91,6 +95,9 @@ example_mtrigger = MTriggerBase(
       * 取值范围
     * `curr_value`
       * 当前值
+    * `suggestion`
+      * 仅在`common_switch_template`中有效, 当回调参数为`False`时, 将尝试使用MTrigger建议值作为回调参数使用. 建议值不在`item_list`中
+
 
 * `condition`
   * 触发器条件, 默认为`null_condition`, 只有当`condition`的函数返回为`True`时, 触发器才会提交给模型. 默认情况下将永远返回True
@@ -101,9 +108,10 @@ example_mtrigger = MTriggerBase(
     * `MTriggerMethod.request` 会在每轮对话时上传, 适用于更新频繁的触发器, 上限4096字符
     * `MTriggerMethod.table` 会在初始化连接时上传至**当前会话**, 适用于更新不频繁的触发器, 上限100000字符
       > 也就是说中途会话切换后, 触发器将失效, 将当前会话设置为1即可让其他会话使用该触发器
+
+* `perf_suggestion`
+  * 是否优先使用建议值, 仅在`exprop.suggestion`为True时有效
   
-* `suggestion`
-  * 仅在`common_switch_template`中有效, 当回调参数为`False`时, 将尝试使用MTrigger建议值作为回调参数使用. 建议值不在`item_list`中
 
 通过将`example_mtrigger`添加到`Maica`实例中即可使用该触发器：
 
