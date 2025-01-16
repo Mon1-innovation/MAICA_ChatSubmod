@@ -14,6 +14,7 @@ init -1500 python:
             return 0.0
 
 default persistent._maica_updatelog_version_seen = 0
+default persistent._maica_last_version = "0.0.1"
 
 init 5 python in maica:
     import maica_rss_provider
@@ -143,7 +144,18 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.warning("MAICA: Check Version Failed")
             return None
 
-
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)
+    def maica_migration():
+        def migration_1_2_0():
+            if renpy.android:
+                persistent.maica_setting_dict['provider_id'] = 2
+        import migrations
+        migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
+        migration.migration_queue = [
+            ("1.2.0", migration_1_2_0),
+        ]
+        migration.migrate()
+        persistent._maica_last_version = store.maica_ver
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
         import time
