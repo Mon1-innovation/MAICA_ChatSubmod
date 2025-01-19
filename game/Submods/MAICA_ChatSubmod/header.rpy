@@ -189,6 +189,7 @@ init 10 python:
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
+        store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
