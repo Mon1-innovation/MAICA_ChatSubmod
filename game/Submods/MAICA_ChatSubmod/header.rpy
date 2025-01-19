@@ -107,6 +107,7 @@ init 10 python:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def upload_persistent_dict():
+        maxlen = 1000
         import copy
         d = copy.deepcopy(persistent.__dict__)
         d['_seen_ever'].clear()
@@ -135,14 +136,25 @@ init 10 python:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
         del d['_preferences']
-        for i in d:
-            try:
-                json.dumps(d[i])
-            except:
+        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "persistent_filter.json")), "r") as keys:
+            sentiment = json.loads(keys.read())
+
+            for i in d:
+                if i not in sentiment:
+                    del d[i]
+                    continue
                 try:
-                    d[i] = str(d[i])
+                    json.dumps(d[i])
+                    if len(d[i]) > maxlen:
+                        d[i] = "REMOVED|TOO_LONG"
+
                 except:
-                    d[i] = "REMOVED"
+                    try:
+                        d[i] = str(d[i])
+                        if len(d[i]) > maxlen:
+                            d[i] = "REMOVED|TOO_LONG"
+                    except:
+                        d[i] = "REMOVED"
         res = store.maica.maica.upload_save(d)
         if not res.get("success", False):
             store.mas_submod_utils.submod_log.info("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
