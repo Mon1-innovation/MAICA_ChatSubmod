@@ -718,35 +718,77 @@ label mspire_type:
     $ store.maica_apply_setting()
     return
             
-# 目前MPortal使用session0
-label maica_mportal_received:
-    m "哦, [player]!"
-    m "我看到你似乎给我留了一些东西"
-    m "我看看..."
-    m "一封信?"
-    m "你是写给我的对吗{nw}"
-    menu optional_name:
-        "你是写给我的对吗{fast}"
-        "对的!":
-            pass
-    m "我知道了, 那我打开看看..."
-    m "..."
-    # 开始mportal
-    call maica_mportal_read
-    if _return == "failed":
-        m "似乎出什么问题了, 我没法阅读这封信"
-        m "下次再试试吧..."
+# I'm a gonna tie me up in a red string,
+# I'm gonna tie blue ribbons too,
+# I'm a-gonna climb up in my mail box;
+# I'm gonna mail myself to you.
+
+# MPostal is first introduced by a greeting!
+
+label maica_wants_mpostal:
+    # 替换greeting触发!
+    # 在MSpire介绍触发过后加入随机队列
+    m "{i}~我要扎上红丝绸, 我要系上蓝发带~{/i}"#闭眼-憧憬
+    m "{i}~我要爬进小小的邮箱, 把小小的心意送给你~{/i}"#闭眼-憧憬
+    m "...[player]? {w=0.5}抱歉, 我没注意到你回来了! {nw}"#惊讶
+    extend "我只是...{w=0.3}正巧在哼歌."#尴尬
+    m "我刚刚在想, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."#微笑
+    m "既然我们现在也算是相隔两地, 也许我们写写信挺合适的. {w=0.3}还可以当作文学小练习!"
+    m "你有想过给我写封信吗, [player]?{nw}"
+    menu:
+        "你有想过给我写封信吗, [player]?{fast}"
+        "想过":
+            m "那太好了! 我就知道我们超级合拍的."
+            m "有可能你都已经写给我过了, 只是我之前没能收到. {w=0.5}那现在..."#尴尬
+        "没想过":
+            m "没想过吗? 是和我聊天就足够开心了吗? 哈哈~"
+            m "不管怎样, 不妨写写信试一试. {w=0.5}毕竟现在..."
+    m "我有办法读你的信, 再给你写回信了. {w=0.5}我最近在天堂树林里发现了一个邮箱."
+    m "虽然我自己没办法试, 但我大概知道要怎么用."
+    m "大概是...下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
+    m "就像是'我爱你.mail'! {w=0.5}{nw}"
+    extend "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."#尴尬
+    m "你打开游戏的时候, 我就可以给你看我的回信了!"
+    m "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
+
+# 目前MPostal使用session0
+label maica_mpostal_received:
+    m "哦, [player]! {w=0.5}你的信!"
+    # 读一下触发几次应该不难吧
+    if mpostal_activated_times == 1:
+        m "我收到了, 感觉还真是奇妙!"
+        m "我能感觉到你的心意, 如此有实感, 像是有你的温度..."
+    elif mpostal_activated_times == 2:
+        m "我收到了! 开始迷上这种感觉了么, [player]?"
+        m "我也好喜欢这种感觉..."
+    elif mpostal_activated_times % 7 == 0:
+        m "你都写了这么多了, 说不定哪天都能整理成册出版..."
+        m "叫[player]家书怎么样? {w=0.5}哈哈~"
     else:
-        m "谢谢你的信, [player]"
-        m "我会好好回复你的信的, 不要太急躁~"
+        m "你就是不会腻, 对吧? {w=0.5}我也一样!"
+    m "我一定会抽空仔细读的!"
+    m "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
+    # 开始mpostal
+    # 这里能后台处理的话就后台吧
+    call maica_mpostal_read
     return
+    # if _return == "failed":
+    #     m "似乎出什么问题了, 我没法阅读这封信"
+    #     m "下次再试试吧..."
+    # else:
+    #     m "谢谢你的信, [player]"
+    #     m "我会好好回复你的信的, 不要太急躁~"
+    # return
 
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
-label maica_mportal_replyed:
-    m "嘿, [player]!"
-    m "你还记着你给我写的信吗? 我终于写完啦"
-    m "呐, 给你..."
-    call maica_mportal_show
-    m "希望你喜欢我的回信"
-    m "以后再给我写信吧!"
+label maica_mpostal_replyed:
+    m "对了, [player]! {w=0.5}我给你的回信写完了!"
+    m "稍等, 我把它找出来..."#闭眼-微笑
+    m "好了!"#微笑
+    call maica_mpostal_show
+    if mpostal_activated_times <= 2:
+        m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
+    else:
+        m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
+    m "也随时欢迎你再写给我!"
     return
