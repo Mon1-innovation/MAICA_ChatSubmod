@@ -63,6 +63,8 @@ class MaicaAi(ChatBotInterface):
         MESSAGE_WAIT_SEND = 10300
         # 发送MSpire请求
         MESSAGE_WAIT_SEND_MSPIRE = 10304
+        # 发送MPortal请求
+        MESSAGE_WAIT_SEND_MPORTAL = 10305
         # 已发送消息，等待MAICA回应
         MESSAGE_WAITING_RESPONSE = 10301
         # MAICA 已经输出完毕
@@ -135,6 +137,7 @@ class MaicaAi(ChatBotInterface):
             MESSAGE_WAIT_SEND: u"已输入消息，等待消息发送",
             MESSAGE_WAITING_RESPONSE: u"已发送消息，等待MAICA回应",
             MESSAGE_WAIT_SEND_MSPIRE: u"等待发送MSpire请求",
+            MESSAGE_WAIT_SEND_MPORTAL: u"等待发送MPortal请求",
             MESSAGE_DONE: u"MAICA 已经输出完毕",
             REQUEST_RESET_SESSION: u"请求重置session",
             SESSION_RESETED: u"session已重置，websocket已关闭",
@@ -298,6 +301,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "received_token":0,
             "mspire_count":0,
             "received_token_by_session":[0] * (self.MAX_CHATSESSION+1),
+            "mportal_count":0
         }
     def send_to_outside_func(self, content):
         content = u"{}".format(content)
@@ -514,6 +518,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
         self._in_mspire = True
+    
+    def start_MPortal(self, content):
+        if not self.__accessable:
+            return logger.error("Maica server not serving.")
+        self.stat['mportal_count'] += 1
+        self.senddata_queue.put(key_replace(content, chinese_to_english_punctuation))
+        self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPORTAL
+        #self._in_mspire = True
+
 
     def _on_open(self, wsapp):
         import time, threading, random
@@ -581,6 +594,20 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
                         )
+                    elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPORTAL:
+                        if PY2:
+                            message = str(self.senddata_queue.get()).decode().strip()
+                        else:
+                            message = str(self.senddata_queue.get()).strip()
+                        dict = {"type": "query", "chat_session":0, "postmail":message}
+                        if self.enable_strict_mode and self.ws_cookie != "":
+                            dict["cookie"] = self.ws_cookie
+                        message = json.dumps(dict, ensure_ascii=False) 
+                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPORTAL: {}".format(message))
+                        self.wss_session.send(
+                            message
+                        )   
+                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
 
                     # 身份验证
                     elif self.status == self.MaicaAiStatus.WAIT_AUTH:
@@ -728,9 +755,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if len(self.message_list) == 0:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
-                        res = self.MoodStatus.analyze(res)
-                        emote = self.MoodStatus.get_emote()
-                        self._append_to_message_list(emote,res)
+                        self._append_to_message_list('1eua',data['content'])
+            if data['status'] == "reply": # MPortal
+                 self._append_to_message_list(emote,res)
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
