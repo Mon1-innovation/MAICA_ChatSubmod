@@ -718,3 +718,35 @@ label mspire_type:
     $ store.maica_apply_setting()
     return
             
+# 目前MPortal使用session0
+label maica_mportal_received:
+    m "哦, [player]!"
+    m "我看到你似乎给我留了一些东西"
+    m "我看看..."
+    m "一封信?"
+    m "你是写给我的对吗{nw}"
+    menu optional_name:
+        "你是写给我的对吗{fast}"
+        "对的!":
+            pass
+    m "我知道了, 那我打开看看..."
+    m "..."
+    # 开始mportal
+    call maica_mportal_read
+    if _return == "failed":
+        m "似乎出什么问题了, 我没法阅读这封信"
+        m "下次再试试吧..."
+    else:
+        m "谢谢你的信, [player]"
+        m "我会好好回复你的信的, 不要太急躁~"
+    return
+
+# 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
+label maica_mportal_replyed:
+    m "嘿, [player]!"
+    m "你还记着你给我写的信吗? 我终于写完啦"
+    m "呐, 给你..."
+    call maica_mportal_show
+    m "希望你喜欢我的回信"
+    m "以后再给我写信吧!"
+    return

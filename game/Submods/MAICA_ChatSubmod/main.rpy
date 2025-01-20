@@ -167,3 +167,15 @@ label maica_reconnect:
     python:
         store.maica.maica.close_wss_session()
     return
+
+
+
+label maica_mportal_read:
+    if failed:
+        return "failed"
+    else:
+        return "success"
+
+label maica_mportal_show:
+    return
+        
