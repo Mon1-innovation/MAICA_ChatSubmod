@@ -782,13 +782,23 @@ label maica_mpostal_received:
 
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
-    m "对了, [player]! {w=0.5}我给你的回信写完了!"
-    m "稍等, 我把它找出来..."#闭眼
-    m "好了!"#微笑
-    call maica_mpostal_show
-    if mpostal_activated_times <= 2:
-        m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
+    # 这里是生成结果
+    if mpostal_generation == "failed":
+        m "对了, [player], {w=0.5}上次的信..."#担心
+        m "你好像还没有给天堂树林配置好, 我没法把回信写给你."#担心
+        m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+        m 3eua "剩下的事情我都会帮你搞定的."
+        m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
+        # 这里做个记录, 尝试成功之后触发另外一半
+        return
     else:
-        m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
-    m "也随时欢迎你再写给我!"
-    return
+        m "对了, [player]! {w=0.5}我给你的回信写完了!"
+        m "稍等, 我把它找出来..."#闭眼
+        m "好了!"#微笑
+        call maica_mpostal_show
+        if mpostal_activated_times <= 2:
+            m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
+        else:
+            m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
+        m "也随时欢迎你再写给我!"
+        return
