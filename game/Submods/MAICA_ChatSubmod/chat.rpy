@@ -783,7 +783,7 @@ label maica_mpostal_received:
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
     m "对了, [player]! {w=0.5}我给你的回信写完了!"
-    m "稍等, 我把它找出来..."#闭眼-微笑
+    m "稍等, 我把它找出来..."#闭眼
     m "好了!"#微笑
     call maica_mpostal_show
     if mpostal_activated_times <= 2:
