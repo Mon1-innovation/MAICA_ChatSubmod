@@ -98,13 +98,13 @@ class MTriggerManager:
         return self.enable_map[name] if name in self.enable_map else False
     
 
-    def build_data(self, method=MTriggerMethod.all):
+    def build_data(self, method=MTriggerMethod.all, full = False):
         self.triggered_list = []
         self._running = False
         res = []
         for i in self.triggers:
             if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
-                if len(res) + len(i) > self.SIZE_LIMIT[method]:
+                if len(res) + len(i) > self.SIZE_LIMIT[method] and not full:
                     self.disable_trigger(i.name)
                     continue
                 res.append(i.build())
@@ -121,7 +121,7 @@ class MTriggerManager:
         
 
     def get_length(self, method=MTriggerMethod.all):
-        return len(json.dumps(self.build_data(method=method), ensure_ascii=False))
+        return len(json.dumps(self.build_data(method=method, full=True), ensure_ascii=False))
 
     def triggered(self, name = "", param=None):
         for t in self.triggers:

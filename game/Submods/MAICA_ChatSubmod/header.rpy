@@ -507,6 +507,10 @@ screen maica_triggers():
                         color ("#FF0000" if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 else gui.interface_text_color)
                     text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
                         color ("#FF0000" if maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9 else gui.interface_text_color)
+                    if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
+                        text _("> 注意: 当空间不足时将自动关闭部分MTrigger!"):
+                            color "#ff0000"
+                            size 15
 
                     for trigger in maica_triggers.triggers:
                         label trigger.name
