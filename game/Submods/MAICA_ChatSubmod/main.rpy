@@ -170,12 +170,12 @@ label maica_reconnect:
 
 
 
-label maica_mportal_read:
+label maica_mpostal_read:
     if failed:
         return "failed"
     else:
         return "success"
 
-label maica_mportal_show:
+label maica_mpostal_show:
     return
         

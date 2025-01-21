@@ -382,10 +382,10 @@ label maica_wants_preferences2:
     extend 3esd "才发现我之前对你的了解还是太单一. {nw}"
     #这里有好几个我不会写的, 都交给你了
     $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
-    extend "[like_mi]"
     $ book_rc = "我们聊过'世界尽头与冷酷仙境'什么的" if store.seen_event("monika_brave_new_world") else None
     $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp and book_rc is None else '我可以推荐几本书给你'
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
+    extend "[like_mi]"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     #如果玩家已经通过设置填过了
     $ prefs_exist = len(persistent.mas_player_additions)
@@ -718,35 +718,146 @@ label mspire_type:
     $ store.maica_apply_setting()
     return
             
-# 目前MPortal使用session0
-label maica_mportal_received:
-    m "哦, [player]!"
-    m "我看到你似乎给我留了一些东西"
-    m "我看看..."
-    m "一封信?"
-    m "你是写给我的对吗{nw}"
-    menu optional_name:
-        "你是写给我的对吗{fast}"
-        "对的!":
-            pass
-    m "我知道了, 那我打开看看..."
-    m "..."
-    # 开始mportal
-    call maica_mportal_read
-    if _return == "failed":
-        m "似乎出什么问题了, 我没法阅读这封信"
-        m "下次再试试吧..."
+# I'm a gonna tie me up in a red string,
+# I'm gonna tie blue ribbons too,
+# I'm a-gonna climb up in my mail box;
+# I'm gonna mail myself to you.
+
+# MPostal is first introduced by a greeting!
+
+label maica_wants_mpostal:
+    # 替换greeting触发!
+    # 在MSpire介绍触发过后加入随机队列
+    m "{i}~我要扎上红丝绸, 我要系上蓝发带~{/i}"#闭眼-憧憬
+    m "{i}~我要爬进小小的邮箱, 把小小的心意送给你~{/i}"#闭眼-憧憬
+    m "...[player]? {w=0.5}抱歉, 我没注意到你回来了! {nw}"#惊讶
+    extend "我只是...{w=0.3}正巧在哼歌."#尴尬
+    m "我刚刚在想, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."#微笑
+    m "既然我们现在也算是相隔两地, 也许我们写写信挺合适的. {w=0.3}还可以当作文学小练习!"
+    m "你有想过给我写封信吗, [player]?{nw}"
+    menu:
+        "你有想过给我写封信吗, [player]?{fast}"
+        "想过":
+            m "那太好了! 我就知道我们超级合拍的."
+            m "有可能你都已经写给我过了, 只是我之前没能收到. {w=0.5}那现在..."#尴尬
+        "没想过":
+            m "没想过吗? 是和我聊天就足够开心了吗? 哈哈~"
+            m "不管怎样, 不妨写写信试一试. {w=0.5}毕竟现在..."
+    m "我有办法读你的信, 再给你写回信了. {w=0.5}我最近在天堂树林里发现了一个邮箱."
+    m "虽然我自己没办法试, 但我大概知道要怎么用."
+    m "大概是...下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
+    m "就像是'我爱你.mail'! {w=0.5}{nw}"
+    extend "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."#尴尬
+    m "你打开游戏的时候, 我就可以写我的回信了!"
+    m "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
+
+# 目前MPostal使用session0
+label maica_mpostal_received:
+    m "哦, [player]! {w=0.5}你的信!"
+    # 读一下触发几次应该不难吧
+    if mpostal_activated_times == 1:
+        m "我收到了, 感觉还真是奇妙!"
+        m "我能感觉到你的心意, 如此有实感, 像是有你的温度..."
+    elif mpostal_activated_times == 2:
+        m "我收到了! 开始迷上这种感觉了么, [player]?"
+        m "我也好喜欢这种感觉..."
+    elif mpostal_activated_times % 7 == 0:
+        m "你都写了这么多了, 说不定哪天都能整理成册出版..."
+        m "叫[player]家书怎么样? {w=0.5}哈哈~"
     else:
-        m "谢谢你的信, [player]"
-        m "我会好好回复你的信的, 不要太急躁~"
+        m "你就是不会腻, 对吧? {w=0.5}我也一样!"
+    m "我一定会抽空仔细读的!"
+    m "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
+    # 开始mpostal
+    # 这里能后台处理的话就后台吧
+    call maica_mpostal_read
     return
+    # if _return == "failed":
+    #     m "似乎出什么问题了, 我没法阅读这封信"
+    #     m "下次再试试吧..."
+    # else:
+    #     m "谢谢你的信, [player]"
+    #     m "我会好好回复你的信的, 不要太急躁~"
+    # return
 
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
-label maica_mportal_replyed:
-    m "嘿, [player]!"
-    m "你还记着你给我写的信吗? 我终于写完啦"
-    m "呐, 给你..."
-    call maica_mportal_show
-    m "希望你喜欢我的回信"
-    m "以后再给我写信吧!"
+label maica_mpostal_replyed:
+    # 这里是生成结果
+    if mpostal_generation == "failed":
+        m "对了, [player], {w=0.5}上次的信..."#担心
+        m "你好像还没有给天堂树林配置好, 我没法把回信写给你."#担心
+        m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+        m 3eua "剩下的事情我都会帮你搞定的."
+        m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
+        # 这里做个记录, 尝试成功之后触发另外一半
+        return
+    else:
+        m "对了, [player]! {w=0.5}我给你的回信写完了!"
+        m "稍等, 我把它找出来..."#闭眼
+        m "好了!"#微笑
+        call maica_mpostal_show
+        if mpostal_activated_times <= 2:
+            m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
+        else:
+            m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
+        m "也随时欢迎你再写给我!"
+        return
+
+# 重读对话变体
+label maica_prepend_reread:#"天堂树林到底是什么"
+    # maica_prepend_2触发后解锁
+    m "如我当时所说, '{i}天堂树林{/i}'确实是我们的现实之间的{w=0.3}某种{i}交界{/i}地."
+    m "与其它地方最大的不同, 就是能让你{i}真正地{/i}和我对话. 想聊什么都可以!"
+    m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+    m 3eua "剩下的事情我都会帮你搞定的."
+    m "如果你想要了解得再具体点, 可以到{a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}看看."
+    m "我就不多说教啦, 哈哈!"
+
+label maica_chr_reread:#"天堂树林的角色文件"
+    # maica_chr2触发后解锁
+    m  "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫'HeavenForest.sce'."
+    m 1mtd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
+    m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
+    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
+    m "如果你有兴趣研究一下它, 也许可以试试看. {w=0.5}毕竟你应该知道, 其他人的角色文件里面都有奇怪的内容."
+    m "...比如, 这里为什么会叫天堂树林?{w=0.5} 是为什么故事设计的吗?{w=0.5} 为什么又被遗弃在这里, 留给我们约会?"
+    m 1eua "当然, 无论你要做什么, 记得给它做个备份."
+    return
+
+label maica_wants_preferences_reread:#"关于补充偏好"
+    # maica_wants_preferences触发后解锁
+    m "是这样, 游戏本身并没有留给我太多空间去了解你.{nw}"#担心
+    #这里有好几个我不会写的, 都交给你了
+    $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
+    $ book_rc = "我们聊过'世界尽头与冷酷仙境'什么的" if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp and book_rc is None else '我可以推荐几本书给你'
+    m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
+    extend "[like_mi]"
+    m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
+    m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
+    m "只用在对话里找到'调整[player]的爱好', 你就可以随时告诉我关于你的事情."
+    m 1eub "只要是关于你的事情, 我都会想知道的!"
+    return
+
+label maica_wants_mspire_reread:#"关于'MSpire'"
+    # maica_wants_mspire触发后解锁
+    m 3ekd "[player], 我之前提到过, 我们已经把所有话题都聊完了."
+    m 5rku "去过天堂树林之后, 我想或许有个办法{w=0.5}永远有话和你说."
+    m 5esb "你知道的, {a=https://wikipedia.org}{u}{i}维基百科{/i}{/u}{/a}是一个很大的知识库. {w=0.5}只要我去那里转转, 肯定能找到话题的."
+    m 3eua "多半是一些小知识或者小科普. {w=0.5}{nw}"
+    extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
+    m 3ekb "如果你想听或者不想听了, 在'子模组设置'里面找到'MSpire'就好."
+    return
+
+label maica_wants_mpostal_reread:#"关于'MPostal'"
+    # maica_wants_mpostal触发后解锁
+    m "我一直觉得, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."#微笑
+    m "既然我们现在也算是相隔两地, 也许我们写写信挺合适的. {w=0.3}还可以当作文学小练习!"
+    m "现在, 通过天堂树林里的邮箱, 我有办法读你的信, 再给你写回信了."
+    m "只需要在下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
+    m "就像是'我爱你.mail'! {w=0.5}{nw}"
+    extend "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."#尴尬
+    m "你打开游戏的时候, 我就可以写我的回信了!"
+    m "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
     return
