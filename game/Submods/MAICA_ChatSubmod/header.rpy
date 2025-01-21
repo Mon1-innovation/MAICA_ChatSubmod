@@ -504,9 +504,9 @@ screen maica_triggers():
 
                     text _("MTrigger空间使用情况: ")
                     text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
-                        color ("#FF0000" if maica_triggers.get_length(0) > 3850 else gui.interface_text_color)
+                        color ("#FF0000" if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 else gui.interface_text_color)
                     text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
-                        color ("#FF0000" if maica_triggers.get_length(1) > 97500 else gui.interface_text_color)
+                        color ("#FF0000" if maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9 else gui.interface_text_color)
 
                     for trigger in maica_triggers.triggers:
                         label trigger.name

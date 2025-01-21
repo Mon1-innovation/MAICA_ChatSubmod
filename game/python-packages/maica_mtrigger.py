@@ -56,8 +56,15 @@ common_meter_template = MTriggerTemplate("common_meter_template", "value", expro
 customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False, False), usage=True)
 
 class MTriggerManager:
-    MAX_LENGTH_REQUEST = 4096
-    MAX_LENGTH_TABLE = 100000
+    SIZE_LIMIT = {
+        MTriggerMethod.all : 100000,
+        MTriggerMethod.request : 3870,
+        MTriggerMethod.table : 100000
+    }
+    MAX_LENGTH_REQUEST = SIZE_LIMIT[MTriggerMethod.request]
+    MAX_LENGTH_TABLE = SIZE_LIMIT[MTriggerMethod.table]
+
+
     def __init__(self):
         self.triggers = []
         self.triggered_list = []
@@ -97,6 +104,9 @@ class MTriggerManager:
         res = []
         for i in self.triggers:
             if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
+                if len(res) + len(i) > self.SIZE_LIMIT[method]:
+                    self.disable_trigger(i.name)
+                    continue
                 res.append(i.build())
         return res
 
