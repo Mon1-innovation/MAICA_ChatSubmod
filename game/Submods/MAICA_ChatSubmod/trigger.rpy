@@ -14,7 +14,7 @@ init 999 python in maica:
         affection = float(affection)
         maica.send_to_outside_func("<mtrigger> aff_callback called")
         if affection < 0:
-            store.mas_loseAffection(1, -affection)
+            pass#store.mas_loseAffection(1, -affection)
         elif affection > 0:
             store.mas_gainAffection(1, affection)
 
