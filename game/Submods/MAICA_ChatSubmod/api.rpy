@@ -149,6 +149,8 @@ init 5 python in maica:
         def migration_1_2_0():
             if renpy.android:
                 persistent.maica_setting_dict['provider_id'] = 2
+            if persistent.maica_setting_dict['max_history_token'] > 4096:
+                persistent.maica_setting_dict['max_history_token'] = 4096
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
