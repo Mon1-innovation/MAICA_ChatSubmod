@@ -36,7 +36,7 @@ label maica_prepend_1:
     return "no_unlock|derandom|rebuild_ev"
 
 init 5 python:
-    if renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting'):
+    if renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting') and _mas_getAffection() > 100:
         @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
         def greeting_select():
             store.selected_greeting = "maica_greeting"
@@ -56,6 +56,7 @@ init 5 python:
                 prompt="maica敲门",
                 unlocked=False,
                 conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
+                action=EV_ACT_UNLOCK,
                 aff_range=(mas_aff.AFFECTIONATE, None),
                 rules=ev_rules,
             ),
