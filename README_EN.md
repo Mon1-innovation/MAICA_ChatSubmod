@@ -37,15 +37,17 @@ Blessland is the Submod frontend of MAICA, a LLM project specially designed for 
 ![alt text](image1.png)
 ## Features
 
-* Chat freely beyond any limits
+* Chat freely beyond MAS's native limits
+* Carefully designed guidance, conversations and scenes
 * Could recall (part of) previous experiences of MAS
 * Easy to go, no need to deploy any LLM stuff on your device
 * Continuous and fluent chatting experience with automatic sentence breaks
 * Expression parsing based on emotion and strength analyzation
+* Topic generation(MSpire) and mail reading & writing(MPostal) functions offered
 * Highly customizable options and parameters
-* Full compatibility of special techs of MAICA like SFE, MFocus and MSpire.
 * Open sourced, developers and users friendly
 * Some easter eggs if you're interested in
+* Still under active development and maintaince
   
 ## Usage
 
@@ -59,3 +61,4 @@ Blessland is the Submod frontend of MAICA, a LLM project specially designed for 
 2. Unlocking events adds them to a waiting list, which means they won't be immediately triggered. Keep the game running and wait.
 3. For troubleshooting, turning off 'Auto reconnect' and turning on 'Console' may help. Reconnect on options' change.
 4. English/Chinese are fully supported. But the basic logics and trainings are based on Chinese, so expect performance reduction and higher possibility of functional issues by using English.
+5. Does not support system http(s)/socks proxy. Turn it off.
