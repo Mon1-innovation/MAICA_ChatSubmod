@@ -37,7 +37,8 @@ Blessland is the Submod frontend of MAICA, a LLM project specially designed for 
 ![alt text](image1.png)
 ## Features
 
-* Chat freely beyond any limits
+* Chat freely beyond MAS's native limits
+* Carefully designed guidance, conversations and scenes
 * Could recall (part of) previous experiences of MAS
 * Easy to go, no need to deploy any LLM stuff on your device
 * Continuous and fluent chatting experience with automatic sentence breaks
