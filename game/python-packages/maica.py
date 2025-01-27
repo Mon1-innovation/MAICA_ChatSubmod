@@ -519,11 +519,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
         self._in_mspire = True
     
-    def start_MPostal(self, content):
+    def start_MPostal(self, content, title=""):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         self.stat['mpostal_count'] += 1
-        self.senddata_queue.put(key_replace(content, chinese_to_english_punctuation))
+        self.senddata_queue.put(
+                {
+                    "header": title,
+                    "content": key_replace(content, chinese_to_english_punctuation)
+                }
+            )
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL
         #self._in_mspire = True
 

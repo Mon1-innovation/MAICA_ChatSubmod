@@ -171,10 +171,64 @@ label maica_reconnect:
 
 
 label maica_mpostal_read:
-    if failed:
-        return "failed"
-    else:
-        return "success"
+    $ mas_HKBRaiseShield()
+    call maica_show_console
+    
+    python:
+        _postals = find_mail_files()
+        for item in _postals:
+            persistent._maica_send_or_received_mpostals.append(
+                {
+                    "raw_title": item[0],
+                    "raw_content":item[1],
+                    "responsed_content": "",
+                    "responsed_status":"notupload"
+                }
+            )
+    python:
+        for cur_postal in persistent._maica_send_or_received_mpostals:
+            if cur_postal["responsed_status"] != "notupload":
+                continue
+            ai.start_MPostal(cur_postal["raw_title"], cur_postal["raw_content"])
+            while ai.is_responding() or ai.len_message_queue() > 0 :
+                if ai.is_responding():
+                    gentime = time.time()
+                else:
+                    gentime = ai._gen_time
+                if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
+                    ai.init_connect()
+                    store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
+
+                store.mas_ptod.write_command("Maica.status:{} | time: {}".format(
+                    ai.status, ai.len_message_queue(),
+                    round(gentime - start_time)
+                    ))
+                if ai.is_failed():
+                    if ai.len_message_queue() == 0:
+                        persistent._maica_send_or_received_mpostals[cur_postal]["responsed_status"] = "failed"
+                        _return = "failed"
+                        break
+                if ai.len_message_queue() == 0:
+                    store.mas_ptod.write_command("Wait message...")
+                    renpy.pause(1.0)
+                    _history_list.pop()
+                    continue    
+                message = ai.get_message()
+                store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
+                try:
+                    persistent._maica_send_or_received_mpostals[cur_postal]["responsed_content"] = message[1]
+                    persistent._maica_send_or_received_mpostals[cur_postal]["responsed_status"] = "received"
+                    _return = "success"
+                except Exception as e:
+                    ai.send_to_outside_func("!!SUBMOD ERROR when mpostaling: {}".format(e))
+                    _return = "failed"
+                
+
+
+    call maica_hide_console
+    $ mas_HKBRaiseShield()
+    return _return
+    
 
 label maica_mpostal_show:
     return

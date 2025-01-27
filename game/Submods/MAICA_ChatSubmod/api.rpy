@@ -15,6 +15,13 @@ init -1500 python:
 
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
+default persistent._maica_send_or_received_mpostals = []
+#{
+#    "raw_title":"",
+#    "raw_content":"",
+#    "responsed_content": "",
+#    "responsed_status":"notupload|received|readed|failed"
+#}
 
 init 5 python in maica:
     import maica_rss_provider
@@ -268,3 +275,30 @@ init -700 python:
         maica_chr_changed = check_sha256(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")), '35b4a17edbb003014fa93168e0c93df3149e82a4d46f16a0eec295a2d9b02d59')
     else:
         maica_chr_changed = None
+
+    def find_mail_files():
+        """
+        查找邮件文件。
+
+        :return: 邮件文件列表，(title, content)
+        """
+
+        basedir = os.path.join(renpy.config.basedir, "characters")
+        mail_files = []
+
+        # 遍历目录中的文件
+        for filename in os.listdir(basedir):
+            if filename.endswith('.mail'):
+                # 获取完整文件路径
+                file_path = os.path.join(basedir, filename)
+                
+                # 读取文件内容
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                
+                # 去掉后缀添加到结果列表
+                file_name_without_extension = os.path.splitext(filename)[0]
+                mail_files.append(file_name_without_extension, content)
+
+        return mail_files
+
