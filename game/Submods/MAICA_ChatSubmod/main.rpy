@@ -175,12 +175,14 @@ label maica_mpostal_read:
     call maica_show_console
     
     python:
+        import time
         _postals = find_mail_files()
         for item in _postals:
             persistent._maica_send_or_received_mpostals.append(
                 {
                     "raw_title": item[0],
                     "raw_content":item[1],
+                    "time": str(time.time()),
                     "responsed_content": "",
                     "responsed_status":"notupload"
                 }
@@ -205,7 +207,7 @@ label maica_mpostal_read:
                     ))
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
-                        persistent._maica_send_or_received_mpostals[cur_postal]["responsed_status"] = "failed"
+                        cur_postal["responsed_status"] = "failed"
                         _return = "failed"
                         break
                 if ai.len_message_queue() == 0:
@@ -216,8 +218,8 @@ label maica_mpostal_read:
                 message = ai.get_message()
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
                 try:
-                    persistent._maica_send_or_received_mpostals[cur_postal]["responsed_content"] = message[1]
-                    persistent._maica_send_or_received_mpostals[cur_postal]["responsed_status"] = "received"
+                    cur_postal["responsed_content"] = message[1]
+                    cur_postal["responsed_status"] = "received"
                     _return = "success"
                 except Exception as e:
                     ai.send_to_outside_func("!!SUBMOD ERROR when mpostaling: {}".format(e))
@@ -230,6 +232,15 @@ label maica_mpostal_read:
     return _return
     
 
-label maica_mpostal_show:
+label maica_mpostal_show(content = "no content"):
+    python:
+        import time
+        store._MP = MASPoem(
+            poem_id = "mpostal_response_{}".format(time.time()),
+            category = "mpostal",
+            prompt = "mpostal",
+            text = content,
+        )
+    call mas_showpoem(store._MP, "mod_assets\poem_assets\mail_maica_bg.png")
     return
         
