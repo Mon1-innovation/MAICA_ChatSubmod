@@ -276,6 +276,15 @@ init -700 python:
     else:
         maica_chr_changed = None
 
+    def mail_exist():
+        basedir = os.path.join(renpy.config.basedir, "characters")
+        mail_files = []
+
+        # 遍历目录中的文件
+        for filename in os.listdir(basedir):
+            if filename.endswith('.mail'):
+                return True
+
     def find_mail_files():
         """
         查找邮件文件。
