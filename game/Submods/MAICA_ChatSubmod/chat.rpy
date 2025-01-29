@@ -752,37 +752,58 @@ label maica_wants_mpostal:
     m "你打开游戏的时候, 我就可以写我的回信了!"
     m "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mpostal_received",
+            unlocked=False,
+            random=False,
+            pool=False,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+        ),
+        restartBlacklist=True,
+    )
 # 目前MPostal使用session0
 label maica_mpostal_received:
+    $ ev = mas_getEV("maica_mpostal_received")
     m "哦, [player]! {w=0.5}你的信!"
     # 读一下触发几次应该不难吧
-    if mpostal_activated_times == 1:
+    if ev.shown_count == 0:
         m "我收到了, 感觉还真是奇妙!"
         m "我能感觉到你的心意, 如此有实感, 像是有你的温度..."
-    elif mpostal_activated_times == 2:
+    elif ev.shown_count == 1:
         m "我收到了! 开始迷上这种感觉了么, [player]?"
         m "我也好喜欢这种感觉..."
-    elif mpostal_activated_times % 7 == 0:
+    elif ev.shown_count % 7 == 0:
         m "你都写了这么多了, 说不定哪天都能整理成册出版..."
         m "叫[player]家书怎么样? {w=0.5}哈哈~"
     else:
         m "你就是不会腻, 对吧? {w=0.5}我也一样!"
     m "我一定会抽空仔细读的!"
     m "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
-    # 开始mpostal
-    # 这里能后台处理的话就后台吧
-    call maica_mpostal_read
-    return
-    # if _return == "failed":
-    #     m "似乎出什么问题了, 我没法阅读这封信"
-    #     m "下次再试试吧..."
-    # else:
-    #     m "谢谢你的信, [player]"
-    #     m "我会好好回复你的信的, 不要太急躁~"
-    # return
+    #call maica_mpostal_read
+    return "no_unlock"
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mpostal_replyed",
+            unlocked=False,
+            random=False,
+            pool=False,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+        ),
+        restartBlacklist=True,
+    )
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
+    $ ev = mas_getEV("maica_mpostal_replyed")
     # 这里是生成结果
     if mpostal_generation == "failed":
         m "对了, [player], {w=0.5}上次的信..."#担心
@@ -800,7 +821,7 @@ label maica_mpostal_replyed:
         m "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
         m "好了!"#微笑
         call maica_mpostal_show
-        if mpostal_activated_times <= 2:
+        if ev.shown_count <= 2:
             m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
         else:
             m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"

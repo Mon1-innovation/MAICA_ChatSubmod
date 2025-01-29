@@ -189,6 +189,7 @@ label maica_init_connect(use_pause_instand_wait = False):
     python:
         ai = store.maica.maica
         ai.content_func = store.mas_ptod._update_console_history
+        ai.send_to_outside_func(ai.ascii_icon)
         if not ai.is_connected():
             ai.init_connect()
         while True:
