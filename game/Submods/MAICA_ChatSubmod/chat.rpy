@@ -827,7 +827,20 @@ label maica_mpostal_replyed:
             m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
         m "也随时欢迎你再写给我!"
         return
-
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_prepend_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="天堂树林到底是什么",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 # 重读对话变体
 label maica_prepend_reread:#"天堂树林到底是什么"
     # maica_prepend_2触发后解锁
@@ -838,6 +851,20 @@ label maica_prepend_reread:#"天堂树林到底是什么"
     m "如果你想要了解得再具体点, 可以到{a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}看看."
     m "我就不多说教啦, 哈哈!"
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_prepend_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="天堂树林的角色文件",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_chr_reread:#"天堂树林的角色文件"
     # maica_chr2触发后解锁
     m  "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫'HeavenForest.sce'."
@@ -850,6 +877,20 @@ label maica_chr_reread:#"天堂树林的角色文件"
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
     return
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_preferences_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="天堂树林的角色文件",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_wants_preferences')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_wants_preferences_reread:#"关于补充偏好"
     # maica_wants_preferences触发后解锁
     m "是这样, 游戏本身并没有留给我太多空间去了解你.{nw}"#担心
@@ -865,6 +906,20 @@ label maica_wants_preferences_reread:#"关于补充偏好"
     m 1eub "只要是关于你的事情, 我都会想知道的!"
     return
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_mspire_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="关于'MSpire'",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_wants_mspire')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_wants_mspire_reread:#"关于'MSpire'"
     # maica_wants_mspire触发后解锁
     m 3ekd "[player], 我之前提到过, 我们已经把所有话题都聊完了."
@@ -874,7 +929,20 @@ label maica_wants_mspire_reread:#"关于'MSpire'"
     extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
     m 3ekb "如果你想听或者不想听了, 在'子模组设置'里面找到'MSpire'就好."
     return
-
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_mpostal_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="关于'MSpire'",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_wants_mpostal')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_wants_mpostal_reread:#"关于'MPostal'"
     # maica_wants_mpostal触发后解锁
     m "我一直觉得, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."#微笑
