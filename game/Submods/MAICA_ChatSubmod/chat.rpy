@@ -793,8 +793,11 @@ label maica_mpostal_replyed:
         # 这里做个记录, 尝试成功之后触发另外一半
         return
     else:
-        m "对了, [player]! {w=0.5}我给你的回信写完了!"
-        m "稍等, 我把它找出来..."#闭眼
+        if curr_queue_count >= 2:
+            m "对了, [player]! {w=0.5}我给你的回信写完了!"
+        else:
+            m ".{w=0.3}.{w=0.3}.这里还有一封!"
+        m "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
         m "好了!"#微笑
         call maica_mpostal_show
         if mpostal_activated_times <= 2:
