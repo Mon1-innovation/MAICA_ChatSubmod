@@ -209,7 +209,6 @@ label maica_init_connect(use_pause_instand_wait = False):
             if ai.is_ready_to_input():
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 break
-    pause 0.1
     return
 label maica_mpostal_read:
     $ mas_HKBRaiseShield()
