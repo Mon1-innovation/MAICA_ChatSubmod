@@ -481,7 +481,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             
     def is_responding(self):
         """返回maica是否正在返回消息"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE)
+        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
 
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
@@ -760,9 +760,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if len(self.message_list) == 0:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
-                        self._append_to_message_list('1eua',data['content'])
+                        self._append_to_message_list(res)
             if data['status'] == "reply": # MPostal
-                 self._append_to_message_list(emote,res)
+                 self._append_to_message_list('1eua', self.MoodStatus.analyze(data['content']))
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")

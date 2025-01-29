@@ -553,6 +553,80 @@ screen maica_triggers():
                 textbutton _("关闭"):
                     action Hide("maica_triggers")
 
+screen maica_mpostals():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+        maica_triggers = store.maica.maica.mtrigger_manager
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+
+        def _delect_portal(title):
+            for item in persistent._maica_send_or_received_mpostals:
+                if title == item["raw_title"]:
+                    persistent._maica_send_or_received_mpostals.remove(item)
+                    break
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+                    hbox:
+                        text "total: " + str(len(persistent._maica_send_or_received_mpostals))
+                    hbox:
+                        text ""
+                    for postal in persistent._maica_send_or_received_mpostals:
+                        label postal["raw_title"]
+                        text "responsed_status: " + postal["responsed_status"]:
+                            size 20                       
+                        text "time: " + postal["time"]:
+                            size 20
+                        text "player content: \n" + postal["raw_content"]:
+                            size 15
+                        text "MAICA response: \n" + postal["responsed_content"]:
+                            size 15
+                        textbutton "删除":
+                            action Function(_delect_portal, postal["raw_title"])
+                        
+                        if postal["responsed_content"] != "":
+                            textbutton "阅读":
+                                action [
+                                        Hide("maica_mpostals"),
+                                        Hide("maica_setting"),
+                                        Function(store.maica_apply_setting),
+                                        Function(mas_jump_with_args, "maica_mpostal_show", content = postal["responsed_content"])
+                                ]
+
+
+                        
+                        
+
+
+            hbox:
+                style_prefix "confirm"
+                textbutton _("关闭"):
+                    action Hide("maica_mpostals")
+
 
 screen maica_log():
     python:
@@ -877,6 +951,21 @@ screen maica_setting():
                                     Function(store.maica_apply_setting),
                                     Function(store.MASEventList.push, "maica_mspire")
                                     ]
+                            textbutton "推送maica_mpostal_read":
+                                action [
+                                        Hide("maica_setting"),
+                                        Function(store.maica_apply_setting),
+                                        Function(store.MASEventList.push, "maica_mpostal_read")
+                                    ]
+                            textbutton "推送maica_mpostal_load":
+                                action [
+                                        Hide("maica_setting"),
+                                        Function(store.maica_apply_setting),
+                                        Function(store.MASEventList.push, "maica_mpostal_load")
+                                    ]
+                            
+                            textbutton "查看mpostals":
+                                action Show("maica_mpostals")
 
                     hbox:
                         text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")

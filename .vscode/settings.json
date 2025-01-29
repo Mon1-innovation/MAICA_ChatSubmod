@@ -5,7 +5,7 @@
         "**/*.rpymc": true,
         "**/cache/": true
     },
-    "commentTranslate.source": "intellsmi.deepl-translate-deepl",
+    "commentTranslate.source": "renping.deepseek-comment-translate-deepseek",
     "editor.tokenColorCustomizations": {
         "textMateRules": [
             {

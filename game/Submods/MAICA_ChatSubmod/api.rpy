@@ -302,12 +302,14 @@ init -700 python:
                 file_path = os.path.join(basedir, filename)
                 
                 # 读取文件内容
-                with open(file_path, 'r', encoding='utf-8') as file:
+                with open(file_path, 'r') as file:
                     content = file.read()
                 
                 # 去掉后缀添加到结果列表
                 file_name_without_extension = os.path.splitext(filename)[0]
-                mail_files.append(file_name_without_extension, content)
+                mail_files.append((file_name_without_extension, content))
+                # 删除文件
+                os.remove(file_path)
 
         return mail_files
 
