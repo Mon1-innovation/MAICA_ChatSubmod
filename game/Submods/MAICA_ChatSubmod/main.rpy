@@ -209,7 +209,19 @@ label maica_init_connect(use_pause_instand_wait = False):
             if ai.is_ready_to_input():
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 break
-    return
+            elif ai.is_failed():
+                if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
+                    store.mas_ptod.write_command("Login failed, please check your token.")
+                elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
+                    store.mas_ptod.write_command("Savedata not found, please check your setting.")
+                else:
+                    store.mas_submod_utils.submod_log.error("maica_talking:: Unknown Error: ai.is_failed() = {}, ai.status = {}, ai.is_connected() = {}".format(ai.is_failed(), ai.status, ai.is_connected()))
+                    store.mas_ptod.write_command("An error occurred, please check your submog_log.log")
+                renpy.pause(2.0)
+                _return = "disconnected"
+                break
+
+    return _return
 label maica_mpostal_read:
     $ mas_HKBRaiseShield()
     call maica_show_console

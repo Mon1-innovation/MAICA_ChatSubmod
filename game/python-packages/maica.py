@@ -515,6 +515,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def start_MSpire(self):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
+        if not self.is_ready_to_input():
+            return logger.error("Maica is not ready to input")
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
         self._in_mspire = True
@@ -522,6 +524,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def start_MPostal(self, content, title=""):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
+        if not self.is_ready_to_input():
+            return logger.error("Maica is not ready to input")
         self.stat['mpostal_count'] += 1
         self.senddata_queue.put(
                 {
@@ -792,10 +796,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         
     def chat(self, message):
-        
         if not self.__accessable:
             return logger.error("Maica is not serving")
-        
+        if not self.is_ready_to_input():
+            return logger.error("Maica is not ready to input")
         message = str(message)
         self.senddata_queue.clear()
         self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
