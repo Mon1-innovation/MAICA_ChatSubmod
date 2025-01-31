@@ -847,10 +847,13 @@ init 5 python:
 label maica_mpostal_replyed:
     $ ev = mas_getEV("maica_mpostal_replyed")
     python:
-        curr_queue_count = 0
-        for i in persistent._maica_send_or_received_mpostals:
-            if i["responsed_status"] == "received":
-                curr_queue_count += 1
+        
+        def _curr_count():
+            curr_queue_count = 0
+            for i in persistent._maica_send_or_received_mpostals:
+                if i["responsed_status"] == "received":
+                    curr_queue_count += 1
+            return curr_queue_count
 
         def _reset_failed_mp():
             for i in persistent._maica_send_or_received_mpostals:
@@ -858,7 +861,7 @@ label maica_mpostal_replyed:
                     i["responsed_status"] = "notupload"
         
 
-
+    $ morethan1 = False
     # 这里是生成结果
     for little in persistent._maica_send_or_received_mpostals:
         if little["responsed_status"] == "failed":
@@ -870,8 +873,9 @@ label maica_mpostal_replyed:
             $ _reset_failed_mp()
             return "no_unlock"
         elif little["responsed_status"] == "received":
-            if curr_queue_count >= 2:
+            if not morethan1:
                 m "对了, [player]! {w=0.5}我给你的回信写完了!"
+                $ morethan1 = True
             else:
                 m ".{w=0.3}.{w=0.3}.这里还有一封!"
             m "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
