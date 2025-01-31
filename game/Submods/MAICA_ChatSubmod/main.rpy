@@ -222,6 +222,7 @@ label maica_init_connect(use_pause_instand_wait = False):
                 break
 
     return _return
+
 label maica_mpostal_read:
     $ mas_HKBRaiseShield()
     call maica_show_console
@@ -250,6 +251,7 @@ label maica_mpostal_read:
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
                         _return = "failed"
+                        store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")
                         break
                 if ai.len_message_queue() == 0:
                     store.mas_ptod.write_command("Wait message...")

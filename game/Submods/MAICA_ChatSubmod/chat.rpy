@@ -725,6 +725,34 @@ label mspire_type:
 # I'm gonna mail myself to you.
 
 # MPostal is first introduced by a greeting!
+init 5 python:
+    if renpy.seen_label('maica_wants_mspire') and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100:
+        @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
+        def greeting_select():
+            store.selected_greeting = "maica_wants_mpostal"
+        ev_rules = dict()
+        ev_rules.update(
+            MASGreetingRule.create_rule(
+                skip_visual=True,
+                override_type=True
+            )
+        )
+        ev_rules.update(MASPriorityRule.create_rule(50))
+        
+        addEvent(
+            Event(
+                persistent.greeting_database,
+                eventlabel="maica_wants_mpostal",
+                prompt="maica敲门",
+                unlocked=False,
+                conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal')",
+                action=EV_ACT_UNLOCK,
+                aff_range=(mas_aff.AFFECTIONATE, None),
+                rules=ev_rules,
+            ),
+            code="GRE"
+        )
+        del ev_rules
 
 label maica_wants_mpostal:
     # 替换greeting触发!
@@ -766,6 +794,11 @@ init 5 python:
         ),
         restartBlacklist=True,
     )
+
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mpostal():
+        if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+            return MASEventList.queue("maica_mpostal_received")
 # 目前MPostal使用session0
 label maica_mpostal_received:
     $ ev = mas_getEV("maica_mpostal_received")
@@ -784,7 +817,7 @@ label maica_mpostal_received:
         m "你就是不会腻, 对吧? {w=0.5}我也一样!"
     m "我一定会抽空仔细读的!"
     m "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
-    #call maica_mpostal_read
+    $ MASEventList.queue("maica_mpostal_read")
     return "no_unlock"
 
 init 5 python:
@@ -801,32 +834,57 @@ init 5 python:
         ),
         restartBlacklist=True,
     )
+    def is_mail_waiting_reply():
+        for i in persistent._maica_send_or_received_mpostals:
+            if i["responsed_status"] == "received":
+                return True
+        return False
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mpostal_reply():
+        if is_mail_waiting_reply() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_replyed"):
+            return MASEventList.queue("maica_mpostal_replyed")
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
     $ ev = mas_getEV("maica_mpostal_replyed")
+    python:
+        curr_queue_count = 0
+        for i in persistent._maica_send_or_received_mpostals:
+            if i["responsed_status"] == "received":
+                curr_queue_count += 1
+
+        def _reset_failed_mp():
+            for i in persistent._maica_send_or_received_mpostals:
+                if i["responsed_status"] == "failed":
+                    i["responsed_status"] = "notupload"
+        
+
+
     # 这里是生成结果
-    if mpostal_generation == "failed":
-        m "对了, [player], {w=0.5}上次的信..."#担心
-        m "你好像还没有给天堂树林配置好, 我没法把回信写给你."#担心
-        m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
-        m 3eua "剩下的事情我都会帮你搞定的."
-        m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
-        # 这里做个记录, 尝试成功之后触发另外一半
-        return
+    for little in persistent._maica_send_or_received_mpostals:
+        if little["responsed_status"] == "failed":
+            m "对了, [player], {w=0.5}上次的信..."#担心
+            m "你好像还没有给天堂树林配置好, 我没法把回信写给你."#担心
+            m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+            m 3eua "剩下的事情我都会帮你搞定的."
+            m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
+            $ _reset_failed_mp()
+            return "no_unlock"
+        elif little["responsed_status"] == "received":
+            if curr_queue_count >= 2:
+                m "对了, [player]! {w=0.5}我给你的回信写完了!"
+            else:
+                m ".{w=0.3}.{w=0.3}.这里还有一封!"
+            m "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
+            m "好了!"#微笑
+            call maica_mpostal_show(little["responsed_content"])
+            $ little["responsed_status"] = "readed"
+    if ev.shown_count <= 2:
+        m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
     else:
-        if curr_queue_count >= 2:
-            m "对了, [player]! {w=0.5}我给你的回信写完了!"
-        else:
-            m ".{w=0.3}.{w=0.3}.这里还有一封!"
-        m "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
-        m "好了!"#微笑
-        call maica_mpostal_show
-        if ev.shown_count <= 2:
-            m "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
-        else:
-            m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
-        m "也随时欢迎你再写给我!"
-        return
+        m "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
+    m "也随时欢迎你再写给我!"
+    return "no_unlock"
+
 init 5 python:
     addEvent(
         Event(
