@@ -572,6 +572,10 @@ label .talking_start:
         call clear_all
     return
 init 5 python:
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mspire_want():
+        if renpy.seen_label('maica_greeting') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire'):
+            return MASEventList.push("maica_wants_mspire")
     addEvent(
         Event(
             persistent.event_database,
@@ -580,8 +584,6 @@ init 5 python:
             pool=False,
             random=False,
             unlocked=False,
-            conditional="renpy.seen_label('maica_greeting') and len(mas_rev_unseen) == 0",
-            action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -800,9 +802,9 @@ init 5 python:
         if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_received")
     
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
+    @store.mas_submod_utils.functionplugin("ch30_hour", priority=100)
     def push_mpostal_read():
-        if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+        if has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_read")
 # 目前MPostal使用session0
 label maica_mpostal_received:
@@ -841,7 +843,7 @@ init 5 python:
     )
     def is_mail_waiting_reply():
         for i in persistent._maica_send_or_received_mpostals:
-            if i["responsed_status"] == "received":
+            if i["responsed_status"] in ("received", "failed"):
                 return True
         return False
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)

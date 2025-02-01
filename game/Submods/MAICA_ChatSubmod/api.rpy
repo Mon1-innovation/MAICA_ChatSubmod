@@ -305,6 +305,12 @@ init -700 python:
 
         return mail_files
 
+    def has_mail_waitsend():
+        for i in persistent._maica_send_or_received_mpostals:
+            if i["responsed_status"] == "notupload":
+                return True
+        return False
+
 init 999 python:
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)
     def maica_migration():

@@ -256,7 +256,7 @@ init 10 python:
         try:
             return eval(str)
         except Exception as e:
-            store.mas_submod_utils.submod_log.error("Failed to eval: {}".format(e))
+            store.mas_submod_utils.submod_log.error("Failed to eval: {}|param: '{}'".format(e, str))
             return None
     def log_eventstat():
         try:
@@ -296,7 +296,8 @@ init 10 python:
             store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
-            store.mas_submod_utils.submod_log.info("maica_wants_mpostal:seen {}".format(renpy.seen_label('maica_wants_mpostal')))
+            store.mas_submod_utils.submod_log.info("maica_wants_mpostal.conditional:{}|seen: {}".format(try_eval(get_conditional('maica_wants_mpostal')), renpy.seen_label('maica_wants_mpostal')) )
+
 
 
         except Exception as e:
@@ -919,23 +920,38 @@ screen maica_setting():
                         hbox:
                             text "=====MaicaAi()====="
                         hbox:
-                            text "ai.is_responding: [store.maica.maica.is_responding()]"
+                            text "ai.is_responding: [store.maica.maica.is_responding()]":
+                                size 15
                         hbox:
-                            text "ai.is_failed: [store.maica.maica.is_failed()]"
+                            text "ai.is_failed: [store.maica.maica.is_failed()]":
+                                size 15
                         hbox:
-                            text "ai.is_connected: [store.maica.maica.is_connected()]"
+                            text "ai.is_connected: [store.maica.maica.is_connected()]":
+                                size 15
                         hbox:
-                            text "ai.is_ready_to_input: [store.maica.maica.is_ready_to_input()]"
+                            text "ai.is_ready_to_input: [store.maica.maica.is_ready_to_input()]":
+                                size 15
                         hbox:
-                            text "ai.MaicaAiStatus.is_submod_exception: [store.maica.maica.MaicaAiStatus.is_submod_exception(store.maica.maica.status)]"
+                            text "ai.MaicaAiStatus.is_submod_exception: [store.maica.maica.MaicaAiStatus.is_submod_exception(store.maica.maica.status)]":
+                                size 15
                         hbox:
-                            text "ai.len_message_queue(): [store.maica.maica.len_message_queue()]"
+                            text "ai.len_message_queue(): [store.maica.maica.len_message_queue()]":
+                                size 15
                         hbox:
-                            text "maica_chr_exist: [maica_chr_exist]"
+                            text "maica_chr_exist: [maica_chr_exist]":
+                                size 15
                         hbox:
-                            text "maica_chr_changed: [maica_chr_changed]"
+                            text "maica_chr_changed: [maica_chr_changed]":
+                                size 15
                         hbox:
-                            text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
+                            text "len(mas_rev_unseen): [len(mas_rev_unseen)] | [mas_rev_unseen]":
+                                size 15
+                        hbox:
+                            text "push_mpostal_read: [has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label('maica_wants_mspire') and renpy.seen_label('maica_wants_mpostal') and not mas_inEVL('maica_mpostal_received') and not mas_inEVL('maica_mpostal_read')]":
+                                size 15
+                        hbox:
+                            text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]":
+                                size 15
                         hbox:
                             textbutton "输出Event信息到日志":
                                 action Function(log_eventstat)
