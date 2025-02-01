@@ -988,7 +988,7 @@ screen maica_setting():
                     hbox:
                         text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]")
                     
-                    hobx:
+                    hbox:
                         text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]")
 
                     hbox:

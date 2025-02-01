@@ -2,8 +2,11 @@ init -1500 python:
     if not config.language:
         config.language = "english"
     maica_ver = '1.1.21'
-    import maica_rss_provider
-    maica_rss_provider.set_ua(maica_ver)
+    try:
+        import maica_rss_provider
+        maica_rss_provider.set_ua(maica_ver)
+    except:
+        pass
 
     cn_mas_mobile_min_timescamp = 1733179724
 
@@ -24,8 +27,11 @@ default persistent._maica_send_or_received_mpostals = []
 #}
 
 init 5 python in maica:
-    import maica_rss_provider
-    update_info = maica_rss_provider.get_log()
+    try:
+        import maica_rss_provider
+        update_info = maica_rss_provider.get_log()
+    except:
+        pass
     import store, chardet
     class MaicaInputValue(store.InputValue):
         """
