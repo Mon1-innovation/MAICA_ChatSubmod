@@ -68,3 +68,6 @@ translate english strings:
 
     old "内置 | 更换背景音乐 {size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和{a=https://github.com/Booplicate/MAS-Submods-YouTubeMusic}{i}Youtube Music{/i}{/s}子模组"
     new "Integrated | Change BGM {size=-5}* Support {a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a} and {a=https://github.com/Booplicate/MAS-Submods-YouTubeMusic}{i}Youtube Music{/i}{/a}"
+
+    old "内置 | 带[m_name]出去"
+    new "Integrated | Take [m_name] out"
