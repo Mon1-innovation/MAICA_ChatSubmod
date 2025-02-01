@@ -274,3 +274,8 @@ label mtrigger_youtubemusic_search(keyword):
     $ del response_quips, response_quip, raw_search_request, lower_search_request
     call maica_show_console
     return
+
+label mtrigger_takeout:
+    call maica_reconnect
+    call bye_going_somewhere
+    return

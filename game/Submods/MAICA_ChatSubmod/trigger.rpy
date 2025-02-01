@@ -116,6 +116,14 @@ init 999 python in maica:
 
 #################################################################################
 
+    def mtrigger_takeout_callback(arg):
+        maica.send_to_outside_func("<mtrigger> mtrigger_takeout_callback called")
+        store.renpy.call("mtrigger_takeout")
+    leave_trigger = MTriggerBase(customize_template, "leave", "和玩家一起出去", "go outside with player", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table)
+    maica.mtrigger_manager.add_trigger(leave_trigger)
+
+#################################################################################
+
     def mtrigger_idle_callback(arg):
         maica.send_to_outside_func("<mtrigger> mtrigger_idle_callback called")
         store.MASEventList.push("mtrigger_brb")
