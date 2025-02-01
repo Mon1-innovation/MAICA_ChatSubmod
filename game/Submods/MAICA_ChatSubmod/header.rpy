@@ -52,7 +52,8 @@ init 10 python:
         "provider_id":1 if not renpy.android else 2,
         "max_history_token":4096,
         "status_update_time":0.25,
-        "strict_mode": False
+        "strict_mode": False,
+        "show_console_when_reply": False
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -1152,7 +1153,10 @@ screen maica_setting():
                             action Show("maica_triggers")
                         
                         textbutton _("查看MPostals往来信件"):
-                                action Show("maica_mpostals")
+                            action Show("maica_mpostals")
+                        
+                        textbutton _("回信时显示控制台")：
+                            action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
 
 
 

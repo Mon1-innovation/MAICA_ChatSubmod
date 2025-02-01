@@ -772,3 +772,5 @@ translate english strings:
     old "查看MPostals往来信件"
     new ""
 
+    old "回信时显示控制台"
+    new ""

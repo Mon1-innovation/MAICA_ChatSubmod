@@ -225,7 +225,8 @@ label maica_init_connect(use_pause_instand_wait = False):
 
 label maica_mpostal_read:
     $ mas_HKBRaiseShield()
-    call maica_show_console
+    if persistent.maica_setting_dict.get("show_console_when_reply", False):
+        call maica_show_console
     call maica_mpostal_load
     call maica_init_connect(use_pause_instand_wait = True)
     python:
