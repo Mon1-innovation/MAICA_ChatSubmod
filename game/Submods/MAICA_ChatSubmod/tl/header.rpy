@@ -707,3 +707,68 @@ translate english strings:
 
     old "严格反劫持: [persistent.maica_setting_dict.get('strict_mode')]"
     new "Strict anti-hijack: [persistent.maica_setting_dict.get('strict_mode')]"
+
+# TODO: Translation updated at 2025-02-01 08:24
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:105
+    old "失败原因:"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:330
+    old "> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:513
+    old "> 注意: 当空间不足时将自动关闭部分MTrigger!"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:599
+    old "{size=15}因能力有限, 阅读信件后信件列表将在返回太空教室后重新显示."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:606
+    old "信件状态: "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:608
+    old "寄信时间: "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:610
+    old "\n[player]: \n"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:613
+    old "[m_name]: \n"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:616
+    old "阅读[player]写的信"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:624
+    old "阅读[m_name]的回信"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:992
+    old "累计发信数: [store.maica.maica.stat.get('mpostal_count')]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1015
+    old "严格模式下, 将会在每次发送时携带cookie信息"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1125
+    old "状态码更新速度"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1130
+    old "在Submod界面处的状态码更新频率"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1140
+    old "查看MPostals往来信件"
+    new ""
+
