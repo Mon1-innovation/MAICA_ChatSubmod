@@ -296,14 +296,12 @@ init 10 python:
             store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
-            store.mas_submod_utils.submod_log.info("maica_wants_mpostal seen {}".format(renpy.seen_label('maica_wants_mpostal')))
+            store.mas_submod_utils.submod_log.info("maica_wants_mpostal:seen {}".format(renpy.seen_label('maica_wants_mpostal')))
 
 
         except Exception as e:
             store.mas_submod_utils.submod_log.error("Failed to get event stat: {}".format(e))
-    if not persistent._maica_reseted:
-        maica_reset_setting()
-        persistent._maica_reseted = True
+
     maica_apply_setting(True)
         
 

@@ -157,20 +157,6 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.warning("MAICA: Check Version Failed")
             return None
 
-    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)
-    def maica_migration():
-        def migration_1_2_0():
-            if renpy.android:
-                persistent.maica_setting_dict['provider_id'] = 2
-            if persistent.maica_setting_dict['max_history_token'] > 4096:
-                persistent.maica_setting_dict['max_history_token'] = 4096
-        import migrations
-        migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
-        migration.migration_queue = [
-            ("1.2.0", migration_1_2_0),
-        ]
-        migration.migrate()
-        persistent._maica_last_version = store.maica_ver
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
         import time
@@ -319,3 +305,19 @@ init -700 python:
 
         return mail_files
 
+init 999 python:
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)
+    def maica_migration():
+        def migration_1_2_0():
+            if renpy.android:
+                persistent.maica_setting_dict['provider_id'] = 2
+            if persistent.maica_setting_dict['max_history_token'] > 4096:
+                persistent.maica_setting_dict['max_history_token'] = 4096
+            maica_reset_setting()
+        import migrations
+        migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
+        migration.migration_queue = [
+            ("1.2.0", migration_1_2_0),
+        ]
+        migration.migrate()
+        persistent._maica_last_version = store.maica_ver
