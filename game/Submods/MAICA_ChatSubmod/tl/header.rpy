@@ -714,63 +714,63 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:105
     old "失败原因:"
-    new ""
+    new "Reason:"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:330
     old "> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"
-    new ""
+    new "> Your current MAS version is below the lowest compatible version, please update"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:513
     old "> 注意: 当空间不足时将自动关闭部分MTrigger!"
-    new ""
+    new "> Notice: Some MTriggers will be disabled if content length exceeds!"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:599
     old "{size=15}因能力有限, 阅读信件后信件列表将在返回太空教室后重新显示."
-    new ""
+    new "{size=15}MPostal list will be shown after returning to the spaceroom."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:606
     old "信件状态: "
-    new ""
+    new "MPostal status:"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:608
     old "寄信时间: "
-    new ""
+    new "Last post sent at: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:610
     old "\n[player]: \n"
-    new ""
+    new "\n[player]: \n"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:613
     old "[m_name]: \n"
-    new ""
+    new "[m_name]: \n"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:616
     old "阅读[player]写的信"
-    new ""
+    new "Read [player]'s letter"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:624
     old "阅读[m_name]的回信"
-    new ""
+    new "Read [m_name]'s reply"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:992
     old "累计发信数: [store.maica.maica.stat.get('mpostal_count')]"
-    new ""
+    new "MPostal sent count: [store.maica.maica.stat.get('mpostal_count')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1015
     old "严格模式下, 将会在每次发送时携带cookie信息"
-    new ""
+    new "Strict anti-hijack enables MAICA websocket cookie"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1125
     old "状态码更新速度"
-    new ""
+    new "Status code refreshing frequency"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1130
     old "在Submod界面处的状态码更新频率"
-    new ""
+    new "The refreshing frequency of status code on Submod screen"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1140
     old "查看MPostals往来信件"
-    new ""
+    new "Reread MPostal letters"
 
     old "回信时显示控制台"
-    new ""
+    new "Show console on MPostal writing reply"

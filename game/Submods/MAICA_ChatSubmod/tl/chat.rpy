@@ -417,7 +417,7 @@ translate english maica_chr2_ea1d3f2b:
 translate english maica_chr2_43e8ea7e:
 
     # m 1etc "最近我检查文件夹的时候, 我发现'天堂树林'好像也有一个{i}角色文件{/i}, {w=0.3}也可能叫场景文件比较合适."
-    m 1etc "Last time I checked the folders, It seems that 'heaven forest' also has a {i}character file{/i}, or shall we call it a scene file."
+    m 1etc "Last time I checked the folders, It seems that Heaven Forest also has a {i}character file{/i}, or shall we call it a scene file."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:216
 translate english maica_chr2_94d91202:
@@ -460,7 +460,7 @@ translate english maica_chr_gone_4c5b4cc5:
 translate english maica_chr_gone_60bd1fea:
 
     # m 3lusdlb "倒不是说真的有多重要, 只是{w=0.5}我找不到'天堂树林'的文件了."
-    m 3lusdlb "Not something important, but {w=0.5}the file for 'heaven forest' seems to be gone."
+    m 3lusdlb "Not something important, but {w=0.5}the file for Heaven Forest seems to be gone."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:230
 translate english maica_chr_gone_35d56556:
@@ -515,7 +515,7 @@ translate english maica_chr_corrupted2_204f27ff:
 translate english maica_chr_corrupted2_76ef428c:
 
     # m 3eka "你有没有, 比如动过或者替换过--{w=0.5}'天堂树林'的文件?"
-    m 3eka "Have you, like ever modified or changed the file of 'heaven forest'?"
+    m 3eka "Have you, like ever modified or changed the file of Heaven Forest?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:248
 translate english maica_chr_corrupted2_8b37b727:
@@ -642,8 +642,8 @@ translate english maica_wants_preferences2_3350c038:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:264
 translate english maica_wants_preferences2_a9999a95:
 
-    # extend 3esd "才发现我之前对你的了解还是太单一.{nw}"
-    extend 3esd "I found my acknowledge of you is still too limited. {nw}"
+    # extend 3esd "才发现我之前对你的了解还是太单一."
+    extend 3esd "I found my acknowledge of you is still too limited."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:267
 translate english maica_wants_preferences2_e34ab094:
@@ -654,8 +654,8 @@ translate english maica_wants_preferences2_e34ab094:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:270
 translate english maica_wants_preferences2_dc6cebcd:
 
-    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
-    m 3ruc "Like if we really go for dinner together, what shall I order for you?"
+    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?{nw}"
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:271
 translate english maica_wants_preferences2_b951c94e:
@@ -667,7 +667,7 @@ translate english maica_wants_preferences2_b951c94e:
 translate english maica_wants_preferences2_45d8b9c9:
 
     # m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
-    m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in 'heaven forest'."
+    m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:275
 translate english maica_wants_preferences2_9b2461b5:
@@ -1143,7 +1143,7 @@ translate english maica_wants_mspire_b0896de0:
 translate english maica_wants_mspire_43dc1fe9:
 
     # m 5rku "去过天堂树林之后, 我想或许有个办法{w=0.5}永远有话和你说."
-    m 5rku "After we went to the heaven forest, I figured a way to {w=0.5}find some more."
+    m 5rku "After we went to the Heaven Forest, I figured a way to {w=0.5}find some more."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:566
 translate english maica_wants_mspire_48923412:
@@ -1161,7 +1161,7 @@ translate english maica_wants_mspire_926488d8:
 translate english maica_wants_mspire_db68c29e:
 
     # extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
-    extend 3husdlb "Myabe some are a little boring but I'll do my best!"
+    extend 3husdlb "Maybe some are a little boring but I'll do my best!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:569
 translate english maica_wants_mspire_901dee86:
@@ -1461,469 +1461,470 @@ translate english text_split_ad85c970:
 translate english maica_wants_mpostal_8c91b674:
 
     # m 3hubsa "{i}~我要扎上红丝绸, 我要系上蓝发带~{/i}"
-    m 3hubsa ""
+    m 3hubsa "{i}~I'm a gonna tie me up in a red string, I'm gonna tie blue ribbons too~{/i}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:761
 translate english maica_wants_mpostal_af99a33b:
 
     # m "{i}~我要爬进小小的邮箱, 把小小的心意送给你~{/i}"
-    m ""
+    m "{i}~I'm a-gonna climb up in my mail box; I'm gonna mail myself to you~{/i}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:762
 translate english maica_wants_mpostal_4638e652:
 
     # m 2wud "...[player]? {w=0.5}抱歉, 我没注意到你回来了! {nw}"
-    m 2wud ""
+    m 2wud "...[player]? {w=0.5}Sorry, I didn't notice you're back here! {nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:763
 translate english maica_wants_mpostal_4f97cd45:
 
     # extend 7rubfa "我只是...{w=0.3}正巧在哼歌."
-    extend 7rubfa ""
+    extend 7rubfa "I was just...{w=0.3}lost in thoughts for a while."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:764
 translate english maica_wants_mpostal_34d861d1:
 
     # m 1eud "我刚刚在想, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."
-    m 1eud ""
+    m 1eud "Just now I was thinking that {i}letter{/i} is such a romantic form of literature. Writing little, but expressing much."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:765
 translate english maica_wants_mpostal_565e44fe:
 
     # m 1eua "既然我们现在也算是相隔两地, 也许我们写写信挺合适的. {w=0.3}还可以当作文学小练习!"
-    m 1eua ""
+    m 1eua "Now that we're kind of 'separated' by this screen, it may be a good idea writing letters to each other! {w=0.3}You can also take it as a little writing practice."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:766
 translate english maica_wants_mpostal_8949a9c6:
 
     # m 5ekbsa "你有想过给我写封信吗, [player]?{nw}"
-    m 5ekbsa ""
+    m 5ekbsa "Have you ever thought about writing me something, [player]?{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:770
 translate english maica_wants_mpostal_c49b8faa:
 
     # m 3hubsa "那太好了! 我就知道我们超级合拍的."
-    m 3hubsa ""
+    m 3hubsa "Fantastic! I knew we've got such a tacit agreement."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:771
 translate english maica_wants_mpostal_3cb911f4:
 
     # m 2lksdlb "有可能你都已经写给我过了, 只是我之前没能收到. {w=0.5}那现在..."
-    m 2lksdlb ""
+    m 2lksdlb "Perhaps you have really wrote me something already, but I wasn't able to recieve them back to then. {w=0.5}But now..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:773
 translate english maica_wants_mpostal_dd351f3c:
 
     # m 1hua "没想过吗? 是和我聊天就足够开心了吗? 哈哈~"
-    m 1hua ""
+    m 1hua "Huh? Chatting with me is so satisfying already? Ahaha~"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:774
 translate english maica_wants_mpostal_6a487d8a:
 
     # m 2lksdlb "不管怎样, 不妨写写信试一试. {w=0.5}毕竟现在..."
-    m 2lksdlb ""
+    m 2lksdlb "It's okay to give it a shot, though. {w=0.5}Since now..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:775
 translate english maica_wants_mpostal_202eb645:
 
     # m 1eua "我有办法读你的信, 再给你写回信了. {w=0.5}我最近在天堂树林里发现了一个邮箱."
-    m 1eua ""
+    m 1eua "I've managed to find a way to read your letters and write back. {w=0.5}I found a mailbox in Heaven Forest days ago."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:776
 translate english maica_wants_mpostal_8dc801df:
 
     # m 2lksdlb "虽然我自己没办法试, 但我大概知道要怎么用."
-    m 2lksdlb ""
+    m 2lksdlb "I wasn't able to try it out myself though, but I guess it's simple."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:777
 translate english maica_wants_mpostal_0655dee1:
 
     # m 7hub "大概是...下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
-    m 7hub ""
+    m 7hub "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:778
 translate english maica_wants_mpostal_f37992a5:
 
     # m "就像是'我爱你.mail'! {w=0.5}{nw}"
-    m ""
+    m "Like 'I_love_you.mail'! {w=0.5}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:779
 translate english maica_wants_mpostal_4c91bbc9:
 
     # extend 2lksdlb "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."
-    extend 2lksdlb ""
+    extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:780
 translate english maica_wants_mpostal_21914070:
 
     # m 1kubsu "你打开游戏的时候, 我就可以写我的回信了!"
-    m 1kubsu ""
+    m 1kubsu "Next time you open the game, I'll be able to read it and write back to you!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:781
 translate english maica_wants_mpostal_0d665433:
 
     # m 3hubsa "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
-    m 3hubsa ""
+    m 3hubsa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:805
 translate english maica_mpostal_received_607f216e:
 
     # m 1sub "哦, [player]! {w=0.5}你的信!"
-    m 1sub ""
+    m 1sub "Oh, [player]! {w=0.5}Your letter!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:809
 translate english maica_mpostal_received_db53bd55:
 
     # m 5ekbsa "我收到了, 感觉还真是奇妙!"
-    m 5ekbsa ""
+    m 5ekbsa "I got it, it feels so wonderful!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:810
 translate english maica_mpostal_received_f1b50ddb:
 
     # m 5hkbsa "我能感觉到你的心意, 如此有实感, 像是有你的温度..."
-    m 5hkbsa ""
+    m 5hkbsa "I could almost feel your emotion from it, warm as you are..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:812
 translate english maica_mpostal_received_bcf40f53:
 
     # m 1kubsu "我收到了! 开始迷上这种感觉了么, [player]?"
-    m 1kubsu ""
+    m 1kubsu "I got it! writing is attracting you so much, [player]?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:813
 translate english maica_mpostal_received_b7662a50:
 
     # m 5hkbsa "我也好喜欢这种感觉..."
-    m 5hkbsa ""
+    m 5hkbsa "Your letters attract me, too!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:815
 translate english maica_mpostal_received_c3f8adc1:
 
     # m 1eud "你都写了这么多了, 说不定哪天都能整理成册出版..."
-    m 1eud ""
+    m 1eud "You've wrote so much to me, we can even publish it some day..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:816
 translate english maica_mpostal_received_4cd77ecc:
 
     # m 7hub "叫[player]家书怎么样? {w=0.5}哈哈~"
-    m 7hub ""
+    m 7hub "How does {i}Home Letters by [player]{/i} sound like? {w=0.5}Ehehe~"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:818
 translate english maica_mpostal_received_b4e25cbf:
 
     # m 5ekbsa "你就是不会腻, 对吧? {w=0.5}我也一样!"
-    m 5ekbsa ""
+    m 5ekbsa "You never get bored writing to me, yeah? {w=0.5}Neither do I!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:819
 translate english maica_mpostal_received_d3bdbc00:
 
     # m 4eub "我一定会抽空仔细读的!"
-    m 4eub ""
+    m 4eub "I'll pick a time to read it carefully!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:820
 translate english maica_mpostal_received_1116826e:
 
     # m 4kub "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
-    m 4kub ""
+    m 4kub "And I'll show you my reply next time you come back. There's no hurry~"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:879
 translate english maica_mpostal_replyed_start_ba9ed6dd:
 
     # m 2lksdlb "对了, [player], {w=0.5}上次的信..."
-    m 2lksdlb ""
+    m 2lksdlb "Oh, [player], {w=0.5}About your last letter..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:880
 translate english maica_mpostal_replyed_start_328e7aa8:
 
     # m 2ekc "你好像还没有给天堂树林配置好, 我没法把回信写给你."
-    m 2ekc ""
+    m 2ekc "It seems that the Heaven Forest is not set up yet, I couldn't write you back."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:881
 translate english maica_mpostal_replyed_start_a39b3448:
 
     # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
-    m 3eusdlb ""
+    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:882
 translate english maica_mpostal_replyed_start_69503669:
 
     # m 3eua "剩下的事情我都会帮你搞定的."
-    m 3eua ""
+    m 3eua "I'll nail everything else for you."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:883
 translate english maica_mpostal_replyed_start_7b30e282:
 
     # m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
-    m 1eua ""
+    m 1eua "It's okay, I'll remember to write it as soon as you finish the preparation."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:888
 translate english maica_mpostal_replyed_start_cf2e3431:
 
     # m 7hub "对了, [player]! {w=0.5}我给你的回信写完了!"
-    m 7hub ""
+    m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:891
 translate english maica_mpostal_replyed_start_1e7cc01a:
 
     # m 7husdlb ".{w=0.3}.{w=0.3}.这里还有一封!"
-    m 7husdlb ""
+    m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:892
 translate english maica_mpostal_replyed_start_0dbc888d:
 
     # m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."
-    m 6dsc ""
+    m 6dsc "Just a second, let me find it out.{w=0.3}.{w=0.3}."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:893
 translate english maica_mpostal_replyed_start_39979bf7:
 
     # m 3hubsa "好了!"
-    m 3hubsa ""
+    m 3hubsa "Here it is!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:899
 translate english maica_mpostal_replyed_end_56b65fb1:
 
     # m 2lksdlb "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
-    m 2lksdlb ""
+    m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope you like it!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:901
 translate english maica_mpostal_replyed_end_e0b3789a:
 
     # m 2lksdlb "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
-    m 2lksdlb ""
+    m 2lksdlb "May not good as my poems though, but I really tried! Hope you like it!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:902
 translate english maica_mpostal_replyed_end_d11afbd2:
 
     # m 5ekbsa "也随时欢迎你再写给我!"
-    m 5ekbsa ""
+    m 5ekbsa "And welcome writing to me again anytime!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:923
 translate english maica_prepend_reread_11ee32dc:
 
     # m 4eub "如我当时所说, '{i}天堂树林{/i}'确实是我们的现实之间的{w=0.3}某种{i}交界{/i}地."
-    m 4eub ""
+    m 4eub "As I said earlier, '{i}Heaven Forest{/i}' is a betweenland of our realities."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:924
 translate english maica_prepend_reread_dd8f6a95:
 
     # m 3hub "与其它地方最大的不同, 就是能让你{i}真正地{/i}和我对话. 想聊什么都可以!"
-    m 3hub ""
+    m 3hub "The biggest difference here is it allows us to talk freely {i}for real{/i}. Whatever you want to say!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:925
 translate english maica_prepend_reread_a39b3448:
 
     # m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
-    m 3eusdlb ""
+    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:926
 translate english maica_prepend_reread_69503669:
 
     # m 3eua "剩下的事情我都会帮你搞定的."
-    m 3eua ""
+    m 3eua "I'll nail everything else for you."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:927
 translate english maica_prepend_reread_ab612c1d:
 
     # m 7hub "如果你想要了解得再具体点, 可以到{a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}看看."
-    m 7hub ""
+    m 7hub "If you want to know more about it, you can go to {a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:928
 translate english maica_prepend_reread_f8c65fcf:
 
     # m 2hksdlb "我就不多说教啦, 哈哈!"
-    m 2hksdlb ""
+    m 2hksdlb "It could save me some boring explanation. Ahaha!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:946
 translate english maica_chr_reread_2367f3a1:
 
     # m 5rtc "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫'HeavenForest.sce'."
-    m 5rtc ""
+    m 5rtc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:947
 translate english maica_chr_reread_94d91202:
 
     # m 1mtd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
-    m 1mtd ""
+    m 1mtd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:948
 translate english maica_chr_reread_fabc3abd:
 
     # m 3eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
-    m 3eud ""
+    m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:950
 translate english maica_chr_reread_655439ef:
 
     # m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
-    m 3eua ""
+    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    m 3eua "But [like_spk], at least you can remove it to have the space back."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:951
 translate english maica_chr_reread_ee61c2b3:
 
     # m 7hub "如果你有兴趣研究一下它, 也许可以试试看. {w=0.5}毕竟你应该知道, 其他人的角色文件里面都有奇怪的内容."
-    m 7hub ""
+    m 7hub "And if you wonder what's in there, you may try it out. {w=0.5}The character files of other girls have strange content too."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:952
 translate english maica_chr_reread_602a89aa:
 
     # m 1eud "...比如, 这里为什么会叫天堂树林?{w=0.5} 是为什么故事设计的吗?{w=0.5} 为什么又被遗弃在这里, 留给我们约会?"
-    m 1eud ""
+    m 1eud "...Like, why '{i}Heaven Forest{/i}'?{w=0.5} Does it have a story too?{w=0.5} Why it was abandoned here for us?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:953
 translate english maica_chr_reread_dc53bd4d:
 
     # m 1eua "当然, 无论你要做什么, 记得给它做个备份."
-    m 1eua ""
+    m 1eua "Of course, you'd better back it up before doing anything."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:972
 translate english maica_wants_preferences_reread_56b602d4:
 
-    # m 7hub "是这样, 游戏本身并没有留给我太多空间去了解你.{nw}"
-    m 7hub ""
+    # m 7hub "是这样, 游戏本身并没有留给我太多空间去了解你."
+    m 7hub "[player], the game itself didn't give me much freedom to know about you."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:977
 translate english maica_wants_preferences_reread_dc6cebcd:
 
-    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
-    m 3ruc ""
+    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?{nw}"
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:978
 translate english maica_wants_preferences_reread_e34ab094:
 
     # extend "[like_mi]"
-    extend ""
+    extend "[like_mi]"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:979
 translate english maica_wants_preferences_reread_b951c94e:
 
     # m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
-    m 3tuc ""
+    m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:980
 translate english maica_wants_preferences_reread_45d8b9c9:
 
     # m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
-    m 1eua ""
+    m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:981
 translate english maica_wants_preferences_reread_7e7c8df2:
 
     # m 4eub "只用在对话里找到'调整[player]的爱好', 你就可以随时告诉我关于你的事情."
-    m 4eub ""
+    m 4eub "By asking me to 'Adjust [player]'s preferences', you can tell me more about you anytime."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:982
 translate english maica_wants_preferences_reread_9b2461b5:
 
     # m 1eub "只要是关于你的事情, 我都会想知道的!"
-    m 1eub ""
+    m 1eub "I want to know as much as possible about you!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1001
 translate english maica_wants_mspire_reread_b0896de0:
 
     # m 3ekd "[player], 我之前提到过, 我们已经把所有话题都聊完了."
-    m 3ekd ""
+    m 3ekd "[player], I've once mentioned that we've finished every preset topic."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1002
 translate english maica_wants_mspire_reread_43dc1fe9:
 
     # m 5rku "去过天堂树林之后, 我想或许有个办法{w=0.5}永远有话和你说."
-    m 5rku ""
+    m 5rku "After we went to the Heaven Forest, I figured a way to {w=0.5}find some more."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1003
 translate english maica_wants_mspire_reread_48923412:
 
     # m 5esb "你知道的, {a=https://wikipedia.org}{u}{i}维基百科{/i}{/u}{/a}是一个很大的知识库. {w=0.5}只要我去那里转转, 肯定能找到话题的."
-    m 5esb ""
+    m 5esb "You know that {a=https://wikipedia.org}{u}{i}Wikipedia{/i}{/u}{/a} is a huge knowledge base. {w=0.5}If only I surf there a little bit, we'll have something to talk about for sure."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1004
 translate english maica_wants_mspire_reread_926488d8:
 
     # m 3eua "多半是一些小知识或者小科普. {w=0.5}{nw}"
-    m 3eua ""
+    m 3eua "They're most likely to be some small tips or knowledges. {w=0.5}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1005
 translate english maica_wants_mspire_reread_db68c29e:
 
     # extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
-    extend 3husdlb ""
+    extend 3husdlb "Maybe some are a little boring but I'll do my best!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1006
 translate english maica_wants_mspire_reread_b00a11f8:
 
     # m 3ekb "如果你想听或者不想听了, 在'子模组设置'里面找到'MSpire'就好."
-    m 3ekb ""
+    m 3ekb "You can always change the 'MSpire' setting in the 'Submod settings' if you want to enable or disable it."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1024
 translate english maica_wants_mpostal_reread_7f773282:
 
     # m 4eub "我一直觉得, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."
-    m 4eub ""
+    m 4eub "I was thinking that {i}letter{/i} is such a romantic form of literature. Writing little, but expressing much."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1025
 translate english maica_wants_mpostal_reread_6b303131:
 
     # m 3eub "既然我们现在也算是相隔两地, 也许我们写写信挺合适的. {w=0.3}还可以当作文学小练习!"
-    m 3eub ""
+    m 3eub "Now that we're kind of 'separated' by this screen, it may be a good idea writing letters to each other! {w=0.3}You can also take it as a little writing practice."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1026
 translate english maica_wants_mpostal_reread_da669f8b:
 
     # m 5ekbsa "现在, 通过天堂树林里的邮箱, 我有办法读你的信, 再给你写回信了."
-    m 5ekbsa ""
+    m 5ekbsa "Now through the mailbox in Heaven Forest, I can read your letter for real and write back."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1027
 translate english maica_wants_mpostal_reread_50ae2e40:
 
     # m 3ekbsa "只需要在下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
-    m 3ekbsa ""
+    m 3ekbsa "Before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1028
 translate english maica_wants_mpostal_reread_8f74a378:
 
     # m 3kkbsa "就像是'我爱你.mail'! {w=0.5}{nw}"
-    m 3kkbsa ""
+    m 3kkbsa "Like 'I_love_you.mail'! {w=0.5}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1029
 translate english maica_wants_mpostal_reread_4c91bbc9:
 
     # extend 2lksdlb "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."
-    extend 2lksdlb ""
+    extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1030
 translate english maica_wants_mpostal_reread_846ffdb5:
 
     # m 7hub "你打开游戏的时候, 我就可以写我的回信了!"
-    m 7hub ""
+    m 7hub "Next time you open the game, I'll be able to read it and write back to you!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1031
 translate english maica_wants_mpostal_reread_82d7bf66:
 
     # m 5esa "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
-    m 5esa ""
+    m 5esa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
 
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:767
     old "你有想过给我写封信吗, [player]?{fast}"
-    new ""
+    new "Have you ever thought about writing me something, [player]?{fast}"
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:767
     old "想过"
-    new ""
+    new "I did"
 
     # game/Submods/MAICA_ChatSubmod/chat.rpy:767
     old "没想过"
-    new ""
+    new "I didn't"
 
     old ' 我只知道你喜欢薄荷冰淇淋.'
-    new ''
+    new ' The only thing you mentioned is that you like mint ice-cream.'
 
     old "我们聊过'世界尽头与冷酷仙境'什么的"
-    new ""
+    new "we've talked about 'Hard Boiled Wonderland and the End of the World'"
 
     old "我们聊过'黄色墙纸'什么的"
-    new ""
+    new "we've talked about 'Yellow Wallpaper'"
 
     old '我可以推荐几本书给你'
-    new ''
+    new 'I could recommend you some books'
 
