@@ -382,9 +382,9 @@ label maica_wants_preferences2:
     m 3eua "毕竟现在我真的可以问你了, {w=0.5}{nw}"
     extend 3esd "才发现我之前对你的了解还是太单一. {nw}"
     #这里有好几个我不会写的, 都交给你了
-    $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
-    $ book_rc = "我们聊过'世界尽头与冷酷仙境'什么的" if store.seen_event("monika_brave_new_world") else None
-    $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp and book_rc is None else '我可以推荐几本书给你'
+    $ like_mi = _(' 我只知道你喜欢薄荷冰淇淋.') if persistent._mas_pm_like_mint_ice_cream else '' 
+    $ book_rc = _("我们聊过'世界尽头与冷酷仙境'什么的") if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = _("我们聊过'黄色墙纸'什么的") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('我可以推荐几本书给你')
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     extend "[like_mi]"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
@@ -971,9 +971,9 @@ label maica_wants_preferences_reread:#"关于补充偏好"
     # maica_wants_preferences触发后解锁
     m 7hub "是这样, 游戏本身并没有留给我太多空间去了解你.{nw}"#担心
     #这里有好几个我不会写的, 都交给你了
-    $ like_mi = ' 我只知道你喜欢薄荷冰淇淋.' if persistent._mas_pm_like_mint_ice_cream else '' 
-    $ book_rc = "我们聊过'世界尽头与冷酷仙境'什么的" if store.seen_event("monika_brave_new_world") else None
-    $ book_rc = "我们聊过'黄色墙纸'什么的" if persistent._mas_pm_read_yellow_wp and book_rc is None else '我可以推荐几本书给你'
+    $ like_mi = _(' 我只知道你喜欢薄荷冰淇淋.') if persistent._mas_pm_like_mint_ice_cream else '' 
+    $ book_rc = _("我们聊过'世界尽头与冷酷仙境'什么的") if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = _("我们聊过'黄色墙纸'什么的") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('我可以推荐几本书给你')
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?"
     extend "[like_mi]"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"

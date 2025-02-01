@@ -1915,3 +1915,15 @@ translate english strings:
     old "没想过"
     new ""
 
+    old ' 我只知道你喜欢薄荷冰淇淋.'
+    new ''
+
+    old "我们聊过'世界尽头与冷酷仙境'什么的"
+    new ""
+
+    old "我们聊过'黄色墙纸'什么的"
+    new ""
+
+    old '我可以推荐几本书给你'
+    new ''
+
