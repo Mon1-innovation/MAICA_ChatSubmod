@@ -797,12 +797,13 @@ init 5 python:
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal():
-        if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+        if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_received")
 # 目前MPostal使用session0
 label maica_mpostal_received:
     $ ev = mas_getEV("maica_mpostal_received")
     m 1sub "哦, [player]! {w=0.5}你的信!"
+    call maica_mpostal_load
     # 读一下触发几次应该不难吧
     if ev.shown_count == 0:
         m 5ekbsa "我收到了, 感觉还真是奇妙!"
@@ -817,7 +818,6 @@ label maica_mpostal_received:
         m 5ekbsa "你就是不会腻, 对吧? {w=0.5}我也一样!"
     m 4eub "我一定会抽空仔细读的!"
     m 4kub "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
-    $ MASEventList.queue("maica_mpostal_read")
     return "no_unlock"
 
 init 5 python:
@@ -862,32 +862,46 @@ label maica_mpostal_replyed:
         
 
     $ morethan1 = False
+    
     # 这里是生成结果
-    for little in persistent._maica_send_or_received_mpostals:
-        if little["responsed_status"] == "failed":
-            m 2lksdlb "对了, [player], {w=0.5}上次的信..."#担心
-            m 2ekc "你好像还没有给天堂树林配置好, 我没法把回信写给你."#担心
-            m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
-            m 3eua "剩下的事情我都会帮你搞定的."
-            m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
-            $ _reset_failed_mp()
-            return "no_unlock"
-        elif little["responsed_status"] == "received":
-            if not morethan1:
-                m 7hub "对了, [player]! {w=0.5}我给你的回信写完了!"
-                $ morethan1 = True
-            else:
-                m 7husdlb ".{w=0.3}.{w=0.3}.这里还有一封!"
-            m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
-            m 3hubsa "好了!"#微笑
-            call maica_mpostal_show(little["responsed_content"])
-            $ little["responsed_status"] = "readed"
+label maica_mpostal_replyed.select_little:
+    $ current = None
+    python:
+        for little in persistent._maica_send_or_received_mpostals:
+            if little["responsed_status"] in ["received", "failed"]:
+                current = little
+                break
+    if current is None:
+        jump maica_mpostal_replyed.end
+        
+label maica_mpostal_replyed.start:
+    if current["responsed_status"] == "failed":
+        m 2lksdlb "对了, [player], {w=0.5}上次的信..."#担心
+        m 2ekc "你好像还没有给天堂树林配置好, 我没法把回信写给你."#担心
+        m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+        m 3eua "剩下的事情我都会帮你搞定的."
+        m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
+        $ _reset_failed_mp()
+        return "no_unlock"
+    elif current["responsed_status"] == "received":
+        if not morethan1:
+            m 7hub "对了, [player]! {w=0.5}我给你的回信写完了!"
+            $ morethan1 = True
+        else:
+            m 7husdlb ".{w=0.3}.{w=0.3}.这里还有一封!"
+        m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
+        m 3hubsa "好了!"#微笑
+        call maica_mpostal_show(current["responsed_content"])
+        $ current["responsed_status"] = "readed"
+    jump maica_mpostal_replyed.select_little
+label maica_mpostal_replyed.end:
     if ev.shown_count <= 2:
         m 2lksdlb "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
     else:
         m 2lksdlb"可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
     m 5ekbsa "也随时欢迎你再写给我!"
     return "no_unlock"
+
 
 init 5 python:
     addEvent(
@@ -997,7 +1011,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_wants_mpostal_reread",
             category=["你", "我们", "模组", "MAICA"],
-            prompt="关于'MSpire'",
+            prompt="关于'MPostal'",
             random=False,
             pool=True,
             conditional="renpy.seen_label('maica_wants_mpostal')",

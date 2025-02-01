@@ -280,3 +280,17 @@ label maica_mpostal_show(content = "no content"):
     call mas_showpoem(store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
     return
         
+label maica_mpostal_show_backtoscreen(content = "no content"):
+    call maica_mpostal_show(content)
+    return
+
+label maica_mpostal_show_mpscreen:
+    show screen maica_mpostals
+    return
+
+init 999 python:
+    @store.mas_submod_utils.functionplugin("maica_mpostal_show_backtoscreen")
+    def _backtompmenu():
+        if not mas_inEVL("maica_mpostal_show_mpscreen") and not renpy.get_screen("maica_mpostals"):
+            MASEventList.push("maica_mpostal_show_mpscreen")
+        return

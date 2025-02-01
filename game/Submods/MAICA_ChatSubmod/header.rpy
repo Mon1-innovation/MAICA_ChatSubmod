@@ -296,6 +296,8 @@ init 10 python:
             store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
             store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
+            store.mas_submod_utils.submod_log.info("maica_wants_mpostal seen {}".format(renpy.seen_label('maica_wants_mpostal')))
+
 
         except Exception as e:
             store.mas_submod_utils.submod_log.error("Failed to get event stat: {}".format(e))
@@ -555,8 +557,10 @@ screen maica_triggers():
 
 screen maica_mpostals():
     python:
+        import time
         submods_screen = store.renpy.get_screen("submods", "screens")
         maica_triggers = store.maica.maica.mtrigger_manager
+        preview_len = 200
         if submods_screen:
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
@@ -592,36 +596,42 @@ screen maica_mpostals():
                     xfill True
                     yfill False
                     hbox:
-                        text "total: " + str(len(persistent._maica_send_or_received_mpostals))
+                        textbutton _("{size=15}因能力有限, 阅读信件后信件列表将在返回太空教室后重新显示.")
+                            
+
                     hbox:
                         text ""
                     for postal in persistent._maica_send_or_received_mpostals:
                         label postal["raw_title"]
-                        text "responsed_status: " + postal["responsed_status"]:
-                            size 20                       
-                        text "time: " + postal["time"]:
-                            size 20
-                        text "player content: \n" + postal["raw_content"]:
+                        text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
+                            size 10                       
+                        text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"][:-3]))):
+                            size 10
+                        text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  "") + "\n":
                             size 15
-                        text "MAICA response: \n" + postal["responsed_content"]:
-                            size 15
-                        textbutton "删除":
-                            action Function(_delect_portal, postal["raw_title"])
-                        
                         if postal["responsed_content"] != "":
-                            textbutton "阅读":
+                            text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  ""):
+                                size 15
+                        hbox:
+                            textbutton _("阅读[player]写的信"):
                                 action [
                                         Hide("maica_mpostals"),
                                         Hide("maica_setting"),
                                         Function(store.maica_apply_setting),
-                                        Function(mas_jump_with_args, "maica_mpostal_show", content = postal["responsed_content"])
+                                        Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["raw_content"])
                                 ]
-
-
-                        
-                        
-
-
+                            if postal["responsed_content"] != "":
+                                textbutton _("阅读[m_name]的回信"):
+                                    action [
+                                            Hide("maica_mpostals"),
+                                            Hide("maica_setting"),
+                                            Function(store.maica_apply_setting),
+                                            Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
+                                    ]
+                            hbox:
+                                textbutton _("删除"):
+                                    action Function(_delect_portal, postal["raw_title"])
+                            
             hbox:
                 style_prefix "confirm"
                 textbutton _("关闭"):
@@ -964,8 +974,7 @@ screen maica_setting():
                                         Function(store.MASEventList.push, "maica_mpostal_load")
                                     ]
                             
-                            textbutton "查看mpostals":
-                                action Show("maica_mpostals")
+                            
 
                     hbox:
                         text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
@@ -978,6 +987,9 @@ screen maica_setting():
                     
                     hbox:
                         text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]")
+                    
+                    hobx:
+                        text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]")
 
                     hbox:
                         text _("当前用户: [store.maica.maica.user_acc]")
@@ -1124,6 +1136,9 @@ screen maica_setting():
                     hbox:
                         textbutton _("MTrigger 列表"):
                             action Show("maica_triggers")
+                        
+                        textbutton _("查看MPostals往来信件"):
+                                action Show("maica_mpostals")
 
 
 
