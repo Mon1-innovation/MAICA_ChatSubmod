@@ -799,6 +799,11 @@ init 5 python:
     def push_mpostal():
         if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_received")
+    
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
+    def push_mpostal_read():
+        if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+            return MASEventList.queue("maica_mpostal_read")
 # 目前MPostal使用session0
 label maica_mpostal_received:
     $ ev = mas_getEV("maica_mpostal_received")
@@ -818,7 +823,7 @@ label maica_mpostal_received:
         m 5ekbsa "你就是不会腻, 对吧? {w=0.5}我也一样!"
     m 4eub "我一定会抽空仔细读的!"
     m 4kub "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
-    return "no_unlock"
+    return "no_unlock|pause: 60"
 
 init 5 python:
     addEvent(
