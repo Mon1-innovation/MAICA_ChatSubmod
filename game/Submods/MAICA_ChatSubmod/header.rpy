@@ -10,7 +10,7 @@ init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
         store.sup_utils.SubmodUpdater(
             submod="MAICA Blessland",
-            user_name="Mon1_Innovation",
+            user_name="Mon1-innovation",
             repository_name="MAICA_ChatSubmod",
             update_dir="",
             attachment_id=None
