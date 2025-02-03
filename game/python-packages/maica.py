@@ -19,7 +19,7 @@ def milliseconds_to_hms(timestamp_ms):
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
-    SUPPORT_BACKEND = 1.0005
+    SUPPORT_BACKEND = 1.0007
     ascii_icon = """                                                             
 
     __  ___ ___     ____ ______ ___ 
