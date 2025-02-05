@@ -1155,7 +1155,7 @@ screen maica_setting():
                         textbutton _("查看MPostals往来信件"):
                             action Show("maica_mpostals")
                         
-                        textbutton _("回信时显示控制台")：
+                        textbutton _("回信时显示控制台"):
                             action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
 
 
