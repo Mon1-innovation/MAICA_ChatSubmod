@@ -33,6 +33,8 @@ Please pardon for not putting an instruction here, since it's an unnecessary tro
 
 Blessland is the Submod frontend of MAICA, a LLM project specially designed for Monika.
 
+This repository introduction is very brief. If this is your first contact with MAICA, consider navigating to the introduction page at https://maica.monika.love/.
+
 > Notice: You'll need an Doki Chinese Club account to use this, refer to [TOS](https://maica.monika.love/tos).
 ![alt text](image1.png)
 ## Features
