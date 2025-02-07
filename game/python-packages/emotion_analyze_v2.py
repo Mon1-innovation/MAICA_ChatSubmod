@@ -150,10 +150,13 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     # excepted = rejected emos, like last used: ['eka']
     # centralization = higher for lower randomness
     weight_sel = []
-    weight_accum = 0
+    weight_rnd = []
+    weight_accum = 0.0
+    crucial_weight = 0.0
     eoc_sig = 0
     eoc_overall_amount = 0
     bypass_eoc = False
+    emotion_filter1 = []
     if eoc:
         for emotion_eoc_checked in excepted:
             if not eoc[emotion_eoc_checked]:
@@ -171,10 +174,21 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
         if eoc_sig and not eoc[key] and not bypass_eoc:
             continue
         if not key in excepted:
-            power = float(emotion_code[key])
+            emotion_filter1.append(emotion_code)
+    for emotion_code in emotion_filter1:
+        key = list(emotion_code.keys())[0]
+        power = float(emotion_code[key])
+        weight_rnd.append(abs(power - strength))
+    weight_rnd.sort()
+    crucial_weight = weight_rnd[min(4, max(int(len(weight_rnd)/2), 2), len(weight_rnd)-1)]
+    for emotion_code in emotion_filter1:
+        key = list(emotion_code.keys())[0]
+        power = float(emotion_code[key])
+        if abs(power - strength) <= crucial_weight:
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
             weight_sel.append({key: weight_accum})
+
     rand = random.random() * weight_accum
     pointer = {"placeholder": rand}
     weight_sel.insert(0, pointer)
