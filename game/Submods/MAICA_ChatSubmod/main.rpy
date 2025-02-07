@@ -237,7 +237,11 @@ label maica_mpostal_read:
             if cur_postal["responsed_status"] != "notupload":
                 continue
             start_time = time.time()
-            ai.start_MPostal(cur_postal["raw_title"], cur_postal["raw_content"])
+            ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"])
+            not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
+            current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
+
+            ai.send_to_outside_func("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))            
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.is_responding():
                     gentime = time.time()

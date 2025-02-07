@@ -530,7 +530,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.senddata_queue.put(
                 {
                     "header": title,
-                    "content": key_replace(content, chinese_to_english_punctuation)
+                    "content": key_replace(content, chinese_to_english_punctuation),
+                    "bypass_mt": True
                 }
             )
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL
@@ -604,10 +605,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             json.dumps(dict, ensure_ascii=False) 
                         )
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL:
-                        if PY2:
-                            message = str(self.senddata_queue.get()).decode().strip()
-                        else:
-                            message = str(self.senddata_queue.get()).strip()
+                        #if PY2:
+                        #    message = str(self.senddata_queue.get()).decode().strip()
+                        #else:
+                        #    message = str(self.senddata_queue.get()).strip()
+                        message = self.senddata_queue.get()
                         dict = {"type": "query", "chat_session":0, "postmail":message}
                         if self.enable_strict_mode and self.ws_cookie != "":
                             dict["cookie"] = self.ws_cookie
@@ -984,6 +986,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         Raises:
             无
         """
+        #self.__accessable = True
+        #self.status = self.MaicaAiStatus.NOT_READY
+        #return
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
             logger.error("accessable(): certifi auto fix, need restart")
             self.__accessable = False
