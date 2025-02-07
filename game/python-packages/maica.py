@@ -766,7 +766,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if len(self.message_list) == 0:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
-                        self._append_to_message_list(res)
+                        res = self.MoodStatus.analyze(res)
+                        emote = self.MoodStatus.get_emote()
+                        self._append_to_message_list(emote,res)
             if data['status'] == "reply": # MPostal
                  self._append_to_message_list('1eua', self.MoodStatus.analyze(data['content']))
             if data['status'] == "savefile_notfound":
