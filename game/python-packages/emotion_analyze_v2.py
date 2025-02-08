@@ -85,8 +85,12 @@ class EmoSelector:
         # 正则表达式模式
         pattern = r'\[(.*?)\]' if PY3 else ur'\[(.*?)\]'
         # Filter emojis
-        bad_pattern = r'(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]' if PY3 else ur'(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]'
-        #message = re.sub(bad_pattern, '', message)
+        if PY3:
+            bad_pattern = r'(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]' 
+        else:
+            import datapy2
+            bad_pattern = datapy2.bad_pattern
+        message = re.sub(bad_pattern, '', message)
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
         m = 0.25
