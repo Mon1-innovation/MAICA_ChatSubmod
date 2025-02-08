@@ -84,6 +84,9 @@ class EmoSelector:
         import re
         # 正则表达式模式
         pattern = r'\[(.*?)\]'
+        # Filter emojis
+        bad_pattern = r'[\U0001f0a0-\U0001f0ff\U0001f170-\U0001f19a\U0001f300-\U0001faff\u2190-\u21FF\u2300-\u23FF\u2500-\u26FF\u2700-\u27BF\u27F0-\u27FF\u2900-\u297F\u2B00-\u2BFF]+'
+        message = re.sub(bad_pattern, '', message)
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
         m = 0.25
