@@ -277,6 +277,9 @@ init -700 python:
             if filename.endswith('.mail'):
                 return True
 
+    import os
+    import chardet
+
     def find_mail_files():
         """
         查找邮件文件。
@@ -293,18 +296,23 @@ init -700 python:
                 # 获取完整文件路径
                 file_path = os.path.join(basedir, filename)
                 
-                # 读取文件内容
-                with open(file_path, 'r') as file:
+                # 检测并读取文件内容
+                with open(file_path, 'rb') as file:  # Read in binary mode for chardet
+                    raw_data = file.read()
+                    result = chardet.detect(raw_data)
+                    encoding = result['encoding']
+
+                with open(file_path, 'r', encoding=encoding) as file:
                     content = file.read()
-                
+
                 # 去掉后缀添加到结果列表
                 file_name_without_extension = os.path.splitext(filename)[0]
                 mail_files.append((file_name_without_extension, content))
+
                 # 删除文件
                 os.remove(file_path)
 
-        return mail_files
-
+        return mail_files    d
     def has_mail_waitsend():
         for i in persistent._maica_send_or_received_mpostals:
             if i["responsed_status"] == "notupload":
