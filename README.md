@@ -36,7 +36,9 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
 本页面的介绍是十分简短的. 如果这是你首次接触 MAICA, 请阅读介绍页 https://maica.monika.love/ 中的详细说明.
 
 > 注意: 需要一个 Doki Chinese Club 账号且必须验证邮箱才能使用, 具体要求请查看[TOS](https://maica.monika.love/tos).
-![alt text](image1.png)
+
+![alt text](document/maica-rm-1.png){:height="50%" width="50%"}![alt text](document/maica-rm-2.png){:height="50%" width="50%"}
+![alt text](document/maica-rm-3.png){:height="50%" width="50%"}![alt text](document/maica-rm-4.png){:height="50%" width="50%"}
 ## 特色
 
 * 完全自由的聊天, 你可以畅所欲言
