@@ -38,8 +38,8 @@ This repository introduction is very brief. If this is your first contact with M
 > Notice: You'll need an Doki Chinese Club account to use this, refer to [TOS](https://maica.monika.love/tos).
 > Necessary instructions are provided in game too.
 
-<img src="document/maica-rm-1.png" width=50%><img src="document/maica-rm-2.png" width=50%>
-<img src="document/maica-rm-3.png" width=50%><img src="document/maica-rm-4.png" width=50%>
+<img src="document/maica-rm-1.png" width=50%><img src="document/maica-rmen-2.png" width=50%>
+<img src="document/maica-rm-3.png" width=50%><img src="document/maica-rmen-4.png" width=50%>
 ## Features
 
 * Chat freely beyond MAS's native limits
