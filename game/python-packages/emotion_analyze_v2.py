@@ -86,7 +86,7 @@ class EmoSelector:
         pattern = r'\[(.*?)\]'
         # Filter emojis
         bad_pattern = r'(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]'
-        message = re.sub(bad_pattern, '', message)
+        #message = re.sub(bad_pattern, '', message)
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
         m = 0.25
