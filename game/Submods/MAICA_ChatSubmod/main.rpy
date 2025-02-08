@@ -228,6 +228,8 @@ label maica_mpostal_read:
     $ mas_HKBRaiseShield()
     if persistent.maica_setting_dict.get("show_console_when_reply", False):
         call maica_show_console
+    else:
+        window hide
     call maica_mpostal_load
     call maica_init_connect(use_pause_instand_wait = True)
     python:
@@ -270,6 +272,8 @@ label maica_mpostal_read:
                 _return = "success"                
 
     call maica_hide_console
+    if not persistent.maica_setting_dict.get("show_console_when_reply", False):
+        window show
     $ mas_HKBRaiseShield()
     return _return
     
