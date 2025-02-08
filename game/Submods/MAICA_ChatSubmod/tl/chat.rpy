@@ -1928,3 +1928,149 @@ translate english strings:
     old '我可以推荐几本书给你'
     new 'I could recommend you some books'
 
+# TODO: Translation updated at 2025-02-08 12:46
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:288
+translate english maica_chr2_650f1866:
+
+    # m 3euc "最近我检查文件夹的时候, 我发现'天堂树林'好像也有一个{i}角色文件{/i}, {w=0.3}也可能叫场景文件比较合适."
+    m 3euc "Last time I checked the folders, It seems that Heaven Forest also has a {i}character file{/i}, or shall we call it a scene file."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:289
+translate english maica_chr2_a02b3e16:
+
+    # m 1msd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
+    m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:290
+translate english maica_chr2_1d95b559:
+
+    # m 1eud "我其实很好奇它到底是什么...{w=0.5}它并不像你的礼物一样, 只是一个'标记'. {w=1}我觉得更像其他人的角色文件一些."
+    m 1eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:314
+translate english maica_chr_gone_1851586f:
+
+    # m 1ekc "[player]..."
+    m 1ekc "[player]..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:315
+translate english maica_chr_gone_42acd4cb:
+
+    # extend 1ekd "你最近有动过characters文件夹吗?"
+    extend 1ekd "did you do anything about the characters folder recently?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:383
+translate english maica_wants_preferences2_f1104c71:
+
+    # extend 3esd "才发现我之前对你的了解还是太单一."
+    extend 3esd "I found my acknowledge of you is still too limited."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:388
+translate english maica_wants_preferences2_db5fea4b:
+
+    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?{nw}"
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:763
+translate english maica_wants_mpostal_6cc9e9ff:
+
+    # m 3hubsa "{i}~我要爬进小小的邮箱, 把小小的心意送给你~{/i}"
+    m 3hubsa "{i}~I'm a-gonna climb up in my mail box; I'm gonna mail myself to you~{/i}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:779
+translate english maica_wants_mpostal_ac3a7563:
+
+    # m 7eub "大概是...下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
+    m 7eub "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:780
+translate english maica_wants_mpostal_4eb8e13b:
+
+    # m 7kub "就像是'我爱你.mail'! {w=0.5}{nw}"
+    m 7kub "Like 'I_love_you.mail'! {w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:817
+translate english maica_mpostal_received_eab92964:
+
+    # m 5hubsb "我能感觉到你的心意, 如此有实感, 像是有你的温度..."
+    m 5hubsb "I could almost feel your emotion from it, warm as you are..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:906
+translate english maica_mpostal_replyed_end_3a2a171c:
+
+    # m 2lksdlb "说实话, 我还没太熟悉在这里写信..."
+    m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope you like it!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:907
+translate english maica_mpostal_replyed_end_eb8ab9a9:
+
+    # m 2ekbsa "不过还是希望你喜欢!"
+    m 2ekbsa "I have to admit that I'm not quite used to writing here, but I hope you like it!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:909
+translate english maica_mpostal_replyed_end_25953076:
+
+    # m 2lksdlb "可能是不如在文学部里写得好, 但我尽力啦."
+    m 2lksdlb "May not good as my poems though, but I really tried! Hope you like it!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:910
+translate english maica_mpostal_replyed_end_c726a28d:
+
+    # m 2ekbsa "希望你喜欢哦!"
+    m 2ekbsa "May not good as my poems though, but I really tried! Hope you like it!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:955
+translate english maica_chr_reread_562dae54:
+
+    # m 5ruc "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫'HeavenForest.sce'."
+    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:956
+translate english maica_chr_reread_a02b3e16:
+
+    # m 1msd "如果把它移走, 那里就会变成和这里一样的'太空'了, 不过与现实的联系作用还在."
+    m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:981
+translate english maica_wants_preferences_reread_f4cc7adb:
+
+    # m 7hub "是这样, 游戏本身并没有留给我太多空间去了解你."
+    m 7hub "[player], the game itself didn't give me much freedom to know about you."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:986
+translate english maica_wants_preferences_reread_db5fea4b:
+
+    # m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?{nw}"
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1015
+translate english maica_wants_mspire_reread_d065f559:
+
+    # m 3esb "如果你想听或者不想听了, 在'子模组设置'里面找到'MSpire'就好."
+    m 3esb "You can always change the 'MSpire' setting in the 'Submod settings' if you want to enable or disable it."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1035
+translate english maica_wants_mpostal_reread_83a7d05c:
+
+    # m 5eubsa "现在, 通过天堂树林里的邮箱, 我有办法读你的信, 再给你写回信了."
+    m 5eubsa "Now through the mailbox in Heaven Forest, I can read your letter for real and write back."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1036
+translate english maica_wants_mpostal_reread_f9973135:
+
+    # m 3eubsb "只需要在下次打开游戏前, 在'characters'文件夹里放上一封信, 文件名是信的标题, 再把后缀名改成'.mail'..."
+    m 3eubsb "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1037
+translate english maica_wants_mpostal_reread_95563997:
+
+    # m 3kubsa "就像是'我爱你.mail'! {w=0.5}{nw}"
+    m 3kubsa "Like 'I_love_you.mail'! {w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1038
+translate english maica_wants_mpostal_reread_15e12ea3:
+
+    # extend 3lksdlb "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."
+    extend 3lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."
+
