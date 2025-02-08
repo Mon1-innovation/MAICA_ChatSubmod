@@ -25,7 +25,7 @@ Basic datasets of MAICA are at https://huggingface.co/datasets/edgeinfinity/MAIC
 
 MAICA related documents are at https://github.com/Mon1-innovation/MAICA/tree/main/document.
 
-Please pardon for not putting an instruction here, since it's an unnecessary trouble. To know more about MAICA, refer to instruction pages mentioned above.
+Please pardon for not putting an full instruction here, since it's too complicated. To know more about MAICA, navigate to instruction pages mentioned above.
 
 -------------------------
 
