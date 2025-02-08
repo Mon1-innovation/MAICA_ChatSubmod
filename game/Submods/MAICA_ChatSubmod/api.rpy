@@ -296,23 +296,26 @@ init -700 python:
                 # 获取完整文件路径
                 file_path = os.path.join(basedir, filename)
                 
-                # 检测并读取文件内容
-                with open(file_path, 'rb') as file:  # Read in binary mode for chardet
+                # 读取文件内容并检测编码
+                with open(file_path, 'rb') as file:
                     raw_data = file.read()
-                    result = chardet.detect(raw_data)
-                    encoding = result['encoding']
-
-                with open(file_path, 'r', encoding=encoding) as file:
-                    content = file.read()
-
+                    encoding = chardet.detect(raw_data)['encoding']
+                    
+                    # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
+                    if encoding is None:
+                        encoding = 'utf-8'
+                    
+                    # 解码文件内容
+                    content = raw_data.decode(encoding)
+                
                 # 去掉后缀添加到结果列表
                 file_name_without_extension = os.path.splitext(filename)[0]
                 mail_files.append((file_name_without_extension, content))
-
+                
                 # 删除文件
                 os.remove(file_path)
 
-        return mail_files    d
+        return mail_files
     def has_mail_waitsend():
         for i in persistent._maica_send_or_received_mpostals:
             if i["responsed_status"] == "notupload":
