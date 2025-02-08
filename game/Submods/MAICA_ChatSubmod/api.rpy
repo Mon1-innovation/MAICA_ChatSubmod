@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.2.0'
+    maica_ver = '1.2.1'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
