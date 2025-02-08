@@ -802,7 +802,7 @@ init 5 python:
         if mail_exist() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_received")
     
-    @store.mas_submod_utils.functionplugin("ch30_hour", priority=100)
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
     def push_mpostal_read():
         if has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mspire") and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_read")
