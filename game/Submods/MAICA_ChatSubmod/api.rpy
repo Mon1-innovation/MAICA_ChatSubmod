@@ -312,7 +312,7 @@ init -700 python:
                 # 删除文件
                 os.remove(file_path)
 
-        return mail_files    d
+        return mail_files
     def has_mail_waitsend():
         for i in persistent._maica_send_or_received_mpostals:
             if i["responsed_status"] == "notupload":
