@@ -83,12 +83,13 @@ class EmoSelector:
 
         import re
         # 正则表达式模式
-        pattern = r'\[(.*?)\]' if PY3 else ur'\[(.*?)\]'
         # Filter emojis
         if PY3:
+            pattern = r'\[(.*?)\]'
             bad_pattern = r'(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]' 
         else:
             import datapy2
+            pattern = datapy2.pattern_emotion
             bad_pattern = datapy2.bad_pattern
         message = re.sub(bad_pattern, '', message)
         # 查找所有匹配的内容
