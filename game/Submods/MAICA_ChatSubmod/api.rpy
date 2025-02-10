@@ -269,7 +269,7 @@ init -700 python:
         maica_chr_changed = None
 
     def mail_exist():
-        basedir = os.path.join(renpy.config.basedir, "characters")
+        basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
         mail_files = []
 
         # 遍历目录中的文件
@@ -287,7 +287,7 @@ init -700 python:
         :return: 邮件文件列表，(title, content)
         """
 
-        basedir = os.path.join(renpy.config.basedir, "characters")
+        basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
         mail_files = []
 
         # 遍历目录中的文件
