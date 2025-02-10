@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.2.5'
+    maica_ver = '1.2.6'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -269,7 +269,7 @@ init -700 python:
         maica_chr_changed = None
 
     def mail_exist():
-        basedir = os.path.join(renpy.config.basedir, "characters")
+        basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
         mail_files = []
 
         # 遍历目录中的文件
@@ -287,7 +287,7 @@ init -700 python:
         :return: 邮件文件列表，(title, content)
         """
 
-        basedir = os.path.join(renpy.config.basedir, "characters")
+        basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
         mail_files = []
 
         # 遍历目录中的文件
@@ -331,6 +331,10 @@ init 999 python:
             if persistent.maica_setting_dict['max_history_token'] > 4096:
                 persistent.maica_setting_dict['max_history_token'] = 4096
             maica_reset_setting()
+
+        def migration_1_2_7():
+            import logging
+            persistent.maica_setting_dict['log_level'] = logging.DEBUG
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
