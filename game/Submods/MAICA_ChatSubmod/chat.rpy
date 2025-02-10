@@ -890,14 +890,28 @@ label maica_mpostal_replyed.start:
         m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
         $ _reset_failed_mp()
         return "no_unlock"
-    elif current["responsed_status"] == "received":
+    elif current["responsed_status"] == "received" or current["responsed_status"] == "unsent":
+        if current["responsed_status"] == "unsent":
+            pass
+            #最好在这里就把信发出去等回调
         if not morethan1:
             m 7hub "对了, [player]! {w=0.5}我给你的回信写完了!"
             $ morethan1 = True
         else:
             m 7husdlb ".{w=0.3}.{w=0.3}.这里还有一封!"
-        m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
-        m 3hubsa "好了!"#微笑
+        if current["responsed_status"] == "received":
+            m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
+            m 3hubsa "好了!"#微笑
+        elif current["responsed_status"] == "unsent":
+            if not morethan1:
+                m "这封可能要多等一会, 我还没...{w=0.2}完全准备好."#尴尬
+                m "我去去就回, 等我哦~"#微笑
+            else:
+                m "等我去准备一下这封..."#微笑
+            #黑屏 省略号加载 拖到回调
+            #如果不好做预载的话直接在这开始加载也行
+            m "好了!"
+            #退出黑屏
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
     jump maica_mpostal_replyed.select_little
