@@ -243,7 +243,8 @@ label maica_mpostal_read:
             not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
             current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
-            ai.send_to_outside_func("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))            
+            ai.send_to_outside_func("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
+            cur_postal["responsed_status"] = "failed"            
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.is_responding():
                     gentime = time.time()
@@ -255,7 +256,7 @@ label maica_mpostal_read:
                     ai.status, ai.len_message_queue(),
                     round(gentime - start_time)
                     ))
-                if ai.is_failed():
+                if ai.is_failed() or not ai.is_ready_to_input():
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
                         _return = "failed"
