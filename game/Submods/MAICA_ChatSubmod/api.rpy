@@ -23,7 +23,7 @@ default persistent._maica_send_or_received_mpostals = []
 #    "raw_title":"",
 #    "raw_content":"",
 #    "responsed_content": "",
-#    "responsed_status":"notupload|delaying|received|readed|failed"
+#    "responsed_status":"delaying|notupload|received|readed|failed"
 #}
 
 init 5 python in maica:
@@ -317,10 +317,11 @@ init -700 python:
 
         return mail_files
     def has_mail_waitsend():
+        num = 0
         for i in persistent._maica_send_or_received_mpostals:
             if i["responsed_status"] == "notupload":
-                return True
-        return False
+                num += 1
+        return num
 
 init 999 python:
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)

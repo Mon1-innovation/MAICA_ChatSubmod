@@ -850,6 +850,41 @@ init 5 python:
     def push_mpostal_reply():
         if is_mail_waiting_reply() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_replyed"):
             return MASEventList.queue("maica_mpostal_replyed")
+
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def mpostal_delaying_check_and_set():
+        import time, datetime
+        def_min_response_time = 60 * 60 * 12 # 12h
+        wait_replying_count = 0
+        for i in persistent._maica_send_or_received_mpostals:
+            min_response_time = def_min_response_time
+            # 超过三封信
+            if wait_replying_count > 3:
+                min_response_time *= 2
+            if i["responsed_status"] == "delaying":
+                # 时间计算
+                last_sesh_ed = persistent.sessions.get("last_session_end", datetime.datetime.now())
+
+                # 当距离last_sesh_ed超过5小时时
+                if (datetime.datetime.now() - last_sesh_ed).total_seconds() > 60 * 60 * 3:
+                    min_response_time *= 0.65
+                # 当距离last_sesh_ed超过1小时时
+                elif (datetime.datetime.now() - last_sesh_ed).total_seconds() > 60 * 60:
+                    min_response_time *= 0.8
+
+                # 当写信时间距离现在超过min_response_time，设置为notupload
+                if time.time() - i['time'] > min_response_time:
+                    i["responsed_status"] = "notupload"
+                
+
+            elif i["responsed_status"] in ("received", "failed"):
+                wait_replying_count += 1
+
+        return
+                
+
+
+
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
     $ ev = mas_getEV("maica_mpostal_replyed")
@@ -875,7 +910,7 @@ label maica_mpostal_replyed.select_little:
     $ current = None
     python:
         for little in persistent._maica_send_or_received_mpostals:
-            if little["responsed_status"] in ["received", "failed"]:
+            if little["responsed_status"] in ["received", "failed", "notupload"]:
                 current = little
                 break
     if current is None:
@@ -890,10 +925,7 @@ label maica_mpostal_replyed.start:
         m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
         $ _reset_failed_mp()
         return "no_unlock"
-    elif current["responsed_status"] == "received" or current["responsed_status"] == "unsent":
-        if current["responsed_status"] == "unsent":
-            pass
-            #最好在这里就把信发出去等回调
+    elif current["responsed_status"] == "received" or current["responsed_status"] == "notupload":
         if not morethan1:
             m 7hub "对了, [player]! {w=0.5}我给你的回信写完了!"
             $ morethan1 = True
@@ -902,16 +934,16 @@ label maica_mpostal_replyed.start:
         if current["responsed_status"] == "received":
             m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."#闭眼
             m 3hubsa "好了!"#微笑
-        elif current["responsed_status"] == "unsent":
+        elif current["responsed_status"] == "notupload":
             if not morethan1:
                 m "这封可能要多等一会, 我还没...{w=0.2}完全准备好."#尴尬
                 m "我去去就回, 等我哦~"#微笑
             else:
                 m "等我去准备一下这封..."#微笑
-            #黑屏 省略号加载 拖到回调
-            #如果不好做预载的话直接在这开始加载也行
+            show black with dissolve
+            call maica_mpostal_read
             m "好了!"
-            #退出黑屏
+            hide black with dissolve
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
     jump maica_mpostal_replyed.select_little

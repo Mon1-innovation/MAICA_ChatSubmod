@@ -180,7 +180,7 @@ label maica_mpostal_load:
                         "raw_content":item[1],
                         "time": str(time.time()),
                         "responsed_content": "",
-                        "responsed_status":"notupload"
+                        "responsed_status":"delaying"
                     }
                 )
     return
