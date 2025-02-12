@@ -942,6 +942,10 @@ label maica_mpostal_replyed.start:
                 m "等我去准备一下这封..."#微笑
             show black with dissolve
             call maica_mpostal_read
+            if _return == "failed":
+                hide black with dissolve
+                # 直接重新开始, 失败的信会提示失败, 理论应与current一致
+                jump maica_mpostal_replyed.select_little
             m "好了!"
             hide black with dissolve
         call maica_mpostal_show(current["responsed_content"])
