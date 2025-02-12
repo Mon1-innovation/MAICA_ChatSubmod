@@ -209,6 +209,7 @@ label maica_init_connect(use_pause_instand_wait = False):
                 continue
             if ai.is_ready_to_input():
                 store.mas_ptod.write_command("Login successful, ready to chat!")
+                _return = "success"
                 break
             elif ai.is_failed():
                 if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
@@ -232,6 +233,9 @@ label maica_mpostal_read:
         window hide
     call maica_mpostal_load
     call maica_init_connect(use_pause_instand_wait = True)
+    if _return == "disconnected":
+        jump maica_mpostal_read.failed
+
     python:
         ai = store.maica.maica
         import time
@@ -272,6 +276,7 @@ label maica_mpostal_read:
                 cur_postal["responsed_status"] = "received"
                 _return = "success"                
 
+label maica_mpostal_read.failed:
     call maica_hide_console
     if not persistent.maica_setting_dict.get("show_console_when_reply", False):
         window show
