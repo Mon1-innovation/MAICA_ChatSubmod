@@ -293,6 +293,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.ws_cookie = ""
         self.enable_strict_mode = False
+        self.workload_raw = {
+            "None":{
+                "0": {
+                    "name": "Super PP",
+                    "vram": "100000 MiB",
+                    "mean_utilization": 0,
+                    "mean_memory": 21811,
+                    "mean_consumption": 100
+                },
+            }
+        }
 
 
     def reset_stat(self):
@@ -942,6 +953,66 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.history_status = None
         self.wss_session.close()
 
+    def update_workload(self):
+        """
+        更新工作负载信息（后台执行）。
+
+        Args:
+            无。
+
+        Returns:
+            threading.Thread对象，可以用于检查线程的状态。
+        """
+        import requests
+        import threading
+        if not self.__accessable:
+            logger.error("Maica is not serving")
+            return None
+
+        def task():
+            res = requests.post("https://maicadev.monika.love/api/workload")
+            if res.status_code == 200:
+                data = res.json()
+                if data["success"]:
+                    self.workload_raw = data["workload"]
+                logger.info("Workload updated successfully.")
+            else:
+                logger.error("Failed to update workload.")
+
+        thread = threading.Thread(target=task)
+        thread.daemon = True  # Optional: allow the program to exit even if the thread is running
+        thread.start()
+        return thread
+
+    def get_workload_lite(self):
+        """
+        获取最高负载设备的占用
+        
+        Args:
+            无。
+        
+        Returns:
+            工作负载信息简化版。
+        
+        """
+
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
+        data = {
+            "max_usage": 0,
+            "total_vmem": 0,
+            "total_inuse_vmem": 0,
+            "total_w": 0
+        }
+        for item in self.workload_raw:
+            for card in item:
+                if card["mean_utilization"] > data["max_usage"]:
+                    data["max_usage"] = card["mean_utilization"]
+                data["total_vmem"] += int(card["vram"][:-3].strip())
+                data["total_inuse_vmem"] += card["mean_memory"]
+                data["total_w"] += card["mean_consumption"]
+        return data
+
     def close_wss_session(self):
         """
         关闭WebSocket会话。
@@ -1031,6 +1102,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):
         self.status = status_code
         self.__accessable = False
+
+
 
             
 
