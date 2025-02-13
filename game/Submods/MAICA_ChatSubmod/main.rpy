@@ -33,7 +33,8 @@ label maica_talking(mspire = False):
             if not ai.is_ready_to_input() and not ai.is_failed():
                 store.mas_ptod.write_command("Wait login...")
                 renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                _history_list.pop()
+                if len(_history_list):
+                    _history_list.pop()
                 continue
             if ai.is_ready_to_input() and not printed:
                 store.mas_ptod.write_command("Login successful, ready to chat!")
@@ -117,7 +118,8 @@ label maica_talking(mspire = False):
                     #renpy.show(monika 1eua)
                     store.mas_ptod.write_command("Wait message...")
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                    _history_list.pop()
+                    if len(_history_list):
+                        _history_list.pop()
                     continue    
                 message = ai.get_message()
                 store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}'".format(message[0], message[1]))
@@ -205,7 +207,8 @@ label maica_init_connect(use_pause_instand_wait = False):
                     renpy.pause(1.0)
                 else:
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                    _history_list.pop()
+                    if len(_history_list):
+                        _history_list.pop()
                 continue
             if ai.is_ready_to_input():
                 store.mas_ptod.write_command("Login successful, ready to chat!")
