@@ -296,7 +296,30 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.workload_raw = {
             "None":{
                 "0": {
-                    "name": "Super PP",
+                    "name": "Super PP 0",
+                    "vram": "100000 MiB",
+                    "mean_utilization": 100,
+                    "mean_memory": 21811,
+                    "mean_consumption": 100
+                },                
+                "1": {
+                    "name": "Super PP 1",
+                    "vram": "100000 MiB",
+                    "mean_utilization": 0,
+                    "mean_memory": 21811,
+                    "mean_consumption": 100
+                },
+            },
+            "None2":{
+                "0": {
+                    "name": "Super PP 2",
+                    "vram": "100000 MiB",
+                    "mean_utilization": 0,
+                    "mean_memory": 21811,
+                    "mean_consumption": 100
+                },                
+                "1": {
+                    "name": "Super PP 3",
                     "vram": "100000 MiB",
                     "mean_utilization": 0,
                     "mean_memory": 21811,
@@ -975,7 +998,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 data = res.json()
                 if data["success"]:
                     self.workload_raw = data["workload"]
-                logger.info("Workload updated successfully.")
+                logger.debug("Workload updated successfully.")
             else:
                 logger.error("Failed to update workload.")
 
@@ -996,22 +1019,43 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
         """
 
-        if not self.__accessable:
-            return logger.error("Maica is not serving")
         data = {
+            "avg_usage": 0,
             "max_usage": 0,
             "total_vmem": 0,
             "total_inuse_vmem": 0,
-            "total_w": 0
+            "total_w": 0,
+            "mem_pencent":0
         }
-        for item in self.workload_raw:
-            for card in item:
-                if card["mean_utilization"] > data["max_usage"]:
-                    data["max_usage"] = card["mean_utilization"]
-                data["total_vmem"] += int(card["vram"][:-3].strip())
-                data["total_inuse_vmem"] += card["mean_memory"]
-                data["total_w"] += card["mean_consumption"]
+        if not self.__accessable:
+            return data
+    # Use iteritems() for Python 2
+        avgcount = 0
+        if PY2:
+            for group in self.workload_raw.itervalues():
+                for card in group.itervalues():
+                    if card["mean_utilization"] > data["max_usage"]:
+                        data["max_usage"] = card["mean_utilization"]
+                    data["avg_usage"] += card["mean_utilization"]
+                    avgcount+=1
+                    data["total_vmem"] += int(card["vram"][:-4].strip())
+                    data["total_inuse_vmem"] += card["mean_memory"]
+                    data["total_w"] += card["mean_consumption"]
+        elif PY3:
+            for group in self.workload_raw.values():
+                for card in group.values():
+                    if card["mean_utilization"] > data["max_usage"]:
+                        data["max_usage"] = card["mean_utilization"]
+                    data["avg_usage"] += card["mean_utilization"]
+                    avgcount+=1
+                    data["total_vmem"] += int(card["vram"][:-4].strip())
+                    data["total_inuse_vmem"] += card["mean_memory"]
+                    data["total_w"] += card["mean_consumption"]
+        if avgcount > 0:
+            data["avg_usage"] /= avgcount
         return data
+
+    
 
     def close_wss_session(self):
         """

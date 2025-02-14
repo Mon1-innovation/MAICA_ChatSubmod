@@ -156,7 +156,12 @@ init 5 python in maica:
         except:
             store.mas_submod_utils.submod_log.warning("MAICA: Check Version Failed")
             return None
-
+    @store.mas_submod_utils.functionplugin("ch30_minute", priority=-100)
+    def check_workload():
+        try:
+            store.maica.maica.update_workload()
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
         import time
@@ -215,7 +220,23 @@ init 5 python in maica:
             store.mas_lockEVL("maica_main", "EVE")
         else:
             store.mas_unlockEVL("maica_greeting", "GRE")
-                
+        check_workload()
+
+    def progress_bar(percentage, current=None, total=None, bar_length=20):
+        # Calculate the number of filled positions in the progress bar
+        filled_length = int(round(bar_length * percentage / 100.0))
+        
+        # Generate the progress bar string
+        bar = '▇' * filled_length + '▁' * (bar_length - filled_length)
+        
+        # Format the output string based on the presence of total
+        if total is not None:
+            return '|{}| {}% | {} / {}'.format(bar, int(percentage), current, total)
+        elif current is not None:
+            return '|{}| {}% | {}'.format(bar, int(percentage), current)
+        else:
+            return '|{}| {}%'.format(bar, int(percentage))
+
 
 init -700 python:
     maica_can_update_cacert = False

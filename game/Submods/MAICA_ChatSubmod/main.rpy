@@ -2,6 +2,9 @@ label maica_talking(mspire = False):
     if persistent.maica_setting_dict['console']:
         show monika at t22
         show screen mas_py_console_teaching
+    call maica_init_connect(use_pause_instand_wait = True)
+    if _return == "disconnected":
+        return "disconnected"
     python:
         import time
         import copy
@@ -9,48 +12,13 @@ label maica_talking(mspire = False):
         from maica_mtrigger import MTriggerAction 
         import traceback
         ai.content_func = store.mas_ptod._update_console_history
-        ai.send_to_outside_func(ai.ascii_icon)
         store.action = {}
         if mspire:
             ai.send_to_outside_func("<submod> MSpire init...")
-        if persistent.maica_setting_dict['console']:
-            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
-        if not ai.is_connected():
-            ai.init_connect()
         printed = False
         is_retry_before_sendmessage = False
         while True:
-            if not ai.is_connected():
-                store.mas_ptod.write_command("Init Connecting...")
-                renpy.pause(0.3, True)
-                if not ai.is_failed():
-                    continue
-            if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
-                ai.init_connect()
-                renpy.pause(0.3, True)
-                store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
-            if not ai.is_ready_to_input() and not ai.is_failed():
-                store.mas_ptod.write_command("Wait login...")
-                renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
-                if len(_history_list):
-                    _history_list.pop()
-                continue
-            if ai.is_ready_to_input() and not printed:
-                store.mas_ptod.write_command("Login successful, ready to chat!")
-                printed = True
-            if ai.is_failed():
-                if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
-                    store.mas_ptod.write_command("Login failed, please check your token.")
-                elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
-                    store.mas_ptod.write_command("Savedata not found, please check your setting.")
-                else:
-                    store.mas_submod_utils.submod_log.error("maica_talking:: Unknown Error: ai.is_failed() = {}, ai.status = {}, ai.is_connected() = {}".format(ai.is_failed(), ai.status, ai.is_connected()))
-                    store.mas_ptod.write_command("An error occurred, please check your submog_log.log")
-                renpy.pause(2.0)
-                #renpy.say(m, _("似乎连接出了问题, 一会再试试吧~"))
-                _return = "disconnected"
-                break
             if is_retry_before_sendmessage:
                 ai.chat(is_retry_before_sendmessage)
                 question = is_retry_before_sendmessage
@@ -192,7 +160,6 @@ label maica_init_connect(use_pause_instand_wait = False):
         ai = store.maica.maica
         ai.content_func = store.mas_ptod._update_console_history
         ai.send_to_outside_func(ai.ascii_icon)
-        ai.send_to_outside_func("<submod> MPostal init...")
         if not ai.is_connected():
             ai.init_connect()
         while True:
@@ -225,7 +192,7 @@ label maica_init_connect(use_pause_instand_wait = False):
                 renpy.pause(2.0)
                 _return = "disconnected"
                 break
-
+    call show_workload
     return _return
 
 label maica_mpostal_read:
@@ -263,7 +230,7 @@ label maica_mpostal_read:
                     ai.status, ai.len_message_queue(),
                     round(gentime - start_time)
                     ))
-                if ai.is_failed() or not ai.is_ready_to_input():
+                if ai.is_failed():
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
                         _return = "failed"
@@ -313,3 +280,13 @@ init 999 python:
         if not mas_inEVL("maica_mpostal_show_mpscreen") and not renpy.get_screen("maica_mpostals"):
             MASEventList.push("maica_mpostal_show_mpscreen")
         return
+
+label show_workload:
+    python hide:
+        ai = store.maica.maica
+        ai.send_to_outside_func("<submod> Current Workload")
+        data = ai.get_workload_lite()
+        ai.send_to_outside_func("vrm " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
+        ai.send_to_outside_func("utz " + maica.progress_bar(data["avg_usage"]))
+    return
+

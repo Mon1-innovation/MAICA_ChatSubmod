@@ -637,6 +637,63 @@ screen maica_mpostals():
                 textbutton _("关闭"):
                     action Hide("maica_mpostals")
 
+screen maica_workload_stat():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+        stat = store.maica.maica.workload_raw
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+
+                    for server in stat:
+                        text server:
+                            size 20
+                        text "========================================"
+                        for card in stat[server]:
+                            hbox:
+                                text stat[server][card]["name"]:
+                                    size 15
+                                text store.maica.progress_bar(stat[server][card]["mean_utilization"]):
+                                    size 10
+                                    #font maica_confont
+
+                                text "VRAM: " + str(stat[server][card]["mean_memory"]) + " / " + str(stat[server][card]["vram"]):
+                                    size 10
+                                text renpy.substitute(_("平均功耗: ")) + str(stat[server][card]["mean_consumption"]) + "W":
+                                    size 10
+                        text ""
+
+
+            hbox:
+                textbutton _("关闭"):
+                    style_prefix "confirm"
+                    action Hide("maica_workload_stat")
+
 
 screen maica_log():
     python:
@@ -1157,6 +1214,10 @@ screen maica_setting():
                         
                         textbutton _("回信时显示控制台"):
                             action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
+                    
+                    hbox:
+                        textbutton _("查看后端负载"):
+                            action Show("maica_workload_stat")
 
 
 
