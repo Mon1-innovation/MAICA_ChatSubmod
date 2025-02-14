@@ -1018,7 +1018,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_wants_preferences_reread",
             category=["你", "我们", "模组", "MAICA"],
-            prompt="天堂树林的角色文件",
+            prompt="关于补充偏好",
             random=False,
             pool=True,
             conditional="renpy.seen_label('maica_wants_preferences')",
