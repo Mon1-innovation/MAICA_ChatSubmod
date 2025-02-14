@@ -137,18 +137,19 @@ init 10 python:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
         del d['_preferences']
-        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "persistent_filter.json")), "r") as keys:
+        with open(os.path.normpath(os.path.join(maica.maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "persistent_filter.json")), "r") as keys:
             sentiment = json.loads(keys.read())
 
-            for i in d:
+            keys_to_remove = []
+
+            for i in d.keys():  # 使用 d.keys() 以兼容 Python 2
                 if i not in sentiment:
-                    del d[i]
+                    keys_to_remove.append(i)
                     continue
                 try:
                     json.dumps(d[i])
                     if len(d[i]) > maxlen:
                         d[i] = "REMOVED|TOO_LONG"
-
                 except:
                     try:
                         d[i] = str(d[i])
@@ -156,6 +157,9 @@ init 10 python:
                             d[i] = "REMOVED|TOO_LONG"
                     except:
                         d[i] = "REMOVED"
+
+            for key in keys_to_remove:
+                del d[key]
         res = store.maica.maica.upload_save(d)
         if not res.get("success", False):
             store.mas_submod_utils.submod_log.info("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
