@@ -645,6 +645,14 @@ screen maica_workload_stat():
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
             _tooltip = None
+        store.update_interval = 15
+        def check_and_update(use_none = False):
+            import time
+            last = store.maica.last_workload_update + update_interval - time.time()
+            if last < 0:
+                store.maica.last_workload_update = time.time()
+                store.maica.maica.update_workload()
+            return last if not use_none else None # 返回的是剩余时间
 
     modal True
     zorder 215
@@ -688,11 +696,15 @@ screen maica_workload_stat():
                                     size 10
                         text ""
 
+            hbox:
+                text renpy.substitute(_("下次更新数据")) + store.maica.progress_bar(((check_and_update() / store.update_interval)) * 100, bar_length = 90):
+                    size 15
+                timer 0.15 repeat True action Function(check_and_update, use_none = True)
 
             hbox:
                 textbutton _("关闭"):
                     style_prefix "confirm"
-                    action Hide("maica_workload_stat")
+                    action Hide("maica_workload_stat") 
 
 
 screen maica_log():

@@ -156,9 +156,12 @@ init 5 python in maica:
         except:
             store.mas_submod_utils.submod_log.warning("MAICA: Check Version Failed")
             return None
+    import time
+    last_workload_update = time.time()
     @store.mas_submod_utils.functionplugin("ch30_minute", priority=-100)
     def check_workload():
         try:
+            last_workload_update = time.time()
             store.maica.maica.update_workload()
         except Exception as e:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
