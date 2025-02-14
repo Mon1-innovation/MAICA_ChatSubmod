@@ -990,7 +990,7 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_prepend_reread",
+            eventlabel="maica_chr_reread",
             category=["你", "我们", "模组", "MAICA"],
             prompt="天堂树林的角色文件",
             random=False,
