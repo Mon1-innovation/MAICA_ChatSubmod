@@ -116,22 +116,36 @@ init 5 python in maica:
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
     def init_selector():
-        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_selector.json")), "r") as emost:
-            sentiment = json.loads(emost.read())
+        try:
+            with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_selector.json")), "r") as emost:
+                sentiment = json.loads(emost.read())
+        except:
+            import json_exporter
+            sentiment = json_exporter.emotion_selector
         return sentiment
     def init_storage():
-        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_power_storage.json")), "r") as emops:
-            storage = json.loads(emops.read())
+        try:
+            with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_power_storage.json")), "r") as emops:
+                storage = json.loads(emops.read())
+        except:
+            import json_exporter
+            storage = json_exporter.emotion_power_storage
         return storage
-
     def init_sentiment():
-        with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_sentiment.json")), "r") as emost:
-            sentiment = json.loads(emost.read())
+        try:
+            with open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_sentiment.json")), "r") as emost:
+                sentiment = json.loads(emost.read())
+        except:
+            import json_exporter
+            sentiment = json_exporter.emotion_sentiment
         return sentiment
-    
     def init_eoc():
-        with(open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_eoc.json")), "r")) as eocs:
-            eoc = json.loads(eocs.read())
+        try:
+            with(open(os.path.normpath(os.path.join(maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_eoc.json")), "r")) as eocs:
+                eoc = json.loads(eocs.read())
+        except:
+            import json_exporter
+            eoc = json_exporter.emotion_eoc
         return eoc
 
     maica.MoodStatus.selector = init_selector()
