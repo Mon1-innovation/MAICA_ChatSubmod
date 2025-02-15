@@ -358,13 +358,14 @@ init 999 python:
                 persistent.maica_setting_dict['max_history_token'] = 4096
             maica_reset_setting()
 
-        def migration_1_2_7():
+        def migration_1_2_8():
             import logging
             persistent.maica_setting_dict['log_level'] = logging.DEBUG
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
+            ("1.2.8", migration_1_2_8)
         ]
         migration.migrate()
         persistent._maica_last_version = store.maica_ver
