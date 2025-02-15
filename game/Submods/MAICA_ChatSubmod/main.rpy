@@ -286,7 +286,7 @@ label show_workload:
         ai = store.maica.maica
         ai.send_to_outside_func("<submod> Current Workload")
         data = ai.get_workload_lite()
-        ai.send_to_outside_func("vrm " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
-        ai.send_to_outside_func("utz " + maica.progress_bar(data["avg_usage"]))
+        ai.send_to_outside_func("VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
+        ai.send_to_outside_func("UTIL " + maica.progress_bar(data["avg_usage"], str(data["avg_usage"] * 3600 / 100) + "TFlops"))
     return
 
