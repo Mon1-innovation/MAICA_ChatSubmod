@@ -49,6 +49,7 @@ init 10 python:
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
         "log_level":logging.DEBUG,
+        "log_conlevel":logging.DEBUG,
         "provider_id":1 if not renpy.android else 2,
         "max_history_token":4096,
         "status_update_time":0.25,

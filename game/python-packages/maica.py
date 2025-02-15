@@ -171,12 +171,11 @@ class MaicaAi(ChatBotInterface):
         #    cls._descriptions[code] = description
         #    setattr(cls, "{}".format(name), code)
     class ExternalLoggingHandler(logging.Handler):
-        def init(self, maica_console_log_func):
+        def __init__(self, maica_console_log_func):
             self.maica_console_log_func = maica_console_log_func
+            super(MaicaAi.ExternalLoggingHandler, self).__init__()
         def emit(self, record):
-            # 将日志记录格式化为字符串
             log_message = self.format(record)
-            # 调用外部发送函数
             self.maica_console_log_func(log_message)
 
     class MaicaProviderManager:
@@ -335,11 +334,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 },
             }
         }
-        self.console_logger = logging.getLogger(name=None)
+        self.console_logger = logging.getLogger(name="mas_console_logger")
         self.console_logger.setLevel(logging.DEBUG)
-        handler = self.ExternalLoggingHandler(self.send_to_outside_func)
-        handler.setFormatter(logging.Formatter("<{levelname}>|{message}"),style="{")
-        self.console_logger.addHandler(handler)
+        h = self.ExternalLoggingHandler(self.send_to_outside_func)
+        h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
+        self.console_logger.addHandler(h)
 
 
 
@@ -402,9 +401,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return processed_list
         for i in process_lines(l, max_len):
             if PY2:
-                self.content_func(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol).decode())
+                self.content_func(str(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol)).decode())
             elif PY3:
-                self.content_func(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol))
+                self.content_func(str(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol)))
 
     def update_stat(self, new):
         self.stat.update(new)
@@ -843,7 +842,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.close_wss_session()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
-        logger.info("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
+        logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
         self.ws_cookie = ""
         if self.multi_lock.locked():
                 self.multi_lock.release()

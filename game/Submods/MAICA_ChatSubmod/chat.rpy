@@ -188,7 +188,7 @@ label maica_prepend_2:
                     show monika at t22
                     show screen mas_py_console_teaching
                     $ store.maica.maica.content_func = store.mas_ptod._update_console_history
-                    $ store.maica.maica.send_to_outside_func(store.maica.maica.ascii_icon)
+                    $ store.maica.maica.console_logger.critical(store.maica.maica.ascii_icon)
                     $ store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
                     pause 2.3
                 $ store.maica.maica.init_connect()
