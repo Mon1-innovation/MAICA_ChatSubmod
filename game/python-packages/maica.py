@@ -170,6 +170,14 @@ class MaicaAi(ChatBotInterface):
         #        raise ValueError("状态码 {} 已存在，不能重复添加。".format(code))
         #    cls._descriptions[code] = description
         #    setattr(cls, "{}".format(name), code)
+    class ExternalLoggingHandler(logging.Handler):
+        def init(self, maica_console_log_func):
+            self.maica_console_log_func = maica_console_log_func
+        def emit(self, record):
+            # 将日志记录格式化为字符串
+            log_message = self.format(record)
+            # 调用外部发送函数
+            self.maica_console_log_func(log_message)
 
     class MaicaProviderManager:
         isMaicaNameServer = None
@@ -327,6 +335,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 },
             }
         }
+        self.console_logger = logging.getLogger(name=None)
+        self.console_logger.setLevel(logging.DEBUG)
+        handler = self.ExternalLoggingHandler(self.send_to_outside_func)
+        handler.setFormatter(logging.Formatter("<{levelname}>|{message}"),style="{")
+        self.console_logger.addHandler(handler)
+
+
+
 
 
     def reset_stat(self):
@@ -491,7 +507,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.wss_session.run_forever()
         except Exception as e:
             import traceback
-            self.send_to_outside_func("wss_session.run_forever() failed: {}".format(e))
+            self.console_logger.error("wss_session.run_forever() failed: {}".format(e))
             logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
             if self.multi_lock.locked():
@@ -506,11 +522,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
                     if self.def_modelconfig[i][2] == None:
                         logger.warning("modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
-                        self.send_to_outside_func("<submod> modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
+                        self.console_logger.warning("<submod> modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
                         del self.modelconfig[i]
                     else:
                         logger.warning("modelconfig {} is invaild: reset  {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
-                        self.send_to_outside_func("<submod> modelconfig {} is invaild: reset {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
+                        self.console_logger.warning("<submod> modelconfig {} is invaild: reset {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
                         self.modelconfig[i] = self.def_modelconfig[i][2]
             
     def is_responding(self):
@@ -686,13 +702,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             except WebSocketConnectionClosedException as e:
                 import traceback
                 logger.warning("exception is ocurrred (maybe reconnect to fast, will close wss_session): \n{}".format(traceback.format_exc()))
-                self.send_to_outside_func("!!SUBMOD ERROR when send_message: {}".format(e))
+                self.console_logger.error("!!SUBMOD ERROR when send_message: {}".format(e))
                 self.close_wss_session()
                 self.multi_lock.release()
             except Exception as e:
                 import traceback
                 logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
-                self.send_to_outside_func("!!SUBMOD ERROR when send_message: {}".format(e))
+                self.console_logger.error("!!SUBMOD ERROR when send_message: {}".format(e))
         self.wss_thread = threading.Thread(target=send_message)
         self.wss_thread.start()
     _pos = 0
@@ -728,7 +744,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.__on_message(wsapp, message)
         except Exception as e:
             import traceback
-            self.send_to_outside_func("!!SUBMOD ERROR when on_message: {}".format(e))
+            self.console_logger.debug("!!SUBMOD ERROR when on_message: {}".format(e))
             logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
     def __on_message(self, wsapp, message):
         import json, time
@@ -741,9 +757,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             data["content"] if "content" in data else "unknown content"
         ))    
         if data.get("type", False) != "carriage":
-            self.send_to_outside_func("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+            self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
         if 500 <= int(data.get("code", 200)) < 600:
-            self.send_to_outside_func("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
+            self.console_logger.error("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
         if data["status"] == "delete_hint":
@@ -752,15 +768,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.history_status = self.MaicaAiStatus.TOKEN_MAX_EXCEEDED 
         # 错误code处理
         if data.get("status") == "wrong_input":
-            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
+            self.console_logger.error("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
             self.status = self.MaicaAiStatus.WRONE_INPUT
             self.wss_session.close()
         elif data.get("status") == "unauthorized":
-            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("May be wrong password"))
+            self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
         elif data.get("status") == "length_exceeded":
-            self.send_to_outside_func("!!SUBMOD ERROR: {}".format("Content too long!"))
+            self.console_logger.error("!!SUBMOD ERROR: {}".format("Content too long!"))
             self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
             self.wss_session.close()
         if data["status"] == "nickname":
@@ -807,7 +823,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                  self._append_to_message_list('1eua', self.MoodStatus.analyze(data['content']))
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
-                self.send_to_outside_func("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
+                self.console_logger.error("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
             if data['status'] == "loop_finished":
                 self._in_mspire = False
