@@ -174,7 +174,7 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     for emotion_code in emotion:
         if eoc[list(emotion_code.keys())[0]]:
             eoc_overall_amount += 1
-    # We bypass eoc if there are no or too little eyes-opened emotions
+    # We bypass eoc if there are no or too little eyes opened emotions
     if eoc_overall_amount <= 1:
         bypass_eoc = True
     for emotion_code in emotion:
@@ -183,6 +183,9 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
             continue
         if not key in excepted:
             emotion_filter1.append(emotion_code)
+    # We bypass all limits if no appropriate emotion provided at all
+    if len(emotion_filter1) < 1:
+        emotion_filter1 = emotion
     for emotion_code in emotion_filter1:
         key = list(emotion_code.keys())[0]
         power = float(emotion_code[key])
