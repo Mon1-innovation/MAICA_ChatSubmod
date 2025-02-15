@@ -49,6 +49,7 @@ init 10 python:
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
         "log_level":logging.DEBUG,
+        "log_conlevel":logging.INFO,
         "provider_id":1 if not renpy.android else 2,
         "max_history_token":4096,
         "status_update_time":0.25,
@@ -206,6 +207,7 @@ init 10 python:
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.maica.maica.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
+        store.maica.maica.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
         store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
@@ -265,6 +267,13 @@ init 10 python:
         curr = l.index(persistent.maica_setting_dict["log_level"])
         persistent.maica_setting_dict["log_level"] = l[(curr + 1) % len(l)]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
+
+    def change_conloglevel():
+        import logging
+        l = [logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
+        curr = l.index(persistent.maica_setting_dict["log_conlevel"])
+        persistent.maica_setting_dict["log_conlevel"] = l[(curr + 1) % len(l)]
+        store.maica.maica.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
     def try_eval(str):
         try:
             return eval(str)
@@ -1216,6 +1225,12 @@ screen maica_setting():
                         textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
                             action Function(store.change_loglevel)
                             hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+
+                        textbutton _("控制台log 等级:[logging.getLevelName(store.maica.maica.console_logger.level)]"):
+                            action Function(store.change_conloglevel)
+                            hovered SetField(_tooltip, "value", _("这将影响控制台中每条log的等级, 低于该等级的log将不会记录"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         textbutton _("状态码更新速度"):
