@@ -139,29 +139,33 @@ init 10 python:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
         del d['_preferences']
-        with open(os.path.normpath(os.path.join(maica.maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "persistent_filter.json")), "r") as keys:
-            sentiment = json.loads(keys.read())
+        try:
+            with open(os.path.normpath(os.path.join(maica.maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "persistent_filter.json")), "r") as keys:
+                sentiment = json.loads(keys.read())
+        except:
+            import json_exporter
+            sentiment = json_exporter.persistent_filter
 
-            keys_to_remove = []
+        keys_to_remove = []
 
-            for i in d.keys():  # 使用 d.keys() 以兼容 Python 2
-                if i not in sentiment:
-                    keys_to_remove.append(i)
-                    continue
+        for i in d.keys():  # 使用 d.keys() 以兼容 Python 2
+            if i not in sentiment:
+                keys_to_remove.append(i)
+                continue
+            try:
+                json.dumps(d[i])
+                if len(d[i]) > maxlen:
+                    d[i] = "REMOVED|TOO_LONG"
+            except:
                 try:
-                    json.dumps(d[i])
+                    d[i] = str(d[i])
                     if len(d[i]) > maxlen:
                         d[i] = "REMOVED|TOO_LONG"
                 except:
-                    try:
-                        d[i] = str(d[i])
-                        if len(d[i]) > maxlen:
-                            d[i] = "REMOVED|TOO_LONG"
-                    except:
-                        d[i] = "REMOVED"
+                    d[i] = "REMOVED"
 
-            for key in keys_to_remove:
-                del d[key]
+        for key in keys_to_remove:
+            del d[key]
         res = store.maica.maica.upload_save(d)
         if not res.get("success", False):
             store.mas_submod_utils.submod_log.info("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
@@ -214,8 +218,12 @@ init 10 python:
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
         elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
-            with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
-                store.maica.maica.MoodStatus.emote_translate = json.load(f)
+            try:
+                with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
+                    store.maica.maica.MoodStatus.emote_translate = json.load(f)
+            except:
+                import json_exporter
+                store.maica.maica.MoodStatus.emote_translate = json_exporter.emotion_etz
         
         if not ininit:
             renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
