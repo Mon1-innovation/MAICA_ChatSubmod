@@ -72,7 +72,8 @@ init 10 python:
         "nsfw_acceptive":True,
         "pre_additive":0,
         "post_additive":1,
-        "amt_aggressive":True
+        "amt_aggressive":True,
+        "tz":None
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -768,6 +769,155 @@ screen maica_log():
                     style_prefix "confirm"
                     action Hide("maica_log")
 
+screen maica_tz_setting():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+                    text _("{size=-10}如果这里没有你的时区, 请根据你当地的UTC时间选择")
+
+                    hbox:
+                        textbutton _("根据语言自动选择"):
+                            action SetDict(persistent.maica_advanced_setting, "tz", None)
+
+                    hbox:
+                        textbutton "UTC-12|Etc/GMT+12":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Etc/GMT+12")
+
+                    hbox:
+                        textbutton "UTC-11|Pacific/Midway":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Midway")
+
+                    hbox:
+                        textbutton "UTC-10|Pacific/Honolulu":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Honolulu")
+
+                    hbox:
+                        textbutton "UTC-9|America/Anchorage":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Anchorage")
+
+                    hbox:
+                        textbutton "UTC-8|America/Los_Angeles":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Los_Angeles")
+
+                    hbox:
+                        textbutton "UTC-7|America/Denver":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Denver")
+
+                    hbox:
+                        textbutton "UTC-6|America/Chicago":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Chicago")
+
+                    hbox:
+                        textbutton "UTC-5|America/New_York":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/New_York")
+
+                    hbox:
+                        textbutton "UTC-4|America/Santiago":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Santiago")
+
+                    hbox:
+                        textbutton "UTC-3|America/Argentina/Buenos_Aires":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Argentina/Buenos_Aires")
+
+                    hbox:
+                        textbutton "UTC-2|Atlantic/South_Georgia":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Atlantic/South_Georgia")
+
+                    hbox:
+                        textbutton "UTC-1|Atlantic/Azores":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Atlantic/Azores")
+
+                    hbox:
+                        textbutton "UTC+0|Europe/London":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/London")
+
+                    hbox:
+                        textbutton "UTC+1|Europe/Berlin":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Berlin")
+
+                    hbox:
+                        textbutton "UTC+2|Europe/Kaliningrad":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Kaliningrad")
+
+                    hbox:
+                        textbutton "UTC+3|Europe/Moscow":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Moscow")
+
+                    hbox:
+                        textbutton "UTC+4|Asia/Dubai":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Dubai")
+
+                    hbox:
+                        textbutton "UTC+5|Asia/Karachi":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Karachi")
+
+                    hbox:
+                        textbutton "UTC+6|Asia/Dhaka":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Dhaka")
+
+                    hbox:
+                        textbutton "UTC+7|Asia/Bangkok":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Bangkok")
+
+                    hbox:
+                        textbutton "UTC+8|Asia/Shanghai":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Shanghai")
+
+                    hbox:
+                        textbutton "UTC+9|Asia/Tokyo":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Tokyo")
+
+                    hbox:
+                        textbutton "UTC+10|Australia/Sydney":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Australia/Sydney")
+
+                    hbox:
+                        textbutton "UTC+11|Pacific/Noumea":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Noumea")
+
+                    hbox:
+                        textbutton "UTC+12|Pacific/Auckland":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Auckland")
+
+                    hbox:
+                        textbutton "UTC+13|Pacific/Tongatapu":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Tongatapu")
+
+                    hbox:
+                        textbutton "UTC+14|Pacific/Kiritimati":
+                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Kiritimati")
+            hbox:
+                textbutton _("关闭"):
+                    style_prefix "confirm"
+                    action Hide("maica_tz_setting")
+
 
 screen maica_advance_setting():
     python:
@@ -950,6 +1100,9 @@ screen maica_advance_setting():
                                 xsize 50
                             textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
 
+                    hbox:      
+                        textbutton _("选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
+                            action Show("maica_tz_setting")
 
 
 
