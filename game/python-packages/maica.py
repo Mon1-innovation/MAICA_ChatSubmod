@@ -592,21 +592,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         def build_setting_config():
             self._check_modelconfig()
-            data = {
-                "model_params":{},
-                "perf_params":{},
-                "super_params":{}
-            }
-            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
-            for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
-                if param in self.modelconfig:
-                    data['perf_params'][param] = self.modelconfig[param]
-            for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
-                if param in self.modelconfig:
-                    data['super_params'][param] = self.modelconfig[param]
-            if self.enable_strict_mode and self.ws_cookie != "":
-                data['cookie'] = self.ws_cookie
-            return data
+            #data = {
+            #    "model_params":{},
+            #    "perf_params":{},
+            #    "super_params":{}
+            #}
+            #data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token, "deformation":True}
+            #for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
+            #    if param in self.modelconfig:
+            #        data['perf_params'][param] = self.modelconfig[param]
+            #for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
+            #    if param in self.modelconfig:
+            #        data['super_params'][param] = self.modelconfig[param]
+            #if self.enable_strict_mode and self.ws_cookie != "":
+            #    data['cookie'] = self.ws_cookie
+            return self.send_settings()
             
 
         def send_message():
@@ -720,7 +720,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "perf_params":{},
                 "super_params":{}
             }
-            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token}
+            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token, "deformation":True}
             for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
                 if param in self.modelconfig:
                     data['perf_params'][param] = self.modelconfig[param]
@@ -730,14 +730,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if self.enable_strict_mode and self.ws_cookie != "":
                 data['cookie'] = self.ws_cookie
             return data
+        data = build_setting_config()
         if self.is_connected():
             logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
             self.wss_session.send(
                 json.dumps(build_setting_config())
             )
-            return True
+            return data
         else:
-            return False
+            logger.warning("You should connected to send settings")
+            return {}
     def _on_message(self, wsapp, message):
         try:
             self.__on_message(wsapp, message)
