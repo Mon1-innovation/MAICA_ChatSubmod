@@ -757,8 +757,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         ))    
         if data.get("type", False) != "carriage":
             self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+        if 400 <= int(data.get("code", 200)) < 500:
+            self.console_logger.error("!!MAICA RESPONSE ERROR: {}-{}".format(data.get("status", "4xxStatus"), data.get("content", "Error: Code 4xx is received but content is empty")))
+            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
+            self.wss_session.close()
         if 500 <= int(data.get("code", 200)) < 600:
-            self.console_logger.error("!!MAICA SERVER ERROR: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
+            self.console_logger.error("!!MAICA SERVER FATAL: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
         if data["status"] == "delete_hint":
