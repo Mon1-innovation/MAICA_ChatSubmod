@@ -97,7 +97,7 @@ label maica_talking(mspire = False):
                     renpy.say(m, message[1])
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
-                    ai.error("!!SUBMOD ERROR when chatting: {}".format(e))
+                    ai.console_logger.error("!!SUBMOD ERROR when chatting: {}".format(e))
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             _return = "mtrigger_triggering"
             store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
@@ -160,7 +160,7 @@ label maica_init_connect(use_pause_instand_wait = False):
     python:
         ai = store.maica.maica
         ai.content_func = store.mas_ptod._update_console_history
-        ai.console_logger.critical(ai.ascii_icon)
+        ai.console_logger.critical("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" + ai.ascii_icon)
         if not ai.is_connected():
             ai.init_connect()
         while True:
@@ -218,7 +218,7 @@ label maica_mpostal_read:
             not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
             current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
-            ai.console_logger.debug("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
+            ai.console_logger.info("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
             cur_postal["responsed_status"] = "failed"            
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.is_responding():
@@ -298,9 +298,9 @@ init 999 python:
 label show_workload:
     python hide:
         ai = store.maica.maica
-        ai.console_logger.debug("<submod> Current Workload")
+        ai.console_logger.info("<submod> Current Workload")
         data = ai.get_workload_lite()
-        ai.console_logger.debug("VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
-        ai.console_logger.debug("UTIL " + maica.progress_bar(data["avg_usage"], str(data["avg_usage"] * 3600 / 100) + "TFlops"))
+        ai.console_logger.info("VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
+        ai.console_logger.info("UTIL " + maica.progress_bar(data["avg_usage"], str(data["avg_usage"] * 3600 / 100) + "TFlops"))
     return
 
