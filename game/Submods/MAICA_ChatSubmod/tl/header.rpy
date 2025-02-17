@@ -774,3 +774,48 @@ translate english strings:
 
     old "回信时显示控制台"
     new "Show console on MPostal writing reply"
+
+# TODO: Translation updated at 2025-02-17 12:47
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:655
+    old "重新寄信"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:721
+    old "平均功耗: "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:726
+    old "下次更新数据"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:836
+    old "{size=-10}如果这里没有你的时区, 请根据你当地的UTC时间选择"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:839
+    old "根据语言自动选择"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:843
+    old "根据系统时区自动选择"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1141
+    old "选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1413
+    old "控制台log 等级:[logging.getLevelName(store.maica.maica.console_logger.level)]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1415
+    old "这将影响控制台中每条log的等级, 低于该等级的log将不会记录"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1440
+    old "查看后端负载"
+    new ""
+

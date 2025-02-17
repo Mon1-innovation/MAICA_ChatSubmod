@@ -26,3 +26,15 @@ translate english strings:
     old "就这样吧"
     new "I'm done"
 
+# TODO: Translation updated at 2025-02-17 12:47
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/main.rpy:237
+    old "无法回复信件, 请查看submog_log来查看原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/main.rpy:254
+    old "无法回复信件, 因失败次数过多, 该信件将不会再回复"
+    new ""
+

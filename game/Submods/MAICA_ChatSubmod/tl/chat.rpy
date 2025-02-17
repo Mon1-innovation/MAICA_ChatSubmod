@@ -2074,3 +2074,29 @@ translate english maica_wants_mpostal_reread_15e12ea3:
     # extend 3lksdlb "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."
     extend 3lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."
 
+# TODO: Translation updated at 2025-02-17 12:46
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:939
+translate english maica_mpostal_replyed_start_8ff924b3:
+
+    # m "这封可能要多等一会, 我还没...{w=0.2}完全准备好."
+    m ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:940
+translate english maica_mpostal_replyed_start_38a3009b:
+
+    # m "我去去就回, 等我哦~"
+    m ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:942
+translate english maica_mpostal_replyed_start_69fe400f:
+
+    # m "等我去准备一下这封..."
+    m ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:949
+translate english maica_mpostal_replyed_start_8784fa6e:
+
+    # m "好了!"
+    m ""
+
