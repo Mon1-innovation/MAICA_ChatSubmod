@@ -785,6 +785,27 @@ screen maica_tz_setting():
         else:
             _tooltip = None
 
+        def get_gmt_offset_timezone():
+            import time
+            # 获取当前本地时间的 UTC 偏移量（以秒为单位）
+            if time.localtime().tm_isdst:
+                offset_sec = -time.altzone
+            else:
+                offset_sec = -time.timezone
+
+            # 将偏移量转换为小时
+            offset_hours = offset_sec // 3600
+
+            # 生成 Etc/GMT± 的时区名称
+            if offset_hours == 0:
+                return "Etc/GMT"
+            elif offset_hours > 0:
+                return "Etc/GMT+{}".format(-offset_hours)
+            else:
+                return "Etc/GMT{}".format(-offset_hours)
+
+        current_tz = get_gmt_offset_timezone()
+
     modal True
     zorder 215
     
@@ -813,6 +834,10 @@ screen maica_tz_setting():
                     hbox:
                         textbutton _("根据语言自动选择"):
                             action SetDict(persistent.maica_advanced_setting, "tz", None)
+                    
+                    hbox:
+                        textbutton _("根据系统时间自动选择"):
+                            action SetDict(persistent.maica_advanced_setting, "tz", current_tz)
 
                     hbox:
                         textbutton "UTC-12|Etc/GMT+12":
