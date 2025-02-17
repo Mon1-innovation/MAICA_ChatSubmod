@@ -758,7 +758,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             data["content"] if "content" in data else "unknown content"
         ))    
         if data.get("type", False) != "carriage":
-            self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+            if data.get("type", "unknown") == "info":
+                self.console_logger.info("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+            else:
+                self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+
         if 400 <= int(data.get("code", 200)) < 500:
             self.console_logger.error("!!MAICA RESPONSE ERROR: {}-{}".format(data.get("status", "4xxStatus"), data.get("content", "Error: Code 4xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
