@@ -652,7 +652,7 @@ screen maica_mpostals():
                                     ]
                             
                             if postal["responsed_status"] in ("fatal"):
-                                textbutton _("重新寄信")：
+                                textbutton _("重新寄信"):
                                     action SetDict(postal, "responsed_status", "delaying")
                             hbox:
                                 textbutton _("删除"):
