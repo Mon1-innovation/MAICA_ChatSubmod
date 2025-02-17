@@ -151,6 +151,7 @@ label maica_mpostal_load:
                         "time": str(time.time()),
                         "responsed_content": "",
                         "responsed_status":"delaying"
+                        "failed_count":0,
                     }
                 )
     return
@@ -233,6 +234,8 @@ label maica_mpostal_read:
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
+                        cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 请查看submog_log来查看原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
+
                         _return = "failed"
                         store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")
                         break
@@ -244,7 +247,18 @@ label maica_mpostal_read:
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
                 cur_postal["responsed_content"] = message[1]
                 cur_postal["responsed_status"] = "received"
-                _return = "success"                
+                _return = "success"   
+
+            if cur_postal.get("failed_count", 0) >= 3:
+                cur_postal["responsed_status"] = "fatal"
+                cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 因失败次数过多, 该信件将不会再回复"))
+                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
+                break
+            else:
+                if "failed_count" not in cur_postal:
+                    cur_postal["failed_count"] = 0
+                cur_postal["failed_count"] += 1
+
 
 label maica_mpostal_read.failed:
     call maica_hide_console

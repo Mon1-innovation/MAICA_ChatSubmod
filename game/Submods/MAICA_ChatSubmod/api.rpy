@@ -23,7 +23,7 @@ default persistent._maica_send_or_received_mpostals = []
 #    "raw_title":"",
 #    "raw_content":"",
 #    "responsed_content": "",
-#    "responsed_status":"delaying|notupload|received|readed|failed"
+#    "responsed_status":"delaying|notupload|received|readed|failed|fatal"
 #}
 
 init 5 python in maica:

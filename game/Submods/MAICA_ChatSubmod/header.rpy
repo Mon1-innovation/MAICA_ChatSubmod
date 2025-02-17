@@ -650,6 +650,10 @@ screen maica_mpostals():
                                             Function(store.maica_apply_setting),
                                             Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
                                     ]
+                            
+                            if postal["responsed_status"] in ("fatal"):
+                                textbutton _("重新寄信")：
+                                    action SetDict(postal, "responsed_status", "delaying")
                             hbox:
                                 textbutton _("删除"):
                                     action Function(_delect_portal, postal["raw_title"])
