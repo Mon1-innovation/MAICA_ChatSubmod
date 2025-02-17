@@ -800,9 +800,9 @@ screen maica_tz_setting():
             if offset_hours == 0:
                 return "Etc/GMT"
             elif offset_hours > 0:
-                return "Etc/GMT+{}".format(-offset_hours)
+                return "Etc/GMT-{}".format(offset_hours)
             else:
-                return "Etc/GMT{}".format(-offset_hours)
+                return "Etc/GMT+{}".format(-offset_hours)
 
         current_tz = get_gmt_offset_timezone()
 
@@ -836,7 +836,7 @@ screen maica_tz_setting():
                             action SetDict(persistent.maica_advanced_setting, "tz", None)
                     
                     hbox:
-                        textbutton _("根据系统时间自动选择"):
+                        textbutton _("根据系统时区自动选择"):
                             action SetDict(persistent.maica_advanced_setting, "tz", current_tz)
 
                     hbox:
