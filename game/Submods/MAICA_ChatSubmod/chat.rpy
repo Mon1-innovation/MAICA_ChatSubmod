@@ -936,10 +936,10 @@ label maica_mpostal_replyed.start:
             m 3hubsa "好了!"#微笑
         elif current["responsed_status"] == "notupload":
             if not morethan1:
-                m "这封可能要多等一会, 我还没...{w=0.2}完全准备好."#尴尬
-                m "我去去就回, 等我哦~"#微笑
+                m 3eksdlb "这封可能要多等一会, 我还没...{w=0.2}完全准备好."#尴尬
+                m 1hua "我去去就回, 等我哦~"#微笑
             else:
-                m "等我去准备一下这封..."#微笑
+                m 1dsa "再等我去准备一下..."#微笑
             show black with dissolve
             call maica_mpostal_read
             if _return == "failed":
