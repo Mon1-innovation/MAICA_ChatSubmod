@@ -234,7 +234,7 @@ label maica_mpostal_read:
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
-                        cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 请查看submog_log来查看原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
+                        cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 查看submod_log以获取详细原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
 
                         _return = "failed"
                         store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")

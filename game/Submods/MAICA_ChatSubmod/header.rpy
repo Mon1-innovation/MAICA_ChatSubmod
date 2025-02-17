@@ -1410,7 +1410,7 @@ screen maica_setting():
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
-                        textbutton _("控制台log 等级:[logging.getLevelName(store.maica.maica.console_logger.level)]"):
+                        textbutton _("控制台log等级: [logging.getLevelName(store.maica.maica.console_logger.level)]"):
                             action Function(store.change_conloglevel)
                             hovered SetField(_tooltip, "value", _("这将影响控制台中每条log的等级, 低于该等级的log将不会记录"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)

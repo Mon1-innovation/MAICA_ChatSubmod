@@ -2076,27 +2076,28 @@ translate english maica_wants_mpostal_reread_15e12ea3:
 
 # TODO: Translation updated at 2025-02-17 12:46
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:939
-translate english maica_mpostal_replyed_start_8ff924b3:
+# TODO: Translation updated at 2025-02-17 13:26
 
-    # m "这封可能要多等一会, 我还没...{w=0.2}完全准备好."
-    m ""
+# game/Submods/MAICA_ChatSubmod/chat.rpy:939
+translate english maica_mpostal_replyed_start_75cda385:
+
+    # m 3eksdlb "这封可能要多等一会, 我还没...{w=0.2}完全准备好."
+    m 3eksdlb "Just a minute, I've not finished...{w=0.2} preparing this yet."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:940
-translate english maica_mpostal_replyed_start_38a3009b:
+translate english maica_mpostal_replyed_start_167e8584:
 
-    # m "我去去就回, 等我哦~"
-    m ""
+    # m 1hua "我去去就回, 等我哦~"
+    m 1hua "I'll be back soon, wait for me~"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:942
-translate english maica_mpostal_replyed_start_69fe400f:
+translate english maica_mpostal_replyed_start_1d316ce6:
 
-    # m "等我去准备一下这封..."
-    m ""
+    # m 1dsa "再等我去准备一下..."
+    m 1dsa "Just another minute..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:949
 translate english maica_mpostal_replyed_start_8784fa6e:
 
     # m "好了!"
-    m ""
-
+    m "And it's done!"
