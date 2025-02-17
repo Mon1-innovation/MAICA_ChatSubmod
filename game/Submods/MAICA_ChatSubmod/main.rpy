@@ -298,9 +298,9 @@ init 999 python:
 label show_workload:
     python hide:
         ai = store.maica.maica
-        ai.console_logger.info("<submod> Current Workload")
+        ai.console_logger.info("<DISABLE_VERBOSITY><MAICA LLM Server> Current Workload")
         data = ai.get_workload_lite()
-        ai.console_logger.info("VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
-        ai.console_logger.info("UTIL " + maica.progress_bar(data["avg_usage"], str(data["avg_usage"] * 3600 / 100) + "TFlops"))
+        ai.console_logger.info("<DISABLE_VERBOSITY>VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], str(data["total_inuse_vmem"]) + "MiB" , str(data["total_vmem"]) + "MiB"))
+        ai.console_logger.info("<DISABLE_VERBOSITY>UTIL " + maica.progress_bar(data["avg_usage"], str(data["avg_usage"] * 3600 / 100) + "TFlops"))
     return
 
