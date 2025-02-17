@@ -953,7 +953,10 @@ screen maica_tz_setting():
             hbox:
                 textbutton _("关闭"):
                     style_prefix "confirm"
-                    action Hide("maica_tz_setting")
+                    action [
+                        SetDict(persistent.maica_advanced_setting_status, "tz", persistent.maica_advanced_setting['tz']),
+                        Hide("maica_tz_setting")
+                        ]
 
 
 screen maica_advance_setting():
@@ -1140,6 +1143,7 @@ screen maica_advance_setting():
                     hbox:      
                         textbutton _("选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
                             action Show("maica_tz_setting")
+                            selected persistent.maica_advanced_setting_status.get('tz')
 
 
 
