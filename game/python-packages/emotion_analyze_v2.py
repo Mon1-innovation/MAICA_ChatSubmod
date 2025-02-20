@@ -187,24 +187,22 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     for k, v in iterize(emotion_new):
         if not eoc[k] and not bypass_eoc:
             continue
-        elif not key in excepted:
+        elif not k in excepted:
             emotion_filter1[k] = v
     # We bypass all limits if no appropriate emotion provided at all
     if len(emotion_filter1) < 1:
         emotion_filter1 = emotion_new
     for k, v in iterize(emotion_filter1):
-        key = k
         power = float(v)
         weight_rnd.append(abs(power - strength))
     weight_rnd.sort()
     crucial_weight = weight_rnd[min(4, max(int(len(weight_rnd)/2), 2), len(weight_rnd)-1)]
     for k, v in iterize(emotion_filter1):
-        key = k
         power = float(v)
         if abs(power - strength) <= crucial_weight:
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
-            weight_sel.append({key: weight_accum})
+            weight_sel.append({k: weight_accum})
 
     rand = random.random() * weight_accum
     pointer = {"placeholder": rand}
