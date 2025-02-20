@@ -163,6 +163,11 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     # emotion = selector[emotion]
     # excepted = rejected emos, like last used: ['eka']
     # centralization = higher for lower randomness
+    def iterize(dict):
+        if PY2:
+            return dict.iteritems()
+        elif PY3:
+            return dict.items()
     weight_sel = []
     weight_rnd = []
     weight_accum = 0.0
@@ -173,13 +178,13 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     emotion_new = emotion
     # if eoc then filter eyes-closed emotions
     # if eoc list not given, fall back automatically to non-filter mode
-    for k, v in emotion_new:
+    for k, v in iterize(emotion_new):
         if eoc[k]:
             eoc_overall_amount += 1
     # We bypass eoc if there are no or too little eyes opened emotions
     if eoc_overall_amount <= 1:
         bypass_eoc = True
-    for k, v in emotion_new:
+    for k, v in iterize(emotion_new):
         if not eoc[k] and not bypass_eoc:
             continue
         elif not key in excepted:
@@ -187,13 +192,13 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     # We bypass all limits if no appropriate emotion provided at all
     if len(emotion_filter1) < 1:
         emotion_filter1 = emotion_new
-    for k, v in emotion_filter1:
+    for k, v in iterize(emotion_filter1):
         key = k
         power = float(v)
         weight_rnd.append(abs(power - strength))
     weight_rnd.sort()
     crucial_weight = weight_rnd[min(4, max(int(len(weight_rnd)/2), 2), len(weight_rnd)-1)]
-    for k, v in emotion_filter1:
+    for k, v in iterize(emotion_filter1):
         key = k
         power = float(v)
         if abs(power - strength) <= crucial_weight:
