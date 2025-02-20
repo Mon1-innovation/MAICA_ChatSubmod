@@ -106,7 +106,7 @@ class EmoSelector:
             message = message.replace('[{}]'.format(match), '')
             if match == u"很开心":
                 match = u"开心"
-            if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector['微笑'].keys() and match == u'微笑':
+            if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'微笑'].keys() and match == u'微笑':
                 randf = random.random()
                 if 0 <= randf < 0.25:
                     match = u'笑'
