@@ -173,9 +173,11 @@ class MaicaAi(ChatBotInterface):
     class ExternalLoggingHandler(logging.Handler):
         def __init__(self, maica_console_log_func):
             self.maica_console_log_func = maica_console_log_func
+            self.leveling_filter = re.compile(r'^.*?<DISABLE_VERBOSITY>')
             super(MaicaAi.ExternalLoggingHandler, self).__init__()
         def emit(self, record):
             log_message = self.format(record)
+            log_message = self.leveling_filter.sub('', log_message, re.I)
             self.maica_console_log_func(log_message)
 
     class MaicaProviderManager:
