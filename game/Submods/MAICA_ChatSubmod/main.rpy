@@ -53,12 +53,17 @@ label maica_talking(mspire = False):
                     is_retry_before_sendmessage = False
                 else:
                     ai.start_MSpire()
-            if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
+            elif not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
                 is_retry_before_sendmessage = question
                 continue
+            else:
+                _return = "disconnected"
+                store.mas_submod_utils.submod_log.warning("label maica_talking::disconnected maybe unexpected")
+                break
+
 
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
