@@ -104,11 +104,13 @@ label maica_talking(mspire = False):
             ai.console_logger.debug("<chat_action> {}".format(store.action))
             if store.action['stop']:
                 _return = "canceled"
+                break
             if mspire:
                 _return = "canceled"
                 afm_pref = renpy.game.preferences.afm_enable
                 renpy.game.preferences.afm_enable = False
-            break
+                break
+            
     # store.mas_ptod.write_command()
 
     # store.mas_ptod._update_console_history([])
