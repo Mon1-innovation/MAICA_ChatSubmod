@@ -375,19 +375,11 @@ init 999 python:
         def migration_1_2_8():
             import logging
             persistent.maica_setting_dict['log_level'] = logging.DEBUG
-        
-        def m1_2_13():
-            for item in persistent._maica_send_or_received_mpostals:
-                try:
-                    item["time"] = int(item["time"].split(".")[0])
-                except:
-                    pass
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
-            ("1.2.8", migration_1_2_8),
-            ("1.2.13", m1_2_13),
+            ("1.2.8", migration_1_2_8)
         ]
         migration.migrate()
         persistent._maica_last_version = store.maica_ver
