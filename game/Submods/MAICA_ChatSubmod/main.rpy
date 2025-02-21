@@ -153,7 +153,7 @@ label maica_mpostal_load:
                     {
                         "raw_title": item[0],
                         "raw_content":item[1],
-                        "time": str(time.time()),
+                        "time": time.time(),
                         "responsed_content": "",
                         "responsed_status":"delaying",
                         "failed_count":0,
