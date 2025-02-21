@@ -106,12 +106,23 @@ class EmoSelector:
             message = message.replace('[{}]'.format(match), '')
             if match == u"很开心":
                 match = u"开心"
+            randf = random.random()
             if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'微笑'].keys() and match == u'微笑':
-                randf = random.random()
                 if 0 <= randf < 0.25:
                     match = u'笑'
                 elif 0.25 <= randf < 0.5:
                     match = u'开心'
+            elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'笑'].keys() and match == u'笑':
+                if 0 <= randf < 0.25:
+                    match = u'微笑'
+                elif 0.25 <= randf < 0.75:
+                    match = u'开心'
+            elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'开心'].keys() and match == u'开心':
+                if 0 <= randf < 0.25:
+                    match = u'微笑'
+                elif 0.25 <= randf < 0.75:
+                    match = u'笑'
+
 
             match = self.emote_translate.get(match, match)
             m = 0.7
