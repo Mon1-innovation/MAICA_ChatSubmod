@@ -873,7 +873,7 @@ init 5 python:
                     min_response_time *= 0.8
 
                 # 当写信时间距离现在超过min_response_time，设置为notupload
-                if time.time() - i['time'] > min_response_time:
+                if time.time() - float(i['time']) > min_response_time:
                     i["responsed_status"] = "notupload"
                 
 
