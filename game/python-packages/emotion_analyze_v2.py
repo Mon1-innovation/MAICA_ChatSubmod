@@ -106,7 +106,24 @@ class EmoSelector:
             message = message.replace('[{}]'.format(match), '')
             if match == u"很开心":
                 match = u"开心"
-            
+            randf = random.random()
+            if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'微笑'].keys() and match == u'微笑':
+                if 0 <= randf < 0.25:
+                    match = u'笑'
+                elif 0.25 <= randf < 0.5:
+                    match = u'开心'
+            elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'笑'].keys() and match == u'笑':
+                if 0 <= randf < 0.25:
+                    match = u'微笑'
+                elif 0.25 <= randf < 0.75:
+                    match = u'开心'
+            elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'开心'].keys() and match == u'开心':
+                if 0 <= randf < 0.25:
+                    match = u'微笑'
+                elif 0.25 <= randf < 0.75:
+                    match = u'笑'
+
+
             match = self.emote_translate.get(match, match)
             m = 0.7
 
@@ -157,48 +174,46 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     # emotion = selector[emotion]
     # excepted = rejected emos, like last used: ['eka']
     # centralization = higher for lower randomness
+    def iterize(dict):
+        if PY2:
+            return dict.iteritems()
+        elif PY3:
+            return dict.items()
     weight_sel = []
     weight_rnd = []
     weight_accum = 0.0
     crucial_weight = 0.0
-    eoc_sig = 0
     eoc_overall_amount = 0
     bypass_eoc = False
-    emotion_filter1 = []
-    if eoc:
-        for emotion_eoc_checked in excepted:
-            if not eoc[emotion_eoc_checked]:
-                eoc_sig += 1
+    emotion_filter1 = {}
+    emotion_new = emotion
     # if eoc then filter eyes-closed emotions
     # if eoc list not given, fall back automatically to non-filter mode
-    for emotion_code in emotion:
-        if eoc[list(emotion_code.keys())[0]]:
+    for k, v in iterize(emotion_new):
+        if eoc[k]:
             eoc_overall_amount += 1
     # We bypass eoc if there are no or too little eyes opened emotions
     if eoc_overall_amount <= 1:
         bypass_eoc = True
-    for emotion_code in emotion:
-        key = list(emotion_code.keys())[0]
-        if eoc_sig and not eoc[key] and not bypass_eoc:
+    for k, v in iterize(emotion_new):
+        if not eoc[k] and not bypass_eoc:
             continue
-        if not key in excepted:
-            emotion_filter1.append(emotion_code)
+        elif not k in excepted:
+            emotion_filter1[k] = v
     # We bypass all limits if no appropriate emotion provided at all
     if len(emotion_filter1) < 1:
-        emotion_filter1 = emotion
-    for emotion_code in emotion_filter1:
-        key = list(emotion_code.keys())[0]
-        power = float(emotion_code[key])
+        emotion_filter1 = emotion_new
+    for k, v in iterize(emotion_filter1):
+        power = float(v)
         weight_rnd.append(abs(power - strength))
     weight_rnd.sort()
     crucial_weight = weight_rnd[min(4, max(int(len(weight_rnd)/2), 2), len(weight_rnd)-1)]
-    for emotion_code in emotion_filter1:
-        key = list(emotion_code.keys())[0]
-        power = float(emotion_code[key])
+    for k, v in iterize(emotion_filter1):
+        power = float(v)
         if abs(power - strength) <= crucial_weight:
             weight = math.exp(-(power - strength)**2 / (2 * pow(centralization, 2)))
             weight_accum += weight
-            weight_sel.append({key: weight_accum})
+            weight_sel.append({k: weight_accum})
 
     rand = random.random() * weight_accum
     pointer = {"placeholder": rand}
