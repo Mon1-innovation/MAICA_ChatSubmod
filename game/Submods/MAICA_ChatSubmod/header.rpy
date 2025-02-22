@@ -627,7 +627,7 @@ screen maica_mpostals():
                         label postal["raw_title"]
                         text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
                             size 10                       
-                        text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"][:-3]))):
+                        text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
                             size 10
                         text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  "") + "\n":
                             size 15
