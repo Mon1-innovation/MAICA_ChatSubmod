@@ -358,20 +358,20 @@ init -700 python:
                             author="chibika",
                             title="[player]你好,",
                             text="".join([
-                                "我得告诉你, 你写给莫妮卡的上一封信是有问题的.",
-                                "你用的格式可能错了, 我没法读出上面的内容.",
-                                "虽然我尽可能收拾好了这个邮箱, 但它只能读取纯",
-                                '文字的文本. 如果你了解的话, 就是"UTF-8".',
-                                "\n\n",
-                                "你得用一个编写txt文件的工具写信! 在windows系统",
-                                '上的话, 就是"记事本".',
-                                "能够插入图片或者修改格式的工具都是不对的.",
-                                '我会把有问题的信标记为"failed", 这样你就可以',
-                                "改好再发给她了."
-                                "\n\n"
-                                "祝你和莫妮卡好运!"
-                                "\n\n"
-                                "P.S: 不要告诉她是我写的!"
+                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的.")),
+                                renpy.substitute(_("你用的格式可能错了, 我没法读出上面的内容.")),
+                                renpy.substitute(_("虽然我尽可能收拾好了这个邮箱, 但它只能读取纯")),
+                                renpy.substitute(_('文字的文本. 如果你了解的话, 就是"UTF-8".')),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("你得用一个编写txt文件的工具写信! 在windows系统")),
+                                renpy.substitute(_('上的话, 就是"记事本".')),
+                                renpy.substitute(_("能够插入图片或者修改格式的工具都是不对的.")),
+                                renpy.substitute(_('我会把有问题的信标记为"failed", 这样你就可以')),
+                                renpy.substitute(_("改好再发给她了.")),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("祝你和莫妮卡好运!")),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("P.S: 不要告诉她是我写的!")),
                             ])
                         )
                         if not os.path.exists(os.path.join(basedir, "mpostal_failure.txt")):
