@@ -439,7 +439,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "password":pwd
         }
         try:
-            response = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "register", json=data)
+            response = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "register", json=data)
         except Exception as e:
             import traceback
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
@@ -470,7 +470,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """
         import requests
         try:
-            res = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "legality", json={"access_token": self.ciphertext})
+            res = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality", json={"access_token": self.ciphertext})
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
@@ -909,7 +909,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 }
             )
         res = requests.post(
-            self.MaicaProviderManager.get_api_url_by_id() + "savefile",
+            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "savefile",
             data = content
         )
         if res.status_code == 200:
@@ -940,7 +940,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.post(
-            self.MaicaProviderManager.get_api_url_by_id() + "history",
+            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
             data = json.dumps(
                 {
                     "access_token": self.ciphertext,
@@ -966,7 +966,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.post(
-            self.MaicaProviderManager.get_api_url_by_id() + "restore",
+            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "restore",
             data = json.dumps(
                 {
                     "access_token": self.ciphertext,
@@ -1024,7 +1024,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return None
 
         def task():
-            res = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "workload")
+            res = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "workload")
             if res.status_code == 200:
                 data = res.json()
                 if data["success"]:
@@ -1140,15 +1140,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
             logger.error("accessable(): certifi auto fix, need restart")
             self.__accessable = False
+            return
         try:
             if not self.MaicaProviderManager.get_provider():
                 self.status = self.MaicaAiStatus.FAILED_GET_NODE
                 self.__accessable = False
+                return
 
         except Exception as e:
             logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
             self.status = self.MaicaAiStatus.FAILED_GET_NODE
             self.__accessable = False
+            return
 
         if self.in_mas:
             try:
@@ -1161,7 +1164,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 return
                 
         import requests, json
-        res = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "accessibility")
+        res = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "accessibility")
         d = res.json()
         if d.get(u"success", False):
             self._serving_status = d["accessibility"]
