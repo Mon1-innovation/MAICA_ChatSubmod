@@ -55,6 +55,7 @@ init 10 python:
         "status_update_time":0.25,
         "strict_mode": False,
         "show_console_when_reply": False
+        "mpostal_default_reply_time": 60*60*12
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -1439,6 +1440,19 @@ screen maica_setting():
                         
                         textbutton _("回信时显示控制台"):
                             action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
+                    
+                    hbox:
+                        textbutton _("信件回复时间"):
+                            action NullAction()
+                        bar:
+                            value DictValue(persistent.maica_setting_dict, "mpostal_default_reply_time", 60*60, step=10, offset=60*60*12, style="slider")
+                            xsize 150
+                            hovered SetField(_tooltip, "value", _("回信所需要的最低时间"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        textbutton "[persistent.maica_setting_dict.get('mpostal_default_reply_time', 0) / 3600]h"
+
+
                     
                     hbox:
                         textbutton _("查看后端负载"):
