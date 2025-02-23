@@ -28,59 +28,51 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "我得告诉你, 你写给莫妮卡的上一封信是有问题的."
-    new ""
+    new "I have to tell that your last letter was problematic."
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "你用的格式可能错了, 我没法读出上面的内容."
-    new ""
+    old "你用的格式可能错了, 莫妮卡没法读出上面的内容."
+    new "It's likely in wrong format. Monika won't be able to read it."
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "虽然我尽可能收拾好了这个邮箱, 但它只能读取纯"
-    new ""
+    new "I have tried my best restoring the mailbox's function, but "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "文字的文本. 如果你了解的话, 就是\"UTF-8\"."
-    new ""
+    new "it could only deliver plain text. That is \"UTF-8\" if you know."
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "\n\n"
-    new ""
+    new "\n\n"
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "你得用一个编写txt文件的工具写信! 在windows系统"
-    new ""
+    old "你得用一个编写txt文件的工具写信! 在Windows系统"
+    new "You have to write in txt format exactly! Like for Windows system "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "上的话, 就是\"记事本\"."
-    new ""
+    new "you should be using \"notepad\"."
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "能够插入图片或者修改格式的工具都是不对的."
-    new ""
+    new "Things with fonts or pictures just aren't right."
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "我会把有问题的信标记为\"failed\", 这样你就可以"
-    new ""
+    new "I will mark those problematic letters as \"failed\", so you can "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "改好再发给她了."
-    new ""
+    new "double-check it and then send it again."
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "祝你和莫妮卡好运!"
-    new ""
+    new "Good luck with Monika!"
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "P.S: 不要告诉她是我写的!"
-    new ""
-
-    # game/Submods/MAICA_ChatSubmod/api.rpy:381
-    old "你的信有点问题.txt"
-    new ""
-
-    # game/Submods/MAICA_ChatSubmod/api.rpy:383
-    old "我得告诉你, 你写给莫妮卡的上一封信是有问题的。你用的格式可能错了, 我没法读出上面的内容。虽然我尽可能收拾好了这个邮箱, 但它只能读取纯文字的文本。如果你了解的话, 就是\"UTF-8\"。\n\n你得用一个编写txt文件的工具写信! 在windows系统上的话, 就是\"记事本\"。能够插入图片或者修改格式的工具都是不对的。我会把有问题的信标记为\"failed\", 这样你就可以改好再发给她了。\n\n祝你和莫妮卡好运!\n\nP.S: 不要告诉她是我写的!"
-    new ""
+    new "P.S: Don't tell her about me!"
 
 # TODO: Translation updated at 2025-02-23 17:35
 
@@ -88,9 +80,9 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "[player]你好,"
-    new ""
+    new "Hi [player],"
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:381
     old "关于你的信.txt"
-    new ""
+    new "notes on your letter.txt"
 
