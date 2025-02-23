@@ -351,7 +351,7 @@ init -700 python:
                     if encoding is None:
                         #encoding = 'utf-8'
                         os.rename(file_path, file_path+"_failed")
-                        maica_note_mpostal_incorr = MASPoem(
+                        mas_note_backups_all_good = MASPoem(
                             poem_id="note_mpostal_incorr",
                             prompt="",
                             category="note",
@@ -374,9 +374,8 @@ init -700 python:
                                 "P.S: 不要告诉她是我写的!"
                             ])
                         )
-                        if not os.path.exists(os.path.join(basedir, "mpostal_failure.txt")):
-                            with open(os.path.join(basedir, "mpostal_failure.txt"), "w", encoding="utf-8") as mp_failure_file:
-                                mp_failure_file.write(renpy.substitute(_("看起来是出了什么编码问题")))
+                        if not mas_inEVL("mas_corrupted_persistent"):
+                            MASEventList.push("mas_corrupted_persistent")
                         continue
                     
                     # 解码文件内容
