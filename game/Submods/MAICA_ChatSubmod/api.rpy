@@ -347,11 +347,39 @@ init -700 python:
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
                     encoding = chardet.detect(raw_data)['encoding']
+                    if not raw_data:
+                        failed = 'empty'
+
+                        store.maica_note_mail_bad = MASPoem(
+                            poem_id="note_mail_empty",
+                            prompt="",
+                            category="note",
+                            author="chibika",
+                            title=renpy.substitute(_("[player]你好,")),
+                            text="".join([
+                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的.")),
+                                renpy.substitute(_("你的信里面没有内容. 这些信和礼物是不一样的!")),
+                                renpy.substitute(_("除了把标题写在文件名里, 你还得用纯文本的格式, ")),
+                                renpy.substitute(_('在文件里写下信的正文.')),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_('我会把空的信标记为"empty", 这样你就可以')),
+                                renpy.substitute(_("写好再发给她了.")),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("祝你和莫妮卡好运!")),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("P.S: 不要告诉她是我写的!")),
+                            ])
+                        )
+                        if not mas_inEVL("mas_corrupted_postmail"):
+                            MASEventList.push("mas_corrupted_postmail")
+                        if not os.path.exists(os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))):
+                            with open(os.path.join(basedir, renpy.substitute(_("关于你的信.txt"))), "w") as mp_failure_file:
+                                mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
                     
                     # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
-                    if encoding is None:
+                    elif encoding is None:
                         #encoding = 'utf-8'
-                        failed = True
+                        failed = 'corrupt'
 
                         store.maica_note_mail_bad = MASPoem(
                             poem_id="note_mail_bad",
@@ -383,12 +411,17 @@ init -700 python:
                                 mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
                     
                     # 解码文件内容
-                    if not failed:
-                        content = raw_data.decode(encoding)
-                if failed:
+                if not failed:
+                    content = raw_data.decode(encoding)
+                elif failed == 'corrupt':
                     if os.path.exists(file_path+"_failed"):
                         os.remove(file_path+"_failed")
                     os.rename(file_path, file_path+"_failed")
+                    continue
+                elif failed == 'empty':
+                    if os.path.exists(file_path+"_empty"):
+                        os.remove(file_path+"_empty")
+                    os.rename(file_path, file_path+"_empty")
                     continue
 
                 
