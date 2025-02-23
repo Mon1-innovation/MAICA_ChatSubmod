@@ -351,7 +351,7 @@ init -700 python:
                     if encoding is None:
                         #encoding = 'utf-8'
                         os.rename(file_path, file_path+"_failed")
-                        mas_note_backups_all_good = MASPoem(
+                        store.mas_note_backups_all_good = MASPoem(
                             poem_id="note_mpostal_incorr",
                             prompt="",
                             category="note",
