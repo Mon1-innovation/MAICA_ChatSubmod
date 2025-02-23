@@ -351,6 +351,29 @@ init -700 python:
                     if encoding is None:
                         #encoding = 'utf-8'
                         os.rename(file_path, file_path+"_failed")
+                        maica_note_mpostal_incorr = MASPoem(
+                            poem_id="note_mpostal_incorr",
+                            prompt="",
+                            category="note",
+                            author="chibika",
+                            title="[player]你好,",
+                            text="".join([
+                                "我得告诉你, 你写给莫妮卡的上一封信是有问题的.",
+                                "你用的格式可能错了, 我没法读出上面的内容.",
+                                "虽然我尽可能收拾好了这个邮箱, 但它只能读取纯",
+                                '文字的文本. 如果你了解的话, 就是"UTF-8".',
+                                "\n\n",
+                                "你得用一个编写txt文件的工具写信! 在windows系统",
+                                '上的话, 就是"记事本".',
+                                "能够插入图片或者修改格式的工具都是不对的.",
+                                '我会把有问题的信标记为"failed", 这样你就可以',
+                                "改好再发给她了."
+                                "\n\n"
+                                "祝你和莫妮卡好运!"
+                                "\n\n"
+                                "P.S: 不要告诉她是我写的!"
+                            ])
+                        )
                         if not os.path.exists(os.path.join(basedir, "mpostal_failure.txt")):
                             with open(os.path.join(basedir, "mpostal_failure.txt"), "w", encoding="utf-8") as mp_failure_file:
                                 mp_failure_file.write(renpy.substitute(_("看起来是出了什么编码问题")))
