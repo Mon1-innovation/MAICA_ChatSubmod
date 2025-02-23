@@ -418,10 +418,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if len(self.message_list) < 1:
             talk = self.TalkSpilter.split_present_sentence()
             if talk:
-                talk = self.MoodStatus.analyze(talk)
+                talk = bot_interface.add_pauses(self.MoodStatus.analyze(talk))
                 emote = self.MoodStatus.get_emote()
                 self._append_to_message_list(emote,talk)
-        return (res[0], bot_interface.add_pauses(res[1]))
+        return (res[0], res[1])
     def _gen_token(self, account, pwd, token, email = None):
         if token != "":
             self.ciphertext = token
@@ -831,7 +831,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if len(self.message_list) == 0:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
-                        res = self.MoodStatus.analyze(res)
+                        res = bot_interface.add_pauses(self.MoodStatus.analyze(res))
                         emote = self.MoodStatus.get_emote()
                         self._append_to_message_list(emote,res)
             if data['status'] == "reply": # MPostal
@@ -844,7 +844,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._in_mspire = False
                 talks = self.TalkSpilter.announce_stop()
                 for item in talks:
-                    t = self.MoodStatus.analyze(item)
+                    t = bot_interface.add_pauses(self.MoodStatus.analyze(item))
                     emote = self.MoodStatus.get_emote()
                     self._append_to_message_list(emote,t)
                 self.status = self.MaicaAiStatus.MESSAGE_DONE
