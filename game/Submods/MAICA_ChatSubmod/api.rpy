@@ -182,6 +182,7 @@ init 5 python in maica:
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
         import time
+        failed = False
         store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
         if renpy.android and store.get_build_timescamp() < store.cn_mas_mobile_min_timescamp:
             store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
@@ -212,10 +213,14 @@ init 5 python in maica:
                             file.write(res2.content)
                             store.maica.maica.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
+                        
                     else:
                         store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}", res.status_code, res2.status_code)
+                        failed = True
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed: {}".format(e))
+                    failed = True
+
             
             url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
             response = requests.get(url, verify=False)
@@ -226,7 +231,9 @@ init 5 python in maica:
                 store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
             else:
                 store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
-            
+                failed = True
+        if failed:
+            persistent.maica_setting_dict['provider_id'] = 2
         store.maica.maica.accessable()
         store.maica.maica.is_outdated = check_is_outdated(store.maica_ver)
         if store.maica.maica.is_outdated:
