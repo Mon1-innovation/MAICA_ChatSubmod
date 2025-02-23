@@ -376,6 +376,11 @@ init -700 python:
                         )
                         if not mas_inEVL("mas_corrupted_persistent"):
                             MASEventList.push("mas_corrupted_persistent")
+                        if not os.path.exists(os.path.join(basedir, "mpostal_failure.txt")):
+                            with open(os.path.join(basedir, "mpostal_failure.txt"), "w", encoding="utf-8") as mp_failure_file:
+                                mp_failure_file.write(renpy.substitute(_("**(release前修改)我要告诉你, 这里是需要改成你的文本的!**")))
+
+                        
                         continue
                     
                     # 解码文件内容
