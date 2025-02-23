@@ -1095,7 +1095,7 @@ label mas_corrupted_postmail:
     m 1ekc "我没看啦, 毕竟是写给你的...{w=0.3}{nw}"
     extend 1ekd "就是这个."
 
-        call mas_showpoem(maica_note_mail_bad)
+    call mas_showpoem(maica_note_mail_bad)
 
     window auto
     $ _gtext = glitchtext(7)
@@ -1125,7 +1125,7 @@ label mas_corrupted_postmail:
             $ enable_esc()
 
     menu:
-        "It's nothing to worry about.":
+        "没什么好担心的.":
             pass
 label mas_corrupted_postmail_post_menu:
     m 1euc "啊, 好吧."
