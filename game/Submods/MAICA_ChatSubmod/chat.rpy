@@ -1089,3 +1089,46 @@ label maica_wants_mpostal_reread:#"关于'MPostal'"
     m 7hub "你打开游戏的时候, 我就可以写我的回信了!"
     m 5esa "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
     return
+label mas_corrupted_postmail:
+    m 1eud "嗨, [player]..."
+    m 3euc "好像有人在'characters'文件夹里给你留了个便条."
+    m 1ekc "我没看啦, 毕竟是写给你的...{w=0.3}{nw}"
+    extend 1ekd "就是这个."
+
+        call mas_showpoem(maica_note_mail_bad)
+
+    window auto
+    $ _gtext = glitchtext(7)
+
+    m 1ekc "你知道大概是怎么了吗?{nw}"
+    $ _history_list.pop()
+    menu:
+        m "你知道大概是怎么了吗?{fast}"
+        "没什么好担心的.":
+            jump mas_corrupted_postmail_post_menu
+
+        "和[_gtext]有关.":
+            $ persistent._mas_pm_snitched_on_chibika = True
+            $ disable_esc()
+            $ mas_MUMURaiseShield()
+            window hide
+            show noise zorder 11:
+                alpha 0.5
+            play sound "sfx/s_kill_glitch1.ogg"
+            show chibika 3 zorder 12 at mas_chriseup(y=600,travel_time=0.5)
+            pause 0.5
+            stop sound
+            hide chibika
+            hide noise
+            window auto
+            $ mas_MUMUDropShield()
+            $ enable_esc()
+
+    menu:
+        "It's nothing to worry about.":
+            pass
+label mas_corrupted_postmail_post_menu:
+    m 1euc "啊, 好吧."
+    m 1hub "那我就不瞎操心了."
+    m 3eub "要紧的事情你肯定会告诉我的, [player]."
+    return

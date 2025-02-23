@@ -353,12 +353,12 @@ init -700 python:
                         #encoding = 'utf-8'
                         failed = True
 
-                        store.mas_note_backups_all_good = MASPoem(
-                            poem_id="note_mpostal_incorr",
+                        store.maica_note_mail_bad = MASPoem(
+                            poem_id="note_mail_bad",
                             prompt="",
                             category="note",
                             author="chibika",
-                            title="[player]你好,",
+                            title=renpy.substitute(_("[player]你好,")),
                             text="".join([
                                 renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的.")),
                                 renpy.substitute(_("你用的格式可能错了, 我没法读出上面的内容.")),
@@ -376,11 +376,11 @@ init -700 python:
                                 renpy.substitute(_("P.S: 不要告诉她是我写的!")),
                             ])
                         )
-                        if not mas_inEVL("mas_corrupted_persistent"):
-                            MASEventList.push("mas_corrupted_persistent")
-                        if not os.path.exists(os.path.join(basedir, renpy.substitute(_("你的信有点问题.txt")))):
-                            with open(os.path.join(basedir, renpy.substitute(_("你的信有点问题.txt"))), "w") as mp_failure_file:
-                                mp_failure_file.write(renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的。你用的格式可能错了, 我没法读出上面的内容。虽然我尽可能收拾好了这个邮箱, 但它只能读取纯文字的文本。如果你了解的话, 就是\"UTF-8\"。\n\n你得用一个编写txt文件的工具写信! 在windows系统上的话, 就是\"记事本\"。能够插入图片或者修改格式的工具都是不对的。我会把有问题的信标记为\"failed\", 这样你就可以改好再发给她了。\n\n祝你和莫妮卡好运!\n\nP.S: 不要告诉她是我写的!")))
+                        if not mas_inEVL("mas_corrupted_postmail"):
+                            MASEventList.push("mas_corrupted_postmail")
+                        if not os.path.exists(os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))):
+                            with open(os.path.join(basedir, renpy.substitute(_("关于你的信.txt"))), "w") as mp_failure_file:
+                                mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
                     
                     # 解码文件内容
                     if not failed:
