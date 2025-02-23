@@ -349,7 +349,9 @@ init -700 python:
                     
                     # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
                     if encoding is None:
-                        encoding = 'utf-8'
+                        #encoding = 'utf-8'
+                        os.rename(file_path, file_path+"_failed")
+                        continue
                     
                     # 解码文件内容
                     content = raw_data.decode(encoding)
