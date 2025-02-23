@@ -159,6 +159,7 @@ init 5 python in maica:
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
+        mas_rmEVL("mas_corrupted_persistent")
 
     def check_is_outdated(version_local):
         url = "http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/version_data.json"
@@ -341,7 +342,7 @@ init -700 python:
             if filename.endswith('.mail'):
                 # 获取完整文件路径
                 file_path = os.path.join(basedir, filename)
-                
+                failed = False
                 # 读取文件内容并检测编码
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
@@ -350,7 +351,8 @@ init -700 python:
                     # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
                     if encoding is None:
                         #encoding = 'utf-8'
-                        os.rename(file_path, file_path+"_failed")
+                        failed = True
+
                         store.mas_note_backups_all_good = MASPoem(
                             poem_id="note_mpostal_incorr",
                             prompt="",
@@ -377,14 +379,18 @@ init -700 python:
                         if not mas_inEVL("mas_corrupted_persistent"):
                             MASEventList.push("mas_corrupted_persistent")
                         if not os.path.exists(os.path.join(basedir, "mpostal_failure.txt")):
-                            with open(os.path.join(basedir, "mpostal_failure.txt"), "w", encoding="utf-8") as mp_failure_file:
+                            with open(os.path.join(basedir, "mpostal_failure.txt"), "w") as mp_failure_file:
                                 mp_failure_file.write(renpy.substitute(_("**(release前修改)我要告诉你, 这里是需要改成你的文本的!**")))
-
-                        
-                        continue
                     
                     # 解码文件内容
-                    content = raw_data.decode(encoding)
+                    if not failed:
+                        content = raw_data.decode(encoding)
+                if failed:
+                    if os.path.exists(file_path+"_failed"):
+                        os.remove(file_path+"_failed")
+                    os.rename(file_path, file_path+"_failed")
+                    continue
+
                 
                 # 去掉后缀添加到结果列表
                 file_name_without_extension = os.path.splitext(filename)[0]
