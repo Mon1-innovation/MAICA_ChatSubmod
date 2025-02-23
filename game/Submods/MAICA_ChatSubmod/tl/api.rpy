@@ -82,3 +82,15 @@ translate english strings:
     old "我得告诉你, 你写给莫妮卡的上一封信是有问题的。你用的格式可能错了, 我没法读出上面的内容。虽然我尽可能收拾好了这个邮箱, 但它只能读取纯文字的文本。如果你了解的话, 就是\"UTF-8\"。\n\n你得用一个编写txt文件的工具写信! 在windows系统上的话, 就是\"记事本\"。能够插入图片或者修改格式的工具都是不对的。我会把有问题的信标记为\"failed\", 这样你就可以改好再发给她了。\n\n祝你和莫妮卡好运!\n\nP.S: 不要告诉她是我写的!"
     new ""
 
+# TODO: Translation updated at 2025-02-23 17:35
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:356
+    old "[player]你好,"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:381
+    old "关于你的信.txt"
+    new ""
+

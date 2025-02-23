@@ -2101,3 +2101,70 @@ translate english maica_mpostal_replyed_start_8784fa6e:
 
     # m "好了!"
     m "And it's done!"
+
+    # TODO: Translation updated at 2025-02-23 17:35
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1093
+translate english mas_corrupted_postmail_10ae7c8e:
+
+    # m 1eud "嗨, [player]..."
+    m 1eud ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1094
+translate english mas_corrupted_postmail_b0ebb956:
+
+    # m 3euc "好像有人在'characters'文件夹里给你留了个便条."
+    m 3euc ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1095
+translate english mas_corrupted_postmail_7f0afa86:
+
+    # m 1ekc "我没看啦, 毕竟是写给你的...{w=0.3}{nw}"
+    m 1ekc ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1096
+translate english mas_corrupted_postmail_4a163b9b:
+
+    # extend 1ekd "就是这个."
+    extend 1ekd ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1103
+translate english mas_corrupted_postmail_49dd278a:
+
+    # m 1ekc "你知道大概是怎么了吗?{nw}"
+    m 1ekc ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1106
+translate english mas_corrupted_postmail_967b4f7f:
+
+    # m "你知道大概是怎么了吗?{fast}" nointeract
+    m "" nointeract
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1131
+translate english mas_corrupted_postmail_post_menu_aa1ff39e:
+
+    # m 1euc "啊, 好吧."
+    m 1euc ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1132
+translate english mas_corrupted_postmail_post_menu_fca43b71:
+
+    # m 1hub "那我就不瞎操心了."
+    m 1hub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1133
+translate english mas_corrupted_postmail_post_menu_4822959a:
+
+    # m 3eub "要紧的事情你肯定会告诉我的, [player]."
+    m 3eub ""
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1105
+    old "没什么好担心的."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1105
+    old "和[_gtext]有关."
+    new ""
+
