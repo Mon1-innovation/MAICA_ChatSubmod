@@ -201,14 +201,18 @@ class MaicaAi(ChatBotInterface):
             res = requests.post(cls.provider_list, json={})
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
-                raise Exception("Cannot get providers because server error")
+                #raise Exception("Cannot get providers because server error")
+                return False
             res = res.json()
             if res["success"]:
                 cls.isMaicaNameServer = res["servers"].get("isMaicaNameServer")
                 cls.servers = res["servers"].get("servers")
+                return True
             else:
                 cls.isfailedresponse["deviceName"] = res["exception"]
                 cls.servers.append(cls.isfailedresponse)
+                logger.error("Cannot get providers because server return: {}".format(res))
+                return False
         @classmethod
         def get_server_by_id(cls, id):
             for server in cls.servers:
@@ -312,7 +316,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "mean_consumption": 100
                 },                
                 "1": {
-                    "name": "Super PP 1",
+                    "name": "if you see this, requests workload is failed",
                     "vram": "100000 MiB",
                     "mean_utilization": 0,
                     "mean_memory": 21811,
@@ -435,7 +439,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "password":pwd
         }
         try:
-            response = requests.post("https://maicadev.monika.love/api/register", json=data)
+            response = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "register", json=data)
         except Exception as e:
             import traceback
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
@@ -466,7 +470,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """
         import requests
         try:
-            res = requests.post("https://maicadev.monika.love/api/legality", json={"access_token": self.ciphertext})
+            res = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "legality", json={"access_token": self.ciphertext})
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
@@ -905,7 +909,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 }
             )
         res = requests.post(
-            "https://maicadev.monika.love/api/savefile",
+            self.MaicaProviderManager.get_api_url_by_id() + "savefile",
             data = content
         )
         if res.status_code == 200:
@@ -936,7 +940,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.post(
-            "https://maicadev.monika.love/api/history",
+            self.MaicaProviderManager.get_api_url_by_id() + "history",
             data = json.dumps(
                 {
                     "access_token": self.ciphertext,
@@ -962,7 +966,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.post(
-            "https://maicadev.monika.love/api/restore",
+            self.MaicaProviderManager.get_api_url_by_id() + "restore",
             data = json.dumps(
                 {
                     "access_token": self.ciphertext,
@@ -1020,7 +1024,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return None
 
         def task():
-            res = requests.post("https://maicadev.monika.love/api/workload")
+            res = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "workload")
             if res.status_code == 200:
                 data = res.json()
                 if data["success"]:
@@ -1136,7 +1140,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
             logger.error("accessable(): certifi auto fix, need restart")
             self.__accessable = False
-            return
+        try:
+            if not self.MaicaProviderManager.get_provider():
+                self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                self.__accessable = False
+
+        except Exception as e:
+            logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
+            self.status = self.MaicaAiStatus.FAILED_GET_NODE
+            self.__accessable = False
+
         if self.in_mas:
             try:
                 import certifi
@@ -1148,7 +1161,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 return
                 
         import requests, json
-        res = requests.post("https://maicadev.monika.love/api/accessibility")
+        res = requests.post(self.MaicaProviderManager.get_api_url_by_id() + "accessibility")
         d = res.json()
         if d.get(u"success", False):
             self._serving_status = d["accessibility"]
@@ -1164,10 +1177,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.__accessable = False
             logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
         
-        try:
-            self.MaicaProviderManager.get_provider()
-        except Exception as e:
-            logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
 
 
     def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):
