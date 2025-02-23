@@ -819,3 +819,15 @@ translate english strings:
     old "查看后端负载"
     new "Check server load status"
 
+# TODO: Translation updated at 2025-02-23 15:54
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1445
+    old "信件回复时间"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1450
+    old "回信所需要的最低时间"
+    new ""
+
