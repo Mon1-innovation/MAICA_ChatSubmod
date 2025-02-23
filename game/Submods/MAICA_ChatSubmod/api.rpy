@@ -347,6 +347,13 @@ init -700 python:
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
                     encoding = chardet.detect(raw_data)['encoding']
+                    if not encoding.lower() in ['ascii', 'utf-8', 'gbk']:
+                        # The detection might be wrong!
+                        try:
+                            raw_data.decode('utf-8')
+                            encoding = 'utf-8'
+                        except:
+                            encoding = None
                     if not raw_data:
                         failed = 'empty'
 
