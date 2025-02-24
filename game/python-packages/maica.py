@@ -59,6 +59,8 @@ class MaicaAi(ChatBotInterface):
         WAIT_MODEL_INFOMATION = 10110
         # maica 已准备好，等待玩家输入
         MESSAGE_WAIT_INPUT = 10302
+        # ssl证书获取错误, 但使用plain能够连接
+        SSL_FAILED_BUT_OKAY = 10322
         # 已输入消息，等待消息发送
         MESSAGE_WAIT_SEND = 10300
         # 发送MSpire请求
@@ -134,6 +136,7 @@ class MaicaAi(ChatBotInterface):
             SESSION_CREATED: u"令牌已传入，session已开启，应该选择模型了",
             WAIT_MODEL_INFOMATION: u"等待模型信息",
             MESSAGE_WAIT_INPUT: u"maica 已准备好，等待玩家输入",
+            SSL_FAILED_BUT_OKAY: u"maica 未能获取设备根证书, 已回退到无加密模式. 这一般不会影响正常功能",
             MESSAGE_WAIT_SEND: u"已输入消息，等待消息发送",
             MESSAGE_WAITING_RESPONSE: u"已发送消息，等待MAICA回应",
             MESSAGE_WAIT_SEND_MSPIRE: u"等待发送MSpire请求",
@@ -540,7 +543,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
+        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
 
     def is_accessable(self):
         """返回maica是否可用"""

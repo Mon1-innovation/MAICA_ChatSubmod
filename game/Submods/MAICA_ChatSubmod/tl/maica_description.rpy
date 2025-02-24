@@ -8,6 +8,7 @@ translate english python in maica:
         maica.MaicaAiStatus.SESSION_CREATED: u"Session opened, waiting for model choice",
         maica.MaicaAiStatus.WAIT_MODEL_INFOMATION: u"Waiting for model information",
         maica.MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA is ready for query",
+        maica.MaicaAiStatus.SSL_FAILED_BUT_OKAY: u"MAICA falling back to plain connection. This can be considered normal",
         maica.MaicaAiStatus.MESSAGE_WAIT_SEND: u"Message acquired, pending delivery",
         maica.MaicaAiStatus.MESSAGE_WAITING_RESPONSE: u"Message sent, waiting for server response",
         maica.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: u"Waiting for MSpire request to launch",

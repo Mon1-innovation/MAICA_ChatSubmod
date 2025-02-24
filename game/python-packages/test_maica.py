@@ -59,7 +59,7 @@ try:
         if ai.is_failed():
             print("Maica ai 连接失败")
             break
-        if not ai.status in (ai.MaicaAiStatus.MESSAGE_WAIT_INPUT, ai.MaicaAiStatus.MESSAGE_DONE):
+        if not ai.status in (ai.MaicaAiStatus.MESSAGE_WAIT_INPUT, ai.MaicaAiStatus.SSL_FAILED_BUT_OKAY, ai.MaicaAiStatus.MESSAGE_DONE):
             #print("等待Maica返回中")
             #maica.logger.info("ai.status = {}".format(ai.status))
             time.sleep(1)
