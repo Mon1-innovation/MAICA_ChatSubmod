@@ -130,3 +130,107 @@ translate english strings:
     old "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]"
     new "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]"
 
+# TODO: Translation updated at 2025-02-24 15:17
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:187
+translate english mtrigger_youtubemusic_search_2207c2e6:
+
+    # m 1eub "Of course!"
+    m 1eub "当然了!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:189
+translate english mtrigger_youtubemusic_search_7faca44c:
+
+    # m 1rksdla "..."
+    m 1rksdla "..."
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:190
+translate english mtrigger_youtubemusic_search_1bbd8599:
+
+    # m 1rksdlb "We need an internet connection to listen to music online, [player]..."
+    m 1rksdlb "我得有网络才能去找音乐, [player]..."
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:204
+translate english mtrigger_youtubemusic_search_input_loop_2f1fe211:
+
+    # m 1eka "Oh...{w=0.2}I really would like to listen to music with you!"
+    m 1eka "喔...{w=0.2}我真挺想陪你听音乐的!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:205
+translate english mtrigger_youtubemusic_search_input_loop_91c54dae:
+
+    # m 1eub "Let me know when you have time~"
+    m 1eub "有时间听了就告诉我吧~"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:208
+translate english mtrigger_youtubemusic_search_input_loop_1ba3e1e4:
+
+    # m 1eka "Oh, okay."
+    m 1eka "那好吧."
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:225
+translate english mtrigger_youtubemusic_search_reaction_your_reality_031be61f:
+
+    # m 3hua "Good choice, [player]~"
+    m 3hua "品位不错嘛, [player]~"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:232
+translate english mtrigger_youtubemusic_search_reaction_ily_a7c2fda6:
+
+    # m 1hubsa "I love you too! Ehehe~"
+    m 1hubsa "我也爱你! 哈哈~"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:234
+translate english mtrigger_youtubemusic_search_reaction_ily_9dd14eaf:
+
+    # m 1dsa "Let me see what I can find.{w=0.5}{nw}"
+    m 1dsa "我来找找看.{w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:242
+translate english mtrigger_youtubemusic_search_menu_display_040b8a01:
+
+    # m 1eub "Alright! Look what I've found!"
+    m 1eub "好啦! 我找到了!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:254
+translate english mtrigger_youtubemusic_search_menu_display_f4de7434:
+
+    # m 1eka "Oh...{w=0.2}{nw}"
+    m 1eka "喔...{w=0.2}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:255
+translate english mtrigger_youtubemusic_search_menu_display_3e14c2fc:
+
+    # extend 3ekb "I really love to listen to music with you!"
+    extend 3ekb "我真挺喜欢陪你听音乐的!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:256
+translate english mtrigger_youtubemusic_search_menu_display_3ad0e5c1:
+
+    # m 1eua "Let me know when you have time~"
+    m 1eua "有时间听了就告诉我吧~"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:258
+translate english mtrigger_youtubemusic_search_menu_display_1ba3e1e4:
+
+    # m 1eka "Oh, okay."
+    m 1eka "那好吧."
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:261
+translate english mtrigger_youtubemusic_search_menu_display_f818ab76:
+
+    # m 1eub "Alright!"
+    m 1eub "好啊!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:266
+translate english mtrigger_youtubemusic_search_menu_display_8ecce8a6:
+
+    # m 2tfu "{cps=*2}Reading this doesn't seem like the best use of your time, [player].{/cps}{nw}"
+    m 2tfu "{cps=*2}瞅啥呢?{/cps}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:270
+translate english mtrigger_youtubemusic_search_menu_display_e9e6c304:
+
+    # m 1eud "Sorry, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}I couldn't find anything."
+    m 1eud "抱歉, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}我找不到这个."
+

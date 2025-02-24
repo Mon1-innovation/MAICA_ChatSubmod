@@ -86,3 +86,27 @@ translate english strings:
     old "关于你的信.txt"
     new "notes on your letter.txt"
 
+# TODO: Translation updated at 2025-02-24 15:17
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:360
+    old "你的信里面没有内容. 这些信和礼物是不一样的!"
+    new "Your letter is empty. It's not like the gifts!"
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:360
+    old "除了把标题写在文件名里, 你还得用纯文本的格式, "
+    new "Aside with changing the file name to your title, you should also "
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:360
+    old "在文件里写下信的正文."
+    new "write your content in the file in plain text."
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:360
+    old "我会把空的信标记为\"empty\", 这样你就可以"
+    new "I will mark those empty letters as \"empty\", so you can "
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:360
+    old "写好再发给她了."
+    new "finish it and then send it again."
+
