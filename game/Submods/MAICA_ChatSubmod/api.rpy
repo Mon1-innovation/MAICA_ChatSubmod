@@ -346,8 +346,8 @@ init -700 python:
                 # 读取文件内容并检测编码
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
-                    encoding = chardet.detect(raw_data)['encoding']
-                    if not encoding.lower() in ['ascii', 'utf-8', 'gbk']:
+                    encoding, confidence = chardet.detect(raw_data)['encoding'], chardet.detect(raw_data)['confidence']
+                    if not encoding.lower() in ['ascii', 'utf-8', 'gbk'] and not confidence >= 0.95:
                         # The detection might be wrong!
                         try:
                             raw_data.decode('utf-8')
