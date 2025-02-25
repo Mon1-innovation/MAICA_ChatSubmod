@@ -248,7 +248,7 @@ label maica_mpostal_read:
                     store.mas_ptod.write_command("Wait message...")
                     renpy.pause(1.0)
                     continue    
-                message = ai.get_message()
+                message = ai.get_message(add_pause = False)
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
                 cur_postal["responsed_content"] = message[1]
                 cur_postal["responsed_status"] = "received"

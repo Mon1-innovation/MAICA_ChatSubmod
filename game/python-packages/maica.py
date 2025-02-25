@@ -416,7 +416,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def update_stat(self, new):
         self.stat.update(new)
-    def get_message(self):
+    def get_message(self, add_pause = True):
         res = self.message_list.get()
         if len(self.message_list) < 1:
             talk = self.TalkSpilter.split_present_sentence()
@@ -424,7 +424,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 talk = self.MoodStatus.analyze(talk)
                 emote = self.MoodStatus.get_emote()
                 self._append_to_message_list(emote,talk)
-        return (res[0], bot_interface.add_pauses(res[1]))
+        return (res[0], bot_interface.add_pauses(res[1]) if add_pause else res[1])
     def _gen_token(self, account, pwd, token, email = None):
         if token != "":
             self.ciphertext = token
