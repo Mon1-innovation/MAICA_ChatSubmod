@@ -123,7 +123,8 @@ class EmoSelector:
                 elif 0.25 <= randf < 0.75:
                     match = u'笑'
 
-
+            if ' ' in match:
+                match = match.replace(' ', '')
             match = self.emote_translate.get(match, match)
             m = 0.7
 
