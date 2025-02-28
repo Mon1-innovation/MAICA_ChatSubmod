@@ -46,48 +46,31 @@ ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
 ai.accessable()
 ai.provider_id = 1
-ai.init_connect()
+
 import time
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
 
+ai.init_connect()
 try:
+    if not ai.is_connected():
+        ai.init_connect()
+        time.sleep(3)
+    if ai.is_failed():
+        print("Maica ai 连接失败")
     
-    while True:
+    if ai.is_ready_to_input():
+        ai.chat(input("请输入内容：\n"))
         time.sleep(0.5)
-        if ai.is_failed():
-            print("Maica ai 连接失败")
-            break
-        if not ai.status in (ai.MaicaAiStatus.MESSAGE_WAIT_INPUT, ai.MaicaAiStatus.SSL_FAILED_BUT_OKAY, ai.MaicaAiStatus.MESSAGE_DONE):
-            #print("等待Maica返回中")
-            #maica.logger.info("ai.status = {}".format(ai.status))
-            time.sleep(1)
+
+    while ai.is_responding() or ai.len_message_queue() > 0:
+        if ai.len_message_queue() == 0:
+            time.sleep(0.5)
             continue
-        if ai.status == ai.MaicaAiStatus.MESSAGE_DONE and len(ai.message_list) > 0:
-            print("[RESPONSE] message_list.get: ", ai.message_list.get())
-            continue
-        if not ai.wss_session.keep_running:
-            break
-        #ai.status = ai.MaicaAiStatus.REQUEST_RESET_SESSION
-        print("开始chat")
-        ai.sf_extraction = True
-        m = input("请输入内容：\n")
-        if m == "":
-            continue
-        ai.chat(m)
-        time.sleep(10.0)
-        #ai.start_MSpire()
+        message = ai.get_message()
+        print("[RESPONSE] message: ", message[1])
         
-        
-    print("wss 关闭，主进程停止")
-    print(ai.MaicaAiStatus.get_description(ai.status))
-    #except Exception as e:
-    #    raise e
-    #    print(e)
-    #    print("主进程发生异常，正在停止Maica ai")
-    #    ai.wss_session.close()
-    #    raise e
 except KeyboardInterrupt:
     ai.wss_session.close()
     print("============KeyboardInterrupt============")
