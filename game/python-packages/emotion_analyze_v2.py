@@ -61,7 +61,7 @@ class EmoSelector:
         else:
             return "idle"
 
-    def analyze(self, message):
+    def analyze(self, message, keep_tags=False):
         """
         分析输入消息中的情绪标签，并返回处理后的消息。
         
@@ -98,12 +98,15 @@ class EmoSelector:
         emo = self.pre_mood
         # 处理每个匹配的内容
         for match in matches:
+            if ' ' in match:
+                match = match.replace(' ', '')
             # 如果匹配内容在字典的键中，去除匹配的字符串
             if match == "player":
                 continue
             if match in [u"感动", u"憧憬", u"脸红"] and self.main_strength > 0.7:
                 message = message.replace('[player]', '[mas_get_player_nickname()]')
-            message = message.replace('[{}]'.format(match), '')
+            if not keep_tags:
+                message = message.replace('[{}]'.format(match), '')
             if match == u"很开心":
                 match = u"开心"
             randf = random.random()
@@ -123,8 +126,6 @@ class EmoSelector:
                 elif 0.25 <= randf < 0.75:
                     match = u'笑'
 
-            if ' ' in match:
-                match = match.replace(' ', '')
             match = self.emote_translate.get(match, match)
             m = 0.7
 
