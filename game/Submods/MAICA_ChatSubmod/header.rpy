@@ -328,6 +328,7 @@ init 10 python:
             store.mas_submod_utils.submod_log.error("Failed to get event stat: {}".format(e))
 
     maica_apply_setting(True)
+    log_eventstat()
         
 
 init python:
