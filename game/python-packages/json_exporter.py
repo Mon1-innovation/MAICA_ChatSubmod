@@ -60,7 +60,7 @@ emotion_power_storage = {
 	"dkblu": 0.45,
 	"huu": 0.25,
 	"eta": 0.15,
-	"ektdsdla": 0.45,
+	"ektdsdla": 0.85,
 	"eksdra": 0.45,
 	"lta": 0.25,
 	"ekc": 0.35,
@@ -366,7 +366,6 @@ emotion_selector = {
 		"dkblu": 0.45,
 		"huu": 0.25,
 		"eta": 0.15,
-		"ektdsdla": 0.45,
 		"eksdra": 0.45,
 		"lta": 0.25
 	},
@@ -397,7 +396,8 @@ emotion_selector = {
 		"ektpc": 0.9,
 		"eksdrd": 0.1,
 		"wusdld": 0.25,
-		"essdlc": 0.05
+		"essdlc": 0.05,
+		"ektdsdla": 0.85
 	},
 	"笑": {
 		"eka": 0.25,
