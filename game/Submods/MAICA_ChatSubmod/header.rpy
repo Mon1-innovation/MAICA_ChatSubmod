@@ -140,12 +140,8 @@ init 10 python:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
         del d['_preferences']
-        try:
-            with open(os.path.normpath(os.path.join(maica.maica_basedir, "game", "Submods", "MAICA_ChatSubmod", "persistent_filter.json")), "r") as keys:
-                sentiment = json.loads(keys.read())
-        except:
-            import json_exporter
-            sentiment = json_exporter.persistent_filter
+        import json_exporter
+        sentiment = json_exporter.persistent_filter
 
         keys_to_remove = []
 
@@ -219,12 +215,8 @@ init 10 python:
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
         elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
-            try:
-                with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "emotion_etz.json"), 'r') as f:
-                    store.maica.maica.MoodStatus.emote_translate = json.load(f)
-            except:
-                import json_exporter
-                store.maica.maica.MoodStatus.emote_translate = json_exporter.emotion_etz
+            import json_exporter
+            store.maica.maica.MoodStatus.emote_translate = json_exporter.emotion_etz
         
         if not ininit:
             renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
