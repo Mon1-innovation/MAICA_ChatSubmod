@@ -1,44 +1,44 @@
 emotion_eoc = {"eua": 1, "ekc": 1, "esc": 1, "eka": 1, "ekd": 1, "eud": 1, "duu": 0, "ekbsa": 1, "wfw": 1, "dubfu": 0, "etc": 1, "hua": 0, "dsc": 0, "lubfb": 1, "hubfb": 0, "sub": 1, "euc": 1, "ekbfa": 1, "hksdlb": 0, "dubsu": 0, "hubfa": 0, "hub": 0, "tsbsa": 1, "lsbsa": 1, "rkc": 1, "lksdla": 1, "wuo": 1, "eublb": 1, "hksdrb": 0, "eub": 1, "hubla": 0, "dka": 0, "dubsb": 0, "hubsu": 0, "hubsb": 0, "rksdla": 1, "rsbsa": 1, "lkbsa": 1, "lsbssdrb": 1, "hubsa": 0, "ekblb": 1, "wubld": 1, "dkbsu": 0, "rkbsa": 1, "eubfb": 1, "tkc": 1, "hfw": 0, "tfo": 1, "tfu": 1, "tfd": 1, "tfc": 1, "rfc": 1, "wfc": 1, "efc": 1, "tubsb": 1, "rksdlb": 1, "dfc": 0, "euu": 1, "tubfu": 1, "tsc": 1, "tua": 1, "esa": 1, "tub": 1, "wubsw": 1, "wud": 1, "ekblu": 1, "lubsb": 1, "ekbfb": 1, "lsc": 1, "tubfb": 1, "dkbfa": 0, "lksdrb": 1, "ekbsu": 1, "tubla": 1, "eubsa": 1, "dku": 0, "tuu": 1, "wubfsdld": 1, "wubsb": 1, "lkbfb": 1, "efb": 1, "lkbfa": 1, "subsa": 1, "dkbfu": 0, "rubfu": 1, "sud": 1, "subsb": 1, "eksdld": 1, "rkd": 1, "subsd": 1, "wkd": 1, "efu": 1, "hublu": 0, "ekbla": 1, "eku": 1, "fkbfu": 1, "dsd": 0, "ekbfu": 1, "ekbsb": 1, "kua": 0, "lkbsb": 1, "tubsu": 1, "eubfu": 1, "ltd": 1, "dkc": 0, "efp": 1, "hka": 0, "rusdlb": 1, "tku": 1, "nublu": 0, "dfu": 0, "lksdlb": 1, "eksdlb": 1, "ekb": 1, "tsb": 1, "rksdld": 1, "wfd": 1, "efd": 1, "rubsb": 1, "hublb": 0, "etu": 1, "rssdlb": 1, "hfu": 0, "eksdla": 1, "eksdlc": 1, "eubla": 1, "tsu": 1, "esd": 1, "msblu": 1, "hksdla": 0, "lkc": 1, "wuw": 1, "wfx": 1, "tkd": 1, "lksdld": 1, "etd": 1, "dksdlc": 0, "dktdc": 0, "ektsc": 1, "rktsd": 1, "dftdc": 0, "dkd": 0, "lfc": 1, "lktsc": 1, "rka": 1, "wua": 1, "msb": 1, "tkx": 1, "lubsu": 1, "rsc": 1, "tfb": 1, "ttu": 1, "eubsu": 1, "lubsa": 1, "msbfb": 1, "ttb": 1, "hkbfsdlb": 0, "dkbfsdlc": 0, "ekbfsdla": 1, "hkbfb": 0, "rtc": 1, "dtc": 0, "rtu": 1, "rua": 1, "rsbla": 1, "ekp": 1, "ektda": 1, "dsa": 0, "lua": 1, "dkbsa": 0, "rubsa": 1, "sua": 1, "euo": 1, "subsu": 1, "eubsb": 1, "tkbsu": 1, "rkbssdla": 1, "ekbftpa": 1, "dkbftpa": 0, "dkbftda": 0, "dktpc": 0, "dftsc": 0, "eftdc": 1, "ekbftda": 1, "dua": 0, "rkbssdlb": 1, "fkbsa": 1, "lfp": 1, "skbla": 1, "rkbsd": 1, "rksdlu": 1, "fkbsu": 1, "hkbssdlb": 0, "rtd": 1, "hkbsa": 0, "hkbla": 0, "dublb": 0, "ektpu": 1, "sktpa": 1, "dktdu": 0, "ska": 1, "dktpu": 0, "suu": 1, "ektpa": 1, "tka": 1, "suo": 1, "lftsc": 1, "rktsc": 1, "lud": 1, "rfd": 1, "rsu": 1, "lsp": 1, "fktpd": 1, "hkb": 0, "tkbfu": 1, "tfbfb": 1, "fua": 1, "dkblu": 0, "huu": 0, "rud": 1, "rubsu": 1, "dubsa": 0, "eta": 1, "rublb": 1, "duc": 0, "rkbla": 1, "hkblb": 0, "efsdlc": 1, "esb": 1, "wuc": 1, "wko": 1, "gsbsu": 1, "rssdlc": 1, "kuu": 0, "dksdld": 0, "lkd": 1, "lka": 1, "tsbsu": 1, "rssdrb": 1, "lsbssdlb": 1, "lubfu": 1, "tsbsb": 1, "rsp": 1, "tsbfu": 1, "rkbfsdlb": 1, "wubso": 1, "hkbsb": 0, "tfx": 1, "rsb": 1, "rktuc": 1, "tubsa": 1, "rub": 1, "ruc": 1, "luu": 1, "tst": 1, "ektdc": 1, "lktdc": 1, "dstdc": 0, "lfu": 1, "dksdla": 0, "wktsd": 1, "wktsw": 1, "lfd": 1, "lssdrc": 1, "lssdrb": 1, "lssdlb": 1, "dkbssdlu": 0, "dubfa": 0, "rkbfu": 1, "efo": 1, "eubfa": 1, "tubfa": 1, "ksbsa": 0, "kubfu": 0, "hkbfa": 0, "ruu": 1, "lusdru": 1, "ektpc": 1, "ektud": 1, "esbfa": 1, "hfsdld": 0, "dkbfb": 0, "hksdlu": 0, "eksdrd": 1, "rusdla": 1, "rkbsu": 1, "hkblsdlb": 0, "rta": 1, "wusdld": 1, "ektdsdla": 1, "rsd": 1, "rusdlu": 1, "rtsdlc": 1, "eksdra": 1, "rksdrb": 1, "ekbssdla": 1, "essdlc": 1, "husdla": 0, "rtb": 1, "lublu": 1, "luc": 1, "lta": 1, "husdlb": 0}
 emotion_etz = {
-    "smile": "微笑",
-    "worry": "担心",
-    "grin": "笑",
-    "think": "思考",
-    "happy": "开心",
-    "angry": "生气",
-    "blush": "脸红",
-    "gaze": "凝视",
-    "upset": "沉重",
-    "daydreaming": "憧憬",
-    "surprise": "惊喜",
-    "awkward": "尴尬",
-    "meaningful": "意味深长",
-    "unexpected": "惊讶",
-    "relaxed": "轻松",
-    "shy": "害羞",
-    "eagering": "急切",
-    "proud": "得意",
-    "dissatisfied": "不满",
-    "serious": "严肃",
-    "touched": "感动",
-    "excited": "激动",
-    "love": "宠爱",
-    "wink": "眨眼",
-    "sad": "伤心",
-    "disgust": "厌恶",
-    "fear": "害怕",
-    "kawaii": "可爱",
-    "smiling": "微笑",
-    "worrying": "担心",
-    "grinning": "笑",
-    "thinking": "思考",
-    "gazing": "凝视",
-    "surprised": "惊喜",
-    "relaxing": "轻松",
-    "eager": "急切",
-    "winking": "眨眼",
-    "disgusting": "厌恶",
-    "fearing": "害怕"
+    "smile": u"微笑",
+    "worry": u"担心",
+    "grin": u"笑",
+    "think": u"思考",
+    "happy": u"开心",
+    "angry": u"生气",
+    "blush": u"脸红",
+    "gaze": u"凝视",
+    "upset": u"沉重",
+    "daydreaming": u"憧憬",
+    "surprise": u"惊喜",
+    "awkward": u"尴尬",
+    "meaningful": u"意味深长",
+    "unexpected": u"惊讶",
+    "relaxed": u"轻松",
+    "shy": u"害羞",
+    "eagering": u"急切",
+    "proud": u"得意",
+    "dissatisfied": u"不满",
+    "serious": u"严肃",
+    "touched": u"感动",
+    "excited": u"激动",
+    "love": u"宠爱",
+    "wink": u"眨眼",
+    "sad": u"伤心",
+    "disgust": u"厌恶",
+    "fear": u"害怕",
+    "kawaii": u"可爱",
+    "smiling": u"微笑",
+    "worrying": u"担心",
+    "grinning": u"笑",
+    "thinking": u"思考",
+    "gazing": u"凝视",
+    "surprised": u"惊喜",
+    "relaxing": u"轻松",
+    "eager": u"急切",
+    "winking": u"眨眼",
+    "disgusting": u"厌恶",
+    "fearing": u"害怕"
 }
 emotion_power_storage = {
 	"eua": 0.1,
@@ -346,7 +346,7 @@ emotion_power_storage = {
 	"tst": 0.5
 }
 emotion_selector = {
-	"微笑": {
+	u"微笑": {
 		"eua": 0.1,
 		"duu": 0.25,
 		"hubla": 0.65,
@@ -369,7 +369,7 @@ emotion_selector = {
 		"eksdra": 0.45,
 		"lta": 0.25
 	},
-	"担心": {
+	u"担心": {
 		"ekc": 0.35,
 		"esc": 0.25,
 		"eksdld": 0.25,
@@ -399,12 +399,12 @@ emotion_selector = {
 		"essdlc": 0.05,
 		"ektdsdla": 0.85
 	},
-	"笑": {
+	u"笑": {
 		"eka": 0.25,
 		"hub": 0.35,
 		"eub": 0.25
 	},
-	"思考": {
+	u"思考": {
 		"ekd": 0.6,
 		"eud": 0.2,
 		"rtc": 0.15,
@@ -424,7 +424,7 @@ emotion_selector = {
 		"lka": 0.05,
 		"rta": 0.15
 	},
-	"开心": {
+	u"开心": {
 		"rsb": 0.3,
 		"esb": 0.05,
 		"hkb": 0.45,
@@ -436,14 +436,14 @@ emotion_selector = {
 		"hublb": 0.4,
 		"hkbfa": 0.4
 	},
-	"生气": {
+	u"生气": {
 		"wfw": 0.95,
 		"wfc": 0.6,
 		"wfd": 0.75,
 		"wfx": 0.9,
 		"eftdc": 0.9
 	},
-	"脸红": {
+	u"脸红": {
 		"dubfu": 0.35,
 		"ekbfa": 0.3,
 		"dubsu": 0.15,
@@ -477,12 +477,12 @@ emotion_selector = {
 		"eubfa": 0.35,
 		"esbfa": 0.3
 	},
-	"凝视": {
+	u"凝视": {
 		"dku": 0.5,
 		"etc": 0.25,
 		"euc": 0.4
 	},
-	"沉重": {
+	u"沉重": {
 		"dsc": 0.2,
 		"rkc": 0.25,
 		"tkc": 0.25,
@@ -492,7 +492,7 @@ emotion_selector = {
 		"efsdlc": 0.55,
 		"dksdld": 0.35
 	},
-	"憧憬": {
+	u"憧憬": {
 		"lubfb": 0.35,
 		"hubfb": 0.3,
 		"dka": 0.15,
@@ -516,7 +516,7 @@ emotion_selector = {
 		"rtb": 0.05,
 		"lublu": 0.25
 	},
-	"惊喜": {
+	u"惊喜": {
 		"sub": 0.35,
 		"wubsw": 0.25,
 		"wubsb": 0.55,
@@ -534,7 +534,7 @@ emotion_selector = {
 		"wubso": 0.3,
 		"wua": 0.15
 	},
-	"尴尬": {
+	u"尴尬": {
 		"husdlb": 0.1,
 		"hksdlb": 0.25,
 		"lksdla": 0.2,
@@ -568,7 +568,7 @@ emotion_selector = {
 		"ekbssdla": 0.5,
 		"husdla": 0.15
 	},
-	"意味深长": {
+	u"意味深长": {
 		"tsbsa": 0.35,
 		"tubsb": 0.35,
 		"tubfu": 0.4,
@@ -588,19 +588,19 @@ emotion_selector = {
 		"rtu": 0.05,
 		"rka": 0.1
 	},
-	"惊讶": {
+	u"惊讶": {
 		"wuo": 0.2,
 		"wubld": 0.4,
 		"wud": 0.3,
 		"wuw": 0.1,
 		"wuc": 0.05
 	},
-	"轻松": {
+	u"轻松": {
 		"eublb": 0.05,
 		"eubfb": 0.25,
 		"dksdla": 0.45
 	},
-	"害羞": {
+	u"害羞": {
 		"rsbsa": 0.2,
 		"lkbsa": 0.3,
 		"lsbssdrb": 0.2,
@@ -609,11 +609,11 @@ emotion_selector = {
 		"rkbssdlb": 0.25,
 		"rkbfsdlb": 0.4
 	},
-	"急切": {
+	u"急切": {
 		"hfw": 0.95,
 		"tfo": 0.4
 	},
-	"得意": {
+	u"得意": {
 		"tfu": 0.45,
 		"efu": 0.55,
 		"dfu": 0.15,
@@ -629,7 +629,7 @@ emotion_selector = {
 		"lfu": 0.3,
 		"tubfa": 0.2
 	},
-	"不满": {
+	u"不满": {
 		"tfd": 0.55,
 		"tfc": 0.5,
 		"rfc": 0.5,
@@ -645,10 +645,10 @@ emotion_selector = {
 		"lfd": 0.3,
 		"efo": 0.5
 	},
-	"严肃": {
+	u"严肃": {
 		"dfc": 0.6
 	},
-	"感动": {
+	u"感动": {
 		"wubfsdld": 0.45,
 		"dkbftpa": 0.95,
 		"dkbftda": 0.95,
@@ -658,10 +658,10 @@ emotion_selector = {
 		"fkbsa": 0.6,
 		"ekbftpa": 0.9
 	},
-	"激动": {
+	u"激动": {
 		"efb": 0.5
 	},
-	"宠爱": {
+	u"宠爱": {
 		"ekbla": 0.15,
 		"eku": 0.05,
 		"ekbfu": 0.4,
@@ -674,14 +674,14 @@ emotion_selector = {
 		"rublb": 0.25,
 		"rkbfu": 0.3
 	},
-	"眨眼": {
+	u"眨眼": {
 		"kua": 0.25,
 		"nublu": 0.25,
 		"kuu": 0.3,
 		"ksbsa": 0.4,
 		"kubfu": 0.4
 	},
-	"伤心": {
+	u"伤心": {
 		"dktdc": 0.8,
 		"ektsc": 0.85,
 		"rktsd": 0.9,
@@ -693,49 +693,49 @@ emotion_selector = {
 		"dstdc": 0.75,
 		"ektud": 0.75
 	},
-	"厌恶": {
+	u"厌恶": {
 		"tkx": 0.5,
 		"tfx": 0.8
 	},
-	"害怕": {
+	u"害怕": {
 		"wko": 0.45,
 		"wktsd": 0.75,
 		"wktsw": 0.9
 	},
-	"可爱": {
+	u"可爱": {
 		"tst": 0.5
 	}
 }
 emotion_sentiment = {
-    "微笑":1,
-    "担心":-1,
-    "笑":1,
-    "思考":0,
-    "开心":1,
-    "生气":-1,
-    "脸红":0,
-    "凝视":0,
-    "沉重":-1,
-    "憧憬":1,
-    "惊喜":1,
-    "尴尬":-1,
-    "很开心":1,
-    "意味深长":0,
-    "惊讶":0,
-    "轻松":1,
-    "害羞":-1,
-    "急切":-1,
-    "得意":1,
-    "不满":-1,
-    "严肃":0,
-    "感动":1,
-    "激动":1,
-    "宠爱":1,
-    "眨眼":0,
-    "伤心":-1,
-    "厌恶":-1,
-    "可爱":1,
-    "害怕":-1
+    u"微笑":1,
+    u"担心":-1,
+    u"笑":1,
+    u"思考":0,
+    u"开心":1,
+    u"生气":-1,
+    u"脸红":0,
+    u"凝视":0,
+    u"沉重":-1,
+    u"憧憬":1,
+    u"惊喜":1,
+    u"尴尬":-1,
+    u"很开心":1,
+    u"意味深长":0,
+    u"惊讶":0,
+    u"轻松":1,
+    u"害羞":-1,
+    u"急切":-1,
+    u"得意":1,
+    u"不满":-1,
+    u"严肃":0,
+    u"感动":1,
+    u"激动":1,
+    u"宠爱":1,
+    u"眨眼":0,
+    u"伤心":-1,
+    u"厌恶":-1,
+    u"可爱":1,
+    u"害怕":-1
 }
 persistent_filter = [
     "mas_playername",
