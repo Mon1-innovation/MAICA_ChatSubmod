@@ -224,7 +224,7 @@ init 5 python in maica:
         if store.maica.maica.is_outdated:
             store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
 
-        if not renpy.seen_label("maica_greeting"):
+        if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
         else:
@@ -444,11 +444,15 @@ init 999 python:
         def migration_1_2_8():
             import logging
             persistent.maica_setting_dict['log_level'] = logging.DEBUG
+        def m_1_2_19():
+            if renpy.seen_label("maica_greeting"):
+                store.mas_unlockEVL("maica_greeting", "GRE")
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
-            ("1.2.8", migration_1_2_8)
+            ("1.2.8", migration_1_2_8),
+            ("1.2.19", m_1_2_19),
         ]
         migration.migrate()
         persistent._maica_last_version = store.maica_ver
