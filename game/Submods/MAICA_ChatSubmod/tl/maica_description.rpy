@@ -34,7 +34,7 @@ translate english python in maica:
         maica.MaicaAiStatus.SEND_SETTING: u"Uploading settings",  # 新增
         maica.MaicaAiStatus.FAILED_GET_NODE: u"Failed to get service node",  # 新增
         maica.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket is connecting (this should be quick)",  # 新增
-        maica.MaicaAiStatus.VERSION_OLD: u"Submodule version is outdated, please update to the latest version",  # 新增
+        maica.MaicaAiStatus.VERSION_OLD: u"Submod version is outdated, please update to the latest version",  # 新增
     })
     store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["You", "Us", "Mod", "MAICA"])
