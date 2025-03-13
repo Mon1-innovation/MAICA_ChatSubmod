@@ -15,10 +15,10 @@ formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
 chlr = logging.StreamHandler() # 输出到控制台的handler
 chlr.setFormatter(formatter)
 chlr.setLevel(logging.DEBUG)  # 也可以不设置，不设置就默认用logger的level
-fhlr = logging.FileHandler('example.log')
-fhlr.setFormatter(formatter)
+#fhlr = logging.FileHandler('example.log')
+#fhlr.setFormatter(formatter)
 logger.addHandler(chlr)
-logger.addHandler(fhlr)
+#logger.addHandler(fhlr)
 logger.info('正在使用logging')
 
 PY2 = sys.version_info[0] == 2
