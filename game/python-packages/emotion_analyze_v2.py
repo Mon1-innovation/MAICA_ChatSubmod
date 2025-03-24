@@ -81,6 +81,9 @@ class EmoSelector:
                 return self.fallback_emptyemote.get()
             return self.pre_mood
 
+        def get_equal_len(str):
+            return len(str.encode('utf-8'))
+
         import re
         # 正则表达式模式
         # Filter emojis
@@ -98,8 +101,12 @@ class EmoSelector:
         emo = self.pre_mood
         # 处理每个匹配的内容
         for match in matches:
+            rawmatch = match
+            # 可能是有句子被套上了
+            if get_equal_len(match) >= 16 and not '[' in match and not ']' in match:
+                message = message.replace('[{}]'.format(rawmatch), rawmatch)
+                continue
             if ' ' in match:
-                rawmatch = match
                 match = match.replace(' ', '')
             # 如果匹配内容在字典的键中，去除匹配的字符串
             if match == "player":
