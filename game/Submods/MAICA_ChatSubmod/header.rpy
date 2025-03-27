@@ -55,7 +55,8 @@ init 10 python:
         "status_update_time":0.25,
         "strict_mode": False,
         "show_console_when_reply": False,
-        "mpostal_default_reply_time": 60*60*12
+        "mpostal_default_reply_time": 60*60*12,
+        "42seed":False
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -193,6 +194,9 @@ init 10 python:
             persistent.maica_setting_dict["mspire_interval"] = 10
             
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
+        if persistent.maica_setting_dict["42seed"]:
+            persistent.maica_advanced_setting_status["seed"] = False
+            store.maica.maica.modelconfig.update({"seed":42})
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
         else:
@@ -1060,14 +1064,24 @@ screen maica_advance_setting():
                             textbutton "[persistent.maica_advanced_setting.get('presence_penalty', 'None')]"
  
                     hbox:
-                        textbutton "seed":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "seed")
-                        
-                        if persistent.maica_advanced_setting_status.get("seed", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
-                                xsize 600
+                        if not persistent.maica_setting_dict.get('42seed'):
+                            textbutton "seed":
+                                action ToggleDict(persistent.maica_advanced_setting_status, "seed")
+                            
+                            if persistent.maica_advanced_setting_status.get("seed", False):
+                                bar:
+                                    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
+                                    xsize 600
+                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
+                        else:
+                            textbutton "seed ":
+                                action NullAction()
+                                selected persistent.maica_advanced_setting_status.get('seed', False)
+
                             textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
+
+                            textbutton _("!已启用42seed")
+
 
                     hbox:
                         text _("{size=-10}================偏好================")
@@ -1321,6 +1335,11 @@ screen maica_setting():
                         textbutton _("设置高级参数"):
                             action Show("maica_advance_setting")
 
+                        textbutton _("锁定seed为42"):
+                            action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
+                            hovered SetField(_tooltip, "value", _("锁定seed为42, 使seed高级参数无法被修改\n大多数大模型复现表现都是用的42, 所以理论上42的表现是最稳定的"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
                     hbox:
                         textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
                             action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
@@ -1341,7 +1360,6 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
-
 
                     hbox:
                         textbutton _("输出到控制台: [persistent.maica_setting_dict.get('console')]"):
