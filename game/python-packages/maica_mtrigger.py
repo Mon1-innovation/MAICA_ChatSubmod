@@ -197,6 +197,9 @@ class MTriggerBase(object):
 
     
     def triggered(self, data={}):
+        if not isinstance(data, dict):
+            # log here
+            data = {}
         value = data.get(self.template.datakey) if self.template.datakey else None
         if self.perf_suggestion and "suggestion" in data:
             return self.callback(data.get("suggestion"))
