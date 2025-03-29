@@ -1336,9 +1336,9 @@ screen maica_setting():
                         textbutton _("设置高级参数"):
                             action Show("maica_advance_setting")
 
-                        textbutton _("锁定seed为42"):
+                        textbutton _("锁定最佳实践"):
                             action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
-                            hovered SetField(_tooltip, "value", _("锁定seed为42, 使seed高级参数无法被修改\n大多数大模型复现表现都是用的42, 所以理论上42的表现是最稳定的"))
+                            hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed\n启用会完全排除生成中的随机性, 在统计学上稳定性更佳"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
