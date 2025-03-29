@@ -5,6 +5,13 @@ try:
 except NameError:
     basestring = str  # Python 3 统一用 str
 
+
+class NothingLogger:
+    def debug(self, *args):
+        return
+
+logger = NothingLogger()
+
 def check_and_search(sub, target):
     if isinstance(target, basestring):
         return sub in target
@@ -126,6 +133,7 @@ class MTriggerManager:
     def triggered(self, name = "", param=None):
         for t in self.triggers:
             if t.name == name:
+                logger.debug("triggered {} <- {}".format(name, param))
                 self.triggered_list.append((t, param))
 
     def run_trigger(self, action=MTriggerAction.post, remove=True):

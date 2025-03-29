@@ -307,6 +307,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.max_history_token = 28672
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
+        maica_mtrigger.logger = logger
         self.ws_cookie = ""
         self.enable_strict_mode = False
         self.workload_raw = {
