@@ -307,7 +307,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.max_history_token = 28672
         self._in_mspire = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
-        maica_mtrigger.logger = logger
+        
         self.ws_cookie = ""
         self.enable_strict_mode = False
         self.workload_raw = {
@@ -349,11 +349,25 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         h = self.ExternalLoggingHandler(self.send_to_outside_func)
         h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
         self.console_logger.addHandler(h)
+        class logger_both:
+            def info(self, msg):
+                logger.info(msg)
+                self.console_logger.info(msg)
+            def error(self, msg):
+                logger.error(msg)
+                self.console_logger.error(msg)
+            def warning(self, msg):
+                logger.warning(msg)
+                self.console_logger.warning(msg)
+            def debug(self, msg):
+                logger.debug(msg)
+                self.console_logger.debug(msg)
+        maica_mtrigger.logger = logger_both()
 
 
 
 
-
+    
     def reset_stat(self):
         self.stat = {
             "message_count":0,
