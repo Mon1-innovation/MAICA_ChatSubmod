@@ -25,7 +25,7 @@ translate english python in maica:
         maica.MaicaAiStatus.SERVER_MAINTAIN:u"Server is under maintaince, please wait for further announcement",
         maica.MaicaAiStatus.WRONE_INPUT:u"Wrong input, check for possible typo",
         maica.MaicaAiStatus.CERTIFI_BROKEN:u"You have a corrupted copy of MAS--likely because of other submods. Reinstallation required",
-        maica.MaicaAiStatus.CERTIFI_AUTO_FIX:u"Launched an autofix to cert module--restart the game to take effect",
+        maica.MaicaAiStatus.CERTIFI_AUTO_FIX:u"Tried autofixing broken cert module--restart the game to take effect, clean install if it doesn't.",
         maica.MaicaAiStatus.TOOLONG_CONTENT_LENGTH:u"Content too long, you should turn off big MTrigger.",
 
     })
