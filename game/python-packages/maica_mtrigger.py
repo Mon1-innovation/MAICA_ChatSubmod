@@ -132,6 +132,11 @@ class MTriggerManager:
 
     def triggered(self, name = "", param=None):
         for t in self.triggers:
+            if param:
+                # 如果不是dict就丢弃
+                if not isinstance(param, dict):
+                    logger.error("triggered param is not dict! ({}:{})".format(name, param))
+                    return
             if t.name == name:
                 logger.debug("triggered {} <- {}".format(name, param))
                 self.triggered_list.append((t, param))
