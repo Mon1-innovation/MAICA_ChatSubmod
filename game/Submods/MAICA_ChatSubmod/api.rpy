@@ -331,7 +331,7 @@ init -700 python:
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
                     encoding, confidence = chardet.detect(raw_data)['encoding'], chardet.detect(raw_data)['confidence']
-                    if not encoding.lower() in ['ascii', 'utf-8', 'gbk'] and not confidence >= 0.95:
+                    if not isinstance(encoding, str) or (not encoding.lower() in ['ascii', 'utf-8', 'gbk'] and not confidence >= 0.95):
                         # The detection might be wrong!
                         try:
                             raw_data.decode('utf-8')
