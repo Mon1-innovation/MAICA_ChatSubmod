@@ -306,6 +306,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.is_outdated = None
         self.max_history_token = 28672
         self._in_mspire = False
+        self.mspire_use_cache = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         
         self.ws_cookie = ""
@@ -667,7 +668,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                                     "type":self.mspire_type,
                                     "sample":250,
                                     "title": random.choice(self.mspire_category),
-                                } if len(self.mspire_category) else True
+                                } if len(self.mspire_category) else True,
+                            "use_cache":self.mspire_use_cache,
                             }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))

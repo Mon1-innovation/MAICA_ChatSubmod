@@ -48,6 +48,7 @@ init 10 python:
         "mspire_interval":60,
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
+        "mspire_use_cache":False
         "log_level":logging.DEBUG,
         "log_conlevel":logging.INFO,
         "provider_id":1 if not renpy.android else 2,
@@ -205,6 +206,7 @@ init 10 python:
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
+        store.maica.maica.mspire_use_cache = persistent.maica_setting_dict["mspire_use_cache"]
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
         store.maica.maica.target_lang = persistent.maica_setting_dict["target_lang"]
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
@@ -1419,6 +1421,12 @@ screen maica_setting():
                                 Function(store.maica_apply_setting),
                                 Function(renpy.jump, "mspire_type")
                             ]
+                        
+                    hbox:
+                        textbutton _("MSpire 使用缓存"):
+                            action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
+                            hovered SetField(_tooltip, "value", _("使用默认高级参数并固定种子为42\n"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
