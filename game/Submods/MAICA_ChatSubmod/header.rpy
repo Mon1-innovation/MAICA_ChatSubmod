@@ -48,7 +48,7 @@ init 10 python:
         "mspire_interval":60,
         "mspire_search_type":"in_fuzzy_all",
         "mspire_session":0,
-        "mspire_use_cache":False
+        "mspire_use_cache":True,
         "log_level":logging.DEBUG,
         "log_conlevel":logging.INFO,
         "provider_id":1 if not renpy.android else 2,
@@ -1425,7 +1425,7 @@ screen maica_setting():
                     hbox:
                         textbutton _("MSpire 使用缓存"):
                             action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                            hovered SetField(_tooltip, "value", _("使用默认高级参数并固定种子为42\n"))
+                            hovered SetField(_tooltip, "value", _("启用MSpire缓存, 且使用默认高级参数并固定种子为42\n"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
