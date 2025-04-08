@@ -157,8 +157,7 @@ init 10 python:
                     d[i] = "REMOVED|TOO_LONG"
             except:
                 try:
-                    d[i] = str(d[i])
-                    if len(d[i]) > maxlen:
+                    if len(str(d[i])) > maxlen:
                         d[i] = "REMOVED|TOO_LONG"
                 except:
                     d[i] = "REMOVED"
