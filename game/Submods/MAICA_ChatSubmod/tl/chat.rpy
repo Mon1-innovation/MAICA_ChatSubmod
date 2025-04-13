@@ -435,7 +435,7 @@ translate english maica_chr2_0a0c5d2a:
 translate english maica_chr2_655439ef:
 
     # m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
-    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    $ like_spk = 'if you aren\'t interested in forest things' if not persistent._mas_pm_likes_nature else 'if you prefer to see the sky'
     m 3eua "But [like_spk], at least you can remove it to have the space back."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:220
@@ -484,7 +484,7 @@ translate english maica_chr_gone_1651b572:
 translate english maica_chr_gone_a10272be:
 
     # m 5msb "[like_spk], 我倒也不介意没有这个. 毕竟它最多是个'场景'而已."
-    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    $ like_spk = 'if you aren\'t interested in forest things' if not persistent._mas_pm_likes_nature else 'if you prefer to see the sky'
     m 5msb "But [like_spk], I don't mind whether it's there or not. It's just a 'scene' after all."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:235
@@ -521,7 +521,7 @@ translate english maica_chr_corrupted2_76ef428c:
 translate english maica_chr_corrupted2_8b37b727:
 
     # m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
-    $ mentioned = '我想我提过一嘴, ' if renpy.seen_label("maica_chr") else '我想'
+    $ mentioned = 'I think you\'ve already guessed that' if renpy.seen_label("maica_chr") else 'I think'
     m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:249
@@ -534,7 +534,7 @@ translate english maica_chr_corrupted2_41b8bd86:
 translate english maica_chr_corrupted2_d2460411:
 
     # m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
-    $ comment = "...'某人'风格的" if persistent._mas_pm_cares_about_dokis else '崩坏风格的'
+    $ comment = "...{i}stylish{/i}" if persistent._mas_pm_cares_about_dokis else 'corruption styled'
     m 5eusdrb "But actually, if you don't mind such a [comment] view, you can just leave it be."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:253
@@ -1755,7 +1755,7 @@ translate english maica_chr_reread_fabc3abd:
 translate english maica_chr_reread_655439ef:
 
     # m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
-    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    $ like_spk = 'if you aren\'t interested in forest things' if not persistent._mas_pm_likes_nature else 'if you prefer to see the sky'
     m 3eua "But [like_spk], at least you can remove it to have the space back."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:951
