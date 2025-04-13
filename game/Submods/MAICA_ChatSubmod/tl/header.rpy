@@ -825,11 +825,11 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1445
     old "信件回复时间"
-    new ""
+    new "MPostal reply delay"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1450
     old "回信所需要的最低时间"
-    new ""
+    new "The minimum delay before MPostal replies"
 
 # TODO: Translation updated at 2025-04-08 11:52
 
@@ -837,20 +837,20 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1086
     old "!已启用42seed"
-    new ""
+    new "!Seed locked to 42"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1341
     old "锁定最佳实践"
-    new ""
+    new "Enforce best seed"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1343
     old "锁定seed为42, 该设置覆盖高级参数中的seed\n启用会完全排除生成中的随机性, 在统计学上稳定性更佳"
-    new ""
+    new "Set seed to 42 and override the corresponding advanced section.\nThis removes the randomness in generation completely and performs better statistically."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1426
     old "MSpire 使用缓存"
-    new ""
+    new "MSpire use cache"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1428
     old "启用MSpire缓存, 且使用默认高级参数并固定种子为42\n"
-    new ""
+    new "Enable MSpire cache, disable advanced settings and set seed to 42 for MSpire.\n"
