@@ -352,7 +352,7 @@ label maica_chr_corrupted2:
     m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
     extend 1euc "它就坏掉了."
     #cares_about_dokis那个条件怎么写来着? 交给你了
-    $ comment = "...'某人'风格的" if persistent._mas_pm_cares_about_dokis else '崩坏风格的'
+    $ comment = "...{i}某人{/i}风格的" if persistent._mas_pm_cares_about_dokis else '崩坏风格的'
     m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
     m 1hua "你当然也可以找一份正常的文件换上. 只要你喜欢, 我都不介意的."
     m 1eub "我去收拾一下就好. {w=0.3}{nw}"
