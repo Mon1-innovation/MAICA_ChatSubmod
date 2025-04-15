@@ -33,6 +33,7 @@ init 5 python in maica:
     except:
         pass
     import store, chardet
+    import bot_interface
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use
@@ -447,12 +448,17 @@ init 999 python:
         def m_1_2_19():
             if renpy.seen_label("maica_greeting"):
                 store.mas_unlockEVL("maica_greeting", "GRE")
+        def m_1_2_23():
+            import bot_interface
+            for item in persistent._maica_send_or_received_mpostals:
+                item["responsed_content"] = bot_interface.key_replace(item["responsed_content"], bot_interface.renpy_symbol)
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
             ("1.2.8", migration_1_2_8),
             ("1.2.19", m_1_2_19),
+            ("1.2.23", m_1_2_23),
         ]
         migration.migrate()
         persistent._maica_last_version = store.maica_ver
