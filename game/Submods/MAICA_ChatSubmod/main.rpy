@@ -18,6 +18,7 @@ label maica_talking(mspire = False):
             renpy.pause(2.3)
         printed = False
         is_retry_before_sendmessage = False
+        question = False
         while True:
             if is_retry_before_sendmessage:
                 ai.chat(is_retry_before_sendmessage)
@@ -57,7 +58,7 @@ label maica_talking(mspire = False):
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
-                is_retry_before_sendmessage = question
+                is_retry_before_sendmessage = question if question else False
                 continue
             else:
                 _return = "disconnected"
