@@ -451,7 +451,7 @@ init 999 python:
         def m_1_2_23():
             import bot_interface
             for item in persistent._maica_send_or_received_mpostals:
-                item["responsed_content"] = bot_interface.key_replace(item["responsed_content"], bot_interface.renpy_symbol)
+                item["responsed_content"] = bot_interface.key_replace(item["responsed_content"], bot_interface.renpy_symbol_big_bracket_only)
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
