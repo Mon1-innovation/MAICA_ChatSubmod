@@ -178,16 +178,18 @@ init 5 python in maica:
             store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
             import requests
+            canwhere = False
             if not store.mas_can_import.certifi():
                 try:
                     store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
                     try:
-                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False)
-                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False)
-                    except:
-                        store.mas_submod_utils.submod_log.warning("Download from spcloud mirror failed, fallback to official.")
                         res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
                         res2 = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False)
+                    except:
+                        store.mas_submod_utils.submod_log.warning("Download from github mirror failed, try to download from 0721play")
+                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False)
+                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False)
+
 
                     if res.status_code == 200 and res2.status_code == 200:
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
