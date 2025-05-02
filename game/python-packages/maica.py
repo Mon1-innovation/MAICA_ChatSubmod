@@ -351,19 +351,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
         self.console_logger.addHandler(h)
         class logger_both:
+            def __init__(self, flogger):
+                self.flogger = flogger
             def info(self, msg):
                 logger.info(msg)
-                self.console_logger.info(msg)
+                self.flogger.info(msg)
             def error(self, msg):
                 logger.error(msg)
-                self.console_logger.error(msg)
+                self.flogger.error(msg)
             def warning(self, msg):
                 logger.warning(msg)
-                self.console_logger.warning(msg)
+                self.flogger.warning(msg)
             def debug(self, msg):
                 logger.debug(msg)
-                self.console_logger.debug(msg)
-        maica_mtrigger.logger = logger_both()
+                self.flogger.debug(msg)
+        maica_mtrigger.logger = logger_both(self.console_logger)
 
 
 

@@ -33,6 +33,7 @@ init 5 python in maica:
     except:
         pass
     import store, chardet
+    import bot_interface
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use
@@ -177,16 +178,18 @@ init 5 python in maica:
             store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
             import requests
+            canwhere = False
             if not store.mas_can_import.certifi():
                 try:
                     store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
                     try:
-                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False)
-                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False)
-                    except:
-                        store.mas_submod_utils.submod_log.warning("Download from spcloud mirror failed, fallback to official.")
                         res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
                         res2 = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False)
+                    except:
+                        store.mas_submod_utils.submod_log.warning("Download from github mirror failed, try to download from 0721play")
+                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False)
+                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False)
+
 
                     if res.status_code == 200 and res2.status_code == 200:
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
@@ -447,12 +450,17 @@ init 999 python:
         def m_1_2_19():
             if renpy.seen_label("maica_greeting"):
                 store.mas_unlockEVL("maica_greeting", "GRE")
+        def m_1_2_23():
+            import bot_interface
+            for item in persistent._maica_send_or_received_mpostals:
+                item["responsed_content"] = bot_interface.key_replace(item["responsed_content"], bot_interface.renpy_symbol_big_bracket_only)
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
             ("1.2.8", migration_1_2_8),
             ("1.2.19", m_1_2_19),
+            ("1.2.23", m_1_2_23),
         ]
         migration.migrate()
         persistent._maica_last_version = store.maica_ver

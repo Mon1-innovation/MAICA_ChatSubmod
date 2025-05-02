@@ -18,6 +18,7 @@ label maica_talking(mspire = False):
             renpy.pause(2.3)
         printed = False
         is_retry_before_sendmessage = False
+        question = False
         while True:
             if is_retry_before_sendmessage:
                 ai.chat(is_retry_before_sendmessage)
@@ -57,7 +58,7 @@ label maica_talking(mspire = False):
                 ai.init_connect()
                 renpy.pause(0.3, True)
                 store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
-                is_retry_before_sendmessage = question
+                is_retry_before_sendmessage = question if question else False
                 continue
             else:
                 _return = "disconnected"
@@ -250,7 +251,7 @@ label maica_mpostal_read:
                     continue    
                 message = ai.get_message(add_pause = False)
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
-                cur_postal["responsed_content"] = message[1]
+                cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol)
                 cur_postal["responsed_status"] = "received"
                 _return = "success"   
 

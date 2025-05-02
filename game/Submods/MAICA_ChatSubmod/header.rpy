@@ -112,7 +112,7 @@ init 10 python:
             
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
-    def upload_persistent_dict():
+    def _upload_persistent_dict():
         maxlen = 1000
         import copy
         d = copy.deepcopy(persistent.__dict__)
@@ -166,7 +166,7 @@ init 10 python:
             del d[key]
         res = store.maica.maica.upload_save(d)
         if not res.get("success", False):
-            store.mas_submod_utils.submod_log.info("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
+            store.mas_submod_utils.submod_log.error("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
         renpy.notify(_("MAICA: 存档上传成功") if res.get("success", False) else _("MAICA: 存档上传失败"))
 
     def reset_session():
