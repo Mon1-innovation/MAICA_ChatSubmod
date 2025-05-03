@@ -251,7 +251,7 @@ label maica_mpostal_read:
                     continue    
                 message = ai.get_message(add_pause = False)
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
-                cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol)
+                cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol_big_bracket_only)
                 cur_postal["responsed_status"] = "received"
                 _return = "success"   
 
