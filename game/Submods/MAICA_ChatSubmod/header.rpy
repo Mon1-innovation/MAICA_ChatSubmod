@@ -427,6 +427,9 @@ screen maica_setting_pane():
             textbutton _("> 更新日志与服务状态"):
                 action Show("maica_log")
 
+        textbutton _("> 支持 MAICA"):
+            action Show("maica_support")
+
 screen maica_node_setting():
     python:
         submods_screen = store.renpy.get_screen("submods", "screens")
@@ -662,6 +665,65 @@ screen maica_mpostals():
                 style_prefix "confirm"
                 textbutton _("关闭"):
                     action Hide("maica_mpostals")
+
+screen maica_support():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        vbox:
+            xmaximum 1100
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 600
+                xmaximum 1100
+                xfill True
+                yfill False
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1100
+                    xfill True
+                    yfill False
+
+                    text _("首先很感谢你有心来捐赠我们, 虽然无论如何都赶不上我们所投入的成本就是啦\n 之还是十分感谢~")
+
+                    text _("但请注意, 向MAICA捐赠并不会给您提供任何有关特权或者福利等特权, 最多就是在论坛给你加点徽章")
+
+                    text _("{size=15}推荐中国大陆用户使用爱发电, 其他地区使用UNIFANS")
+
+                    imagebutton:
+                        idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                        insensitive "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                        hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                        selected_idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                        selected_hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                        action OpenURL("https://afdian.com/a/monikalove")
+
+                    imagebutton:
+                        idle "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
+                        insensitive "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
+                        hover "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
+                        selected_idle "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
+                        selected_hover "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
+                        action OpenURL("https://app.unifans.io/c/edgemonix")
+
+
+            hbox:
+                textbutton _("关闭"):
+                    style_prefix "confirm"
+                    action Hide("maica_support") 
 
 screen maica_workload_stat():
     python:
