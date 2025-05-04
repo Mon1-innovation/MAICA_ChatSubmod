@@ -426,9 +426,9 @@ screen maica_setting_pane():
         else:
             textbutton _("> 更新日志与服务状态"):
                 action Show("maica_log")
-
-        textbutton _("> 支持 MAICA"):
-            action Show("maica_support")
+        if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "supportimg")):
+            textbutton _("> 支持 MAICA"):
+                action Show("maica_support")
 
 screen maica_node_setting():
     python:
@@ -701,24 +701,22 @@ screen maica_support():
 
                     text _("但请注意, 向MAICA捐赠并不会给您提供任何有关特权或者福利等特权, 最多就是在论坛给你加点徽章")
 
-                    text _("{size=15}推荐中国大陆用户使用爱发电, 其他地区使用UNIFANS")
-
-                    imagebutton:
-                        idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                        insensitive "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                        hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                        selected_idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                        selected_hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                        action OpenURL("https://afdian.com/a/monikalove")
-
-                    imagebutton:
-                        idle "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
-                        insensitive "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
-                        hover "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
-                        selected_idle "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
-                        selected_hover "Submods/MAICA_ChatSubmod/supportimg/unifans.png"
-                        action OpenURL("https://app.unifans.io/c/edgemonix")
-
+                    if config.language == 'chinese'
+                        imagebutton:
+                            idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                            insensitive "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                            hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                            selected_idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                            selected_hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                            action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
+                        else:
+                            imagebutton:
+                                idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                                insensitive "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                                hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                                selected_idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                                selected_hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                                action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
             hbox:
                 textbutton _("关闭"):
