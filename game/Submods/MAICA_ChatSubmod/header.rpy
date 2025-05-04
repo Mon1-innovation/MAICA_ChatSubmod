@@ -709,14 +709,14 @@ screen maica_support():
                             selected_idle "mod_assets/maica_img/aifadian.png"
                             selected_hover "mod_assets/maica_img/aifadian.png"
                             action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
-                        else:
-                            imagebutton:
-                                idle "mod_assets/maica_img/unifans.png"
-                                insensitive "mod_assets/maica_img/unifans.png"
-                                hover "mod_assets/maica_img/unifans.png"
-                                selected_idle "mod_assets/maica_img/unifans.png"
-                                selected_hover "mod_assets/maica_img/unifans.png"
-                                action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
+                    else:
+                        imagebutton:
+                            idle "mod_assets/maica_img/unifans.png"
+                            insensitive "mod_assets/maica_img/unifans.png"
+                            hover "mod_assets/maica_img/unifans.png"
+                            selected_idle "mod_assets/maica_img/unifans.png"
+                            selected_hover "mod_assets/maica_img/unifans.png"
+                            action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
             hbox:
                 textbutton _("关闭"):
