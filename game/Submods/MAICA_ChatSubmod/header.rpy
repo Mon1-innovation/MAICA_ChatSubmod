@@ -426,7 +426,7 @@ screen maica_setting_pane():
         else:
             textbutton _("> 更新日志与服务状态"):
                 action Show("maica_log")
-        if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", ".donation")):
+        if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "donation")):
             textbutton _("> 向 MAICA 捐赠"):
                 action Show("maica_support")
 
