@@ -426,7 +426,7 @@ screen maica_setting_pane():
         else:
             textbutton _("> 更新日志与服务状态"):
                 action Show("maica_log")
-        if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "supportimg")):
+        if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", ".donation")):
             textbutton _("> 支持 MAICA"):
                 action Show("maica_support")
 
@@ -697,25 +697,25 @@ screen maica_support():
                     xfill True
                     yfill False
 
-                    text _("首先很感谢你有心来捐赠我们, 虽然无论如何都赶不上我们所投入的成本就是啦\n 之还是十分感谢~")
+                    text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
 
-                    text _("但请注意, 向MAICA捐赠并不会给您提供任何有关特权或者福利等特权, 最多就是在论坛给你加点徽章")
+                    text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章.")
 
                     if config.language == 'chinese'
                         imagebutton:
-                            idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                            insensitive "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                            hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                            selected_idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                            selected_hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                            idle "mod_assets/maica_img/aifadian.png"
+                            insensitive "mod_assets/maica_img/aifadian.png"
+                            hover "mod_assets/maica_img/aifadian.png"
+                            selected_idle "mod_assets/maica_img/aifadian.png"
+                            selected_hover "mod_assets/maica_img/aifadian.png"
                             action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
                         else:
                             imagebutton:
-                                idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                                insensitive "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                                hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                                selected_idle "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
-                                selected_hover "Submods/MAICA_ChatSubmod/supportimg/aifadian.png"
+                                idle "mod_assets/maica_img/unifans.png"
+                                insensitive "mod_assets/maica_img/unifans.png"
+                                hover "mod_assets/maica_img/unifans.png"
+                                selected_idle "mod_assets/maica_img/unifans.png"
+                                selected_hover "mod_assets/maica_img/unifans.png"
                                 action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
             hbox:
