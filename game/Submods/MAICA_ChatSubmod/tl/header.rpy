@@ -854,3 +854,20 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1428
     old "启用MSpire缓存, 且使用默认高级参数并固定种子为42\n"
     new "Enable MSpire cache, disable advanced settings and set seed to 42 for MSpire.\n"
+
+# TODO: Translation updated at 2025-05-04 21:00
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:430
+    old "> 支持 MAICA"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:700
+    old "首先很感谢你有心来捐赠我们, 虽然无论如何都赶不上我们所投入的成本就是啦\n 总之还是十分感谢~"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:702
+    old "但请注意, 向MAICA捐赠并不会给您提供任何有关特权或者福利等特权, 最多就是在论坛给你加点徽章"
+    new ""
+
