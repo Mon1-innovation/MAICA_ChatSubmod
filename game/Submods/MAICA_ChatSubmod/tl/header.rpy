@@ -861,13 +861,13 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:430
     old "> 支持 MAICA"
-    new ""
+    new "> Donate for MAICA"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:700
     old "首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力."
-    new ""
+    new "We're grateful for your being willing to donate.\nThe donate will likely never cover our cost, but that's okay anyway."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:702
     old "请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."
-    new ""
+    new "Please note that donating to MAICA doesn't give you any actual privilege. It's simply donation."
 
