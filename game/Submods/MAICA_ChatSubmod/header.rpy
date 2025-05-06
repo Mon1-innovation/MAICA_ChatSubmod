@@ -1134,7 +1134,7 @@ screen maica_advance_setting():
                                 #bar:
                                 #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
                                 #    xsize 600
-                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
+                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]/99999 "
 
                                 textbutton "+1000":
                                     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000 if persistent.maica_advanced_setting["seed"] + 1000 < 99999 else 0)
