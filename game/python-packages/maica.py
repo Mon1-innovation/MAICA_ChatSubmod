@@ -252,7 +252,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         "max_tokens":[0, 1024, None],
         "frequency_penalty":[0.0, 1.0, 0.3],
         "presence_penalty":[0.0, 1.0, 0.0],
-        "seed":[0, 999, None]
+        "seed":[0, 99999, None]
     }
     
     MAX_CHATSESSION = 9
