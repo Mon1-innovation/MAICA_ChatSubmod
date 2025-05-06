@@ -1146,7 +1146,7 @@ screen maica_advance_setting():
                                     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25 if persistent.maica_advanced_setting["seed"] + 25 < 99999 else 0)
 
                                 textbutton "+1":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1 if persistent.maica_advanced_setting["seed"] + 1 < 99 else 0)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1 if persistent.maica_advanced_setting["seed"] + 1 < 99999 else 0)
 
                                 textbutton "-1":
                                     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1 if persistent.maica_advanced_setting["seed"] - 1 > 0 else 99999)
