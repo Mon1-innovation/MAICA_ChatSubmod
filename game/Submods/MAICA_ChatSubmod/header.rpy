@@ -1131,10 +1131,35 @@ screen maica_advance_setting():
                                 action ToggleDict(persistent.maica_advanced_setting_status, "seed")
                             
                             if persistent.maica_advanced_setting_status.get("seed", False):
-                                bar:
-                                    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
-                                    xsize 600
-                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
+                                #bar:
+                                #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
+                                #    xsize 600
+                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]/99999 "
+
+                                textbutton "+1000":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000 if persistent.maica_advanced_setting["seed"] + 1000 < 99999 else 0)
+
+                                textbutton "+100":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 100 if persistent.maica_advanced_setting["seed"] + 100 < 99999 else 0)
+
+                                textbutton "+25":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25 if persistent.maica_advanced_setting["seed"] + 25 < 99999 else 0)
+
+                                textbutton "+1":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1 if persistent.maica_advanced_setting["seed"] + 1 < 99999 else 0)
+
+                                textbutton "-1":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1 if persistent.maica_advanced_setting["seed"] - 1 > 0 else 99999)
+                                
+                                textbutton "-25":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 25 if persistent.maica_advanced_setting["seed"] - 25 > 0 else 99999)
+                                
+                                textbutton "-100":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 100 if persistent.maica_advanced_setting["seed"] - 100 > 0 else 99999)
+                                
+                                textbutton "-1000":
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1000 if persistent.maica_advanced_setting["seed"] - 1000 > 0 else 99999)
+
                         else:
                             textbutton "seed ":
                                 action NullAction()
@@ -1142,7 +1167,7 @@ screen maica_advance_setting():
 
                             textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
 
-                            textbutton _("!已启用42seed")
+                            textbutton _("!已启用最佳实践")
 
 
                     hbox:
