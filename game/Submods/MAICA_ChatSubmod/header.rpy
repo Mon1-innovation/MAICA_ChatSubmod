@@ -67,7 +67,7 @@ init 10 python:
         "max_tokens":1600,
         "frequency_penalty":0.4,
         "presence_penalty":0.4,
-        "seed":0.0,
+        "seed":0,
         "mf_aggressive":False,
         "sfe_aggressive":False,
         "tnd_aggressive":1,
@@ -76,7 +76,8 @@ init 10 python:
         "pre_additive":0,
         "post_additive":1,
         "amt_aggressive":True,
-        "tz":None
+        "tz":None,
+        "_seed":"0"
     }
     maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -1134,7 +1135,8 @@ screen maica_advance_setting():
                                 #bar:
                                 #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
                                 #    xsize 600
-                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]/99999 "
+                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]/99999 ":
+                                    action Show("maica_seed_input")
 
                                 textbutton "+1000":
                                     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000 if persistent.maica_advanced_setting["seed"] + 1000 < 99999 else 0)
@@ -1666,6 +1668,46 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
                 spacing 100
 
                 textbutton _("OK") action ok_action
+
+screen maica_seed_input():
+    python:
+        def apply_seed():
+            seed = int(persistent.maica_advanced_setting['_seed'])
+            if seed < 0 or seed > 99999:
+                renpy.show_screen("maica_message", message=_("seed范围错误, 请重新输入种子"))
+                persistent.maica_advanced_setting['_seed'] = str(persistent.maica_advanced_setting['seed'])
+            else:
+                persistent.maica_advanced_setting['seed'] = seed
+                
+    #seed输入
+    ## Ensure other screens do not get input while this screen is displayed.s
+    modal True
+    zorder 225
+
+    style_prefix "confirm"
+
+    frame:
+        vbox:
+            ymaximum 300
+            xmaximum 800
+            xfill True
+            yfill False
+            spacing 5
+
+            label _("请输入种子, 范围为0-99999"):
+                style "confirm_prompt"
+                xalign 0.5
+            hbox:
+                input default str(persistent.maica_advanced_setting['_seed']) value DictInputValue(persistent.maica_advanced_setting, "_seed") length 5 allow "0123456789"
+
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("OK") action [
+                    Function(apply_seed),
+                    Hide("maica_seed_input")
+                ]
 
 
 
