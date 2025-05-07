@@ -439,7 +439,7 @@ class TalkSplitV2():
             cell_i += 1
             if self.pattern_all_punc.findall(cell):
                 self.apc.append([cell_i, cell])
-                if not is_decimal(('  '+self.sentence_present+'  ')[cell_i:cell_i+4]):
+                if not is_decimal(('  '+self.sentence_present+'  ')[cell_i:cell_i+5]):
                     if self.pattern_uncrit_punc.findall(cell):
                         self.upc.append([cell_i, cell])
                         if self.pattern_crit_punc.findall(cell):
