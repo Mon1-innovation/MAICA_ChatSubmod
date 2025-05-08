@@ -66,7 +66,7 @@ image heaven_forest_d_snow_ss = "mod_assets/location/heaven_forest_2/disruption_
 init -1 python:
     heaven_forest_d = MASFilterableBackground(
         "heaven_forest_d",
-        "天堂森林战损版",
+        "破碎树林",
         MASFilterWeatherMap(
             #白天
             day=MASWeatherMap({
