@@ -57,7 +57,8 @@ init 10 python:
         "strict_mode": False,
         "show_console_when_reply": False,
         "mpostal_default_reply_time": 60*60*12,
-        "42seed":False
+        "42seed":False,
+        "use_amim_background": True
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -1563,6 +1564,9 @@ screen maica_setting():
                     hbox:
                         textbutton _("查看后端负载"):
                             action Show("maica_workload_stat")
+                        
+                        textbutton _("天堂森林使用动态背景")：
+                            action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
 
 
 

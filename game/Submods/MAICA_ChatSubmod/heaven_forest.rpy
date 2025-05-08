@@ -17,24 +17,24 @@
 #            update_dir="",
 #            attachment_id=None
 #        )
-
+define use_amim_background = persistent.maica_setting_dict['use_amim_background'] if persistent.maica_setting_dict else True
 # 白天
-image heaven_forest_day = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True)
-image heaven_forest_rain = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True)
-image heaven_forest_overcast = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True)
-image heaven_forest_snow = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True)
+image heaven_forest_day = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom.jpg"
+image heaven_forest_rain = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom.jpg"
+image heaven_forest_overcast = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom.jpg"
+image heaven_forest_snow = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom.jpg"
 
 # 晚上
-image heaven_forest_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True)
-image heaven_forest_rain_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True)
-image heaven_forest_overcast_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True)
-image heaven_forest_snow_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True)
+image heaven_forest_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
+image heaven_forest_rain_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
+image heaven_forest_overcast_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
+image heaven_forest_snow_night = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_n.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_n.jpg"
 
 # 傍晚
-image heaven_forest_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True)
-image heaven_forest_rain_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True)
-image heaven_forest_overcast_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True)
-image heaven_forest_snow_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True)
+image heaven_forest_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
+image heaven_forest_rain_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
+image heaven_forest_overcast_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
+image heaven_forest_snow_ss = Movie(play="mod_assets/location/heaven_forest/heaven_classroom_ss.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom_ss.jpg"
 
 ### 这里疑似是为特殊日期（生日,万圣节等)处理装饰的地方,如果不需要请注释
 #init 501 python:
