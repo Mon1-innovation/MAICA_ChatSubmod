@@ -66,7 +66,7 @@ image heaven_forest_snow_ss = Movie(play="mod_assets/location/heaven_forest/heav
 init -1 python:
     heaven_forest = MASFilterableBackground(
         "heaven_forest",
-        "天堂森林",
+        "天堂树林",
         MASFilterWeatherMap(
             #白天
             day=MASWeatherMap({
