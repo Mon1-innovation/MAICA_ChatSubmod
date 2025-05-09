@@ -1567,6 +1567,9 @@ screen maica_setting():
                         
                         textbutton _("天堂森林使用动态背景")：
                             action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
+                            hovered SetField(_tooltip, "value", _("重启生效"))
+                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
 
 
 
