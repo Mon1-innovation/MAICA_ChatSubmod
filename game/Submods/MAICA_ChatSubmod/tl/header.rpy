@@ -888,8 +888,8 @@ translate english strings:
     new "Dynamic Heaven Forest"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1570
-    old "使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效"
-    new "Use dynamic forest background with improved illumination.\nIncreases render consume slightly. Restart to take effect"
+    old "使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效\n如果产生显存相关错误, 删减精灵包或禁用此选项"
+    new "Use dynamic forest background with improved illumination\nIncreases render consume slightly. Restart to take effect\nRemove some spritepacks or disable this if VRAM overflows"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1684
     old "seed范围错误, 请重新输入种子"
