@@ -1567,7 +1567,7 @@ screen maica_setting():
                         
                         textbutton _("动态的天堂树林"):
                             action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
-                            hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林. 略微增加渲染压力. 重启生效"))
+                            hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
