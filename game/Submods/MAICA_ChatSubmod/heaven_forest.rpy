@@ -17,7 +17,7 @@
 #            update_dir="",
 #            attachment_id=None
 #        )
-define use_amim_background = persistent.maica_setting_dict['use_amim_background'] if persistent.maica_setting_dict else True
+define use_amim_background = persistent.maica_setting_dict.get("use_anim_background", True) if persistent.maica_setting_dict else True
 # 白天
 image heaven_forest_day = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom.jpg"
 image heaven_forest_rain = Movie(play="mod_assets/location/heaven_forest/heaven_classroom.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/heaven_classroom.jpg"

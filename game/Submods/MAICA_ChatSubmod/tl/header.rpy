@@ -871,3 +871,31 @@ translate english strings:
     old "请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."
     new "Please note that donating to MAICA doesn't give you any actual privilege. It's simply donation."
 
+# TODO: Translation updated at 2025-05-09 10:13
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:432
+    old "> 向 MAICA 捐赠"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1173
+    old "!已启用最佳实践"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1568
+    old "动态的天堂树林"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1570
+    old "使用动态摇曳和改良光影的天堂树林. 略微增加渲染压力. 重启生效"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1684
+    old "seed范围错误, 请重新输入种子"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1704
+    old "请输入种子, 范围为0-99999"
+    new ""
+
