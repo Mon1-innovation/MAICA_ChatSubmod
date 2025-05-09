@@ -58,7 +58,7 @@ init 10 python:
         "show_console_when_reply": False,
         "mpostal_default_reply_time": 60*60*12,
         "42seed":False,
-        "use_amim_background": True
+        "use_anim_background": True
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
