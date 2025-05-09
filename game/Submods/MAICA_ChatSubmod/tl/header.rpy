@@ -841,7 +841,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1341
     old "锁定最佳实践"
-    new "Enforce best seed"
+    new "Enforce best practice"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1343
     old "锁定seed为42, 该设置覆盖高级参数中的seed\n启用会完全排除生成中的随机性, 在统计学上稳定性更佳"
@@ -849,7 +849,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1426
     old "MSpire 使用缓存"
-    new "MSpire use cache"
+    new "Use cache for MSpire"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1428
     old "启用MSpire缓存, 且使用默认高级参数并固定种子为42\n"
@@ -877,25 +877,25 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:432
     old "> 向 MAICA 捐赠"
-    new ""
+    new "> Donate to MAICA"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1173
     old "!已启用最佳实践"
-    new ""
+    new "!Best practice enabled"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1568
     old "动态的天堂树林"
-    new ""
+    new "Dynamic Heaven Forest"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1570
-    old "使用动态摇曳和改良光影的天堂树林. 略微增加渲染压力. 重启生效"
-    new ""
+    old "使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效"
+    new "Use dynamic forest background with improved illumination.\nIncreases render consume slightly. Restart to take effect"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1684
     old "seed范围错误, 请重新输入种子"
-    new ""
+    new "Seed out of range, retry"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1704
     old "请输入种子, 范围为0-99999"
-    new ""
+    new "Choose a seed from 0-99999"
 
