@@ -196,14 +196,15 @@ init 10 python:
             persistent.maica_setting_dict["mspire_interval"] = 10
             
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
-        if persistent.maica_setting_dict["42seed"]:
-            persistent.maica_advanced_setting_status["seed"] = False
-            persistent.maica_advanced_setting['seed'] = 42
-            store.maica.maica.modelconfig.update({"seed":42})
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
         else:
             store.maica.maica.modelconfig = {}
+        
+        if persistent.maica_setting_dict["42seed"]:
+            persistent.maica_advanced_setting_status["seed"] = False
+            persistent.maica_advanced_setting['seed'] = 42
+            store.maica.maica.modelconfig.update({"seed":42})
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
