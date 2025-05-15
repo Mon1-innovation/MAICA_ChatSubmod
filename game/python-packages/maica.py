@@ -883,7 +883,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
         self.ws_cookie = ""
         if self.multi_lock.locked():
-                self.multi_lock.release()
+            self.multi_lock.release()
+        raise Exception("Websocket closed, raising to cleanup")
 
         
     def chat(self, message):
