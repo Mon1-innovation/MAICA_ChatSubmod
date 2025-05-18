@@ -37,7 +37,7 @@ translate english python in maica:
         maica.MaicaAiStatus.VERSION_OLD: u"Submod version is outdated, please update to the latest version",  # 新增
     })
     maica.MaicaAiStatus._descriptions.update({
-        maica.MaicaAiStatus.NO_INTERTENT: u"Network error, please check your connection",  # 新增
+        maica.MaicaAiStatus.NO_INTERTENT: u"Submod offline, double check installation and connectivity according to Readme",  # 新增
     })
     store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["You", "Us", "Mod", "MAICA"])

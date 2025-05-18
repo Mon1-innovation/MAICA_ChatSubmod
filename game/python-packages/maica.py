@@ -163,7 +163,7 @@ class MaicaAi(ChatBotInterface):
             WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
             VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
             TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看MTrigger列表并关闭不需要的触发器",
-            NO_INTERTENT:u"无网络, 请检查网络连接",
+            NO_INTERTENT:u"子模组未能联网, 根据Readme说明检查安装和网络连接",
         }
         @classmethod
         def get_description(cls, code):
@@ -906,9 +906,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return
         elif message[0] == " ":
             message = message[1:]
-        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)
-        message_step2 = key_replace(str(message_step1), bot_interface.renpy_symbol_percentage)
-        self.message_list.put((emote, message_step2))
+        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
+        self.message_list.put((emote, message_step1))
     def upload_save(self, dict):
         """
         向Maica服务上传并保存存档数据。
@@ -1147,20 +1146,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
 
 
-    def ping(self, host):
-        """
-        Ping a host and return True if it is reachable, False otherwise.
-        """
-        import os, platform
-        # Determine the ping command based on the operating system
-        if platform.system().lower() == "windows":
-            ping_cmd = "ping -n 1 -w 1000 " + host
-        else:
-            ping_cmd = "ping -c 1 -W 1 " + host
-        
-        # Suppress the output of the ping command
-        with open(os.devnull, 'w') as devnull:
-            return os.system(ping_cmd) == 0
+    def ping(self, host, port=80, timeout=2):
+        """通过 TCP 连接检测主机可达性，成功返回 True，否则返回 False"""
+        import socket
+        try:
+            socket.create_connection((host, port), timeout=timeout).close()
+            return True
+        except (socket.timeout, ConnectionRefusedError, OSError):
+            return False
+        except:
+            return False
 
     def can_access_internet(self):
         """
