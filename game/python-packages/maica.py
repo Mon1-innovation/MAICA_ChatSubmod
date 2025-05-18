@@ -1152,8 +1152,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         try:
             socket.create_connection((host, port), timeout=timeout).close()
             return True
-        except (socket.timeout, ConnectionRefusedError, OSError):
-            return False
         except:
             return False
 
