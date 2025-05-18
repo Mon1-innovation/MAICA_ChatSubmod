@@ -112,6 +112,8 @@ class MaicaAi(ChatBotInterface):
         VERSION_OLD = 13411
         # 发送内容过长
         TOOLONG_CONTENT_LENGTH = 13412
+        # 无网络
+        NO_INTERTENT = 13413
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -161,6 +163,7 @@ class MaicaAi(ChatBotInterface):
             WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
             VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
             TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看MTrigger列表并关闭不需要的触发器",
+            NO_INTERTENT:u"无网络, 请检查网络连接",
         }
         @classmethod
         def get_description(cls, code):
@@ -1142,7 +1145,30 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
 
 
+    def ping(host):
+        """
+        Ping a host and return True if it is reachable, False otherwise.
+        """
+        import os, platform
+        # Determine the ping command based on the operating system
+        if platform.system().lower() == "windows":
+            ping_cmd = "ping -n 1 -w 1000 " + host
+        else:
+            ping_cmd = "ping -c 1 -W 1 " + host
         
+        # Suppress the output of the ping command
+        with open(os.devnull, 'w') as devnull:
+            return os.system(ping_cmd) == 0
+
+    def can_access_internet():
+        """
+        Check if either Baidu or Google is reachable.
+        Returns True if at least one is reachable, False otherwise.
+        """
+        baidu_reachable = ping("www.baidu.com")
+        google_reachable = ping("www.google.com")
+        
+        return baidu_reachable or google_reachable
     def accessable(self):
         """
         检查Maica服务是否可访问
@@ -1160,6 +1186,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         #self.__accessable = True
         #self.status = self.MaicaAiStatus.NOT_READY
         #return
+        if not self.can_access_internet():
+            self.status = self.MaicaAiStatus.NO_INTERTENT
+            logger.error("accessable(): no internet connection")
+            self.__accessable = False
+            return
         if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
             logger.error("accessable(): certifi auto fix, need restart")
             self.__accessable = False
