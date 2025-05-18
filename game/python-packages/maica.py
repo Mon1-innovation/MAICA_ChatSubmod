@@ -1145,7 +1145,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
 
 
-    def ping(host):
+    def ping(self, host):
         """
         Ping a host and return True if it is reachable, False otherwise.
         """
@@ -1160,13 +1160,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         with open(os.devnull, 'w') as devnull:
             return os.system(ping_cmd) == 0
 
-    def can_access_internet():
+    def can_access_internet(self):
         """
         Check if either Baidu or Google is reachable.
         Returns True if at least one is reachable, False otherwise.
         """
-        baidu_reachable = ping("www.baidu.com")
-        google_reachable = ping("www.google.com")
+        baidu_reachable = self.ping("www.baidu.com")
+        google_reachable = self.ping("www.google.com")
         
         return baidu_reachable or google_reachable
     def accessable(self):
