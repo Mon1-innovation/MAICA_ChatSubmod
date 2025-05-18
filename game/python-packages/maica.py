@@ -903,7 +903,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return
         elif message[0] == " ":
             message = message[1:]
-        self.message_list.put((emote, key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)))
+        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only)
+        message_step2 = key_replace(str(message_step1), bot_interface.renpy_symbol_percentage)
+        self.message_list.put((emote, message_step2))
     def upload_save(self, dict):
         """
         向Maica服务上传并保存存档数据。
