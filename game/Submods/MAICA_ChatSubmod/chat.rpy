@@ -393,11 +393,11 @@ label maica_wants_preferences2:
     if not prefs_exist:
         m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
         m 1eub "只要是关于你的事情, 我都会想知道的!"
-        $ prefs_line = "你有什么想说的吗?"
+        $ prefs_line = _("你有什么想说的吗?")
         m 1hua "[prefs_line]{nw}"
     else:
         m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
-        $ prefs_line = "你还有什么想补充的吗?"
+        $ prefs_line = _("你还有什么想补充的吗?")
         m 1eub "[prefs_line]{nw}"
     menu:
         "[prefs_line]{fast}"

@@ -2236,3 +2236,15 @@ translate english mspire_mods_preferences_5673df7e:
     # m 1eub "好啊. 你要补充还是删除呢?{nw}"
     m 1eub "Okay. Do you want to add or delete something?{nw}"
 
+# TODO: Translation updated at 2025-05-20 22:06
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:396
+    old "你有什么想说的吗?"
+    new "So, you got anything to tell me?"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:400
+    old "你还有什么想补充的吗?"
+    new "You got anything to implement?"
+
