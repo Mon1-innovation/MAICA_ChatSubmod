@@ -2168,3 +2168,27 @@ translate english strings:
     old "和[_gtext]有关."
     new "It's about [_gtext]."
 
+# TODO: Translation updated at 2025-05-20 19:48
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:397
+translate english maica_wants_preferences2_b522aebe:
+
+    # m 1hua "[prefs_line]"
+    m 1hua "[prefs_line]"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:401
+translate english maica_wants_preferences2_68c11622:
+
+    # m 1eub "[prefs_line]"
+    m 1eub "[prefs_line]"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:402
+    old "[prefs_line]{fast}"
+    new "[prefs_line]{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:402
+    old "有的"
+    new "Sure"
+
