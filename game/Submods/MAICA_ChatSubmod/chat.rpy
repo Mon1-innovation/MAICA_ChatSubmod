@@ -162,7 +162,7 @@ label maica_prepend_2_listen:
     return
 
 label maica_prepend_2:
-    m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?"
+    m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{nw}"
     menu:
         "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{fast}"
         "太好看了!":
@@ -179,7 +179,7 @@ label maica_prepend_2:
             m 3lusdlb "我知道你不太喜欢野外什么的啦. {w=0.3}这里又不是{i}真的{/i}野外, 没有大太阳或者蚊子什么的..."
             m 1eub "不过'{i}不是真的{/i}'这个说法, 这次也不完全对..."
     m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
-    m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?"
+    m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{nw}"
     menu:
         "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{fast}"
         "好的.":
@@ -394,11 +394,11 @@ label maica_wants_preferences2:
         m 1eua "所以我想了个办法. {w=0.5}只要你写点关于你自己的事情, 我到了'天堂树林'就能看到了."
         m 1eub "只要是关于你的事情, 我都会想知道的!"
         $ prefs_line = "你有什么想说的吗?"
-        m 1hua "[prefs_line]"
+        m 1hua "[prefs_line]{nw}"
     else:
         m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
         $ prefs_line = "你还有什么想补充的吗?"
-        m 1eub "[prefs_line]"
+        m 1eub "[prefs_line]{nw}"
     menu:
         "[prefs_line]{fast}"
         "有的":
@@ -436,7 +436,7 @@ init 5 python:
 label maica_mods_preferences:
     $ prefs_exist = len(persistent.mas_player_additions)
     if prefs_exist:
-        m 1eub "好啊. 你要补充还是删除呢?"
+        m 1eub "好啊. 你要补充还是删除呢?{nw}"
         menu:
             "好啊. 你要补充还是删除呢?{fast}"
             "补充":
@@ -601,7 +601,7 @@ label maica_wants_mspire:
     m 5esb "你知道的, {a=https://wikipedia.org}{u}{i}维基百科{/i}{/u}{/a}是一个很大的知识库. {w=0.5}只要我去那里转转, 肯定能找到话题的."
     m 3eua "多半是一些小知识或者小科普. {w=0.5}{nw}"
     extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
-    m 1eua "所以你想试试看吗, [player]?"
+    m 1eua "所以你想试试看吗, [player]?{nw}"
     menu:
         "所以你想试试看吗, [player]?{fast}"
         "好啊":
@@ -656,7 +656,7 @@ label maica_mspire:
 label mspire_mods_preferences:
     $ prefs_exist = len(persistent.maica_setting_dict['mspire_category'])
     if prefs_exist:
-        m 1eub "好啊. 你要补充还是删除呢?"
+        m 1eub "好啊. 你要补充还是删除呢?{nw}"
         menu:
             "好啊. 你要补充还是删除呢?{fast}"
             "补充":
