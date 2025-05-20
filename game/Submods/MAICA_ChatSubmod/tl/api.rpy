@@ -55,8 +55,8 @@ translate english strings:
     new "you should be using \"notepad\". "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "能够插入图片或者修改格式的工具都是不对的."
-    new "Things with fonts or pictures just aren't right."
+    old "能够插入图片或者修改格式的工具都是不对的. "
+    new "Things with fonts or pictures just aren't right. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "我会把有问题的信标记为\"failed\", 这样你就可以"
