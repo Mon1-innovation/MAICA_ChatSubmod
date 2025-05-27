@@ -1,7 +1,8 @@
+from bot_interface import PY2, PY3
 translate english python in maica:
     maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
-        maica.MaicaAiStatus.WAIT_AVAILABILITY:u"Service status acquiring failed, restart the game for MaicaAi.accessable()",
+        maica.MaicaAiStatus.WAIT_AVAILABILITY:u"Service status acquiring failed, restart the game and check mas.log if issue persists",
         maica.MaicaAiStatus.WAIT_AUTH: u"Account acquired, verifying",
         maica.MaicaAiStatus.WAIT_SERVER_TOKEN: u"Waiting for token verification",
         maica.MaicaAiStatus.WAIT_USE_TOKEN: u"Waiting for token",
@@ -20,7 +21,7 @@ translate english python in maica:
         maica.MaicaAiStatus.MODEL_NOT_FOUND: u"Model choice incorrect",
         maica.MaicaAiStatus.TOKEN_MAX_EXCEEDED:u"Session length over 28672 tokens, part of session is cut",
         maica.MaicaAiStatus.TOKEN_24000_EXCEEDED:u"Session length over 24576 tokens, will be cutted as exceeding 28672",
-        maica.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED:u"Websocket closed unexpectedly, check log for details",
+        maica.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED:u"Websocket closed unexpectedly, check submod_log for details" if PY2 else u"Websocket closed unexpectedly, please reconfirm datapack extraction, check submod_log for details",
         maica.MaicaAiStatus.SAVEFILE_NOTFOUND:u"Savefile for current session not found",
         maica.MaicaAiStatus.SERVER_MAINTAIN:u"Server is under maintaince, please wait for further announcement",
         maica.MaicaAiStatus.WRONE_INPUT:u"Wrong input, check for possible typo",
