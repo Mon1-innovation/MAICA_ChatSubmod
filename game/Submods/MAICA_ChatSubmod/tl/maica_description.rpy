@@ -1,5 +1,5 @@
-from bot_interface import PY2, PY3
 translate english python in maica:
+    from bot_interface import PY2, PY3
     maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
         maica.MaicaAiStatus.WAIT_AVAILABILITY:u"Service status acquiring failed, restart the game and check mas.log if issue persists",
