@@ -906,7 +906,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return
         elif message[0] == " ":
             message = message[1:]
-        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
+        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
         self.message_list.put((emote, message_step1))
     def upload_save(self, dict):
         """
