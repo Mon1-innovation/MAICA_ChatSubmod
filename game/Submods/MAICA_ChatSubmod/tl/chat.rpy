@@ -2168,3 +2168,83 @@ translate english strings:
     old "和[_gtext]有关."
     new "It's about [_gtext]."
 
+# TODO: Translation updated at 2025-05-20 19:48
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:397
+translate english maica_wants_preferences2_b522aebe:
+
+    # m 1hua "[prefs_line]"
+    m 1hua "[prefs_line]"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:401
+translate english maica_wants_preferences2_68c11622:
+
+    # m 1eub "[prefs_line]"
+    m 1eub "[prefs_line]"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:402
+    old "[prefs_line]{fast}"
+    new "[prefs_line]{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:402
+    old "有的"
+    new "Sure"
+
+# TODO: Translation updated at 2025-05-20 21:42
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:165
+translate english maica_prepend_2_fa45a223:
+
+    # m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{nw}"
+    m 1eub "What do you say, [player]? {w=0.3}You like this place?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:182
+translate english maica_prepend_2_4ad09a4c:
+
+    # m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{nw}"
+    m 2eud "I think I know how to show you that. {w=0.2}Shall we try it now, [player]?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:397
+translate english maica_wants_preferences2_690ccaa6:
+
+    # m 1hua "[prefs_line]{nw}"
+    m 1hua "[prefs_line]{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:401
+translate english maica_wants_preferences2_c9024ffe:
+
+    # m 1eub "[prefs_line]{nw}"
+    m 1eub "[prefs_line]{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:439
+translate english maica_mods_preferences_5673df7e:
+
+    # m 1eub "好啊. 你要补充还是删除呢?{nw}"
+    m 1eub "Okay. Do you want to add or delete something?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:604
+translate english maica_wants_mspire_f9132242:
+
+    # m 1eua "所以你想试试看吗, [player]?{nw}"
+    m 1eua "So do you want to try it out, [player]?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:659
+translate english mspire_mods_preferences_5673df7e:
+
+    # m 1eub "好啊. 你要补充还是删除呢?{nw}"
+    m 1eub "Okay. Do you want to add or delete something?{nw}"
+
+# TODO: Translation updated at 2025-05-20 22:06
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:396
+    old "你有什么想说的吗?"
+    new "So, you got anything to tell me?"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:400
+    old "你还有什么想补充的吗?"
+    new "You got anything to implement?"
+

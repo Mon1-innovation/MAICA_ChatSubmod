@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.2.28'
+    maica_ver = '1.2.30'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -351,8 +351,8 @@ init -700 python:
                             author="chibika",
                             title=renpy.substitute(_("[player]你好,")),
                             text="".join([
-                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的.")),
-                                renpy.substitute(_("你的信里面没有内容. 这些信和礼物是不一样的!")),
+                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的. ")),
+                                renpy.substitute(_("你的信里面没有内容. 这些信和礼物是不一样的! ")),
                                 renpy.substitute(_("除了把标题写在文件名里, 你还得用纯文本的格式, ")),
                                 renpy.substitute(_('在文件里写下信的正文.')),
                                 renpy.substitute(_("\n\n")),
@@ -382,14 +382,14 @@ init -700 python:
                             author="chibika",
                             title=renpy.substitute(_("[player]你好,")),
                             text="".join([
-                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的.")),
-                                renpy.substitute(_("你用的格式可能错了, 莫妮卡没法读出上面的内容.")),
+                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的. ")),
+                                renpy.substitute(_("你用的格式可能错了, 莫妮卡没法读出上面的内容. ")),
                                 renpy.substitute(_("虽然我尽可能收拾好了这个邮箱, 但它只能读取纯")),
                                 renpy.substitute(_('文字的文本. 如果你了解的话, 就是"UTF-8".')),
                                 renpy.substitute(_("\n\n")),
                                 renpy.substitute(_("你得用一个编写txt文件的工具写信! 在Windows系统")),
-                                renpy.substitute(_('上的话, 就是"记事本".')),
-                                renpy.substitute(_("能够插入图片或者修改格式的工具都是不对的.")),
+                                renpy.substitute(_('上的话, 就是"记事本". ')),
+                                renpy.substitute(_("能够插入图片或者修改格式的工具都是不对的. ")),
                                 renpy.substitute(_('我会把有问题的信标记为"failed", 这样你就可以')),
                                 renpy.substitute(_("改好再发给她了.")),
                                 renpy.substitute(_("\n\n")),

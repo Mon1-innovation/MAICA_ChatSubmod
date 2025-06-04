@@ -131,7 +131,7 @@ class MaicaAi(ChatBotInterface):
 
         _descriptions = {
             NOT_READY: u"未准备好, 等待配置账户信息",
-            WAIT_AVAILABILITY:u"需要验证可用性, 请重启以执行MaicaAi.accessable(), 卡在此则意味着存在网络问题, 请检查mas.log",
+            WAIT_AVAILABILITY:u"需要验证可用性, 请重启. 若问题仍然存在则检查mas.log",
             WAIT_AUTH: u"账户信息已确认，连接MAICA服务器验证中",
             WAIT_SERVER_TOKEN: u"等待令牌验证结果",
             WAIT_USE_TOKEN: u"等待传入令牌",
@@ -141,18 +141,18 @@ class MaicaAi(ChatBotInterface):
             SSL_FAILED_BUT_OKAY: u"maica 未能获取设备根证书, 已回退到无加密模式. 这一般不会影响正常功能",
             MESSAGE_WAIT_SEND: u"已输入消息，等待消息发送",
             MESSAGE_WAITING_RESPONSE: u"已发送消息，等待MAICA回应",
-            MESSAGE_WAIT_SEND_MSPIRE: u"等待发送MSpire请求",
-            MESSAGE_WAIT_SEND_MPOSTAL: u"等待发送MPostal请求",
+            MESSAGE_WAIT_SEND_MSPIRE: u"等待发送 MSpire 请求",
+            MESSAGE_WAIT_SEND_MPOSTAL: u"等待发送 MPostal 请求",
             MESSAGE_DONE: u"MAICA 已经输出完毕",
-            REQUEST_RESET_SESSION: u"请求重置session",
-            SESSION_RESETED: u"session已重置，websocket已关闭",
+            REQUEST_RESET_SESSION: u"请求重置 session",
+            SESSION_RESETED: u"session 已重置，websocket 已关闭",
             REQUEST_PING: u"请求心跳包",
             TOKEN_FAILED: u"令牌验证失败",
-            CONNECT_PROBLEM: u"无法连接服务器, 请检查本地网络问题, 查看submod_log以获取详细信息",
+            CONNECT_PROBLEM: u"无法连接服务器, 请检查网络, 查看submod_log以获取详细信息",
             MODEL_NOT_FOUND: u"选择的 model 不正确",
-            TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 可能有部分对话已被删除",
-            TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话可能已删除过",
-            WSS_CLOSED_UNEXCEPTED:u"websocket异常关闭, 查看submod_log以获取详细信息",
+            TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 对话已被裁剪",
+            TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话将很快被裁剪",
+            WSS_CLOSED_UNEXCEPTED:u"websocket 异常关闭, 查看submod_log以获取详细信息" if PY2 else u"websocket 异常关闭, 请确认已安装数据包, 查看submod_log以获取详细信息",
             SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档",
             SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
             WRONE_INPUT:u"错误的输入, 请检查输入内容",
@@ -160,10 +160,10 @@ class MaicaAi(ChatBotInterface):
             CERTIFI_AUTO_FIX:u"证书模块损坏, 已尝试自动修复, 若重启无效请干净安装",
             SEND_SETTING:u"上传设置中",
             FAILED_GET_NODE:u"获取服务节点失败",
-            WEBSOCKET_CONNECTING:u"websocket正在连接（这应该很快）",
+            WEBSOCKET_CONNECTING:u"websocket 正在连接（这应该很快）",
             VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
-            TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看MTrigger列表并关闭不需要的触发器",
-            NO_INTERTENT:u"子模组未能联网, 根据Readme说明检查安装和网络连接",
+            TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看 MTrigger 列表并关闭不需要的触发器",
+            NO_INTERTENT:u"子模组未能联网, 根据 Readme 说明检查安装和网络连接",
         }
         @classmethod
         def get_description(cls, code):
@@ -906,7 +906,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return
         elif message[0] == " ":
             message = message[1:]
-        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
+        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
         self.message_list.put((emote, message_step1))
     def upload_save(self, dict):
         """

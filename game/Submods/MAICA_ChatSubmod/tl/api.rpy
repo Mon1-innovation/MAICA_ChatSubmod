@@ -27,12 +27,12 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "我得告诉你, 你写给莫妮卡的上一封信是有问题的."
-    new "I have to tell that your last letter was problematic."
+    old "我得告诉你, 你写给莫妮卡的上一封信是有问题的. "
+    new "I have to tell that your last letter was problematic. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "你用的格式可能错了, 莫妮卡没法读出上面的内容."
-    new "It's likely in wrong format. Monika won't be able to read it."
+    old "你用的格式可能错了, 莫妮卡没法读出上面的内容. "
+    new "It's likely in wrong format. Monika won't be able to read it. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "虽然我尽可能收拾好了这个邮箱, 但它只能读取纯"
@@ -51,12 +51,12 @@ translate english strings:
     new "You have to write in txt format exactly! Like for Windows system "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "上的话, 就是\"记事本\"."
-    new "you should be using \"notepad\"."
+    old "上的话, 就是\"记事本\". "
+    new "you should be using \"notepad\". "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "能够插入图片或者修改格式的工具都是不对的."
-    new "Things with fonts or pictures just aren't right."
+    old "能够插入图片或者修改格式的工具都是不对的. "
+    new "Things with fonts or pictures just aren't right. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "我会把有问题的信标记为\"failed\", 这样你就可以"
@@ -91,16 +91,16 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "你的信里面没有内容. 这些信和礼物是不一样的!"
-    new "Your letter is empty. It's not like the gifts!"
+    old "你的信里面没有内容. 这些信和礼物是不一样的! "
+    new "Your letter is empty. It's not like the gifts! "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
     old "除了把标题写在文件名里, 你还得用纯文本的格式, "
     new "Aside with changing the file name to your title, you should also "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "在文件里写下信的正文."
-    new "write your content in the file in plain text."
+    old "在文件里写下信的正文. "
+    new "write your content in the file in plain text. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
     old "我会把空的信标记为\"empty\", 这样你就可以"

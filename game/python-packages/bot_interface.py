@@ -83,6 +83,9 @@ renpy_symbol_big_bracket_only = {
 renpy_symbol_percentage = {
     "%": "%%"
 }
+renpy_symbol_enter = {
+    "\n": ""
+}
 # 关键字替换字符串:
 def key_replace(*args):
         """
