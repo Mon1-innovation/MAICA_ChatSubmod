@@ -312,7 +312,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mspire_use_cache = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         
-        self.ws_cookie = ""
+        self.__ws_cookie = ""
         self.enable_strict_mode = False
         self.workload_raw = {
             "None":{
@@ -634,8 +634,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             #for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
             #    if param in self.modelconfig:
             #        data['super_params'][param] = self.modelconfig[param]
-            #if self.enable_strict_mode and self.ws_cookie != "":
-            #    data['cookie'] = self.ws_cookie
+            #if self.enable_strict_mode and self.__ws_cookie != "":
+            #    data['cookie'] = self.__ws_cookie
             return self.send_settings()
             
 
@@ -658,8 +658,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
                         dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
-                        if self.enable_strict_mode and self.ws_cookie != "":
-                            dict["cookie"] = self.ws_cookie
+                        if self.enable_strict_mode and self.__ws_cookie != "":
+                            dict["cookie"] = self.__ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
                         self.wss_session.send(
@@ -678,8 +678,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             }
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
-                        if self.enable_strict_mode and self.ws_cookie != "":
-                            dict["cookie"] = self.ws_cookie
+                        if self.enable_strict_mode and self.__ws_cookie != "":
+                            dict["cookie"] = self.__ws_cookie
 
                         self.wss_session.send(
                             json.dumps(dict, ensure_ascii=False) 
@@ -691,8 +691,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         #    message = str(self.senddata_queue.get()).strip()
                         message = self.senddata_queue.get()
                         dict = {"type": "query", "chat_session":0, "postmail":message}
-                        if self.enable_strict_mode and self.ws_cookie != "":
-                            dict["cookie"] = self.ws_cookie
+                        if self.enable_strict_mode and self.__ws_cookie != "":
+                            dict["cookie"] = self.__ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: {}".format(message))
                         self.wss_session.send(
@@ -712,8 +712,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
                         dict = {"chat_session":self.chat_session, "purge":True}
-                        if self.enable_strict_mode and self.ws_cookie != "":
-                            dict["cookie"] = self.ws_cookie
+                        if self.enable_strict_mode and self.__ws_cookie != "":
+                            dict["cookie"] = self.__ws_cookie
 
                         self.wss_session.send(
                             json.dumps(dict)
@@ -758,8 +758,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
                 if param in self.modelconfig:
                     data['super_params'][param] = self.modelconfig[param]
-            if self.enable_strict_mode and self.ws_cookie != "":
-                data['cookie'] = self.ws_cookie
+            if self.enable_strict_mode and self.__ws_cookie != "":
+                data['cookie'] = self.__ws_cookie
             return data
         data = build_setting_config()
         if self.is_connected():
@@ -781,13 +781,22 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def __on_message(self, wsapp, message):
         import json, time
         data = json.loads(message)
-        logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-            (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
-            data["status"] if "status" in data else "unknown status",
-            data["type"] if "type" in data else "unknown type",
-            data["code"] if "code" in data else "unknown code",
-            data["content"] if "content" in data else "unknown content"
-        ))    
+        if message.get("status", "unknown") in ('ws_cookie'):
+            logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
+                (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
+                data["status"] if "status" in data else "unknown status",
+                data["type"] if "type" in data else "unknown type",
+                data["code"] if "code" in data else "unknown code",
+                "--content filtered--"
+            ))    
+        else:
+            logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
+                (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
+                data["status"] if "status" in data else "unknown status",
+                data["type"] if "type" in data else "unknown type",
+                data["code"] if "code" in data else "unknown code",
+                data["content"] if "content" in data else "unknown content"
+            ))    
         if data.get("type", False) != "carriage":
             if data.get("type", "unknown") == "info":
                 self.console_logger.info("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
@@ -827,7 +836,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
         if data['status'] == "ws_cookie":
-            self.ws_cookie = data['content']
+            self.__ws_cookie = data['content']
         
         ## data处理：
         ## 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
@@ -884,7 +893,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        self.ws_cookie = ""
+        self.__ws_cookie = ""
         if self.multi_lock.locked():
             self.multi_lock.release()
         raise Exception("Websocket closed, raising to cleanup")
@@ -1024,8 +1033,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
         dict = {"chat_session":self.chat_session, "purge":True}
-        if self.enable_strict_mode and self.ws_cookie != "":
-            dict["cookie"] = self.ws_cookie
+        if self.enable_strict_mode and self.__ws_cookie != "":
+            dict["cookie"] = self.__ws_cookie
         self.wss_session.send(
             json.dumps(dict)
         )
