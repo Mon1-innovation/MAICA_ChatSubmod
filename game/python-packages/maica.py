@@ -1144,7 +1144,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             from maica_mtrigger import MTriggerMethod
             res = self.mtrigger_manager.send_to_table(self.ciphertext, self.chat_session, self.mtrigger_manager.build_data(MTriggerMethod.table))
             if res.json().get('success', False):
-                logger.info("send_mtrigger success")
+                logger.debug("send_mtrigger success")
 
             else:
                 logger.error("send_mtrigger failed: {}".format(res.json()))

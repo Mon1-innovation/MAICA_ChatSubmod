@@ -232,6 +232,8 @@ init 999 python in maica:
 #################################################################################
 
     class MusicTrigger(MTriggerBase):
+        web_musicplayer_installed = store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
+        PLAYER_CHOICE = "玩家自行选择" if not web_musicplayer_installed else "玩家自行选择(仅在玩家明确想要自行选择时使用)"
         def __init__(self):
             self.musics = self.song_list()
             super(MusicTrigger, self).__init__(
@@ -256,7 +258,7 @@ init 999 python in maica:
                 m.append(s[0])
             if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
                 pass
-            m.append("玩家自行选择")
+            m.append(PLAYER_CHOICE)
             m.append("停止/静音")
             return m
 
@@ -268,7 +270,7 @@ init 999 python in maica:
             return [x for x in store.songs.music_choices if selection in x][0]
 
         def callback(self, selection):
-            if selection == "玩家自行选择":
+            if selection == PLAYER_CHOICE:
                 store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:
