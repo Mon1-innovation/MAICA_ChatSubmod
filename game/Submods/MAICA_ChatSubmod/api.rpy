@@ -213,8 +213,9 @@ init 5 python in maica:
             url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
             response = requests.get(url, verify=False)
             if response.status_code == 200:
+                path = os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem") if not renpy.android else os.path.join(ANDROID_MASBASE, "game", "python-packages", "certifi", "cacert.pem")
                 # 将文件保存到本地
-                with open(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem"), "wb") as file:
+                with open(path, "wb") as file:
                     file.write(response.content)
                 store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
             else:
