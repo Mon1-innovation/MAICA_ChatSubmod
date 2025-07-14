@@ -366,6 +366,12 @@ screen maica_setting_pane():
                 xalign 1.0 yalign 0.0
                 xoffset -10
                 style "main_menu_version"
+        
+        if renpy.android and not os.path.exists(os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')):
+            text _("> 警告: 找不到证书, 你是不是忘记安装数据包了?")
+                xalign 1.0 yalign 0.0
+                xoffset -10
+                style "main_menu_version"
 
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             text _("> 警告: 与 Better Loading 不兼容"):
