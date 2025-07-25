@@ -258,7 +258,7 @@ init 999 python in maica:
                 m.append(s[0])
             if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
                 pass
-            m.append(PLAYER_CHOICE)
+            m.append(self.PLAYER_CHOICE)
             m.append("停止/静音")
             return m
 
@@ -270,7 +270,7 @@ init 999 python in maica:
             return [x for x in store.songs.music_choices if selection in x][0]
 
         def callback(self, selection):
-            if selection == PLAYER_CHOICE:
+            if selection == self.PLAYER_CHOICE:
                 store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:

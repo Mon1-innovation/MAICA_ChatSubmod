@@ -812,7 +812,7 @@ screen maica_log():
         else:
             _tooltip = None
         def set_provider(id):
-            persistent.maica_setting_dict["provider_id"] = id
+            persistent.maica_setting_dict["provider_id"] = int(id)
 
     modal True
     zorder 215

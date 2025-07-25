@@ -486,6 +486,7 @@ label maica_delete_information:
 
 
 label clear_all:
+    $ HKBShowButtons()
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
     $ mas_unlockEVL("maica_main", "EVE")

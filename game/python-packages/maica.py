@@ -199,17 +199,32 @@ class MaicaAi(ChatBotInterface):
             "wsInterface": "wss://maicadev.monika.love/websocket",
             "httpInterface": "https://maicadev.monika.love/api/"
         }
+        fakelocalprovider = {
+            "id": 9999,
+            "name":"Local Deployment",
+            "deviceName": "This is your local deployment of MAICA",
+            "isOfficial": False,
+            "portalPage": "https://github.com/PencilMario/MAICA",
+            "servingModel": "None",
+            "modelLink": "",
+            "wsInterface": "ws://127.0.0.1:5000/",
+            "httpInterface": "http://127.0.0.1:6000/",
+        }
         servers = []
         provider_list = "https://maicadev.monika.love/api/servers"
         @classmethod
         def get_provider(cls):
+            cls.servers = []
             import requests
             res = requests.post(cls.provider_list, json={})
+            cls.servers.append(cls.fakelocalprovider)
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
+                cls.servers.append(cls.isfailedresponse)
                 #raise Exception("Cannot get providers because server error")
                 return False
             res = res.json()
+            
             if res["success"]:
                 cls.isMaicaNameServer = res["servers"].get("isMaicaNameServer")
                 cls.servers = res["servers"].get("servers")
@@ -463,7 +478,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "password":pwd
         }
         try:
-            response = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "register", json=data)
+            response = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "register", json=data, timeout=5)
         except Exception as e:
             import traceback
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
@@ -778,10 +793,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             import traceback
             self.console_logger.debug("!!SUBMOD ERROR when on_message: {}".format(e))
             logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
+            logger.error("when processing context: {}".format(message))
     def __on_message(self, wsapp, message):
         import json, time
         data = json.loads(message)
-        if message.get("status", "unknown") in ('ws_cookie'):
+        if data.get("status", "unknown") in ('ws_cookie'):
             logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
                 (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
                 data["status"] if "status" in data else "unknown status",
@@ -1201,15 +1217,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return
         try:
             if not self.MaicaProviderManager.get_provider():
-                self.status = self.MaicaAiStatus.FAILED_GET_NODE
-                self.__accessable = False
-                return
+                if self.provider_id != 9999:
+                    self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                    self.__accessable = False
+                    return
 
         except Exception as e:
             logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
-            self.status = self.MaicaAiStatus.FAILED_GET_NODE
-            self.__accessable = False
-            return
+            if self.provider_id != 9999:
+                self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                self.__accessable = False
+                return
 
         if self.in_mas:
             try:
