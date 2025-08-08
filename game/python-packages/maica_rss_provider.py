@@ -2,7 +2,7 @@ try:
     import feedparser
 except:
     import feedparser2.feedparser as feedparser
-
+from bot_interface import key_replace
 import re
 # 指定 RSS feed 的 URL
 feed_url = 'https://forum.monika.love/rss/d/3954'
@@ -11,7 +11,11 @@ feed_url = 'https://forum.monika.love/rss/d/3954'
 #feed = feedparser.parse(feed_url)
 
 #print(f"{feed.entries}")
-
+safe_renpy_symbol = {
+    "[": "[[",
+    "{": "{{",
+    "【": "【【"
+}
 def set_ua(ver):
     feedparser.USER_AGENT = "MAICA_Blessland/{}".format(ver)    
 html_tag_re = re.compile(r'<[^>]+>')
@@ -24,6 +28,7 @@ def get_log():
     data = {
         "title": "",
         "content": [],
+        "content_renpysafe": [],
         "version":0
     }
     try:
@@ -31,15 +36,18 @@ def get_log():
         for item in feed.entries:
             data["title"] = item['title']
             data["content"].append(remove_html_tags(item['summary']))
+            data["content_renpysafe"].append(key_replace(remove_html_tags(item['summary']),safe_renpy_symbol))
             data["version"] = int(item['link'].split('/')[-1])
         
         return data
     except Exception as e: 
         data["title"] = "An Exception is occurred"
         data["content"].append(traceback.format_exc())
+        data["content_renpysafe"].append(traceback.format_exc())
         data["version"] = 0
     if len(data["content"]) == 0:
         data["content"].append("Cannot fetch log")
+        data["content_renpysafe"].append("Cannot fetch log")
         data["version"] = 0
         data["title"] = "DCC server error"
     return data 

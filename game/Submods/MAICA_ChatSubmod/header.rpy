@@ -841,7 +841,7 @@ screen maica_log():
                     text maica_log.get("title")
 
                     text "========================================================="
-                    for content in maica_log.get("content"):
+                    for content in maica_log.get("content_renpysafe"):
                         text content:
                             size 18
                         text "================================"
