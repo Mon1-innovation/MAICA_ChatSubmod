@@ -159,7 +159,7 @@ class MaicaAi(ChatBotInterface):
             CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
             CERTIFI_AUTO_FIX:u"证书模块损坏, 已尝试自动修复, 若重启无效请干净安装",
             SEND_SETTING:u"上传设置中",
-            FAILED_GET_NODE:u"获取服务节点失败",
+            FAILED_GET_NODE:u"获取服务节点失败, 服务器可能维护或离线",
             WEBSOCKET_CONNECTING:u"websocket 正在连接（这应该很快）",
             VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
             TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看 MTrigger 列表并关闭不需要的触发器",

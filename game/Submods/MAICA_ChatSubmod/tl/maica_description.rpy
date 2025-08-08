@@ -33,7 +33,7 @@ translate english python in maica:
     maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: u"Waiting to send MPostal request",  # 新增
         maica.MaicaAiStatus.SEND_SETTING: u"Uploading settings",  # 新增
-        maica.MaicaAiStatus.FAILED_GET_NODE: u"Failed to get service node",  # 新增
+        maica.MaicaAiStatus.FAILED_GET_NODE: u"Failed to get service node, server may be under maintenance or offline",  # 新增
         maica.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket is connecting (this should be quick)",  # 新增
         maica.MaicaAiStatus.VERSION_OLD: u"Submod version is outdated, please update to the latest version",  # 新增
     })
