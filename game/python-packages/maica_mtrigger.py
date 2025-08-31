@@ -117,13 +117,15 @@ class MTriggerManager:
                 res.append(i.build())
         return res
 
-    def send_to_table(self, token, session, data):
+    def send_to_table(self, token, session, data, url="https://maicadev.monika.love/api/"):
         req = {
             "access_token": token,
             "chat_session": session,
             "content": data
+            
         }
-        res = requests.post("https://maicadev.monika.love/api/trigger", json=req)
+        print("post trigger {}".format(req))
+        res = requests.post(url+"trigger", json=req)
         return res
         
 

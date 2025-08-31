@@ -30,11 +30,15 @@ class NothingEmoSelector(emotion_analyze_v2.EmoSelector):
         return message
 
 
-ai = maica.MaicaAi("", "", "")
-ai._gen_token(None, None, t)
+ai = maica.MaicaAi("SirrrrrrP", "qwerty")
+
+
+
+ai.provider_id = 9999
+
 
 ai.in_mas = False
-print(ai.ciphertext)
+
 ai.sf_extraction = True
 ai.model = ai.MaicaAiModel.maica_main
 ai.MoodStatus = NothingEmoSelector()
@@ -44,21 +48,27 @@ ai.MoodStatus.pre_mood = ""
 ai.chat_session = 0
 ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
-ai.accessable()
-ai.provider_id = 1
 
+
+ai._ignore_accessable = True
+ai.accessable()
+ai._gen_token("SirrrrrrP", "qwerty")
+print(ai.ciphertext)
+print(f"{ai._verify_token()}")
+print("加密完成")
 import time
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
 
-ai.init_connect()
+#ai.init_connect()
 try:
     if not ai.is_connected():
         ai.init_connect()
         time.sleep(3)
     if ai.is_failed():
-        print("Maica ai 连接失败")
+        print("Maica ai 连接失败 {}".format(ai.status))
+        raise Exception()
     
     if ai.is_ready_to_input():
         ai.chat(input("请输入内容：\n"))
@@ -72,8 +82,9 @@ try:
         print("[RESPONSE] message: ", message[1])
         
 except KeyboardInterrupt:
-    ai.wss_session.close()
     print("============KeyboardInterrupt============")
+finally:
+    ai.close_wss_session()
 
 #history = ai.download_history()
 #print(history)

@@ -11,15 +11,15 @@ websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
 import datetime
 
-def milliseconds_to_hms(timestamp_ms):
+def seconds_to_hms(timestamp_ms):
     # 将毫秒转换为秒
-    timestamp_s = timestamp_ms / 1000.0
-    # 创建一个UTC时间戳对应的datetime对象
-    dt = datetime.datetime.utcfromtimestamp(timestamp_s)
+    timestamp_s = timestamp_ms
+    # 获取系统本地时区
+    dt = datetime.datetime.fromtimestamp(timestamp_s)
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
-    SUPPORT_BACKEND = 1.0011
+    SUPPORT_BACKEND = 1.1
     ascii_icon = """                                                             
 
     __  ___ ___     ____ ______ ___ 
@@ -197,7 +197,7 @@ class MaicaAi(ChatBotInterface):
             "servingModel": "None",
             "modelLink": "",
             "wsInterface": "wss://maicadev.monika.love/websocket",
-            "httpInterface": "https://maicadev.monika.love/api/"
+            "httpInterface": "https://maicadev.monika.love/api"
         }
         fakelocalprovider = {
             "id": 9999,
@@ -207,31 +207,33 @@ class MaicaAi(ChatBotInterface):
             "portalPage": "https://github.com/PencilMario/MAICA",
             "servingModel": "None",
             "modelLink": "",
-            "wsInterface": "ws://127.0.0.1:5000/",
-            "httpInterface": "http://127.0.0.1:6000/",
+            "wsInterface": "ws://127.0.0.1:5000",
+            "httpInterface": "http://127.0.0.1:6000",
         }
-        servers = []
+        servers = [fakelocalprovider]
         provider_list = "https://maicadev.monika.love/api/servers"
         @classmethod
         def get_provider(cls):
             cls.servers = []
             import requests
-            res = requests.post(cls.provider_list, json={})
-            cls.servers.append(cls.fakelocalprovider)
+            res = requests.get(cls.provider_list, json={})
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
                 cls.servers.append(cls.isfailedresponse)
+                cls.servers.append(cls.fakelocalprovider)
                 #raise Exception("Cannot get providers because server error")
                 return False
             res = res.json()
             
             if res["success"]:
-                cls.isMaicaNameServer = res["servers"].get("isMaicaNameServer")
-                cls.servers = res["servers"].get("servers")
+                cls.isMaicaNameServer = res["content"].get("isMaicaNameServer")
+                cls.servers = res["content"].get("servers")
+                cls.servers.append(cls.fakelocalprovider)
                 return True
             else:
                 cls.isfailedresponse["deviceName"] = res["exception"]
                 cls.servers.append(cls.isfailedresponse)
+                cls.servers.append(cls.fakelocalprovider)
                 logger.error("Cannot get providers because server return: {}".format(res))
                 return False
         @classmethod
@@ -240,18 +242,21 @@ class MaicaAi(ChatBotInterface):
                 if int(server["id"]) == id:
                     return server
             cls.isfailedresponse["deviceName"] = "Cannot find server by id: {}".format(id)
+            logger.error("Cannot find server by id: {}, returning default failed response".format(id))
             return cls.isfailedresponse
         @classmethod
         def get_wssurl_by_id(cls, id):
             if not id:
-                return cls.isfailedresponse["wsInterface"]
-            return cls.get_server_by_id(id)["wsInterface"]
+                logger.warning("Cannot find server by id: {}, returning default failed response".format(id))
+                return cls.isfailedresponse["wsInterface"] + "/"
+            return cls.get_server_by_id(id)["wsInterface"] + "/"
 
         @classmethod
         def get_api_url_by_id(cls, id):
             if not id:
-                return cls.isfailedresponse["httpInterface"]
-            return cls.get_server_by_id(id)["httpInterface"]
+                logger.warning("Cannot find server by id: {}, returning default failed response".format(id))
+                return cls.isfailedresponse["httpInterface"] + "/"
+            return cls.get_server_by_id(id)["httpInterface"] + "/"
 
             
     public_key_pem = """\
@@ -267,7 +272,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def_modelconfig = {
         "top_p":[0.1, 1.0, 0.7],
         "temperature":[0.0, 1.0, 0.4],
-        "max_tokens":[0, 2048, None],
         "frequency_penalty":[0.0, 1.0, 0.3],
         "presence_penalty":[0.0, 1.0, 0.0],
         "seed":[0, 99999, None]
@@ -289,6 +293,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """
         import threading
         self.__accessable = False
+        self._ignore_accessable = False
         self._serving_status = ""
         self.stat = {}
         self.multi_lock = threading.Lock()
@@ -461,12 +466,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 emote = self.MoodStatus.get_emote()
                 self._append_to_message_list(emote,talk)
         return (res[0], bot_interface.add_pauses(res[1]) if add_pause else res[1])
-    def _gen_token(self, account, pwd, token, email = None):
+    def _gen_token(self, account, pwd, token = "", email = None):
         if token != "":
             self.ciphertext = token
             return
         if not self.__accessable and token == "":
-            return logger.error("Maica server not serving.")
+            return logger.error("_gen_token:Maica server not serving.")
         import requests
         data = {
             "username":account,
@@ -478,7 +483,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "password":pwd
         }
         try:
-            response = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "register", json=data, timeout=5)
+            import json
+            response = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "register", params={"content":json.dumps(data)}, timeout=5)
+            if (response.status_code != 200): 
+                raise Exception("Maica::_gen_token response process failed because server return {}".format(response.status_code))
         except Exception as e:
             import traceback
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
@@ -487,7 +495,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if response.status_code == 200:
             response_data = response.json()
             if response_data.get("success"):
-                self.ciphertext = response_data.get("token")
+                self.ciphertext = response_data.get("content")
             else:
                 self.status = self.MaicaAiStatus.CONNECT_PROBLEM,
                 logger.error("Maica::_gen_token response process failed because server response failed: {}".format(response_data))
@@ -509,7 +517,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         """
         import requests
         try:
-            res = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality", json={"access_token": self.ciphertext})
+            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality", params={"access_token": self.ciphertext})
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
@@ -637,20 +645,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         def build_setting_config():
             self._check_modelconfig()
-            #data = {
-            #    "model_params":{},
-            #    "perf_params":{},
-            #    "super_params":{}
-            #}
-            #data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token, "deformation":True}
-            #for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
-            #    if param in self.modelconfig:
-            #        data['perf_params'][param] = self.modelconfig[param]
-            #for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
-            #    if param in self.modelconfig:
-            #        data['super_params'][param] = self.modelconfig[param]
-            #if self.enable_strict_mode and self.__ws_cookie != "":
-            #    data['cookie'] = self.__ws_cookie
             return self.send_settings()
             
 
@@ -683,6 +677,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
                     elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
                         dict = {
+                            "type": "query",
                             "chat_session":self.mspire_session, 
                             "inspire":{
                                     "type":self.mspire_type,
@@ -718,7 +713,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     # 身份验证
                     elif self.status == self.MaicaAiStatus.WAIT_AUTH:
                         self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
-                        self.wss_session.send(self.ciphertext)
+                        self.wss_session.send(json.dumps({"access_token": self.ciphertext}, ensure_ascii=False))
                     # 连接已建立，选择模型
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                         self.send_settings()
@@ -762,17 +757,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         def build_setting_config():
             self._check_modelconfig()
             data = {
-                "model_params":{},
-                "perf_params":{},
-                "super_params":{}
+                "type": "params",
+                "chat_params": {}
             }
-            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_token":self.max_history_token, "deformation":True}
-            for param in ['esc_aggressive', 'tnd_aggressive', 'mf_aggressive', 'sfe_aggressive', 'nsfw_acceptive', 'pre_additive', 'post_additive', 'amt_aggressive']:
-                if param in self.modelconfig:
-                    data['perf_params'][param] = self.modelconfig[param]
-            for param in ['top_p', 'temperature', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'seed']:
-                if param in self.modelconfig:
-                    data['super_params'][param] = self.modelconfig[param]
+            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "deformation":True}
+            data['chat_params'].update(self.modelconfig)
             if self.enable_strict_mode and self.__ws_cookie != "":
                 data['cookie'] = self.__ws_cookie
             return data
@@ -799,7 +788,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         data = json.loads(message)
         if data.get("status", "unknown") in ('ws_cookie'):
             logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-                (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
+                (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
                 data["status"] if "status" in data else "unknown status",
                 data["type"] if "type" in data else "unknown type",
                 data["code"] if "code" in data else "unknown code",
@@ -807,7 +796,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             ))    
         else:
             logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-                (milliseconds_to_hms(data["time_ms"]))  + "." + str(data["time_ms"] % 1000).zfill(3)if "time_ms" in data else "unknown server timestamp",
+                (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
                 data["status"] if "status" in data else "unknown status",
                 data["type"] if "type" in data else "unknown type",
                 data["code"] if "code" in data else "unknown code",
@@ -816,13 +805,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if data.get("type", False) != "carriage":
             if data.get("type", "unknown") == "info":
                 self.console_logger.info("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
+            elif data.get("type", "unknown") == "warn":
+                self.console_logger.warning("!!MAICA SERVER WARNING: {}".format(data.get("content", "Error: Data frame is received but content is empty")))
+            elif data.get("type", "unknown") == "error":
+                self.console_logger.error("!!MAICA SERVE ERROR: {}".format(data.get("content", "Error: Data frame is received but content is empty")))
+                self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
+                self.wss_session.close()
+
             else:
                 self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-
-        if 400 <= int(data.get("code", 200)) < 500:
-            self.console_logger.error("!!MAICA RESPONSE ERROR: {}-{}".format(data.get("status", "4xxStatus"), data.get("content", "Error: Code 4xx is received but content is empty")))
-            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-            self.wss_session.close()
         if 500 <= int(data.get("code", 200)) < 600:
             self.console_logger.error("!!MAICA SERVER FATAL: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
@@ -847,11 +838,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if data["status"] == "nickname":
             self.user_acc = data["content"]
             logger.info("maica: Login as '{}'".format(self.user_acc))
-        if data['status'] == "mtrigger_trigger":
+        if data['status'] == "maica_mtrigger_trigger":
             param = data['content'][1]
             self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
-        if data['status'] == "ws_cookie":
+        if data['status'] == "maica_connection_security_cookie":
             self.__ws_cookie = data['content']
         
         ## data处理：
@@ -865,16 +856,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         # 发送令牌，等待回应
         if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
-            if data['status'] == "thread_ready":
+            if data['status'] == "maica_connection_established":
                 self.status = self.MaicaAiStatus.SESSION_CREATED            
         elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
-            if not data['status'] in ("ok", "thread_ready", "params_set"):
+            if not data['status'] in ("ok", "maica_connection_established", "maica_params_accepted"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             self._gen_time = time.time()
-            if data['status'] == "continue":
+            if data['status'] == "maica_core_streaming_continue":
                 self.stat["received_token"] += 1
                 self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
                 self.TalkSpilter.add_part(data['content'])
@@ -884,13 +875,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         res = self.MoodStatus.analyze(res)
                         emote = self.MoodStatus.get_emote()
                         self._append_to_message_list(emote,res)
-            if data['status'] == "reply": # MPostal
+            if data['status'] == "maica_core_nostream_reply": # MPostal
                  self._append_to_message_list('1eua', self.MoodStatus.analyze(data['content']))
             if data['status'] == "savefile_notfound":
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.console_logger.error("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
-            if data['status'] == "loop_finished":
+            if data['status'] == "maica_chat_loop_finished":
                 self._in_mspire = False
                 talks = self.TalkSpilter.announce_stop()
                 for item in talks:
@@ -991,13 +982,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.__accessable:
             return logger.error("Maica is not serving")
         import requests, json
-        res = requests.post(
+        res = requests.get(
             self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
             data = json.dumps(
                 {
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
-                    "rounds": lines
+                    "content": lines
                 },
             )
         )
@@ -1076,7 +1067,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return None
 
         def task():
-            res = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "workload")
+            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "workload")
             if res.status_code == 200:
                 data = res.json()
                 if data["success"]:
@@ -1108,7 +1099,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "total_vmem": 0,
             "total_inuse_vmem": 0,
             "total_w": 0,
-            "mem_pencent":0
+            "mem_pencent":0,
+            "max_tflops":0,
+            "cur_tflops":0
         }
         if not self.__accessable:
             return data
@@ -1124,6 +1117,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_vmem"] += int(card["vram"][:-4].strip())
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
+                    data["max_tflops"] += card["tflops"]
+                    data["cur_tflops"] += card["tflops"] * card["mean_consumption"]
         elif PY3:
             for group in self.workload_raw.values():
                 for card in group.values():
@@ -1134,6 +1129,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_vmem"] += int(card["vram"][:-4].strip())
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
+                    data["max_tflops"] += card["tflops"]
+                    data["cur_tflops"] += card["tflops"] * card["mean_consumption"]
+
         if avgcount > 0:
             data["avg_usage"] /= avgcount
         return data
@@ -1158,7 +1156,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def send_mtrigger(self):
         try:
             from maica_mtrigger import MTriggerMethod
-            res = self.mtrigger_manager.send_to_table(self.ciphertext, self.chat_session, self.mtrigger_manager.build_data(MTriggerMethod.table))
+            res = self.mtrigger_manager.send_to_table(self.ciphertext, self.chat_session, self.mtrigger_manager.build_data(MTriggerMethod.table), url=self.MaicaProviderManager.get_api_url_by_id(self.provider_id))
             if res.json().get('success', False):
                 logger.debug("send_mtrigger success")
 
@@ -1240,21 +1238,22 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 return
                 
         import requests, json
-        res = requests.post(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "accessibility")
+        res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "accessibility")
+        logger.debug("accessable(): try get accessibility from {}".format(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "accessibility"))
         d = res.json()
         if d.get(u"success", False):
-            self._serving_status = d["accessibility"]
-            if d.get("accessibility", None) != "serving":
+            self._serving_status = d["content"]
+            if self._serving_status != "serving" and not self._ignore_accessable:
                 self.status = self.MaicaAiStatus.SERVER_MAINTAIN
                 self.__accessable = False
-                logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
+                logger.error("accessable(): Maica is not serving: {}".format(d["content"]))
             else:
                 self.__accessable = True
                 self.status = self.MaicaAiStatus.NOT_READY
         else:
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
-            logger.error("accessable(): Maica is not serving: {}".format(d["accessibility"]))
+            logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
         
 
 
