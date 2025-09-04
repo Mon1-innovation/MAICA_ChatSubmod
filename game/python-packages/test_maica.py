@@ -40,7 +40,6 @@ ai.provider_id = 9999
 ai.in_mas = False
 
 ai.sf_extraction = True
-ai.model = ai.MaicaAiModel.maica_main
 ai.MoodStatus = NothingEmoSelector()
 ai.MoodStatus.main_strength = 0.0
 ai.MoodStatus.repeat_strength = 0.0
@@ -48,7 +47,8 @@ ai.MoodStatus.pre_mood = ""
 ai.chat_session = 0
 ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
-
+#ai.enable_mf = False
+#ai.enable_mt = False
 
 ai._ignore_accessable = True
 ai.accessable()

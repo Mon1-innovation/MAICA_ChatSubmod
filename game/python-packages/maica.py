@@ -29,9 +29,6 @@ class MaicaAi(ChatBotInterface):
 /_/  /_//_/  |_|/___/ \____//_/  |_| v
                                     
 """
-    class MaicaAiModel:
-        maica_main = "maica_main"
-        maica_core = "maica_core"
     class MaicaAiLang:
         zh_cn = "zh"
         en = "en"
@@ -304,7 +301,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.wss_session = None
         self.wss_thread = None
         self.user_acc = ""
-        self.model = self.MaicaAiModel.maica_core
+        self.enable_mf = True
+        self.enable_mt = True
         self.sf_extraction = False
         self.stream_output = True
         self.update_screen_func = None
@@ -760,7 +758,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "type": "params",
                 "chat_params": {}
             }
-            data["model_params"] = {"model":self.model, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "deformation":True}
+            data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token})
             data['chat_params'].update(self.modelconfig)
             if self.enable_strict_mode and self.__ws_cookie != "":
                 data['cookie'] = self.__ws_cookie
