@@ -36,7 +36,8 @@ init 10 python:
     import logging
     maica_default_dict = {
         "auto_reconnect":False,
-        "maica_model":store.maica.maica.MaicaAiModel.maica_main,
+        "enable_mf":True,
+        "enable_mt":True,
         "use_custom_model_config":False,
         "sf_extraction":True,
         "chat_session":1,
@@ -149,20 +150,42 @@ init 10 python:
 
         keys_to_remove = []
 
-        for i in d.keys():  # 使用 d.keys() 以兼容 Python 2
+        def process_value(value, depth=0):
+            # Prevent infinite recursion
+            if depth > 3:
+                return "REMOVED|TOO_DEEP"
+
+            # Handle None
+            if value is None:
+                return None
+
+            # Recursive processing for dictionaries
+            if isinstance(value, dict):
+                return {k: process_value(v, depth+1) for k, v in value.items() if k in sentiment}
+
+            # Recursive processing for lists/tuples
+            if isinstance(value, (list, tuple)):
+                return [process_value(item, depth+1) for item in value]
+
+            # Check serialization and length
+            try:
+                str_val = str(value)
+                if len(str_val) > maxlen:
+                    return "REMOVED|TOO_LONG"
+                
+                # Attempt JSON serialization
+                json.dumps(value)
+                return value
+            except:
+                return "REMOVED|UNSERIALIZABLE"
+
+        keys_to_remove = []
+        for i in list(d.keys()):  # Use list() for Python 2 & 3 compatibility
             if i not in sentiment:
                 keys_to_remove.append(i)
                 continue
-            try:
-                json.dumps(d[i])
-                if len(d[i]) > maxlen:
-                    d[i] = "REMOVED|TOO_LONG"
-            except:
-                try:
-                    if len(str(d[i])) > maxlen:
-                        d[i] = "REMOVED|TOO_LONG"
-                except:
-                    d[i] = "REMOVED"
+            
+            d[i] = process_value(d[i])
 
         for key in keys_to_remove:
             del d[key]
@@ -207,7 +230,8 @@ init 10 python:
             store.maica.maica.modelconfig.update({"seed":42})
         store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
         store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
-        store.maica.maica.model = persistent.maica_setting_dict["maica_model"]
+        store.maica.maica.enable_mf = persistent.maica_setting_dict['enable_mf']
+        store.maica.maica.enable_mt = persistent.maica_setting_dict['enable_mt']
         store.maica.maica.mspire_use_cache = persistent.maica_setting_dict["mspire_use_cache"]
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
         store.maica.maica.target_lang = persistent.maica_setting_dict["target_lang"]
@@ -504,6 +528,11 @@ screen maica_node_setting():
                         textbutton _("关闭"):
                             style_prefix "confirm"
                             action Hide("maica_node_setting")
+                        
+                        textbutton _("测试当前节点可用性"):
+                            style_prefix "confirm"
+                            action Function(store.maica.maica.accessable)
+                        
 
 screen maica_triggers():
     python:
@@ -1410,11 +1439,13 @@ screen maica_setting():
                             action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
                             hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
-                    hbox:
-                        textbutton _("当前MAICA模型: [persistent.maica_setting_dict.get('maica_model')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "maica_model", store.maica.maica.MaicaAiModel.maica_main, store.maica.maica.MaicaAiModel.maica_core)
-                            hovered SetField(_tooltip, "value", _("maica_main：完全能力模型，maica_core: 核心能力模型\n完全能力的前置响应延迟偏高"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                    hbox:                        
+                        textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
+                            action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
+                        
+                        textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
+                            action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
+
 
                     hbox:
                         textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):

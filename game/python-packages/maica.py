@@ -339,13 +339,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "vram": "100000 MiB",
                     "mean_utilization": 100,
                     "mean_memory": 21811,
-                    "mean_consumption": 100
+                    "mean_consumption": 100,
+                    "tflops": 400,
                 },                
                 "1": {
                     "name": "if you see this, requests workload is failed",
                     "vram": "100000 MiB",
                     "mean_utilization": 0,
                     "mean_memory": 21811,
+                    "tflops": 400,
                     "mean_consumption": 100
                 },
             },
@@ -355,13 +357,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "vram": "100000 MiB",
                     "mean_utilization": 0,
                     "mean_memory": 21811,
+                    "tflops": 400,
                     "mean_consumption": 100
+                    
                 },                
                 "1": {
                     "name": "Super PP 3",
                     "vram": "100000 MiB",
                     "mean_utilization": 0,
                     "mean_memory": 21811,
+                    "tflops": 400,
                     "mean_consumption": 100
                 },
             }
@@ -942,16 +947,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             logger.error("upload_save:: token is null")
             return {}
         import requests, json
-        content = json.dumps(
-                {
+        content = {
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
                     "content": dict
                 }
-            )
         res = requests.post(
             self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "savefile",
-            data = content
+            json = content,
+            headers = {"Content-Type": "application/json"}
         )
         if res.status_code == 200:
             return res.json()
@@ -999,24 +1003,32 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             history (dict): 
         
         Returns:
-            bool: True表示成功，False表示失败
+            dict: Maica服务器返回的JSON响应
         
         """
 
         if not self.__accessable:
-            return logger.error("Maica is not serving")
+            logger.error("Maica is not serving")
+            return {}
+        if self.ciphertext in ("", None):
+            logger.error("upload_history:: token is null")
+            return {}
         import requests, json
+        content = {
+            "access_token": self.ciphertext,
+            "chat_session": self.chat_session,
+            "history": history
+        }
         res = requests.post(
             self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "restore",
-            data = json.dumps(
-                {
-                    "access_token": self.ciphertext,
-                    "chat_session": self.chat_session,
-                    "history": history
-                },
-            )
+            json = content,
+            headers = {"Content-Type": "application/json"}
         )
-        return res.json()
+        if res.status_code == 200:
+            return res.json()
+        else:
+            logger.error("upload_history:: return non http 200:: {}".format(res.text))
+            return {}
         
     def reset_chat_session(self):
         """
@@ -1115,8 +1127,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_vmem"] += int(card["vram"][:-4].strip())
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
-                    data["max_tflops"] += card["tflops"]
-                    data["cur_tflops"] += card["tflops"] * card["mean_consumption"]
+                    data["max_tflops"] += int(card["tflops"])
+                    data["cur_tflops"] += int(card["tflops"]) * card["mean_consumption"]
         elif PY3:
             for group in self.workload_raw.values():
                 for card in group.values():
@@ -1127,8 +1139,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_vmem"] += int(card["vram"][:-4].strip())
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
-                    data["max_tflops"] += card["tflops"]
-                    data["cur_tflops"] += card["tflops"] * card["mean_consumption"]
+                    data["max_tflops"] += int(card["tflops"])
+                    data["cur_tflops"] += int(card["tflops"]) * card["mean_consumption"]
 
         if avgcount > 0:
             data["avg_usage"] /= avgcount
@@ -1153,15 +1165,37 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     
     def send_mtrigger(self):
         try:
+            if not self.__accessable:
+                logger.error("Maica is not serving")
+                return
+            if self.ciphertext in ("", None):
+                logger.error("send_mtrigger:: token is null")
+                return
+            
             from maica_mtrigger import MTriggerMethod
-            res = self.mtrigger_manager.send_to_table(self.ciphertext, self.chat_session, self.mtrigger_manager.build_data(MTriggerMethod.table), url=self.MaicaProviderManager.get_api_url_by_id(self.provider_id))
-            if res.json().get('success', False):
-                logger.debug("send_mtrigger success")
-
+            import requests
+            content = {
+                "access_token": self.ciphertext,
+                "chat_session": self.chat_session,
+                "mtrigger_data": self.mtrigger_manager.build_data(MTriggerMethod.table)
+            }
+            
+            res = requests.post(
+                self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "mtrigger",
+                json = content,
+                headers = {"Content-Type": "application/json"}
+            )
+            
+            if res.status_code == 200:
+                response_data = res.json()
+                if response_data.get('success', False):
+                    logger.debug("send_mtrigger success")
+                else:
+                    logger.error("send_mtrigger failed: {}".format(response_data))
             else:
-                logger.error("send_mtrigger failed: {}".format(res.json()))
+                logger.error("send_mtrigger:: return non http 200:: {}".format(res.text))
 
-        except:
+        except Exception as e:
             import traceback
             logger.error("send_mtrigger error: {}".format(traceback.format_exc()))
 
