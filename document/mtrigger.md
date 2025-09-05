@@ -10,8 +10,6 @@ from maica_mtrigger import *
 example_mtrigger = MTriggerBase(
     template,
     name,
-    usage_zh="",
-    usage_en="",
     description = "",
     callback=null_callback,
     action=MTriggerAction.post,
@@ -62,8 +60,6 @@ example_mtrigger = MTriggerBase(
 * `name` **必填**
   * 触发器名称, 除`common_affection_template`外, 可以自由命名, 建议尽可能表明用途
 
-* `usage_zh`, `usage_en`
-  * 触发器使用说明, 中英文, 仅在`customize_template`下使用
   
 * `description`
   * 触发器描述, 仅用于本地参考, 不参与模型运行
@@ -88,7 +84,7 @@ example_mtrigger = MTriggerBase(
 * `exprop`
   * 触发器属性, 默认值为上述代码中的值
     * `item_name_zh`, `item_name_en`
-      * 所选类目的性质, 中英文
+      * 该触发器的性质, 中英文
     * `item_list`
       * 所有的可选项, 此为list
     * `value_limits`

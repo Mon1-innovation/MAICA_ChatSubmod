@@ -56,6 +56,10 @@ ai._gen_token("SirrrrrrP", "qwerty")
 print(ai.ciphertext)
 print(f"{ai._verify_token()}")
 print("加密完成")
+ai.chat_session = 1
+ai.del_mtrigger()
+ai.chat_session = 0
+print("已删除MT")
 import time
 data = {}
 sen = {}

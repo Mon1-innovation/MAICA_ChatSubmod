@@ -50,17 +50,16 @@ class MTriggerMethod:
     table = 1
 
 class MTriggerTemplate(object):
-    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True,True), usage=False):
+    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True,True)):
         self.name = name
         self.datakey = datakey
         self.exprop = exprop
-        self.usage = usage
 
 
 common_affection_template = MTriggerTemplate("common_affection_template", "affection", exprop=MTriggerExprop(False, False, False, False, False, False))
 common_switch_template = MTriggerTemplate("common_switch_template", "selection", exprop=MTriggerExprop(True, True, True, False, True, True))
-common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False), usage=True)
-customize_template = MTriggerTemplate("customize", None, exprop=MTriggerExprop(False, False, False, False, False, False), usage=True)
+common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False))
+customize_template = MTriggerTemplate("customized", None, exprop=MTriggerExprop(True, True, False, False, False, False))
 
 class MTriggerManager:
     SIZE_LIMIT = {
@@ -116,17 +115,6 @@ class MTriggerManager:
                     continue
                 res.append(i.build())
         return res
-
-    def send_to_table(self, token, session, data, url="https://maicadev.monika.love/api/"):
-        req = {
-            "access_token": token,
-            "chat_session": session,
-            "content": data
-            
-        }
-        print("post trigger {}".format(req))
-        res = requests.post(url+"trigger", json=req)
-        return res
         
 
     def get_length(self, method=MTriggerMethod.all):
@@ -170,10 +158,8 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, usage_zh = "", usage_en = "", description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False):
+    def __init__(self, template, name, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False):
         self.name = name
-        self.usage_zh = usage_zh
-        self.usage_en = usage_en
         self.template = template
         self.callback = callback
         self.action = action
@@ -183,6 +169,9 @@ class MTriggerBase(object):
         self.method = method
         self.perf_suggestion = perf_suggestion
 
+        if self.template.name != common_affection_template.name and exprop.item_name_zh == "":
+            raise Exception("Non affection template must have exprop.item_name_zh.")
+
     def build(self):
         data = {
             "template": self.template.name,
@@ -191,11 +180,6 @@ class MTriggerBase(object):
             }
         }
 
-        if self.template.usage:
-            data["usage"] = {
-                "zh": self.usage_zh,
-                "en": self.usage_en
-            }
         if self.template.exprop.suggestion:
             data["exprop"]["suggestion"] = self.exprop.suggestion
         if self.template.exprop.item_name_zh:

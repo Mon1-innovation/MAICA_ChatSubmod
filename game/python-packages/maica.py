@@ -669,7 +669,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         else:
                             message = str(self.senddata_queue.get()).strip()
                         self._current_topic = message
-                        dict = {"chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
+                        dict = {"type": "query","chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
                         if self.enable_strict_mode and self.__ws_cookie != "":
                             dict["cookie"] = self.__ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
@@ -724,7 +724,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
                     # 要求重置model
                     elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
-                        dict = {"chat_session":self.chat_session, "purge":True}
+                        dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
                         if self.enable_strict_mode and self.__ws_cookie != "":
                             dict["cookie"] = self.__ws_cookie
 
@@ -830,11 +830,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.console_logger.error("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
             self.status = self.MaicaAiStatus.WRONE_INPUT
             self.wss_session.close()
-        elif data.get("status") == "unauthorized":
+        if data.get("status") == "unauthorized":
             self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
-        elif data.get("status") == "length_exceeded":
+        if data.get("status") == "length_exceeded":
             self.console_logger.error("!!SUBMOD ERROR: {}".format("Content too long!"))
             self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
             self.wss_session.close()
@@ -847,7 +847,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
         if data['status'] == "maica_connection_security_cookie":
             self.__ws_cookie = data['content']
-        
+        if data['status'] == "maica_loop_warn_finished":
+            self.console_logger.error("!!MAICA SERVER ERROR: {}".format(data.get("content")))
+            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
+            self.wss_session.close()
         ## data处理：
         ## 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
         ## 直接将data.status改写为streaming_done
@@ -1162,9 +1165,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         if self.wss_session:
             self.wss_session.close()
-    
+    def del_mtrigger(self):
+        import requests
+        requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'})
+
     def send_mtrigger(self):
         try:
+            import time
             if not self.__accessable:
                 logger.error("Maica is not serving")
                 return
@@ -1177,11 +1184,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             content = {
                 "access_token": self.ciphertext,
                 "chat_session": self.chat_session,
-                "mtrigger_data": self.mtrigger_manager.build_data(MTriggerMethod.table)
+                "content": self.mtrigger_manager.build_data(MTriggerMethod.table)
             }
-            
+            requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
+            time.sleep(0.5)
             res = requests.post(
-                self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "mtrigger",
+                self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "trigger",
                 json = content,
                 headers = {"Content-Type": "application/json"}
             )

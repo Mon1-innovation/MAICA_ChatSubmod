@@ -102,8 +102,10 @@ init 999 python in maica:
     def mtrigger_kiss_callback(arg):
         store.renpy.call("mtrigger_kiss")
 
-    kiss_trigger = MTriggerBase(customize_template, "kiss", "亲吻玩家", "kiss player", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
-        description = _("内置 | 调用亲吻事件"))
+    kiss_trigger = MTriggerBase(customize_template, "kiss", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
+        description = _("内置 | 调用亲吻事件"),
+        exprop = MTriggerExprop(item_name_zh = "亲吻", item_name_en = "kiss")
+        )
     maica.mtrigger_manager.add_trigger(kiss_trigger)
 
 #################################################################################
@@ -111,7 +113,8 @@ init 999 python in maica:
     def mtrigger_leave_callback(arg):
         maica.console_logger.debug("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
-    leave_trigger = MTriggerBase(customize_template, "leave", "帮助玩家离开游戏", "help player quit game", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"),method=MTriggerMethod.table)
+    leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"),method=MTriggerMethod.table,
+        exprop=MTriggerExprop(item_name_zh="帮助玩家离开游戏", item_name_en="help player quit game"))
     maica.mtrigger_manager.add_trigger(leave_trigger)
 
 #################################################################################
@@ -119,8 +122,9 @@ init 999 python in maica:
     def mtrigger_takeout_callback(arg):
         maica.console_logger.debug("<mtrigger> mtrigger_takeout_callback called")
         store.renpy.call("mtrigger_takeout")
-    leave_trigger = MTriggerBase(customize_template, "leave", "和玩家一起出去", "go outside with player", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table)
-    maica.mtrigger_manager.add_trigger(leave_trigger)
+    takeout_trigger = MTriggerBase(customize_template, "go outside", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table,
+        exprop=MTriggerExprop(item_name_zh="和玩家一起出门", item_name_en="go outside with player"))
+    maica.mtrigger_manager.add_trigger(takeout_trigger)
 
 #################################################################################
 
@@ -128,7 +132,8 @@ init 999 python in maica:
         maica.console_logger.debug("<mtrigger> mtrigger_idle_callback called")
         store.MASEventList.push("mtrigger_brb")
         return "stop"
-    idle_trigger = MTriggerBase(customize_template, "idle", "让玩家短暂休息(<1小时)", "help player afk short time(<1 hour)", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table)
+    idle_trigger = MTriggerBase(customize_template, "idle", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table,
+        exprop=MTriggerExprop(item_name_zh="让玩家短暂休息(<1小时)", item_name_en="help player afk short time(<1 hour)"))
     maica.mtrigger_manager.add_trigger(idle_trigger)
 
 #################################################################################
@@ -201,8 +206,9 @@ init 999 python in maica:
     def mtrigger_location_callback(arg):
         store.renpy.call("mtrigger_location")
 
-    location_trigger = MTriggerBase(customize_template, "location", "切换游戏内场景", "change in-game location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
-        description = _("内置 | 调用切换房间"), method=MTriggerMethod.table)
+    location_trigger = MTriggerBase(customize_template, "location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
+        description = _("内置 | 调用切换房间"), method=MTriggerMethod.table,
+        exprop = MTriggerExprop(item_name_zh="切换游戏内场景", item_name_en="change in-game location"))
     maica.mtrigger_manager.add_trigger(location_trigger)
 
 #################################################################################
@@ -213,8 +219,9 @@ init 999 python in maica:
     def mtrigger_backup_callback(arg):
         store.renpy.call("mas_backup")
 
-    backup_trigger = MTriggerBase(customize_template, "backup", "备份存档", "backup savefile", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
-        description = _("内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"), method=MTriggerMethod.table)
+    backup_trigger = MTriggerBase(customize_template, "backup", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
+        description = _("内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"), method=MTriggerMethod.table,
+        exprop=MTriggerExprop(item_name_zh="备份存档", item_name_en="backup savefile"))
     maica.mtrigger_manager.add_trigger(backup_trigger)
 
 #################################################################################
@@ -225,8 +232,9 @@ init 999 python in maica:
     def mtrigger_hold_callback(arg):
         store.renpy.call("mtrigger_hold")
 
-    hold_trigger = MTriggerBase(customize_template, "hold", "拥抱玩家", "hold player", condition=mtrigger_hold_condition, callback=mtrigger_hold_callback,
-        description = _("内置 | 拥抱"), method=MTriggerMethod.table)
+    hold_trigger = MTriggerBase(customize_template, "hold", condition=mtrigger_hold_condition, callback=mtrigger_hold_callback,
+        description = _("内置 | 拥抱"), method=MTriggerMethod.table,
+        exprop = MTriggerExprop(item_name_zh="拥抱玩家", item_name_en="hold player"))
     maica.mtrigger_manager.add_trigger(hold_trigger)
 
 #################################################################################

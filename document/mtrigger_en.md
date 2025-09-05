@@ -10,8 +10,6 @@ from maica_mtrigger import *
 example_mtrigger = MTriggerBase(
     template,
     name,
-    usage_zh="",
-    usage_en="",
     description="",
     callback=null_callback,
     action=MTriggerAction.post,
@@ -59,9 +57,6 @@ Parameter explanation:
 * `name` **Required**
   * The name of the trigger. It can be freely named except for in `common_affection_template`, and it is recommended to indicate its purpose as clearly as possible.
 
-* `usage_zh`, `usage_en`
-  * Instructions for using the trigger in Chinese and English, only used under `customize_template`.
-
 * `description`
   * Description of the trigger for local reference only, not involved in model operation.
 
@@ -87,7 +82,7 @@ Parameter explanation:
 * `exprop`
   * Properties of the trigger, with default values as in the above code.
     * `item_name_zh`, `item_name_en`
-      * The nature of the selected category in Chinese and English.
+      * The nature of the MTrigger in Chinese and English.
     * `item_list`
       * All available options, provided as a list.
     * `value_limits`
