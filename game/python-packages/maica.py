@@ -271,7 +271,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         "temperature":[0.0, 1.0, 0.4],
         "frequency_penalty":[0.0, 1.0, 0.3],
         "presence_penalty":[0.0, 1.0, 0.0],
-        "seed":[0, 99999, None]
     }
     
     MAX_CHATSESSION = 9

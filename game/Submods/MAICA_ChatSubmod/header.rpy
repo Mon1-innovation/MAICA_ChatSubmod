@@ -1718,11 +1718,7 @@ screen maica_seed_input():
     python:
         def apply_seed():
             seed = int(persistent.maica_advanced_setting['_seed'])
-            if seed < 0 or seed > 99999:
-                renpy.show_screen("maica_message", message=_("seed范围错误, 请重新输入种子"))
-                persistent.maica_advanced_setting['_seed'] = str(persistent.maica_advanced_setting['seed'])
-            else:
-                persistent.maica_advanced_setting['seed'] = seed
+            persistent.maica_advanced_setting['seed'] = seed
                 
     #seed输入
     ## Ensure other screens do not get input while this screen is displayed.s
@@ -1739,7 +1735,7 @@ screen maica_seed_input():
             yfill False
             spacing 5
 
-            label _("请输入种子, 范围为0-99999"):
+            label _("请输入种子(整数)"):
                 style "confirm_prompt"
                 xalign 0.5
             hbox:
