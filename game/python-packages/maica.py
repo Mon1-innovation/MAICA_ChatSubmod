@@ -674,6 +674,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             dict["cookie"] = self.__ws_cookie
                         message = json.dumps(dict, ensure_ascii=False) 
                         logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
+                        self.message_list.clear()
+                        self.MoodStatus.reset()
                         self.wss_session.send(
                             message
                         )   
