@@ -122,7 +122,7 @@ init 999 python in maica:
     def mtrigger_takeout_callback(arg):
         maica.console_logger.debug("<mtrigger> mtrigger_takeout_callback called")
         store.renpy.call("mtrigger_takeout")
-    takeout_trigger = MTriggerBase(customize_template, "go outside", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table,
+    takeout_trigger = MTriggerBase(customize_template, "go_outside", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="和玩家一起出门", item_name_en="go outside with player"))
     maica.mtrigger_manager.add_trigger(takeout_trigger)
 
