@@ -299,7 +299,7 @@ init -700 python:
 
     maica_chr_exist = os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")))
     if maica_chr_exist:
-        maica_chr_changed = check_sha256(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")), '35b4a17edbb003014fa93168e0c93df3149e82a4d46f16a0eec295a2d9b02d59')
+        maica_chr_changed = check_sha256(os.path.normpath(os.path.join(renpy.config.basedir, "characters", "HeavenForest.sce")), '7164588cda6dcd4dee5268faa3ee143a45a085a93fe663cd91542f84279e0431')
     else:
         maica_chr_changed = None
 
