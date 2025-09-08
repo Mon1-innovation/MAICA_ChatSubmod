@@ -92,8 +92,8 @@ init 999 python in maica:
     
     minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
         exprop=MTriggerExprop(
-            item_name_zh="小游戏",
-            item_name_en="minigame",
+            item_name_zh="玩小游戏",
+            item_name_en="play minigame",
             item_list=list(unlocked_games_dict.keys()),
         ),
         description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
@@ -111,7 +111,7 @@ init 999 python in maica:
 
     kiss_trigger = MTriggerBase(customize_template, "kiss", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
         description = _("内置 | 调用亲吻事件"),
-        exprop = MTriggerExprop(item_name_zh = "亲吻", item_name_en = "kiss")
+        exprop = MTriggerExprop(item_name_zh = "亲吻玩家", item_name_en = "kiss player")
         )
     maica.mtrigger_manager.add_trigger(kiss_trigger)
 
@@ -140,7 +140,7 @@ init 999 python in maica:
         store.MASEventList.push("mtrigger_brb")
         return "stop"
     idle_trigger = MTriggerBase(customize_template, "idle", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table,
-        exprop=MTriggerExprop(item_name_zh="让玩家短暂休息(<1小时)", item_name_en="help player afk short time(<1 hour)"))
+        exprop=MTriggerExprop(item_name_zh="当玩家表示想要短暂离开(<1小时)时调用", item_name_en="Call when the player indicates they want to take a temporary leave (<1 hour)."))
     maica.mtrigger_manager.add_trigger(idle_trigger)
 
 #################################################################################
@@ -153,8 +153,8 @@ init 999 python in maica:
                 common_switch_template,
                 "weather",
                 exprop=MTriggerExprop(
-                    item_name_zh="游戏内天气",
-                    item_name_en="in-game weather",
+                    item_name_zh="更改游戏内天气",
+                    item_name_en="Change the in-game weather.r",
                     item_list=self.weathers_list,
                     curr_value=store.mas_current_weather.prompt
                 ),
