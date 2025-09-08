@@ -841,10 +841,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.wss_session.close()
         if data["status"] == "nickname":
             self.user_acc = data["content"]
-            logger.info("maica: Login as '{}'".format(self.user_acc))
+            self.console_logger.info("maica: Login as '{}'".format(self.user_acc))
         if data['status'] == "maica_mtrigger_trigger":
-            param = data['content'][1]
-            self.mtrigger_manager.triggered(data['content'][0], data['content'][1] if len(data['content']) >= 2 else None)
+            try:
+                mtdata = json.loads(data['content'])
+            except:
+                mtdata = data['content']
+            for item in mtdata:      
+                self.mtrigger_manager.triggered(item, mtdata[item])
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
         if data['status'] == "maica_connection_security_cookie":
             self.__ws_cookie = data['content']

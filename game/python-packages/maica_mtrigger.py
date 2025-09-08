@@ -136,15 +136,16 @@ class MTriggerManager:
             "stop":False,
         }
         self._running = True
-        for t in self.triggered_list:
-
-
-            if t[0].action == action:
-                if remove:
-                    self.triggered_list.remove(t)
-                res = t[0].triggered(t[1])
-                if check_and_search("stop", res):
-                    doact["stop"] = True
+        # Create a copy of the list to safely iterate
+        triggers_to_process = [t for t in self.triggered_list if t[0].action == action]
+        
+        for t in triggers_to_process:
+            if remove:
+                self.triggered_list.remove(t)
+            res = t[0].triggered(t[1])
+            if check_and_search("stop", res):
+                doact["stop"] = True
+                break
 
         self._running = False
         return doact
@@ -203,5 +204,16 @@ class MTriggerBase(object):
             value = data.get("suggestion")
         return self.callback(value)
 
+    def __repr__(self):
+        return (
+            u"Trigger(name='{}', "
+            u"perf_suggestion={})".format(
+                self.name, 
+                self.perf_suggestion
+            )
+        )
+
+    def __str__(self):
+        return self.__repr__()
     def __len__(self):
         return len(json.dumps(self.build(), ensure_ascii=False))

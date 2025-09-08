@@ -4,6 +4,7 @@ except:
     import feedparser2.feedparser as feedparser
 from bot_interface import key_replace
 import re
+import chardet
 # 指定 RSS feed 的 URL
 feed_url = 'https://forum.monika.love/rss/d/3954'
 
@@ -12,9 +13,9 @@ feed_url = 'https://forum.monika.love/rss/d/3954'
 
 #print(f"{feed.entries}")
 safe_renpy_symbol = {
-    "[": "[[",
-    "{": "{{",
-    "【": "【【"
+    "[": "",
+    "{": "",
+    "【": ""
 }
 def set_ua(ver):
     feedparser.USER_AGENT = "MAICA_Blessland/{}".format(ver)    
@@ -36,7 +37,7 @@ def get_log():
         for item in feed.entries:
             data["title"] = item['title']
             data["content"].append(remove_html_tags(item['summary']))
-            data["content_renpysafe"].append(key_replace(remove_html_tags(item['summary']),safe_renpy_symbol))
+            data["content_renpysafe"].append(remove_html_tags(item['summary']))#.append(key_replace(remove_html_tags(item['summary']),safe_renpy_symbol))
             data["version"] = int(item['link'].split('/')[-1])
         
         return data

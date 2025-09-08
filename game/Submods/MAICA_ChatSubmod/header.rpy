@@ -517,8 +517,13 @@ screen maica_node_setting():
                                     Hide("maica_node_setting")
                                 ]
                             
+                            textbutton renpy.substitute(_("> 打开官网")) + "(" + provider.get('portalPage') + ")":
+                                action OpenURL(provider.get('portalPage'))
+
                             if provider.get("isOfficial", False):
                                 textbutton _(" √ MAICA 官方服务器")
+                            
+
                     
                     hbox:
                         textbutton _("更新节点列表"):
@@ -870,8 +875,8 @@ screen maica_log():
                     text maica_log.get("title")
 
                     text "========================================================="
-                    for content in maica_log.get("content_renpysafe"):
-                        text content:
+                    for content in maica_log.get("content"):
+                        text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
                             size 18
                         text "================================"
             hbox:
@@ -1362,6 +1367,9 @@ screen maica_setting():
                                 size 15
                         hbox:
                             text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]":
+                                size 15
+                        hbox:
+                            text "triggered_list: [store.maica.maica.mtrigger_manager.triggered_list]":
                                 size 15
                         hbox:
                             textbutton "输出Event信息到日志":

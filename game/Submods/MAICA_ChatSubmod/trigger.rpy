@@ -2,12 +2,18 @@
 init 999 python in maica:
     from maica_mtrigger import *
     import store
+    import time
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"),method=MTriggerMethod.table)
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"),method=MTriggerMethod.request)
+            self.last_triggered = time.time()
         
         def triggered(self, data):
+            self.last_triggered = time.time()
             return self.callback(data.get("affection", 0.1))
+            
+        def can_triggered(self):
+            return (time.time() - self.last_triggered) >= 600.0
 
     def aff_callback(affection):
         #from math import ceil
@@ -19,6 +25,7 @@ init 999 python in maica:
             store.mas_gainAffection(1, affection)
 
     aff_trigger = AffTrigger(common_affection_template, "alter_affection", callback=aff_callback)
+    aff_trigger.condition = aff_trigger.can_triggered
     maica.mtrigger_manager.add_trigger(aff_trigger)
 
 #################################################################################
