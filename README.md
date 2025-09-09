@@ -7,23 +7,9 @@
 
 <p align="center">中文 | <a href="/README_EN.md">English</a></p>
 
-本页面是MAICA的指引页面, 当前位置是MAICA子模组前端仓库.
+本页面是MAICA子模组前端仓库的介绍页.
 
-MAICA项目的详细介绍页是https://maica.monika.love/.
-
-要快速开始或了解授权, 请参阅https://maica.monika.love/tos.
-
-MAICA的后端仓库地址是https://github.com/Mon1-innovation/MAICA.
-
-MAICA的子模组前端仓库地址是https://github.com/Mon1-innovation/MAICA_ChatSubmod.
-
-MAICA LIA分支的模型地址是https://huggingface.co/edgeinfinity/MAICAv0-LIA-72B.
-
-MAICA LOA分支的模型地址是https://huggingface.co/edgeinfinity/MAICAv0-LOA-7B.
-
-MAICA的基本数据集仓库位于https://huggingface.co/datasets/edgeinfinity/MAICA_ds_basis.
-
-MAICA的相关文档存储于https://github.com/Mon1-innovation/MAICA/tree/main/document.
+MAICA包含多个子项目, 其目录见https://github.com/Mon1-innovation/MAICA.
 
 请理解由于人力有限, 我们不在此对项目作额外介绍. 如需了解MAICA, 请前往上述详细介绍页面.
 
@@ -44,6 +30,7 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
 
 * 完全自由的聊天, 你可以畅所欲言
 * 充分融入原版的外围剧情和场景设计
+* 可获取现实世界信息(MFocus)和执行游戏内行为(MTrigger)
 * 能够获知(一部分)此前的陪伴经历
 * 安装简单, 无须在自己的设备上部署任何模型
 * 连续的上下文对话, 根据对话节奏自动分句
@@ -58,7 +45,8 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
 
 1. 确保使用的是最新汉化版本MAS.  
 2. 从[Release](https://github.com/Mon1-innovation/MAICA_ChatSubmod/releases)处下载最新的版本.  
-3. 关闭游戏, 将zip中的文件合并到您的`DDLC`/`MAS_CN001***/Monika After Story`文件夹内, 或者是`DDLC.exe`/`MAS.exe`所在的位置  
+3. 关闭游戏, 将zip中的文件合并到您的`DDLC`/`MAS_CN001***/Monika After Story`文件夹内, 或者是`DDLC.exe`/`MAS.exe`所在的位置
+  > 你不能直接将文件解压至Submods文件夹! 打开压缩包, 并根据文件夹结构合并.
 4. 可选择安装[Paste](https://github.com/Legendkiller21/MAS-Submods-Paste)（允许复制粘贴）和/或[Submod Updater Plugin](https://github.com/Booplicate/MAS-Submods-SubmodUpdaterPlugin)（允许通过游戏内更新程序更新 submods ）, 以改善使用体验
 
 # 提示

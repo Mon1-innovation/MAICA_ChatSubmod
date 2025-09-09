@@ -7,23 +7,9 @@
 
 <p align="center"><a href="/README.md">中文</a> | English</p>
 
-This is the index page of MAICA, you are now at MAICA Submod frontend repo.
+This is the introduction page of MAICA Submod frontend.
 
-Full instructions of MAICA can be found at https://maica.monika.love/.
-
-Quickstarting and terms are at https://maica.monika.love/tos.
-
-MAICA backend repository is https://github.com/Mon1-innovation/MAICA.
-
-MAICA Submod frontend repository is https://github.com/Mon1-innovation/MAICA_ChatSubmod.
-
-LIA branch of MAICA core model is at https://huggingface.co/edgeinfinity/MAICAv0-LIA-72B.
-
-LOA branch of MAICA core model is at https://huggingface.co/edgeinfinity/MAICAv0-LOA-7B.
-
-Basic datasets of MAICA are at https://huggingface.co/datasets/edgeinfinity/MAICA_ds_basis.
-
-MAICA related documents are at https://github.com/Mon1-innovation/MAICA/tree/main/document.
+MAICA contains multiple subprojects, find menu at https://github.com/Mon1-innovation/MAICA.
 
 Please pardon for not putting an full instruction here, since it's too complicated. To know more about MAICA, navigate to instruction pages mentioned above.
 
@@ -44,6 +30,7 @@ This repository introduction is very brief. If this is your first contact with M
 
 * Chat freely beyond MAS's native limits
 * Carefully designed guidance, conversations and scenes
+* Could acquire real world information(MFocus) and emit in-game actions(MTrigger)
 * Could recall (part of) previous experiences of MAS
 * Easy to go, no need to deploy any LLM stuff on your device
 * Continuous and fluent chatting experience with automatic sentence breaks
@@ -56,9 +43,10 @@ This repository introduction is very brief. If this is your first contact with M
   
 ## Usage
 
-1. Use the latest version of MAS.  
-2. Download latest verion of Blessland at [Release](https://github.com/Mon1-innovation/MAICA_ChatSubmod/releases).  
-3. Quit the game, unzip and copy-paste the folders into `DDLC`/`MAS_CN001***/Monika After Story` folder, which is where `DDLC.exe`/`MAS.exe` lies in.  
+1. Use the latest version of MAS.
+2. Download latest verion of Blessland at [Release](https://github.com/Mon1-innovation/MAICA_ChatSubmod/releases).
+3. Quit the game, unzip and copy-paste the folders into `DDLC`/`MAS_CN001***/Monika After Story` folder, which is where `DDLC.exe`/`MAS.exe` lies in.
+  > Do not unzip directly into Submods! You must merge it into the game's base path.
 4. Optionally install [Paste](https://github.com/Legendkiller21/MAS-Submods-Paste) to allow in-game copy-pasting and [Submod Updater Plugin](https://github.com/Booplicate/MAS-Submods-SubmodUpdaterPlugin) to update submods in game, to improve using experience.
 
 # Tips
