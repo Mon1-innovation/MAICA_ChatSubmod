@@ -376,7 +376,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:275
     old "> 警告: 与 Better Loading 不兼容"
-    new "> Warning: is not compatible with Better Loading"
+    new "> Warning: Blessland is not compatible with Better Loading"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:298
     old "> 手动上传设置"
@@ -898,4 +898,32 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1704
     old "请输入种子, 范围为0-99999"
     new "Choose a seed from 0-99999"
+
+# TODO: Translation updated at 2025-09-09 08:20
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:395
+    old "> 警告: 找不到证书, 你是不是忘记安装数据包了?"
+    new "> Warning: no certification found, check datapack installation"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:520
+    old "> 打开官网"
+    new "> Go to portal page"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:537
+    old "测试当前节点可用性"
+    new "Test current node avaliability"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1451
+    old "使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"
+    new "MTrigger enabled: [persistent.maica_setting_dict.get('enable_mt')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1454
+    old "使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"
+    new "MFocus enabled: [persistent.maica_setting_dict.get('enable_mf')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1746
+    old "请输入种子(整数)"
+    new "Enter seed (integer)"
 

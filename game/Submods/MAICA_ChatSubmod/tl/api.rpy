@@ -110,3 +110,11 @@ translate english strings:
     old "写好再发给她了."
     new "finish it and then send it again."
 
+# TODO: Translation updated at 2025-09-09 08:20
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:348
+    old "在文件里写下信的正文."
+    new "write your content in the file in plain text."
+
