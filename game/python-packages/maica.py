@@ -1089,7 +1089,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if res.status_code == 200:
                 data = res.json()
                 if data["success"]:
-                    self.workload_raw = data["workload"]
+                    self.workload_raw = data["content"]
                 logger.debug("Workload updated successfully.")
             else:
                 logger.error("Failed to update workload.")
