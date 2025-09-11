@@ -831,7 +831,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.console_logger.error("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
             self.status = self.MaicaAiStatus.WRONE_INPUT
             self.wss_session.close()
-        if data.get("status") == "unauthorized":
+        if data.get("status") == "maica_login_denied_rsa":
             self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
