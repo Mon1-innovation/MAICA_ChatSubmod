@@ -831,7 +831,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.console_logger.error("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
             self.status = self.MaicaAiStatus.WRONE_INPUT
             self.wss_session.close()
-        if data.get("status") == "unauthorized":
+        if data.get("status") == "maica_login_denied_rsa":
             self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
@@ -1089,7 +1089,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if res.status_code == 200:
                 data = res.json()
                 if data["success"]:
-                    self.workload_raw = data["workload"]
+                    self.workload_raw = data["content"]
                 logger.debug("Workload updated successfully.")
             else:
                 logger.error("Failed to update workload.")
@@ -1136,7 +1136,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
                     data["max_tflops"] += int(card["tflops"])
-                    data["cur_tflops"] += int(card["tflops"]) * card["mean_consumption"]
+                    data["cur_tflops"] += int(card["tflops"]) * card["mean_utilization"] * 0.01
         elif PY3:
             for group in self.workload_raw.values():
                 for card in group.values():
@@ -1148,7 +1148,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
                     data["max_tflops"] += int(card["tflops"])
-                    data["cur_tflops"] += int(card["tflops"]) * card["mean_consumption"]
+                    data["cur_tflops"] += int(card["tflops"]) * card["mean_utilization"] * 0.01
 
         if avgcount > 0:
             data["avg_usage"] /= avgcount
@@ -1191,7 +1191,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "chat_session": self.chat_session,
                 "content": self.mtrigger_manager.build_data(MTriggerMethod.table)
             }
-            requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
+            #requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
             time.sleep(0.5)
             res = requests.post(
                 self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "trigger",
