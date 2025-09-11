@@ -1057,7 +1057,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
-        dict = {"chat_session":self.chat_session, "purge":True}
+        dict = {"chat_session":self.chat_session, "reset":True}
         if self.enable_strict_mode and self.__ws_cookie != "":
             dict["cookie"] = self.__ws_cookie
         self.wss_session.send(
