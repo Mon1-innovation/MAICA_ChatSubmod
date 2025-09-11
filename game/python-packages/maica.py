@@ -1136,7 +1136,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
                     data["max_tflops"] += int(card["tflops"])
-                    data["cur_tflops"] += int(card["tflops"]) * card["mean_consumption"]
+                    data["cur_tflops"] += int(card["tflops"]) * card["mean_utilization"] * 0.01
         elif PY3:
             for group in self.workload_raw.values():
                 for card in group.values():
@@ -1148,7 +1148,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["total_inuse_vmem"] += card["mean_memory"]
                     data["total_w"] += card["mean_consumption"]
                     data["max_tflops"] += int(card["tflops"])
-                    data["cur_tflops"] += int(card["tflops"]) * card["mean_consumption"]
+                    data["cur_tflops"] += int(card["tflops"]) * card["mean_utilization"] * 0.01
 
         if avgcount > 0:
             data["avg_usage"] /= avgcount
