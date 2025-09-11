@@ -1191,7 +1191,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "chat_session": self.chat_session,
                 "content": self.mtrigger_manager.build_data(MTriggerMethod.table)
             }
-            requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
+            #requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
             time.sleep(0.5)
             res = requests.post(
                 self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "trigger",
