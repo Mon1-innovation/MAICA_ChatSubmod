@@ -158,7 +158,11 @@ class EmoSelector:
         self.pre_emotes.append(self.emote)
         if self.pre_emotes.__len__() > 1:
             self.pre_emotes = self.pre_emotes[-1:]
-        if self.pre_mood == emote:
+        if self.sentiment[self.pre_mood] == self.sentiment[emote]:
+            if self.pre_mood != emote:
+                self.main_strength += 0.2
+            else:
+                self.main_strength += 0.05
             self.repeat_strength += 0.2 
         else:
             self.repeat_strength = 0
