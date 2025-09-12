@@ -152,7 +152,7 @@ class EmoSelector:
 
     def process_strength(self, emote, multi=0.7):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage, eoc=self.eoc, excepted=self.pre_emotes)
-        self.main_strength += multi * self.sentiment[emote] * res[1] * self.main_strength if self.sentiment[emote] <= 0 else 1
+        self.main_strength += multi * 0.25 if self.sentiment[emote] == self.sentiment[self.pre_mood] else 0
         self.emote = res[0]
         self.pre_emotes.append(self.emote)
         if self.pre_emotes.__len__() > 1:
