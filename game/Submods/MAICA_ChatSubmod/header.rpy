@@ -81,8 +81,9 @@ init 10 python:
         "tz":None,
         "_seed":"0"
     }
-    maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
+    maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
+    maica_advance_setting.update(store.maica.maica.default_setting)
     maica_advanced_setting.update(persistent.maica_advanced_setting)
     maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
 
@@ -103,6 +104,8 @@ init 10 python:
     
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
+
+
 
     def _maica_verify_token():
         res = store.maica.maica._verify_token()
@@ -1295,6 +1298,11 @@ screen maica_advance_setting():
                     action [
                         Function(maica_apply_advanced_setting),
                         Hide("maica_advance_setting")
+                    ]
+                
+                textbutton: _("重置设置"):
+                    action [
+                        Function(persistent.maica_advanced_setting_status.update, store.maica.maica.default_setting)
                     ]
                         
                         
