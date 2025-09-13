@@ -733,8 +733,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                             json.dumps(dict)
                         )
                         self.stat["received_token_by_session"][self.chat_session] = 0
-                        self.status = self.MaicaAiStatus.SESSION_RESETED
-                        self.wss_session.close()
+                        self.status = self.MaicaAiStatus.MESSAGE_DONE
                         break 
                     # 发送设置, 切记仅在闲置时进行 
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
