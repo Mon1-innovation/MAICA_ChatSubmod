@@ -16,7 +16,7 @@ def iterize(dict):
     elif PY3:
         return dict.items()
 
-class FallBackEmo:
+class FallBackEmo(object):
 
     EMPTY_EMOTE_FALLBACK = {
         u"开心":[u"笑", u"微笑"],
