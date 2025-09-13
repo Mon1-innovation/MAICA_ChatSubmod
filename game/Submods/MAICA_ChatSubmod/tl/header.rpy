@@ -36,7 +36,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:168
     old "重置当前对话"
-    new "> Purge current session"
+    new "> Reset current session"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:171
     old "导出当前对话"
@@ -388,7 +388,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:304
     old "> 重置当前对话"
-    new "> Purge current chat session"
+    new "> Reset current chat session"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:307
     old "> 导出当前对话"
@@ -641,7 +641,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:145
     old "MAICA: 会话已重置"
-    new "MAICA: Chat session purged"
+    new "MAICA: Chat session reset"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:150
     old "MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"
