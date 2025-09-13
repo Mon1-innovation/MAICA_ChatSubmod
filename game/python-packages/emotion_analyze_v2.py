@@ -2,12 +2,22 @@
 
 import os, json, math, random
 from bot_interface import PY2, PY3, logger, Queue
+
 def sort_by_val(ele):
     key = list(ele.keys())[0]
     return ele[key]
 
+def get_encoded_len(str):
+    return len(str.encode('utf-8'))
 
-class EmoSelector:
+def iterize(dict):
+    if PY2:
+        return dict.iteritems()
+    elif PY3:
+        return dict.items()
+
+class FallBackEmo(object):
+
     EMPTY_EMOTE_FALLBACK = {
         u"开心":[u"笑", u"微笑"],
         u"脸红":[u"脸红", u"微笑"],
@@ -18,6 +28,29 @@ class EmoSelector:
         u"惊喜":[u"开心", u"笑", u"微笑"],
         u"惊讶":[u"尴尬", u"微笑"],
     }
+
+    def __init__(self):
+        self._last_known = u"微笑"
+        self._pending_seq = []
+
+    @property
+    def last(self) -> str:
+        return self._last_known
+    @last.setter
+    def last(self, v: str):
+        self._last_known = v
+        self._pending_seq = getattr(self.EMPTY_EMOTE_FALLBACK, v, [])
+
+    def predict(self) -> str:
+        if len(self._pending_seq) > 1:
+            return self._pending_seq.pop(0)
+        elif len(self._pending_seq) == 1:
+            return self._pending_seq[0]
+        else:
+            return self._last_known
+
+class EmoSelector:
+
     def __init__(self, selector, storage, sentiment, eoc=None):
         self.selector = selector
         self.storage = storage
@@ -26,12 +59,18 @@ class EmoSelector:
         self.affection = 100
         self.eoc = eoc
         self.main_strength = 0.0
-        self.repeat_strength = 0.0
         self.pre_mood = u"微笑"
         self.pre_emotes = []
         self.emote = ""
         self.pre_pos = 0
-        self.fallback_emptyemote = Queue()
+        self.fallback_selector = FallBackEmo()
+
+    def reset(self):
+        self.pre_mood = u"微笑"
+        self.main_strength = 0.0
+        self.pre_emotes = []
+        self.fallback_selector.__init__()
+
     def get_emote(self, idle = False):
         """
         获取表情
@@ -52,10 +91,12 @@ class EmoSelector:
             elif pos == 7:
                 pos = 6
             return pos
+        
         def idle_emo():
             emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu', 'hua', 'huu'])
             return emo
-        self.pre_pos = get_pos(self.repeat_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
+        
+        self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
         if self.emote != "":
             return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote if not idle else idle_emo())
         else:
@@ -72,17 +113,6 @@ class EmoSelector:
             str: 处理后的字符串消息，其中情绪标签已被去除。
         
         """
-        def fallback_emo():
-            if self.fallback_emptyemote.is_empty():
-                fallbackemo = EmoSelector.EMPTY_EMOTE_FALLBACK.get(self.pre_mood, [])
-                for i in fallbackemo:
-                    self.fallback_emptyemote.put(i)
-            if not self.fallback_emptyemote.is_empty():
-                return self.fallback_emptyemote.get()
-            return self.pre_mood
-
-        def get_equal_len(str):
-            return len(str.encode('utf-8'))
 
         import re
         # 正则表达式模式
@@ -98,12 +128,13 @@ class EmoSelector:
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
         m = 0.25
+        o = -0.1
         emo = self.pre_mood
         # 处理每个匹配的内容
         for match in matches:
             rawmatch = match
             # 可能是有句子被套上了
-            if get_equal_len(match) >= 16 and not '[' in match and not ']' in match:
+            if get_encoded_len(match) >= 16 and not '[' in match and not ']' in match:
                 message = message.replace('[{}]'.format(rawmatch), rawmatch)
                 continue
             if ' ' in match:
@@ -135,65 +166,53 @@ class EmoSelector:
                     match = u'笑'
 
             match = self.emote_translate.get(match, match)
-            m = 0.7
 
             if match in self.selector:
                 emo = match
-                self.fallback_emptyemote.clear()
+                m = 0.7
+                o = 0.0
+                self.fallback_selector.last = emo
             else:
-                emo = fallback_emo()
+                emo = self.fallback_selector.predict()
                 logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
         if matches == []:
-            emo = fallback_emo()
+            emo = self.fallback_selector.predict()
 
-        self.process_strength(emo, m)
+        self.process_strength(emo, m, o)
         self.pre_mood = emo
         return message
 
-    def process_strength(self, emote, multi=0.7):
+    def process_strength(self, emote, multi=0.7, offset=0.0):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage, eoc=self.eoc, excepted=self.pre_emotes)
         strength_diff = res[1] - self.main_strength
-        self.main_strength += min(0.15, max(-0.15, multi * strength_diff)) if self.sentiment[emote] == self.sentiment[self.pre_mood] else 0
+        self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset)) if self.sentiment[emote] == self.sentiment[self.pre_mood] else 0.1
         self.emote = res[0]
         self.pre_emotes.append(self.emote)
         if self.pre_emotes.__len__() > 1:
             self.pre_emotes = self.pre_emotes[-1:]
         if self.sentiment[self.pre_mood] == self.sentiment[emote]:
             if self.pre_mood != emote:
-                self.main_strength += 0.2
+                if self.main_strength <= 0.3:
+                    self.main_strength += 0.2
+                elif self.main_strength <= 0.6:
+                    self.main_strength += 0.1
+                else:
+                    self.main_strength += 0.05
             else:
                 self.main_strength += 0.05
-            self.repeat_strength += 0.2 
-        else:
-            self.repeat_strength = 0
         self._fix_strength()
-    def reset(self):
-        self.pre_mood = u"微笑"
-        self.main_strength = 0.0
-        self.repeat_strength = 0.0
-        self.pre_emotes = []
-        self.fallback_emptyemote.clear()
-    def _fix_strength(self):
-        if self.repeat_strength > 1.0:
-            self.repeat_strength = 1.0
-        if self.repeat_strength < 0.0:
-            self.repeat_strength = 0.0
-        if self.main_strength > 1.0:
-            self.main_strength = 1.0
-        if self.main_strength < 0.0:
-            self.main_strength = 0.0
 
+    def _fix_strength(self):
+        self.main_strength = min(1.0, max(0.0, self.main_strength))
 
 def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralization=1.0):
-    # strength = total accumulated emotion tendency
-    # emotion = selector[emotion]
-    # excepted = rejected emos, like last used: ['eka']
-    # centralization = higher for lower randomness
-    def iterize(dict):
-        if PY2:
-            return dict.iteritems()
-        elif PY3:
-            return dict.items()
+    """
+    strength = total accumulated emotion tendency
+    emotion = selector[emotion]
+    excepted = rejected emos, like last used: ['eka']
+    centralization = higher for lower randomness
+    """    
+
     weight_sel = []
     weight_rnd = []
     weight_accum = 0.0
@@ -222,7 +241,7 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
         power = float(v)
         weight_rnd.append(abs(power - strength))
     weight_rnd.sort()
-    crucial_weight = weight_rnd[min(4, max(int(len(weight_rnd)/2), 2), len(weight_rnd)-1)]
+    crucial_weight = weight_rnd[min(6, max(int(len(weight_rnd)/2), 2), len(weight_rnd)-1)]
     for k, v in iterize(emotion_filter1):
         power = float(v)
         if abs(power - strength) <= crucial_weight:
@@ -243,8 +262,6 @@ def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralizatio
     # emo_final_power is returned for affecting accumulation
     # emo_final like 'eka', emo_final_power like 0.6
     return emo_final, emo_final_power
-
-import random
 
 def get_pos(strength=0.0, last=None):
     if last is None:
