@@ -1300,7 +1300,7 @@ screen maica_advance_setting():
                         Hide("maica_advance_setting")
                     ]
                 
-                textbutton: _("重置设置"):
+                textbutton _("重置设置"):
                     action [
                         Function(persistent.maica_advanced_setting_status.update, store.maica.maica.default_setting)
                     ]
