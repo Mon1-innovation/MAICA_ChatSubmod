@@ -37,7 +37,7 @@ class FallBackEmo(object):
     def last(self):
         return self._last_known
     @last.setter
-    def last(self, v: str):
+    def last(self, v):
         self._last_known = v
         self._pending_seq = getattr(self.EMPTY_EMOTE_FALLBACK, v, [])
 
