@@ -34,14 +34,14 @@ class FallBackEmo(object):
         self._pending_seq = []
 
     @property
-    def last(self) -> str:
+    def last(self):
         return self._last_known
     @last.setter
-    def last(self, v: str):
+    def last(self, v):
         self._last_known = v
         self._pending_seq = getattr(self.EMPTY_EMOTE_FALLBACK, v, [])
 
-    def predict(self) -> str:
+    def predict(self):
         if len(self._pending_seq) > 1:
             return self._pending_seq.pop(0)
         elif len(self._pending_seq) == 1:
