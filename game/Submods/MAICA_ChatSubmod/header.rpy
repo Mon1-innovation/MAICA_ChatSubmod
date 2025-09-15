@@ -81,7 +81,7 @@ init 10 python:
         "tz":None,
         "_seed":"0"
     }
-    maica_advanced_setting_status = {k: bool(v) for k, v in maica_advanced_setting.items()}
+    maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
     maica_advanced_setting.update(persistent.maica_advanced_setting)
     maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
@@ -1070,6 +1070,16 @@ screen maica_advance_setting():
             _tooltip = submods_screen.scope.get("tooltip", None)
         else:
             _tooltip = None
+        
+        def reset_to_default():
+            for item in store.maica.maica.default_setting:
+                if item == 'seed':
+                    store.maica.maica.default_setting[item] = 0
+                if item in persistent.maica_advanced_setting:
+                    persistent.maica_advanced_setting[item] = store.maica.maica.default_setting[item]
+                    persistent.maica_advanced_setting_status[item] = False
+                    
+
     modal True
     zorder 215
     
@@ -1244,17 +1254,20 @@ screen maica_advance_setting():
                                 ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
                             hovered SetField(_tooltip, "value", _("调用agent模型对MFocus联网搜集的信息整理一次.\n启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                            selected persistent.maica_advanced_setting_status.get('esc_aggressive')
                         textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
                             hovered SetField(_tooltip, "value", _("要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                            selected persistent.maica_advanced_setting_status.get('amt_aggressive')
                     hbox:
                         textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
                                 ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
                             hovered SetField(_tooltip, "value", _("改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+                            selected persistent.maica_advanced_setting_status.get('nsfw_acceptive')
 
                     hbox:
                         textbutton "pre_additive":
@@ -1294,6 +1307,11 @@ screen maica_advance_setting():
                 textbutton _("保存设置"):
                     action [
                         Function(maica_apply_advanced_setting),
+                        Hide("maica_advance_setting")
+                    ]
+                textbutton _("重置设置"):
+                    action [
+                        Function(reset_to_default),
                         Hide("maica_advance_setting")
                     ]
                         

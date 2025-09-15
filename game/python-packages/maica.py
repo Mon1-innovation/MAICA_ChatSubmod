@@ -331,6 +331,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
         self.__ws_cookie = ""
         self.enable_strict_mode = False
+        self.default_setting = {}
         self.workload_raw = {
             "None":{
                 "0": {
@@ -1301,6 +1302,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.status = self.MaicaAiStatus.SERVER_MAINTAIN
             self.__accessable = False
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
+        
+        if self.__accessable:
+            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "defaults").json()["content"]
+            if type(res) == dict:
+                self.default_setting = res
         
 
 
