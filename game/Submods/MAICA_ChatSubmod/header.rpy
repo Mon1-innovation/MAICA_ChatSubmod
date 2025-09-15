@@ -626,7 +626,7 @@ screen maica_triggers():
                                     size 15
                                 text _("* 支持 "):
                                     yalign 1.0
-                                    text_size 10
+                                    size 10
                                 textbutton "{u}Netease Music{/u}" style "small_link" action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas"):
                                     yalign 1.0
                                     text_size 10
