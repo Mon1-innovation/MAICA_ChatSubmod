@@ -613,8 +613,8 @@ screen maica_mspire_setting():
                     text _("根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
                         size 15
             hbox:
+                style_prefix "confirm"
                 textbutton _("关闭"):
-                    style_prefix "confirm"
                     action Hide("maica_mspire_setting")
                 
                 textbutton _("当前方式: [persistent.maica_setting_dict.get('mspire_search_type', 'None')]")
