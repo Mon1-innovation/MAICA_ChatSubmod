@@ -1187,32 +1187,32 @@ screen maica_advance_setting():
                                 #bar:
                                 #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
                                 #    xsize 600
-                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]/99999 ":
+                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')] ":
                                     action Show("maica_seed_input")
 
                                 textbutton "+1000":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000 if persistent.maica_advanced_setting["seed"] + 1000 < 99999 else 0)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000)
 
                                 textbutton "+100":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 100 if persistent.maica_advanced_setting["seed"] + 100 < 99999 else 0)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 100)
 
                                 textbutton "+25":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25 if persistent.maica_advanced_setting["seed"] + 25 < 99999 else 0)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25)
 
                                 textbutton "+1":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1 if persistent.maica_advanced_setting["seed"] + 1 < 99999 else 0)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1)
 
                                 textbutton "-1":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1 if persistent.maica_advanced_setting["seed"] - 1 > 0 else 99999)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1)
                                 
                                 textbutton "-25":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 25 if persistent.maica_advanced_setting["seed"] - 25 > 0 else 99999)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 25)
                                 
                                 textbutton "-100":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 100 if persistent.maica_advanced_setting["seed"] - 100 > 0 else 99999)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 100)
                                 
                                 textbutton "-1000":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1000 if persistent.maica_advanced_setting["seed"] - 1000 > 0 else 99999)
+                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1000)
 
                         else:
                             textbutton "seed ":
@@ -1765,7 +1765,7 @@ screen maica_seed_input():
                 style "confirm_prompt"
                 xalign 0.5
             hbox:
-                input default str(persistent.maica_advanced_setting['_seed']) value DictInputValue(persistent.maica_advanced_setting, "_seed") length 5 allow "0123456789"
+                input default str(persistent.maica_advanced_setting['_seed']) value DictInputValue(persistent.maica_advanced_setting, "_seed") length 5 allow "-0123456789"
 
             hbox:
                 xalign 0.5
