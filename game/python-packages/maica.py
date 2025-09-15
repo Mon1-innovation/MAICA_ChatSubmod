@@ -724,17 +724,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                         self.send_settings()
                         threading.Thread(target=self.send_mtrigger).start()
                         self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
-                    # 要求重置model
-                    elif self.status == self.MaicaAiStatus.REQUEST_RESET_SESSION:
-                        dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-
-                        self.wss_session.send(
-                            json.dumps(dict)
-                        )
-                        self.stat["received_token_by_session"][self.chat_session] = 0
-                        self.status = self.MaicaAiStatus.MESSAGE_DONE
                      
                     # 发送设置, 切记仅在闲置时进行 
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
@@ -855,6 +844,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.mtrigger_manager.run_trigger(MTriggerAction.instant)
         if data['status'] == "maica_connection_security_cookie":
             self.__ws_cookie = data['content']
+        if data['status'] == 'maica_session_reset':
+            self.status = self.MaicaAiStatus.SESSION_RESETED
+            self.close_wss_session()
         if data['status'] == "maica_loop_warn_finished":
             self.console_logger.error("!!MAICA SERVER ERROR: {}".format(data.get("content")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
@@ -1060,12 +1052,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
-        #dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
-        #if self.enable_strict_mode and self.__ws_cookie != "":
-        #    dict["cookie"] = self.__ws_cookie
-        #self.wss_session.send(
-        #    json.dumps(dict)
-        #)
+        dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
+        if self.enable_strict_mode and self.__ws_cookie != "":
+            dict["cookie"] = self.__ws_cookie
+        self.wss_session.send(
+            json.dumps(dict)
+        )
         self.stat["received_token_by_session"][self.chat_session] = 0
         self.history_status = None
 
