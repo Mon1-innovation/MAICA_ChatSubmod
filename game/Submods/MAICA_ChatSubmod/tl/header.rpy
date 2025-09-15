@@ -925,5 +925,101 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1746
     old "请输入种子(整数)"
-    new "Enter seed (integer)"
+    new "Choose a seed (integer)"
+
+# TODO: Translation updated at 2025-09-15 16:02
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:406
+    old "> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"
+    new "> Warning: set 'submod_log' logger verbosity to 'info' or lower when using with Log Screen"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1124
+    old "token权重过滤范围. 非常不建议动这个"
+    new "Token weight filter percentage. Seriously do not touch this"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1137
+    old "token选择的随机程度. 数值越高, 模型输出会越偏离普遍最佳情况"
+    new "The randomness tokens are chosen. Higher this value, larger the offset between model performance and generally best performance"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1148
+    old "模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"
+    new "The limit of tokens model can generate one round. Normally don't affect performance, but stops generating on hitting the limit"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1160
+    old "token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"
+    new "Token frequency penalty. Higher this value, less likely repeatedly appeared tokens continue appearing, usually resulting in shorter and more expanding generation"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1172
+    old "token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"
+    new "Token presence penalty. Higher this value, less likely appeared tokens appear again, usually resulting in more jumping generation"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1233
+    old "即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"
+    new "Acquire some information even if not called explicitly.\n+ Higher: keen and less hallucination\n- Higher: higher likeability of distraction and misfocusing"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1245
+    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"
+    new "Require agent model to generate guidance instead of default MFocus mechanism.\n+ Higher information density and naturalness\n- Heavily depends on agent instruction following behavior\n- Disables tnd_aggressive"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1250
+    old "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"
+    new "Replace [[player] in prompt with player's real name.\n+ Model has real understanding of player's name\n- Significantly higher likeability of performance offset and degration"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1255
+    old "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"
+    new "Require MFocus to sort internet search results.\n+ Higher information density and naturalness in most cases\n- Higher time consumption when query involves searching internet"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1261
+    old "当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 比较明显地改善MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏\n* 当对话未使用MTrigger或仅有好感触发器, 此功能不会生效"
+    new "Require MFocus to precheck query for MTrigger.\n+ Significantly reduces MTrigger desync\n- Seldom negative impact on naturalness\n* Only works with MTrigger enabled"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1268
+    old "要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 在少数情况下造成意料之外的问题"
+    new "Require model to handle toxic content positively and pardonly.\n+ (Suprisingly) benefits overall performance in most cases\n- May lead to unexpected problems in rare cases"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1275
+    old "在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"
+    new "Provide history context for MFocus, in range of 0-5 rounds.\n+ Improves MFocus' understanding to serial conversation\n- Significant risk of breaking MFocus reply pattern"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1286
+    old "在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"
+    new "Provide history context for MTrigger, in range of 0-5 rounds.\n+ Improves MTrigger's understanding to serial conversation\n- Risk of breaking MTrigger reply pattern"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1464
+    old "ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"
+    new "Websocket strict mode: [persistent.maica_setting_dict.get('strict_mode')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1479
+    old "目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"
+    new "Target generation language. Supports \"zh\" or \"en\".\n* Does not 100%% guarantee generation language\n* This setting also affects default timezone, festivals, culture and more\n* Up to when this was written, MAICA official deployment's English performance is still weaker than Chinese"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1484
+    old "使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"
+    new "Enable customized advanced parameters: [persistent.maica_setting_dict.get('use_custom_model_config')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1486
+    old "高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"
+    new "Advanced parameters could significantly affect the model's performance.\n* The default is already the best field-tested config, so it's not suggested to enable this"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1494
+    old "锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"
+    new "Designate seed to 42, which overrides seed in advanced parameters.\n* Removes randomness in generation, makes performance more stable and reproducable."
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1500
+    old "关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"
+    new "Model will ignore savefile data if this is disabled.\n* MAICA Blessland uploads savefile on each restart automatically"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1506
+    old "每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)"
+    new "Each session stores and applies history context independently.\n* Set to 0 to disable context (single round conversation)"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1514
+    old "会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"
+    new "Max length each session will preserve, in range of 512-28672.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1579
+    old "启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"
+    new "Enable MSpire cache.\n* Forces default super params and best practice"
 
