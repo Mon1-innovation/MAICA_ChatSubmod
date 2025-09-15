@@ -992,8 +992,8 @@ translate english strings:
     new "Websocket strict mode: [persistent.maica_setting_dict.get('strict_mode')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1479
-    old "目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"
-    new "Target generation language. Supports \"zh\" or \"en\".\n* Does not 100%% guarantee generation language\n* This setting also affects default timezone, festivals, culture and more\n* Up to when this was written, MAICA official deployment's English performance is still weaker than Chinese"
+    old "目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"
+    new "Target generation language. Supports \"zh\" or \"en\".\n* Does not 100% guarantee generation language\n* This setting also affects default timezone, festivals, culture and more\n* Up to when this was written, MAICA official deployment's English performance is still weaker than Chinese"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1484
     old "使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"
