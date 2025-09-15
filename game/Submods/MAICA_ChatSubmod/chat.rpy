@@ -705,25 +705,6 @@ label mspire_delete_information:
         store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
     return
            
-label mspire_type:
-    menu:
-        "percise_page":
-            $ persistent.maica_setting_dict["mspire_search_type"] = "percise_page"
-            "仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快."
-        "fuzzy_page":
-            $ persistent.maica_setting_dict["mspire_search_type"] = "fuzzy_page"
-            "根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快."
-        "in_percise_category":
-            $ persistent.maica_setting_dict["mspire_search_type"] = "in_percise_category"
-            "先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-        "in_fuzzy_category":
-            $ persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_category"
-            "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-        "in_fuzzy_all":
-            $ persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_all"
-            "根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢."
-    $ store.maica_apply_setting()
-    return
             
 # I'm a gonna tie me up in a red string,
 # I'm gonna tie blue ribbons too,
