@@ -846,7 +846,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.__ws_cookie = data['content']
         if data['status'] == 'maica_session_reset':
             self.status = self.MaicaAiStatus.SESSION_RESETED
-            self.close_wss_session()
+            #self.close_wss_session()
         if data['status'] == "maica_loop_warn_finished":
             self.console_logger.error("!!MAICA SERVER ERROR: {}".format(data.get("content")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
