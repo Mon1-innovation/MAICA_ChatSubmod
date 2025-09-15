@@ -290,8 +290,35 @@ label maica_mpostal_show_backtoscreen(content = "no content"):
     call maica_mpostal_show(content)
     return
 
+label _maica_mpostal_return_game_menu(*args, **kwargs):
+    call _enter_game_menu from _call__enter_game_menu_1
+
+    if renpy.has_label("game_menu"):
+        jump expression "game_menu"
+
+    if renpy.has_screen("submods"):
+        $ renpy.show_screen("submods")
+        $ renpy.show_screen("maica_setting")
+        $ renpy.show_screen("maica_mpostals")
+        $ ui.interact()
+        jump _noisy_return
+
+    jump expression "submods"
+
 label maica_mpostal_show_mpscreen:
-    show screen maica_mpostals
+
+    python:
+        if not _windows_hidden:
+
+            temp_space = {}
+            _mas_game_menu_start(temp_space)
+
+            renpy.call_in_new_context(
+                "_maica_mpostal_return_game_menu",
+            )
+
+            _mas_game_menu_end(temp_space)
+    
     return
 
 init 999 python:
