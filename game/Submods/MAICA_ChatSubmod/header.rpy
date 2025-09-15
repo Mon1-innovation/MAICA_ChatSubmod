@@ -431,12 +431,13 @@ screen maica_setting_pane():
             if maica.maica.is_ready_to_input():
                 textbutton _("> 手动上传设置"):
                     action Function(maica_apply_setting)
+                
+                textbutton _("> 重置当前对话"):
+                    action Function(reset_session)
             else:
                 textbutton _("> 手动上传设置 [[请先使MAICA完成连接]")
-                    
-
-            textbutton _("> 重置当前对话"):
-                action Function(reset_session)
+                     
+                textbutton _("> 重置当前对话 [[现在暂时不能重置]")
 
             textbutton _("> 导出当前对话"):
                 action Function(output_chat_history)
