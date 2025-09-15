@@ -403,7 +403,7 @@ screen maica_setting_pane():
                 xoffset -10
                 style "main_menu_version"
         if store.mas_submod_utils.isSubmodInstalled("Log Screen"):
-            text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的详细程度提高至info及以上"):
+            text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
                 xalign 1.0 yalign 0.0
                 xoffset -10
                 style "main_menu_version"
@@ -1121,7 +1121,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "top_p":
                             action ToggleDict(persistent.maica_advanced_setting_status, "top_p")
-                            hovered SetField(_tooltip, "value", _("模型选择的范围, 模型考虑概率质量值在前 top_p 的标记的结果, 因此，0.1 意味着仅考虑概率质量值前 10% 的标记"))
+                            hovered SetField(_tooltip, "value", _("token权重过滤范围. 非常不建议动这个"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("top_p", False):
@@ -1134,7 +1134,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "temperature":
                             action ToggleDict(persistent.maica_advanced_setting_status, "temperature")
-                            hovered SetField(_tooltip, "value", _("模型输出的随机性, 较高的值会使输出更随机, 而较低的值则会使其更加专注和确定"))
+                            hovered SetField(_tooltip, "value", _("token选择的随机程度. 数值越高, 模型输出会越偏离普遍最佳情况"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         if persistent.maica_advanced_setting_status.get("temperature", False):
                             bar:
@@ -1145,7 +1145,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "max_tokens":
                             action ToggleDict(persistent.maica_advanced_setting_status, "max_tokens")
-                            hovered SetField(_tooltip, "value", _("模型输出的长度限制, 较高的值会使输出更长"))
+                            hovered SetField(_tooltip, "value", _("模型一轮生成的token数限制. 一般而言不会影响表现, 会截断超出的部分"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         if persistent.maica_advanced_setting_status.get("max_tokens", False):
@@ -1157,7 +1157,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "frequency_penalty":
                             action ToggleDict(persistent.maica_advanced_setting_status, "frequency_penalty")
-                            hovered SetField(_tooltip, "value", _("频率惩罚, 正值基于新标记在文本中的现有频率对其进行惩罚, 降低模型重复相同行的可能性"))
+                            hovered SetField(_tooltip, "value", _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
@@ -1169,7 +1169,7 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "presence_penalty":
                             action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
-                            hovered SetField(_tooltip, "value", _("重现惩罚, 正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"))
+                            hovered SetField(_tooltip, "value", _("token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("presence_penalty", False):
@@ -1230,49 +1230,49 @@ screen maica_advance_setting():
                     hbox:
                         textbutton "tnd_aggressive":
                             action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
-                            hovered SetField(_tooltip, "value", _("当其为0时只调用MFocus直接选择的工具. 为1时总是会调用时间与节日工具. 为2时还会额外调用日期工具.\n当其为2且mas_geolocation存在时, tnd_aggressive还会额外调用当前天气工具.\n越高越可能补偿MFocus命中率低下的问题, 但也越可能会干扰模型对部分问题的判断."))
+                            hovered SetField(_tooltip, "value", _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现.\n- 其值越高, 越有可能产生注意力涣散和专注混乱."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
                             bar:
-                                value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 2, step=1,offset=0 ,style="slider")
+                                value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 3, step=1,offset=0 ,style="slider")
                                 xsize 100
                             textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
                     hbox:
                         textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
-                            hovered SetField(_tooltip, "value", _("总是尽可能使用MFocus的最终输出替代指导构型信息.\n启用可能提升模型的复杂信息梳理能力, 但也可能会造成速度下降或专注扰乱"))
+                            hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
-                            hovered SetField(_tooltip, "value", _("总是以用户的真名替代prompt中的[[player]字段.\n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"))
+                            hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
-                            hovered SetField(_tooltip, "value", _("调用agent模型对MFocus联网搜集的信息整理一次.\n启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."))
+                            hovered SetField(_tooltip, "value", _("在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                             selected persistent.maica_advanced_setting_status.get('esc_aggressive')
                         textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
                                 ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
-                            hovered SetField(_tooltip, "value", _("要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."))
+                            hovered SetField(_tooltip, "value", _("当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 比较明显地改善MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                             selected persistent.maica_advanced_setting_status.get('amt_aggressive')
                     hbox:
                         textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
                             action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
                                 ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
-                            hovered SetField(_tooltip, "value", _("改变system指引, 使模型对NSFW场景更为宽容.\n经测试启用此功能对模型总体表现(意外地)有利, 但也存在降低模型专注能力和造成混乱的风险."))
+                            hovered SetField(_tooltip, "value", _("要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 在少数情况下造成意料之外的问题"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                             selected persistent.maica_advanced_setting_status.get('nsfw_acceptive')
 
                     hbox:
                         textbutton "pre_additive":
                             action ToggleDict(persistent.maica_advanced_setting_status, "pre_additive")
-                            hovered SetField(_tooltip, "value", _("相当于pre_additive数值轮次的历史对话将被加入MFocus.\n此功能强度越高, 越可能提高MFocus在自然对话中的触发率, 但也越可能干扰MFocus的判断或导致其表现异常."))
+                            hovered SetField(_tooltip, "value", _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("pre_additive", False):
@@ -1283,7 +1283,7 @@ screen maica_advance_setting():
 
                         textbutton "post_additive":
                             action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
-                            hovered SetField(_tooltip, "value", _("相当于post_additive数值轮次的历史对话将被加入MTrigger.\n此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."))
+                            hovered SetField(_tooltip, "value", _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         
                         if persistent.maica_advanced_setting_status.get("post_additive", False):
@@ -1461,7 +1461,7 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        textbutton _("严格反劫持: [persistent.maica_setting_dict.get('strict_mode')]"):
+                        textbutton _("ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"):
                             action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
                             hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -1476,14 +1476,14 @@ screen maica_setting():
                     hbox:
                         textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
                             action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
-                            hovered SetField(_tooltip, "value", _("你与莫妮卡的沟通语言\n通过system prompt实现, 不能保证输出语言严格正确"))
+                            hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
                     hbox:
-                        textbutton _("使用高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)    
-                            hovered SetField(_tooltip, "value", _("高级参数会大幅影响模型的表现"))
+                        textbutton _("使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
+                            action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)
+                            hovered SetField(_tooltip, "value", _("高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("设置高级参数"):
@@ -1491,19 +1491,19 @@ screen maica_setting():
 
                         textbutton _("锁定最佳实践"):
                             action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
-                            hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed\n启用会完全排除生成中的随机性, 在统计学上稳定性更佳"))
+                            hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
                             action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
-                            hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据\n每次重启游戏将自动上传存档"))
+                            hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         textbutton _("当前使用会话: [persistent.maica_setting_dict.get('chat_session')]"):
                             action Function(store.change_chatsession)
-                            hovered SetField(_tooltip, "value", _("chat_session为0为单轮对话模式, 不同的对话之间相互独立, 需要分别上传存档"))
+                            hovered SetField(_tooltip, "value", _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         textbutton _("会话长度: "):
@@ -1511,7 +1511,7 @@ screen maica_setting():
                         bar:
                             value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-512,step=10,offset=512 ,style="slider")
                             xsize 375
-                            hovered SetField(_tooltip, "value", _("此参数意在缓解对话历史累积导致的响应速度过慢问题. 请避免将其设置得过小, 否则可能影响模型的正常语言能力."))
+                            hovered SetField(_tooltip, "value", _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 上下文越长, 模型的生成速度会越慢, 且表现更可能出现偏差. 避免设置过大的值"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                         textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
 
@@ -1576,7 +1576,7 @@ screen maica_setting():
                     hbox:
                         textbutton _("MSpire 使用缓存"):
                             action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                            hovered SetField(_tooltip, "value", _("启用MSpire缓存, 且使用默认高级参数并固定种子为42\n"))
+                            hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
