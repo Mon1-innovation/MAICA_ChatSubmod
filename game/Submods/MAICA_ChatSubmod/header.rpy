@@ -269,6 +269,14 @@ init 10 python:
         persistent.maica_setting_dict["chat_session"] += 1
         if persistent.maica_setting_dict["chat_session"] not in range(0, 10):
             persistent.maica_setting_dict["chat_session"] = 0
+
+    def chatsession_add():
+        if 0 <= persistent.maica_setting_dict["chat_session"] <= 8:
+            persistent.maica_setting_dict["chat_session"] += 1
+        
+    def chatsession_sub():
+        if 1 <= persistent.maica_setting_dict["chat_session"] <= 9:
+            persistent.maica_setting_dict["chat_session"] -= 1
         
     def reset_player_information():
         persistent.mas_player_additions = []
@@ -359,6 +367,12 @@ init 10 python:
 init python:
     def scr_nullfunc():
         return            
+
+style main_menu_version:
+    text_align 0.0
+
+style small_link is main_menu_version:
+    size 10
 
 screen maica_setting_pane():
     python:
@@ -480,21 +494,23 @@ screen maica_node_setting():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
 
@@ -525,18 +541,19 @@ screen maica_node_setting():
                             
 
                     
-                    hbox:
-                        textbutton _("更新节点列表"):
-                            style_prefix "confirm"
-                            action Function(store.maica.maica.MaicaProviderManager.get_provider)
+            hbox:
+                style_prefix "confirm"
+                textbutton _("更新节点列表"):
+                    style_prefix "confirm"
+                    action Function(store.maica.maica.MaicaProviderManager.get_provider)
 
-                        textbutton _("关闭"):
-                            style_prefix "confirm"
-                            action Hide("maica_node_setting")
-                        
-                        textbutton _("测试当前节点可用性"):
-                            style_prefix "confirm"
-                            action Function(store.maica.maica.accessable)
+                textbutton _("关闭"):
+                    style_prefix "confirm"
+                    action Hide("maica_node_setting")
+                
+                textbutton _("测试当前节点可用性"):
+                    style_prefix "confirm"
+                    action Function(store.maica.maica.accessable)
                         
 
 screen maica_triggers():
@@ -554,21 +571,23 @@ screen maica_triggers():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
             xmaximum 1100
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
 
@@ -600,8 +619,30 @@ screen maica_triggers():
                                     size 15
                                 text str(len(trigger)):
                                     size 15
-                        text trigger.description:
-                            size 15
+
+                        hbox:
+                            if hasattr(trigger, 'web_musicplayer_installed'):
+                                text _("内置 | 更换背景音乐 "):
+                                    size 15
+                                text _("* 支持 "):
+                                    yalign 1.0
+                                    text_size 10
+                                textbutton "{u}Netease Music{/u}" style "small_link" action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas"):
+                                    yalign 1.0
+                                    text_size 10
+                                text _(" 和 "):
+                                    yalign 1.0
+                                    size 10
+                                textbutton "{u}Youtube Music{/u}" style "small_link" action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic"):
+                                    yalign 1.0
+                                    text_size 10
+                                text _(" 子模组"):
+                                    yalign 1.0
+                                    size 10
+
+                            else:
+                                text trigger.description:
+                                    size 15
                         
                         
                         
@@ -646,26 +687,27 @@ screen maica_mpostals():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
-                    hbox:
-                        textbutton _("{size=15}因能力有限, 阅读信件后信件列表将在返回太空教室后重新显示.")
-                            
+                    # hbox:
+                    #     textbutton _("{size=15}因能力有限, 阅读信件后信件列表将在返回太空教室后重新显示.")
 
                     hbox:
                         text ""
@@ -722,21 +764,23 @@ screen maica_support():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
 
@@ -789,21 +833,23 @@ screen maica_workload_stat():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
 
@@ -854,21 +900,23 @@ screen maica_log():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
 
@@ -919,21 +967,23 @@ screen maica_tz_setting():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
                     text _("{size=-10}如果这里没有你的时区, 请根据你当地的UTC时间选择")
@@ -1086,21 +1136,23 @@ screen maica_advance_setting():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
-                xmaximum 1100
+                ymaximum 500
+                xmaximum 1000
                 xfill True
-                yfill False
+                yfill True
                 mousewheel True
                 draggable True
                 
                 vbox:
-                    xmaximum 1100
+                    xmaximum 1000
                     xfill True
                     yfill False
                     hbox:
@@ -1190,29 +1242,29 @@ screen maica_advance_setting():
                                 textbutton "[persistent.maica_advanced_setting.get('seed', 'None')] ":
                                     action Show("maica_seed_input")
 
-                                textbutton "+1000":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000)
+                                # textbutton "+1000":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000)
 
-                                textbutton "+100":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 100)
+                                # textbutton "+100":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 100)
 
-                                textbutton "+25":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25)
+                                # textbutton "+25":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25)
 
-                                textbutton "+1":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1)
+                                # textbutton "+1":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1)
 
-                                textbutton "-1":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1)
+                                # textbutton "-1":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1)
                                 
-                                textbutton "-25":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 25)
+                                # textbutton "-25":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 25)
                                 
-                                textbutton "-100":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 100)
+                                # textbutton "-100":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 100)
                                 
-                                textbutton "-1000":
-                                    action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1000)
+                                # textbutton "-1000":
+                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1000)
 
                         else:
                             textbutton "seed ":
@@ -1333,13 +1385,15 @@ screen maica_setting():
     style_prefix "check"
 
     frame:
+        xalign 0.5
+        yalign 0.25
         vbox:
             xmaximum 1100
             spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 600
+                ymaximum 550
                 xmaximum 1100
                 xfill True
                 yfill False
@@ -1476,7 +1530,7 @@ screen maica_setting():
                     hbox:
                         textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
                             action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
-                            hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
+                            hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
@@ -1501,10 +1555,18 @@ screen maica_setting():
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
+                        textbutton _("-"):
+                            style_prefix "confirm"
+                            action Function(store.chatsession_sub)
+
                         textbutton _("当前使用会话: [persistent.maica_setting_dict.get('chat_session')]"):
-                            action Function(store.change_chatsession)
+                            action NullAction()
                             hovered SetField(_tooltip, "value", _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        textbutton _("+"):
+                            style_prefix "confirm"
+                            action Function(store.chatsession_add)
 
                         textbutton _("会话长度: "):
                             action NullAction()
@@ -1663,6 +1725,8 @@ screen maica_login():
     style_prefix "confirm"
 
     frame:
+        xalign 0.5
+        yalign 0.5
         vbox:
             xfill False
             yfill False
@@ -1721,6 +1785,8 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
     style_prefix "confirm"
 
     frame:
+        xalign 0.5
+        yalign 0.5
         vbox:
             ymaximum 300
             xmaximum 800
@@ -1754,6 +1820,8 @@ screen maica_seed_input():
     style_prefix "confirm"
 
     frame:
+        xalign 0.5
+        yalign 0.5
         vbox:
             ymaximum 300
             xmaximum 800
@@ -1785,6 +1853,8 @@ screen maica_message(message = "Non Message", ok_action = Hide("maica_message"))
     style_prefix "confirm"
 
     frame:
+        xalign 0.5
+        yalign 0.5
         vbox:
             ymaximum 300
             xmaximum 800
