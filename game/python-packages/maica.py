@@ -789,6 +789,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def __on_message(self, wsapp, message):
         import json, time
         data = json.loads(message)
+        if data.get("status", "unknown") in ('maica_connection_initiated'):
+            if self.target_lang == self.MaicaAiLang.en:
+                return
         if data.get("status", "unknown") in ('ws_cookie'):
             logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
                 (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
