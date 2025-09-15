@@ -1060,16 +1060,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
-        dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
-        if self.enable_strict_mode and self.__ws_cookie != "":
-            dict["cookie"] = self.__ws_cookie
-        self.wss_session.send(
-            json.dumps(dict)
-        )
+        #dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
+        #if self.enable_strict_mode and self.__ws_cookie != "":
+        #    dict["cookie"] = self.__ws_cookie
+        #self.wss_session.send(
+        #    json.dumps(dict)
+        #)
         self.stat["received_token_by_session"][self.chat_session] = 0
-        self.status = self.MaicaAiStatus.SESSION_RESETED
         self.history_status = None
-        self.wss_session.close()
 
     def update_workload(self):
         """
