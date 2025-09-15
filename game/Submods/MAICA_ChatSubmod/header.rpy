@@ -556,6 +556,69 @@ screen maica_node_setting():
                     style_prefix "confirm"
                     action Function(store.maica.maica.accessable)
                         
+screen maica_mspire_setting():
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+
+        if submods_screen:
+            _tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            _tooltip = None
+        def set_provider(id):
+            persistent.maica_setting_dict["provider_id"] = id
+
+    modal True
+    zorder 215
+    
+    style_prefix "check"
+
+    frame:
+        xalign 0.5
+        yalign 0.26
+        vbox:
+            xmaximum 1000
+            spacing 5
+            viewport:
+                id "viewport"
+                scrollbars "vertical"
+                ymaximum 500
+                xmaximum 1000
+                xfill True
+                yfill True
+                mousewheel True
+                draggable True
+                
+                vbox:
+                    xmaximum 1000
+                    xfill True
+                    yfill False
+                    textbutton "percise_page":
+                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "percise_page")
+                    text _("仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"):
+                        size 15
+                    textbutton "fuzzy_page":
+                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "fuzzy_page")
+                    text _("根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快.\n"):
+                        size 15
+                    textbutton "in_percise_category":
+                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_percise_category")
+                    text _("先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
+                        size 15
+                    textbutton "in_fuzzy_category":
+                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_category")
+                    text _("根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
+                        size 15
+                    textbutton "in_fuzzy_all":
+                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_all")
+                    text _("根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
+                        size 15
+            hbox:
+                textbutton _("关闭"):
+                    style_prefix "confirm"
+                    action Hide("maica_mspire_setting")
+                
+                textbutton _("当前方式: [persistent.maica_setting_dict.get('mspire_search_type', 'None')]")
+
 
 screen maica_triggers():
     python:
@@ -1631,9 +1694,7 @@ screen maica_setting():
 
                         textbutton _("搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
                             action [
-                                Hide("maica_setting"),
-                                Function(store.maica_apply_setting),
-                                Function(renpy.jump, "mspire_type")
+                                Show("maica_mspire_setting")
                             ]
                         
                     hbox:
