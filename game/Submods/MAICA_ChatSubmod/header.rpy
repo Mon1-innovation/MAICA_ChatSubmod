@@ -167,7 +167,7 @@ init 10 python:
             if isinstance(value, (list, tuple)):
                 return [process_value(item, depth+1) for item in value]
 
-            # Check serialization and length
+            # check serialization and length
             try:
                 str_val = str(value)
                 if len(str_val) > maxlen:
@@ -270,13 +270,34 @@ init 10 python:
         if persistent.maica_setting_dict["chat_session"] not in range(0, 10):
             persistent.maica_setting_dict["chat_session"] = 0
 
+    def chatsession_can_add():
+        return 0 <= persistent.maica_setting_dict["chat_session"] <= 8
+
     def chatsession_add():
-        if 0 <= persistent.maica_setting_dict["chat_session"] <= 8:
+        if chatsession_can_add():
             persistent.maica_setting_dict["chat_session"] += 1
         
+    def chatsession_can_sub():
+        return 1 <= persistent.maica_setting_dict["chat_session"] <= 9
+
     def chatsession_sub():
-        if 1 <= persistent.maica_setting_dict["chat_session"] <= 9:
+        if chatsession_can_sub():
             persistent.maica_setting_dict["chat_session"] -= 1
+
+
+    def sessionlength_can_add():
+        return 512 <= persistent.maica_setting_dict["max_history_token"] <= 28671
+
+    def sessionlength_add():
+        if sessionlength_can_add():
+            persistent.maica_setting_dict["max_history_token"] += 1
+        
+    def sessionlength_can_sub():
+        return 513 <= persistent.maica_setting_dict["max_history_token"] <= 28672
+
+    def sessionlength_sub():
+        if sessionlength_can_sub():
+            persistent.maica_setting_dict["max_history_token"] -= 1
         
     def reset_player_information():
         persistent.mas_player_additions = []
@@ -368,13 +389,101 @@ init python:
     def scr_nullfunc():
         return            
 
-style main_menu_version:
-    text_align 0.0
-
 style small_link is main_menu_version:
     size 10
 
+image bar1 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=0.1, yalign=0.5, size=(300, 25))
+image bar2 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=0.9, yalign=0.5, size=(300, 25))
+
+screen divider(message):
+
+    hbox:
+        yminimum 75
+        xfill True
+
+        hbox:
+            xalign 0.5
+            yalign 0.6
+            xminimum 900
+            add "bar1"
+            text "  "
+            text message:
+                xalign 0.5
+            text "  "
+            add "bar2"
+
+style main_menu_version:
+    text_align 0.0
+
+style main_menu_version_dark:
+    text_align 0.0
+
+style nf_check_label is check_label
+
+style nf_check_label_dark is check_label_dark
+
+style nf_check_label_text is check_label_text
+
+style nf_check_label_text_dark is check_label_text_dark
+
+style nf_check_vbox is check_vbox
+
+style nf_check_button is check_button
+
+style nf_check_button_dark is check_button_dark
+
+style nf_check_button_text is check_button_text:
+    xpos -10
+
+style nf_check_button_text_dark is check_button_text_dark:
+    xpos -10
+
+
+style addsub_fancy_check_button:
+    background Solid("#FFBDE1")
+    hover_background Solid("#ffd1ea")
+    selected_background Solid("#FFBDE1")
+    insensitive_background Solid("#BFBFBF")
+
+style addsub_fancy_check_button_dark:
+    background Solid("#CE4A7E")
+    hover_background Solid("#d9739c")
+    selected_background Solid("#CE4A7E")
+    insensitive_background Solid("#333333")
+
+style addsub_fancy_check_button_disabled is addsub_fancy_check_button:
+    background Solid("#1b1b1b")
+    selected_background Solid("#1b1b1b")
+
+style addsub_fancy_check_button_text is gui_button_text:
+    font "gui/font/Halogen.ttf"
+    color "#ffe6f4"
+    hover_color "#000000"
+    selected_color "#000000"
+    insensitive_color mas_ui.light_button_text_insensitive_color
+    outlines []
+    yoffset 3
+    xoffset -10
+
+style addsub_fancy_check_button_text_dark is gui_button_text_dark:
+    font "gui/font/Halogen.ttf"
+    color "#BFBFBF"
+    hover_color "#FFAA99"
+    selected_color "#FFAA99"
+    insensitive_color mas_ui.dark_button_text_insensitive_color
+    outlines []
+    yoffset 3
+    xoffset -10
+
+style addsub_fancy_check_button_disabled_text is addsub_fancy_check_button_text:
+    font "gui/font/Halogen.ttf"
+    color "#8C8C8C"
+    outlines []
+    yoffset 3
+    xoffset -10
+
 screen maica_setting_pane():
+
     python:
         import store.maica as maica
         stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.is_connected() else _("已断开")
@@ -617,7 +726,7 @@ screen maica_mspire_setting():
                 textbutton _("关闭"):
                     action Hide("maica_mspire_setting")
                 
-                textbutton _("当前方式: [persistent.maica_setting_dict.get('mspire_search_type', 'None')]")
+                # textbutton _("当前方式: [persistent.maica_setting_dict.get('mspire_search_type', 'None')]")
 
 
 screen maica_triggers():
@@ -638,7 +747,7 @@ screen maica_triggers():
         xalign 0.5
         yalign 0.26
         vbox:
-            xmaximum 1100
+            xmaximum 1000
             spacing 5
             viewport:
                 id "viewport"
@@ -1449,6 +1558,7 @@ screen maica_setting():
     style_prefix "check"
 
     frame:
+        xsize 1100
         xalign 0.5
         yalign 0.25
         vbox:
@@ -1457,306 +1567,404 @@ screen maica_setting():
             viewport:
                 id "viewport"
                 scrollbars "vertical"
-                ymaximum 550
-                xmaximum 1100
-                xfill True
-                yfill False
+                xsize 1100
+                ysize 550
+
                 mousewheel True
                 draggable True
                 
-                vbox:
-                    xmaximum 1100
-                    xfill True
-                    yfill False
-                    if renpy.config.debug:
-                        hbox:
-                            text "=====MaicaAi()====="
-                        hbox:
-                            text "ai.is_responding: [store.maica.maica.is_responding()]":
-                                size 15
-                        hbox:
-                            text "ai.is_failed: [store.maica.maica.is_failed()]":
-                                size 15
-                        hbox:
-                            text "ai.is_connected: [store.maica.maica.is_connected()]":
-                                size 15
-                        hbox:
-                            text "ai.is_ready_to_input: [store.maica.maica.is_ready_to_input()]":
-                                size 15
-                        hbox:
-                            text "ai.MaicaAiStatus.is_submod_exception: [store.maica.maica.MaicaAiStatus.is_submod_exception(store.maica.maica.status)]":
-                                size 15
-                        hbox:
-                            text "ai.len_message_queue(): [store.maica.maica.len_message_queue()]":
-                                size 15
-                        hbox:
-                            text "maica_chr_exist: [maica_chr_exist]":
-                                size 15
-                        hbox:
-                            text "maica_chr_changed: [maica_chr_changed]":
-                                size 15
-                        hbox:
-                            text "len(mas_rev_unseen): [len(mas_rev_unseen)] | [mas_rev_unseen]":
-                                size 15
-                        hbox:
-                            text "push_mpostal_read: [has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label('maica_wants_mspire') and renpy.seen_label('maica_wants_mpostal') and not mas_inEVL('maica_mpostal_received') and not mas_inEVL('maica_mpostal_read')]":
-                                size 15
-                        hbox:
-                            text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]":
-                                size 15
-                        hbox:
-                            text "triggered_list: [store.maica.maica.mtrigger_manager.triggered_list]":
-                                size 15
-                        hbox:
-                            textbutton "输出Event信息到日志":
-                                action Function(log_eventstat)
-                        hbox:
-                            textbutton "推送分句测试":
-                                action [
-                                    Hide("maica_setting"),
-                                    Function(store.maica_apply_setting),
-                                    Function(store.MASEventList.push, "text_split")
-                                ]
-                        hbox:
-                            textbutton "推送聊天loop":
-                                action [
-                                    Hide("maica_setting"),
-                                    Function(store.maica_apply_setting),
-                                    Function(store.MASEventList.push, "maica_main.talking_start")
-                                    ]
-                            textbutton "推送MSpire":
-                                action [
-                                    Hide("maica_setting"),
-                                    Function(store.maica_apply_setting),
-                                    Function(store.MASEventList.push, "maica_mspire")
-                                    ]
-                            textbutton "推送maica_mpostal_read":
-                                action [
+                hbox:
+                    vbox:
+                        xsize 30
+                    vbox:
+                        xsize 1040
+
+                        if renpy.config.debug:
+                            hbox:
+                                text "=====MaicaAi()====="
+                            hbox:
+                                text "ai.is_responding: [store.maica.maica.is_responding()]":
+                                    size 15
+                            hbox:
+                                text "ai.is_failed: [store.maica.maica.is_failed()]":
+                                    size 15
+                            hbox:
+                                text "ai.is_connected: [store.maica.maica.is_connected()]":
+                                    size 15
+                            hbox:
+                                text "ai.is_ready_to_input: [store.maica.maica.is_ready_to_input()]":
+                                    size 15
+                            hbox:
+                                text "ai.MaicaAiStatus.is_submod_exception: [store.maica.maica.MaicaAiStatus.is_submod_exception(store.maica.maica.status)]":
+                                    size 15
+                            hbox:
+                                text "ai.len_message_queue(): [store.maica.maica.len_message_queue()]":
+                                    size 15
+                            hbox:
+                                text "maica_chr_exist: [maica_chr_exist]":
+                                    size 15
+                            hbox:
+                                text "maica_chr_changed: [maica_chr_changed]":
+                                    size 15
+                            hbox:
+                                text "len(mas_rev_unseen): [len(mas_rev_unseen)] | [mas_rev_unseen]":
+                                    size 15
+                            hbox:
+                                text "push_mpostal_read: [has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label('maica_wants_mspire') and renpy.seen_label('maica_wants_mpostal') and not mas_inEVL('maica_mpostal_received') and not mas_inEVL('maica_mpostal_read')]":
+                                    size 15
+                            hbox:
+                                text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]":
+                                    size 15
+                            hbox:
+                                text "triggered_list: [store.maica.maica.mtrigger_manager.triggered_list]":
+                                    size 15
+                            hbox:
+                                textbutton "输出Event信息到日志":
+                                    action Function(log_eventstat)
+                            hbox:
+                                textbutton "推送分句测试":
+                                    action [
                                         Hide("maica_setting"),
                                         Function(store.maica_apply_setting),
-                                        Function(store.MASEventList.push, "maica_mpostal_read")
+                                        Function(store.MASEventList.push, "text_split")
                                     ]
-                            textbutton "推送maica_mpostal_load":
-                                action [
+                            hbox:
+                                textbutton "推送聊天loop":
+                                    action [
                                         Hide("maica_setting"),
                                         Function(store.maica_apply_setting),
-                                        Function(store.MASEventList.push, "maica_mpostal_load")
+                                        Function(store.MASEventList.push, "maica_main.talking_start")
+                                        ]
+                                textbutton "推送MSpire":
+                                    action [
+                                        Hide("maica_setting"),
+                                        Function(store.maica_apply_setting),
+                                        Function(store.MASEventList.push, "maica_mspire")
+                                        ]
+                                textbutton "推送maica_mpostal_read":
+                                    action [
+                                            Hide("maica_setting"),
+                                            Function(store.maica_apply_setting),
+                                            Function(store.MASEventList.push, "maica_mpostal_read")
+                                        ]
+                                textbutton "推送maica_mpostal_load":
+                                    action [
+                                            Hide("maica_setting"),
+                                            Function(store.maica_apply_setting),
+                                            Function(store.MASEventList.push, "maica_mpostal_load")
+                                        ]
+                                
+                                
+                        hbox:
+                            use divider(_("连接与安全"))
+
+                        hbox:
+                            textbutton _("服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"):
+                                action Show("maica_node_setting")
+                                hovered SetField(_tooltip, "value", _("设置服务器节点"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                        hbox:
+                            style_prefix "generic_fancy_check"
+                            textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
+                                hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                        hbox:
+                            style_prefix "generic_fancy_check"
+                            textbutton _("ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
+                                hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            use divider(_("行为与表现"))
+
+                        hbox:
+                            style_prefix "generic_fancy_check"
+                            textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
+                        hbox:
+                            style_prefix "generic_fancy_check"
+                            textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
+                        hbox:
+                            textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
+                                hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            frame:
+                                xmaximum 950
+                                xpos 30
+                                xfill True
+                                vbox:
+                                    xmaximum 950
+                                    xfill True
+                                    hbox:
+                                        style_prefix "generic_fancy_check"
+                                        textbutton _("使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
+                                            action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)
+                                            hovered SetField(_tooltip, "value", _("高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"))
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                                    hbox:
+                                        textbutton _("设置高级参数"):
+                                            action Show("maica_advance_setting")
+                                    hbox:
+                                        textbutton _("锁定最佳实践"):
+                                            action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
+                                            hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"))
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            use divider(_("会话与数据"))
+
+                        hbox:
+                            style_prefix "generic_fancy_check"
+                            textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
+                                hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
+                            hbox:
+                                style_prefix "addsub_fancy_check"
+                                textbutton "-":
+                                    text_size 40
+                                    action [Function(store.chatsession_sub), SensitiveIf(store.chatsession_can_sub())]
+                                    hovered SetField(_tooltip, "value", tooltip_chat_session)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                            hbox:
+                                xsize 200
+                                style_prefix "nf_check"
+                                textbutton _("当前使用会话: [persistent.maica_setting_dict.get('chat_session')]"):
+                                    xalign 0.5
+                                    action NullAction()
+                                    hovered SetField(_tooltip, "value", tooltip_chat_session)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                            hbox:
+                                style_prefix "addsub_fancy_check"
+                                textbutton "+":
+                                    text_size 40
+                                    action [Function(store.chatsession_add), SensitiveIf(store.chatsession_can_add())]
+                                    hovered SetField(_tooltip, "value", tooltip_chat_session)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
+                            textbutton _("会话长度: "):
+                                action NullAction()
+                                hovered SetField(_tooltip, "value", tooltip_session_length)
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                            hbox:
+                                style_prefix "addsub_fancy_check"
+                                textbutton "-":
+                                    text_size 40
+                                    action [Function(store.sessionlength_sub), SensitiveIf(store.sessionlength_can_sub())]
+                                    hovered SetField(_tooltip, "value", tooltip_session_length)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                            hbox:
+                                xsize 450
+                                bar:
+                                    xpos 20
+                                    yoffset 5
+                                    value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-512,step=10,offset=512 ,style="slider")
+                                    xsize 300
+                                    hovered SetField(_tooltip, "value", tooltip_session_length)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                                hbox:
+                                    style_prefix "nf_check"
+                                    textbutton _("[persistent.maica_setting_dict.get('max_history_token')]"):
+                                        xalign 1.0
+                                        action NullAction()
+                                        hovered SetField(_tooltip, "value", tooltip_session_length)
+                                        unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                            hbox:
+                                style_prefix "addsub_fancy_check"
+                                textbutton "+":
+                                    text_size 40
+                                    action [Function(store.sessionlength_add), SensitiveIf(store.sessionlength_can_add())]
+                                    hovered SetField(_tooltip, "value", tooltip_session_length)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            frame:
+                                xmaximum 950
+                                xpos 30
+                                xfill True
+                                vbox:
+                                    xmaximum 950
+                                    xfill True
+                                    $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型. 需要重新上传存档生效.")
+                                    hbox:
+                                        textbutton _("当前有[len(persistent.mas_player_additions)]条自定义MFocus信息"):
+                                            action NullAction()
+                                            hovered SetField(_tooltip, "value", tooltip_mf_info)
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                                    hbox:
+                                        textbutton _("添加MFocus信息"):
+                                            action [
+                                                Hide("maica_setting"),
+                                                Function(store.maica_apply_setting),
+                                                Function(renpy.jump, "maica_mods_preferences")
+                                                ]
+                                            hovered SetField(_tooltip, "value", tooltip_mf_info)
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                                    hbox:
+                                        textbutton _("编辑MFocus信息"):
+                                            action [
+                                                Hide("maica_setting"),
+                                                Function(store.maica_apply_setting),
+                                                Function(renpy.jump, "maica_mods_preferences")
+                                                ]
+                                            hovered SetField(_tooltip, "value", tooltip_mf_info)
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                                    hbox:
+                                        textbutton _("清除MFocus信息"):
+                                            action Function(reset_player_information)
+                                            hovered SetField(_tooltip, "value", tooltip_mf_info)
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                                    hbox:
+                                        textbutton _("导出自定义MFocus信息到主目录"):
+                                            action Function(export_player_information)
+                                            hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+
+
+
+                        hbox:
+                            textbutton _("输出到控制台: [persistent.maica_setting_dict.get('console')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "console", True, False)
+                                hovered SetField(_tooltip, "value", _("在对话期间是否使用console显示相关信息, wzt的癖好\n说谁呢, 不觉得这很酷吗"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                            textbutton _("控制台字体: [persistent.maica_setting_dict.get('console_font')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
+                                hovered SetField(_tooltip, "value", _("console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+
+
+
+                        hbox:
+                            textbutton _("MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                                action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
+                                hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响, 需要关闭重复对话"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                            textbutton _("对话范围编辑"):
+                                action [
+                                    Hide("maica_setting"),
+                                    Function(store.maica_apply_setting),
+                                    Function(renpy.jump, "mspire_mods_preferences")
                                     ]
-                            
-                            
+                            textbutton _("间隔"):
+                                action NullAction()
+                            bar:
+                                value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=10 ,style="slider")
+                                xsize 150
+                                hovered SetField(_tooltip, "value", _("MSpire对话的最低间隔分钟"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                    hbox:
-                        text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
+                            textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
 
-                    hbox:
-                        text _("累计MSpire轮次: [store.maica.maica.stat.get('mspire_count')]")
-
-                    hbox:
-                        text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
-                    
-                    hbox:
-                        text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]")
-                    
-                    hbox:
-                        text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]")
-
-                    hbox:
-                        text _("当前用户: [store.maica.maica.user_acc]")
-
-                    hbox:
-                    
-                        textbutton _("重置统计数据"):
-                            action Function(store.maica.maica.reset_stat)
-
-                    hbox:
-                        textbutton _("服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"):
-                            action Show("maica_node_setting")
-                            hovered SetField(_tooltip, "value", _("设置服务器节点"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                    hbox: 
-                        textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
-                            hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        textbutton _("ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
-                            hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                    hbox:                        
-                        textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
-                        
-                        textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
-
-
-                    hbox:
-                        textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
-                            hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-
-                    hbox:
-                        textbutton _("使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)
-                            hovered SetField(_tooltip, "value", _("高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        textbutton _("设置高级参数"):
-                            action Show("maica_advance_setting")
-
-                        textbutton _("锁定最佳实践"):
-                            action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
-                            hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                    hbox:
-                        textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
-                            hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                    hbox:
-                        textbutton _("-"):
-                            style_prefix "confirm"
-                            action Function(store.chatsession_sub)
-
-                        textbutton _("当前使用会话: [persistent.maica_setting_dict.get('chat_session')]"):
-                            action NullAction()
-                            hovered SetField(_tooltip, "value", _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        textbutton _("+"):
-                            style_prefix "confirm"
-                            action Function(store.chatsession_add)
-
-                        textbutton _("会话长度: "):
-                            action NullAction()
-                        bar:
-                            value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-512,step=10,offset=512 ,style="slider")
-                            xsize 375
-                            hovered SetField(_tooltip, "value", _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        textbutton _("[persistent.maica_setting_dict.get('max_history_token')]")
-
-                    hbox:
-                        textbutton _("输出到控制台: [persistent.maica_setting_dict.get('console')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "console", True, False)
-                            hovered SetField(_tooltip, "value", _("在对话期间是否使用console显示相关信息, wzt的癖好\n说谁呢, 不觉得这很酷吗"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        textbutton _("控制台字体: [persistent.maica_setting_dict.get('console_font')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
-                            hovered SetField(_tooltip, "value", _("console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                    hbox:
-                        textbutton _("清除玩家补充信息: 当前共有[len(persistent.mas_player_additions)]条"):
-                            action Function(reset_player_information)
-                            hovered SetField(_tooltip, "value", _("由你补充的一些数据, 增删后需要重新上传存档"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        textbutton _("编辑信息"):
-                            action [
-                                Hide("maica_setting"),
-                                Function(store.maica_apply_setting),
-                                Function(renpy.jump, "maica_mods_preferences")
+                            textbutton _("搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
+                                action [
+                                    Show("maica_mspire_setting")
                                 ]
+                            
+                        hbox:
+                            textbutton _("MSpire 使用缓存"):
+                                action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
+                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
+                                action Function(store.change_loglevel)
+                                hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
-                        textbutton _("导出至根目录"):
-                            action Function(export_player_information)
-                            hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                    hbox:
-                        textbutton _("MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                            hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响, 需要关闭重复对话"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                            textbutton _("控制台log等级: [logging.getLevelName(store.maica.maica.console_logger.level)]"):
+                                action Function(store.change_conloglevel)
+                                hovered SetField(_tooltip, "value", _("这将影响控制台中每条log的等级, 低于该等级的log将不会记录"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                            
+                            textbutton _("状态码更新速度"):
+                                action NullAction()
+                            bar:
+                                value DictValue(persistent.maica_setting_dict, "status_update_time", 3.0, step=0.1, offset=0.1,style="slider")
+                                xsize 150
+                                hovered SetField(_tooltip, "value", _("在Submod界面处的状态码更新频率"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                            
+                            textbutton "[persistent.maica_setting_dict.get('status_update_time')]s"
 
-                        textbutton _("对话范围编辑"):
-                            action [
-                                Hide("maica_setting"),
-                                Function(store.maica_apply_setting),
-                                Function(renpy.jump, "mspire_mods_preferences")
-                                ]
-                        textbutton _("间隔"):
-                            action NullAction()
-                        bar:
-                            value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=10 ,style="slider")
-                            xsize 150
-                            hovered SetField(_tooltip, "value", _("MSpire对话的最低间隔分钟"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
-
-                        textbutton _("搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
-                            action [
-                                Show("maica_mspire_setting")
-                            ]
+                        hbox:
+                            textbutton _("MTrigger 列表"):
+                                action Show("maica_triggers")
+                            
+                            textbutton _("查看MPostals往来信件"):
+                                action Show("maica_mpostals")
+                            
+                            textbutton _("回信时显示控制台"):
+                                action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
                         
-                    hbox:
-                        textbutton _("MSpire 使用缓存"):
-                            action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                            hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        hbox:
+                            textbutton _("信件回复时间"):
+                                action NullAction()
+                            bar:
+                                value DictValue(persistent.maica_setting_dict, "mpostal_default_reply_time", 50000, step=1, offset=3600, style="slider")
+                                xsize 150
+                                hovered SetField(_tooltip, "value", _("回信所需要的最低时间"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                    hbox:
-                        textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
-                            action Function(store.change_loglevel)
-                            hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                            textbutton "[persistent.maica_setting_dict.get('mpostal_default_reply_time', 0) / 3600]h"
 
 
-                        textbutton _("控制台log等级: [logging.getLevelName(store.maica.maica.console_logger.level)]"):
-                            action Function(store.change_conloglevel)
-                            hovered SetField(_tooltip, "value", _("这将影响控制台中每条log的等级, 低于该等级的log将不会记录"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
                         
-                        textbutton _("状态码更新速度"):
-                            action NullAction()
-                        bar:
-                            value DictValue(persistent.maica_setting_dict, "status_update_time", 3.0, step=0.1, offset=0.1,style="slider")
-                            xsize 150
-                            hovered SetField(_tooltip, "value", _("在Submod界面处的状态码更新频率"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                        hbox:
+                            textbutton _("查看后端负载"):
+                                action Show("maica_workload_stat")
+                            
+                            textbutton _("动态的天堂树林"):
+                                action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
+                                hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效\n如果产生显存相关错误, 删减精灵包或禁用此选项"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
+
+                        hbox:
+                            text _("累计MSpire轮次: [store.maica.maica.stat.get('mspire_count')]")
+
+                        hbox:
+                            text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
                         
-                        textbutton "[persistent.maica_setting_dict.get('status_update_time')]s"
-
-
-                    hbox:
-                        textbutton _("MTrigger 列表"):
-                            action Show("maica_triggers")
+                        hbox:
+                            text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]")
                         
-                        textbutton _("查看MPostals往来信件"):
-                            action Show("maica_mpostals")
+                        hbox:
+                            text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]")
+
+                        hbox:
+                            text _("当前用户: [store.maica.maica.user_acc]")
+
+                        hbox:
                         
-                        textbutton _("回信时显示控制台"):
-                            action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
-                    
-                    hbox:
-                        textbutton _("信件回复时间"):
-                            action NullAction()
-                        bar:
-                            value DictValue(persistent.maica_setting_dict, "mpostal_default_reply_time", 50000, step=1, offset=3600, style="slider")
-                            xsize 150
-                            hovered SetField(_tooltip, "value", _("回信所需要的最低时间"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        textbutton "[persistent.maica_setting_dict.get('mpostal_default_reply_time', 0) / 3600]h"
-
-
-                    
-                    hbox:
-                        textbutton _("查看后端负载"):
-                            action Show("maica_workload_stat")
-                        
-                        textbutton _("动态的天堂树林"):
-                            action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
-                            hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效\n如果产生显存相关错误, 删减精灵包或禁用此选项"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                            textbutton _("重置统计数据"):
+                                action Function(store.maica.maica.reset_stat)
 
 
 
