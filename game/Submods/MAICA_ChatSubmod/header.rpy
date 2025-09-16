@@ -1560,10 +1560,10 @@ screen maica_setting():
     frame:
         xsize 1100
         xalign 0.5
-        yalign 0.25
+        yalign 0.2
         vbox:
             xmaximum 1100
-            spacing 5
+            spacing 10
             viewport:
                 id "viewport"
                 scrollbars "vertical"
@@ -1578,6 +1578,7 @@ screen maica_setting():
                         xsize 30
                     vbox:
                         xsize 1040
+                        spacing 5
 
                         if renpy.config.debug:
                             hbox:
@@ -1967,10 +1968,8 @@ screen maica_setting():
                                 action Function(store.maica.maica.reset_stat)
 
 
-
-
-
             hbox:
+                xpos 10
                 style_prefix "confirm"
                 textbutton _("保存设置"):
                     action [
