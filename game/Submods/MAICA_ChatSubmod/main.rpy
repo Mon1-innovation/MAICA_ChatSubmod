@@ -330,7 +330,7 @@ label _maica_return_game_menu(*args, **kwargs):
     if renpy.has_screen("submods"):
         $ renpy.show_screen("submods")
         $ renpy.show_screen("maica_setting")
-        #$ renpy.show_screen("maica_mpostals")
+        # $ renpy.show_screen("maica_mpostals")
         $ ui.interact()
         jump _noisy_return
 

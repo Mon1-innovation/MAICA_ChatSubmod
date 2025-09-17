@@ -269,19 +269,25 @@ init 10 python:
         if persistent.maica_setting_dict["chat_session"] not in range(0, 10):
             persistent.maica_setting_dict["chat_session"] = 0
 
-    def chatsession_can_add():
-        return 0 <= persistent.maica_setting_dict["chat_session"] <= 8
 
-    def chatsession_add():
-        if chatsession_can_add():
-            persistent.maica_setting_dict["chat_session"] += 1
-        
-    def chatsession_can_sub():
-        return 1 <= persistent.maica_setting_dict["chat_session"] <= 9
 
-    def chatsession_sub():
-        if chatsession_can_sub():
-            persistent.maica_setting_dict["chat_session"] -= 1
+    def common_can_add(var, min, max):
+        return min <= persistent.maica_setting_dict[var] <= (max - 1)
+
+    def common_add(var, min, max):
+        if common_can_add(var, min, max):
+            persistent.maica_setting_dict[var] += 1
+
+    def common_can_sub(var, min, max):
+        return (min + 1) <= persistent.maica_setting_dict[var] <= max
+
+    def common_sub(var, min, max):
+        if common_can_sub(var, min, max):
+            persistent.maica_setting_dict[var] -= 1
+
+
+
+
 
 
     def sessionlength_can_add():
@@ -298,6 +304,48 @@ init 10 python:
         if sessionlength_can_sub():
             persistent.maica_setting_dict["max_history_token"] -= 1
         
+
+
+
+
+    def msinterval_can_add():
+        return 10 <= persistent.maica_setting_dict["mspire_interval"] <= 199
+
+    def msinterval_add():
+        if msinterval_can_add():
+            persistent.maica_setting_dict["mspire_interval"] += 1
+        
+    def msinterval_can_sub():
+        return 11 <= persistent.maica_setting_dict["mspire_interval"] <= 200
+
+    def msinterval_sub():
+        if msinterval_can_sub():
+            persistent.maica_setting_dict["mspire_interval"] -= 1
+
+
+
+
+
+    def msinterval_can_add():
+        return 10 <= persistent.maica_setting_dict["mspire_interval"] <= 199
+
+    def msinterval_add():
+        if msinterval_can_add():
+            persistent.maica_setting_dict["mspire_interval"] += 1
+        
+    def msinterval_can_sub():
+        return 11 <= persistent.maica_setting_dict["mspire_interval"] <= 200
+
+    def msinterval_sub():
+        if msinterval_can_sub():
+            persistent.maica_setting_dict["mspire_interval"] -= 1
+
+
+
+
+
+
+
     def reset_player_information():
         persistent.mas_player_additions = []
     
@@ -439,24 +487,6 @@ init 999:
 
 
 
-    style zh_disabled_generic_fancy_check_button is generic_fancy_check_button:
-        properties gui.button_properties("check_button")
-        foreground "generic_fancy_check_button_fg_insensitive"
-        selected_foreground "generic_fancy_check_button_fg_selected_insensitive"
-        selected_background Solid("1b1b1b")
-
-    style zh_disabled_generic_fancy_check_button_text is generic_fancy_check_button_text:
-        properties gui.button_text_properties("generic_fancy_check_button")
-        font "gui/font/Halogen.ttf"
-        color "#8C8C8C"
-        outlines []
-        yoffset 3
-
-
-
-
-
-
 
 
 
@@ -464,17 +494,23 @@ init 999:
         foreground None
         padding (4,4,4,4)
         hover_background Solid("#ffe6f4")
-        selected_background Solid("#FFBDE1")
+        # selected_background Solid("#FFBDE1")
 
     style maica_check_button_dark is check_button_dark:
         foreground None
         padding (4,4,4,4)    
         hover_background Solid("#d9739c")
-        selected_background Solid("#CE4A7E")
+        # selected_background Solid("#CE4A7E")
 
-    style maica_check_button_text is generic_fancy_check_button_text
+    style maica_check_button_text is generic_fancy_check_button_text:
+        color "#AAAAAA"
+        hover_color "#000000"
+        selected_color "#AAAAAA"
 
-    style maica_check_button_text_dark is generic_fancy_check_button_text_dark
+    style maica_check_button_text_dark is generic_fancy_check_button_text_dark:
+        color "#BFBFBF"
+        hover_color "#FFAA99"
+        selected_color "#BFBFBF"
 
 
 
@@ -523,10 +559,10 @@ init 999:
         background Solid("#808080")
 
     style addsub_fancy_check_button_text is check_label_text:
-        color "#AAAAAA"
+        color "#e6e6e6"
         outlines []
-        hover_color "#cecece"
-        selected_color "#AAAAAA"
+        hover_color "#f0f0f0"
+        selected_color "#e6e6e6"
         insensitive_color "#cecece"
         yoffset 1
 
@@ -548,6 +584,14 @@ init 999:
 
 
 screen maica_setting_pane():
+
+    python:
+        submods_screen = store.renpy.get_screen("submods", "screens")
+
+        if submods_screen:
+            store._tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            store._tooltip = None
 
     python:
         import store.maica as maica
@@ -1604,9 +1648,230 @@ screen maica_advance_setting():
                         Function(reset_to_default),
                         Hide("maica_advance_setting")
                     ]
-                        
-                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+screen sub_button(tooltip, var, min, max):
+    $ _tooltip = store._tooltip
+    hbox:
+        style_prefix "addsub_fancy_check"
+        textbutton "-":
+            action [Function(store.common_sub, var, min, max), SensitiveIf(store.common_can_sub(var, min, max))]
+            hovered SetField(_tooltip, "value", tooltip)
+            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+screen add_button(tooltip, var, min, max):
+    $ _tooltip = store._tooltip
+    hbox:
+        style_prefix "addsub_fancy_check"
+        textbutton "+":
+            action [Function(store.common_add, var, min, max), SensitiveIf(store.common_can_add(var, min, max))]
+            hovered SetField(_tooltip, "value", tooltip)
+            unhovered SetField(_tooltip, "value", _tooltip.default)
             
+screen prog_bar(expl, len, tooltip, var, min, max, istime=False):
+    $ _tooltip = store._tooltip
+    python:
+        if not istime:
+            disp_v = str(persistent.maica_setting_dict[var])
+        else:
+            disp_v = str(int(persistent.maica_setting_dict[var] / 60)) + "h" + str(int(persistent.maica_setting_dict[var] % 60)) + "m"
+    hbox:
+        hbox:
+            style_prefix "maica_check"
+            textbutton "{}: ".format(expl):
+                action Show("maica_common_setter", expl=expl, var=var, min=min, max=max)
+                hovered SetField(_tooltip, "value", tooltip)
+                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+        use sub_button(tooltip, var, min, max)
+
+        hbox:
+            xsize len
+            bar:
+                xpos 20
+                yoffset 10
+                value DictValue(persistent.maica_setting_dict, var, (max - min), step=10, offset=min ,style="slider")
+                xsize (len - 100)
+                hovered SetField(_tooltip, "value", tooltip)
+                unhovered SetField(_tooltip, "value", _tooltip.default)
+            hbox:
+                style_prefix "maica_check"
+                textbutton disp_v:
+                    xalign 1.0
+                    xoffset 10
+                    action Show("maica_common_setter", expl=expl, var=var, min=min, max=max, istime=istime)
+                    hovered SetField(_tooltip, "value", tooltip)
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+        use add_button(tooltip, var, min, max)
+
+screen num_bar(expl, len, tooltip, var, min, max):
+
+    $ _tooltip = store._tooltip
+    hbox:
+        use sub_button(tooltip, var, min, max)
+
+        hbox:
+            xsize len
+            style_prefix "maica_check"
+            textbutton (expl + ": " + str(persistent.maica_setting_dict[var])):
+                xalign 0.5
+                action Show("maica_common_setter", expl=expl, var=var, min=min, max=max)
+                hovered SetField(_tooltip, "value", tooltip)
+                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+        use add_button(tooltip, var, min, max)
+
+screen maica_common_setter(expl, var, min, max, istime=False):
+    $ _tooltip = store._tooltip
+    python:
+        minutes = _("分钟") if istime else ""
+        str_var = '_' + var
+        if str_var not in persistent.maica_setting_dict:
+            persistent.maica_setting_dict[str_var] = str(persistent.maica_setting_dict[var])
+        if isinstance(max, float):
+            isfloat = True
+        else:
+            isfloat = False
+        def apply_var(var, min, max, isfloat):
+            str_var = '_' + var
+            if persistent.maica_setting_dict[str_var] == "":
+                renpy.hide_screen("maica_common_setter")
+                return
+            try:
+                if isfloat:
+                    value_var = float(persistent.maica_setting_dict[str_var])
+                else:
+                    value_var = int(persistent.maica_setting_dict[str_var])
+                if not min <= value_var <= max:
+                    # renpy.call_screen("maica_common_debugger", str(min)+str(value_var)+str(max))
+                    raise Exception("Value out of bound")
+
+                persistent.maica_setting_dict[var] = value_var
+                renpy.hide_screen("maica_common_setter")
+            except Exception:
+                renpy.show_screen("maica_common_warn")
+            finally:
+                
+                del persistent.maica_setting_dict[str_var]
+                
+    modal True
+    zorder 225
+
+    style_prefix "confirm"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        vbox:
+            xsize 500
+            ymaximum 300
+
+            spacing 5
+
+            label _("请输入[expl]([min]~[max][minutes]):"):
+                style "confirm_prompt"
+                xalign 0.5
+            hbox:
+                input:
+                    default str(persistent.maica_setting_dict[str_var])
+                    value DictInputValue(persistent.maica_setting_dict, str_var)
+                    length 9
+                    allow ("0123456789" + "." if isfloat else "")
+
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("保存") action [
+                    Function(apply_var, var, min, max, isfloat)
+                ]
+
+                textbutton _("返回") action [
+                    Hide("maica_common_setter")
+                ]
+
+screen maica_common_warn(text=None):
+    $ _tooltip = store._tooltip
+    python:
+        if not text:
+            text = _("请输入正确的数值!")
+
+    modal True
+    zorder 235
+
+    style_prefix "confirm"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        vbox:
+            xsize 300
+            ymaximum 200
+
+            spacing 5
+            label text:
+                style "confirm_prompt"
+                xalign 0.5
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("返回") action [
+                    Hide("maica_common_warn")
+                ]
+
+screen maica_common_debugger(text):
+    $ _tooltip = store._tooltip
+
+    modal True
+    zorder 235
+
+    style_prefix "confirm"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        vbox:
+            xsize 300
+            ymaximum 200
+
+            spacing 5
+            label text:
+                style "confirm_prompt"
+                xalign 0.5
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("返回") action [
+                    Hide("maica_common_debugger")
+                ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 screen maica_setting():
     python:
         submods_screen = store.renpy.get_screen("submods", "screens")
@@ -1796,68 +2061,13 @@ screen maica_setting():
                                 hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        hbox:
-                            $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
-                            hbox:
-                                style_prefix "addsub_fancy_check"
-                                textbutton "-":
-                                    action [Function(store.chatsession_sub), SensitiveIf(store.chatsession_can_sub())]
-                                    hovered SetField(_tooltip, "value", tooltip_chat_session)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
-                            hbox:
-                                xsize 200
-                                style_prefix "maica_check_nohover"
-                                textbutton _("当前使用会话: [persistent.maica_setting_dict.get('chat_session')]"):
-                                    xalign 0.5
-                                    action NullAction()
-                                    hovered SetField(_tooltip, "value", tooltip_chat_session)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
-                            hbox:
-                                style_prefix "addsub_fancy_check"
-                                textbutton "+":
-                                    action [Function(store.chatsession_add), SensitiveIf(store.chatsession_can_add())]
-                                    hovered SetField(_tooltip, "value", tooltip_chat_session)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                        $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
+                        use num_bar(_("当前会话"), 200, tooltip_chat_session, "chat_session", 0, 9)
 
-                        hbox:
-                            $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-                            hbox:
-                                style_prefix "maica_check"
-                                textbutton _("会话长度: "):
-                                    action Show("maica_context_length_input")
-                                    hovered SetField(_tooltip, "value", tooltip_session_length)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                            hbox:
-                                style_prefix "addsub_fancy_check"
-                                textbutton "-":
-                                    action [Function(store.sessionlength_sub), SensitiveIf(store.sessionlength_can_sub())]
-                                    hovered SetField(_tooltip, "value", tooltip_session_length)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                        $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
+                        use prog_bar(_("会话长度"), 400, tooltip_session_length, "max_history_token", 512, 28672)
 
-                            hbox:
-                                xsize 400
-                                bar:
-                                    xpos 20
-                                    yoffset 5
-                                    value DictValue(persistent.maica_setting_dict, "max_history_token", 28672-512,step=10,offset=512 ,style="slider")
-                                    xsize 300
-                                    hovered SetField(_tooltip, "value", tooltip_session_length)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
-                                hbox:
-                                    style_prefix "maica_check"
-                                    textbutton _("[persistent.maica_setting_dict.get('max_history_token')]"):
-                                        xalign 0.9
-                                        action Show("maica_context_length_input")
-                                        hovered SetField(_tooltip, "value", tooltip_session_length)
-                                        unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                            hbox:
-                                style_prefix "addsub_fancy_check"
-                                textbutton "+":
-                                    action [Function(store.sessionlength_add), SensitiveIf(store.sessionlength_can_add())]
-                                    hovered SetField(_tooltip, "value", tooltip_session_length)
-                                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         hbox:
                             frame:
@@ -1923,11 +2133,76 @@ screen maica_setting():
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
                         else:
                             hbox:
-                                style_prefix "zh_disabled_generic_fancy_check"
                                 textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                                    style "generic_fancy_check_button_disabled"
                                     action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
                                     hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n! 复述话题已启用, MSpire不会生效"))
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            frame:
+                                xmaximum 950
+                                xpos 30
+                                xfill True
+                                vbox:
+                                    xmaximum 950
+                                    xfill True
+                                    hbox:
+                                        style_prefix "maica_check"
+                                        textbutton _("MSpire话题"):
+                                            action [
+                                                Hide("maica_setting"),
+                                                Function(store.maica_apply_setting),
+                                                Function(renpy.jump, "mspire_mods_preferences")
+                                                ]
+                                    
+
+                                    $ tooltip_ms_time = _("MSpire对话的最小时间间隔")
+                                    use prog_bar(_("MSpire最小间隔"), 250, tooltip_ms_time, "mspire_interval", 10, 180, True)
+
+
+                                    hbox:
+                                        style_prefix "maica_check"
+                                        textbutton _("MSpire搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
+                                            action [
+                                                Show("maica_mspire_setting")
+                                            ]
+                                            hovered SetField(_tooltip, "value", _("MSpire搜索话题的模式"))
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                                        
+                                    hbox:
+                                        style_prefix "generic_fancy_check"
+                                        textbutton _("MSpire 使用缓存"):
+                                            action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
+                                            hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                        hbox:
+                            style_prefix "maica_check"
+                            textbutton _("MTrigger 列表"):
+                                action Show("maica_triggers")
+                                hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
+
+                        hbox:
+                            frame:
+                                xmaximum 950
+                                xpos 30
+                                xfill True
+                                vbox:
+                                    xmaximum 950
+                                    xfill True
+                                    hbox:
+                                        style_prefix "maica_check"
+                                        textbutton _("查看MPostals往来信件"):
+                                            action Show("maica_mpostals")
+                                            hovered SetField(_tooltip, "value", _("查看MPostal历史信件"))
+                                            unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                                    $ tooltip_mp_time = _("MPostal回信的最小时间间隔")
+                                    use prog_bar(_("MPostal最小间隔"), 250, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, True)
+
 
 
 
@@ -1946,32 +2221,6 @@ screen maica_setting():
 
 
 
-                            textbutton _("对话范围编辑"):
-                                action [
-                                    Hide("maica_setting"),
-                                    Function(store.maica_apply_setting),
-                                    Function(renpy.jump, "mspire_mods_preferences")
-                                    ]
-                            textbutton _("间隔"):
-                                action NullAction()
-                            bar:
-                                value DictValue(persistent.maica_setting_dict, "mspire_interval", 200, step=1,offset=10 ,style="slider")
-                                xsize 150
-                                hovered SetField(_tooltip, "value", _("MSpire对话的最低间隔分钟"))
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                            textbutton _("[persistent.maica_setting_dict.get('mspire_interval')]分钟")
-
-                            textbutton _("搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
-                                action [
-                                    Show("maica_mspire_setting")
-                                ]
-                            
-                        hbox:
-                            textbutton _("MSpire 使用缓存"):
-                                action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         hbox:
                             textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
@@ -1996,26 +2245,11 @@ screen maica_setting():
                             textbutton "[persistent.maica_setting_dict.get('status_update_time')]s"
 
 
-                        hbox:
-                            textbutton _("MTrigger 列表"):
-                                action Show("maica_triggers")
-                            
-                            textbutton _("查看MPostals往来信件"):
-                                action Show("maica_mpostals")
-                            
+
                             textbutton _("回信时显示控制台"):
                                 action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
                         
-                        hbox:
-                            textbutton _("信件回复时间"):
-                                action NullAction()
-                            bar:
-                                value DictValue(persistent.maica_setting_dict, "mpostal_default_reply_time", 50000, step=1, offset=3600, style="slider")
-                                xsize 150
-                                hovered SetField(_tooltip, "value", _("回信所需要的最低时间"))
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                            textbutton "[persistent.maica_setting_dict.get('mpostal_default_reply_time', 0) / 3600]h"
 
 
                         
@@ -2190,50 +2424,6 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
 
                 textbutton _("OK") action ok_action
 
-screen maica_context_length_input():
-    # 长度
-    ## Ensure other screens do not get input while this screen is displayed.
-    python:
-        if '_max_history_token' not in persistent.maica_setting_dict:
-            persistent.maica_setting_dict['_max_history_token'] = str(persistent.maica_setting_dict['max_history_token'])
-        def apply_length():
-            if persistent.maica_setting_dict['_max_history_token'] == "":
-                persistent.maica_setting_dict['_max_history_token'] = '512'
-            persistent.maica_setting_dict['max_history_token'] = int(persistent.maica_setting_dict['_max_history_token'])
-            if persistent.maica_setting_dict['max_history_token'] < 512:
-                persistent.maica_setting_dict['max_history_token'] = 512
-            if persistent.maica_setting_dict['max_history_token'] > 28672:
-                persistent.maica_setting_dict['max_history_token'] = 28672 
-            del persistent.maica_setting_dict['_max_history_token']
-    modal True
-    zorder 225
-
-    style_prefix "confirm"
-
-    frame:
-        xalign 0.5
-        yalign 0.5
-        vbox:
-            ymaximum 300
-            xmaximum 800
-            xfill True
-            yfill False
-            spacing 5
-
-            label _("请输入上下文长度"):
-                style "confirm_prompt"
-                xalign 0.5
-            hbox:
-                input default str(persistent.maica_setting_dict['_max_history_token']) value DictInputValue(persistent.maica_setting_dict, "_max_history_token") length 5 allow "0123456789"
-
-            hbox:
-                xalign 0.5
-                spacing 100
-
-                textbutton _("OK") action [
-                    Function(apply_length),
-                    Hide("maica_context_length_input")
-                ]
 
 screen maica_seed_input():
     python:
