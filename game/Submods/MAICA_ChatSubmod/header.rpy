@@ -1690,7 +1690,7 @@ screen maica_setting():
                                 action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
                         hbox:
                             textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
-                                action ToggleDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn, store.maica.maica.MaicaAiLang.en)
+                                action Show("maica_select_language")
                                 hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
@@ -1984,7 +1984,38 @@ screen maica_setting():
                         Hide("maica_setting")
                     ]
                 
-                 
+screen maica_select_language(ok_action = Hide("maica_select_language")):
+    #登录输入账户窗口, 也用来用作通用的输入窗口
+    ## Ensure other screens do not get input while this screen is displayed.s
+    modal True
+    zorder 225
+
+    style_prefix "confirm"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        vbox:
+            ymaximum 300
+            xmaximum 800
+            xfill True
+            yfill False
+            spacing 5
+
+
+            hbox:
+                style_prefix "check"
+                textbutton _("zh | 简体中文"):
+                    action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn)
+                
+                textbutton _("en | English"):
+                    action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.en)
+
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("OK") action ok_action          
 
 default use_email = True
 screen maica_login():
