@@ -411,75 +411,141 @@ screen divider(message):
             text "  "
             add "bar2"
 
-style main_menu_version:
-    text_align 0.0
 
-style main_menu_version_dark:
-    text_align 0.0
+init 999:
 
-style nf_check_label is check_label
+    style main_menu_version:
+        text_align 0.0
 
-style nf_check_label_dark is check_label_dark
+    style main_menu_version_dark:
+        text_align 0.0
 
-style nf_check_label_text is check_label_text
+    style generic_fancy_check_button_text:
+        color "#AAAAAA"
+        hover_color "#000000"
+        selected_color "#000000"
+        insensitive_color mas_ui.light_button_text_insensitive_color
 
-style nf_check_label_text_dark is check_label_text_dark
+    style generic_fancy_check_button_text_dark is gui_button_text_dark:
+        color "#BFBFBF"
+        hover_color "#FFAA99"
+        selected_color "#FFAA99"
+        insensitive_color mas_ui.dark_button_text_insensitive_color
 
-style nf_check_vbox is check_vbox
-
-style nf_check_button is check_button
-
-style nf_check_button_dark is check_button_dark
-
-style nf_check_button_text is check_button_text:
-    xpos -10
-
-style nf_check_button_text_dark is check_button_text_dark:
-    xpos -10
+    style generic_fancy_check_button_disabled_text is generic_fancy_check_button_text:
+        color "#8C8C8C"
 
 
-style addsub_fancy_check_button:
-    background Solid("#FFBDE1")
-    hover_background Solid("#ffd1ea")
-    selected_background Solid("#FFBDE1")
-    insensitive_background Solid("#BFBFBF")
 
-style addsub_fancy_check_button_dark:
-    background Solid("#CE4A7E")
-    hover_background Solid("#d9739c")
-    selected_background Solid("#CE4A7E")
-    insensitive_background Solid("#333333")
 
-style addsub_fancy_check_button_disabled is addsub_fancy_check_button:
-    background Solid("#1b1b1b")
-    selected_background Solid("#1b1b1b")
 
-style addsub_fancy_check_button_text is gui_button_text:
-    font "gui/font/Halogen.ttf"
-    color "#ffe6f4"
-    hover_color "#000000"
-    selected_color "#000000"
-    insensitive_color mas_ui.light_button_text_insensitive_color
-    outlines []
-    yoffset 3
-    xoffset -10
+    style zh_disabled_generic_fancy_check_button is generic_fancy_check_button:
+        properties gui.button_properties("check_button")
+        foreground "generic_fancy_check_button_fg_insensitive"
+        selected_foreground "generic_fancy_check_button_fg_selected_insensitive"
+        selected_background Solid("1b1b1b")
 
-style addsub_fancy_check_button_text_dark is gui_button_text_dark:
-    font "gui/font/Halogen.ttf"
-    color "#BFBFBF"
-    hover_color "#FFAA99"
-    selected_color "#FFAA99"
-    insensitive_color mas_ui.dark_button_text_insensitive_color
-    outlines []
-    yoffset 3
-    xoffset -10
+    style zh_disabled_generic_fancy_check_button_text is generic_fancy_check_button_text:
+        properties gui.button_text_properties("generic_fancy_check_button")
+        font "gui/font/Halogen.ttf"
+        color "#8C8C8C"
+        outlines []
+        yoffset 3
 
-style addsub_fancy_check_button_disabled_text is addsub_fancy_check_button_text:
-    font "gui/font/Halogen.ttf"
-    color "#8C8C8C"
-    outlines []
-    yoffset 3
-    xoffset -10
+
+
+
+
+
+
+
+
+    style maica_check_button is check_button:
+        foreground None
+        padding (4,4,4,4)
+        hover_background Solid("#ffe6f4")
+        selected_background Solid("#FFBDE1")
+
+    style maica_check_button_dark is check_button_dark:
+        foreground None
+        padding (4,4,4,4)    
+        hover_background Solid("#d9739c")
+        selected_background Solid("#CE4A7E")
+
+    style maica_check_button_text is generic_fancy_check_button_text
+
+    style maica_check_button_text_dark is generic_fancy_check_button_text_dark
+
+
+
+
+
+
+
+    style maica_check_nohover_button is maica_check_button:
+        hover_background None
+
+    style maica_check_nohover_button_text is maica_check_button_text:
+        color "#AAAAAA"
+        hover_color "#AAAAAA"
+
+    style maica_check_nohover_button_dark is maica_check_button_dark:
+        hover_background None
+
+    style maica_check_nohover_button_text_dark is maica_check_button_text_dark:
+        color "#BFBFBF"
+        hover_color "#BFBFBF"
+
+
+
+
+
+
+    style addsub_fancy_check_button is generic_fancy_check_button:
+        padding (14,4,14,4)
+        foreground None
+        background Solid("#FFBDE1")
+        hover_background Solid("#ffcde9")
+        selected_background Solid("#FFBDE1")
+        insensitive_background Solid("#ccb5c2")
+
+    style addsub_fancy_check_button_dark is generic_fancy_check_button_dark:
+        padding (14,4,14,4)
+        foreground None
+        background Solid("#CE4A7E")
+        hover_background Solid("#d9739c")
+        selected_background Solid("#CE4A7E")
+        insensitive_background Solid("#977985")
+
+    style addsub_fancy_check_button_disabled is generic_fancy_check_button_disabled:
+        padding (14,4,14,4)
+        foreground None
+        background Solid("#808080")
+
+    style addsub_fancy_check_button_text is check_label_text:
+        color "#AAAAAA"
+        outlines []
+        hover_color "#cecece"
+        selected_color "#AAAAAA"
+        insensitive_color "#cecece"
+        yoffset 1
+
+    style addsub_fancy_check_button_text_dark is check_label_text_dark:
+        color "#BFBFBF"
+        outlines []
+        hover_color "#FFAA99"
+        selected_color "#BFBFBF"
+        insensitive_color "#a5a5a5"
+        yoffset 1
+
+    style addsub_fancy_check_button_disabled_text is addsub_fancy_check_button_text
+
+
+
+
+
+
+
 
 screen maica_setting_pane():
 
@@ -604,7 +670,7 @@ screen maica_node_setting():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -682,7 +748,7 @@ screen maica_mspire_setting():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -744,7 +810,7 @@ screen maica_triggers():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -860,7 +926,7 @@ screen maica_mpostals():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -937,7 +1003,7 @@ screen maica_support():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -1006,7 +1072,7 @@ screen maica_workload_stat():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -1073,7 +1139,7 @@ screen maica_log():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -1140,7 +1206,7 @@ screen maica_tz_setting():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -1309,7 +1375,7 @@ screen maica_advance_setting():
 
     frame:
         xalign 0.5
-        yalign 0.26
+        yalign 0.24
         vbox:
             xmaximum 1000
             spacing 5
@@ -1559,10 +1625,10 @@ screen maica_setting():
     frame:
         xsize 1100
         xalign 0.5
-        yalign 0.2
+        yalign 0.24
         vbox:
-            xmaximum 1100
-            spacing 10
+            xsize 1100
+            spacing 5
             viewport:
                 id "viewport"
                 scrollbars "vertical"
@@ -1659,6 +1725,7 @@ screen maica_setting():
                             use divider(_("连接与安全"))
 
                         hbox:
+                            style_prefix "maica_check"
                             textbutton _("服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"):
                                 action Show("maica_node_setting")
                                 hovered SetField(_tooltip, "value", _("设置服务器节点"))
@@ -1688,6 +1755,7 @@ screen maica_setting():
                             textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
                                 action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
                         hbox:
+                            style_prefix "maica_check"
                             textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
                                 action Show("maica_select_language")
                                 hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
@@ -1708,9 +1776,11 @@ screen maica_setting():
                                             hovered SetField(_tooltip, "value", _("高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"))
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
                                     hbox:
+                                        style_prefix "maica_check"
                                         textbutton _("设置高级参数"):
                                             action Show("maica_advance_setting")
                                     hbox:
+                                        style_prefix "generic_fancy_check"
                                         textbutton _("锁定最佳实践"):
                                             action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
                                             hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"))
@@ -1731,13 +1801,12 @@ screen maica_setting():
                             hbox:
                                 style_prefix "addsub_fancy_check"
                                 textbutton "-":
-                                    text_size 40
                                     action [Function(store.chatsession_sub), SensitiveIf(store.chatsession_can_sub())]
                                     hovered SetField(_tooltip, "value", tooltip_chat_session)
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
                             hbox:
                                 xsize 200
-                                style_prefix "nf_check"
+                                style_prefix "maica_check_nohover"
                                 textbutton _("当前使用会话: [persistent.maica_setting_dict.get('chat_session')]"):
                                     xalign 0.5
                                     action NullAction()
@@ -1746,28 +1815,28 @@ screen maica_setting():
                             hbox:
                                 style_prefix "addsub_fancy_check"
                                 textbutton "+":
-                                    text_size 40
                                     action [Function(store.chatsession_add), SensitiveIf(store.chatsession_can_add())]
                                     hovered SetField(_tooltip, "value", tooltip_chat_session)
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         hbox:
                             $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-                            textbutton _("会话长度: "):
-                                action Show("maica_context_length_input")
-                                hovered SetField(_tooltip, "value", tooltip_session_length)
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                            hbox:
+                                style_prefix "maica_check"
+                                textbutton _("会话长度: "):
+                                    action Show("maica_context_length_input")
+                                    hovered SetField(_tooltip, "value", tooltip_session_length)
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
                             hbox:
                                 style_prefix "addsub_fancy_check"
                                 textbutton "-":
-                                    text_size 40
                                     action [Function(store.sessionlength_sub), SensitiveIf(store.sessionlength_can_sub())]
                                     hovered SetField(_tooltip, "value", tooltip_session_length)
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                             hbox:
-                                xsize 450
+                                xsize 400
                                 bar:
                                     xpos 20
                                     yoffset 5
@@ -1776,9 +1845,9 @@ screen maica_setting():
                                     hovered SetField(_tooltip, "value", tooltip_session_length)
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
                                 hbox:
-                                    style_prefix "nf_check"
+                                    style_prefix "maica_check"
                                     textbutton _("[persistent.maica_setting_dict.get('max_history_token')]"):
-                                        xalign 1.0
+                                        xalign 0.9
                                         action Show("maica_context_length_input")
                                         hovered SetField(_tooltip, "value", tooltip_session_length)
                                         unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -1786,7 +1855,6 @@ screen maica_setting():
                             hbox:
                                 style_prefix "addsub_fancy_check"
                                 textbutton "+":
-                                    text_size 40
                                     action [Function(store.sessionlength_add), SensitiveIf(store.sessionlength_can_add())]
                                     hovered SetField(_tooltip, "value", tooltip_session_length)
                                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -1801,12 +1869,14 @@ screen maica_setting():
                                     xfill True
                                     $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型. 需要重新上传存档生效.")
                                     hbox:
+                                        style_prefix "maica_check_nohover"
                                         textbutton _("当前有[len(persistent.mas_player_additions)]条自定义MFocus信息"):
                                             action NullAction()
                                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                                     hbox:
+                                        style_prefix "maica_check"
                                         textbutton _("添加MFocus信息"):
                                             action [
                                                 Hide("maica_setting"),
@@ -1817,6 +1887,7 @@ screen maica_setting():
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                                     hbox:
+                                        style_prefix "maica_check"
                                         textbutton _("编辑MFocus信息"):
                                             action [
                                                 Hide("maica_setting"),
@@ -1827,17 +1898,36 @@ screen maica_setting():
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                                     hbox:
+                                        style_prefix "maica_check"
                                         textbutton _("清除MFocus信息"):
                                             action Function(reset_player_information)
                                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                                     hbox:
+                                        style_prefix "maica_check"
                                         textbutton _("导出自定义MFocus信息到主目录"):
                                             action Function(export_player_information)
                                             hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
+                        hbox:
+                            use divider(_("工具与功能"))
+
+                        if not persistent._mas_enable_random_repeats:
+                            hbox:
+                                style_prefix "generic_fancy_check"
+                                textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                                    action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
+                                    hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题默认不使用MFocus"))
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                        else:
+                            hbox:
+                                style_prefix "zh_disabled_generic_fancy_check"
+                                textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                                    action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
+                                    hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n! 复述话题已启用, MSpire不会生效"))
+                                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
 
 
@@ -1855,11 +1945,6 @@ screen maica_setting():
 
 
 
-                        hbox:
-                            textbutton _("MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
-                                action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                                hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话, MSpire不受MFocus影响, 需要关闭重复对话"))
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
 
                             textbutton _("对话范围编辑"):
                                 action [
