@@ -2158,6 +2158,10 @@ screen maica_seed_input():
             if persistent.maica_advanced_setting['_seed'] == "":
                 persistent.maica_advanced_setting['_seed'] = '0'
             seed = int(persistent.maica_advanced_setting['_seed'])
+            if seed > 2147483647:
+                seed = 2147483647
+            elif seed < -2147483648:
+                seed = -2147483648
             persistent.maica_advanced_setting['seed'] = seed
             del persistent.maica_advanced_setting["_seed"]
                 
@@ -2182,7 +2186,7 @@ screen maica_seed_input():
                 style "confirm_prompt"
                 xalign 0.5
             hbox:
-                input default str(persistent.maica_advanced_setting['_seed']) value DictInputValue(persistent.maica_advanced_setting, "_seed") length 5 allow "-0123456789"
+                input default str(persistent.maica_advanced_setting['_seed']) value DictInputValue(persistent.maica_advanced_setting, "_seed") allow "-0123456789"
 
             hbox:
                 xalign 0.5
