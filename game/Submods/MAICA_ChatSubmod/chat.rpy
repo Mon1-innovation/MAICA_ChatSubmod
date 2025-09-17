@@ -842,7 +842,7 @@ init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def mpostal_delaying_check_and_set():
         import time, datetime
-        def_min_response_time = persistent.maica_setting_dict["mpostal_default_reply_time"]
+        def_min_response_time = persistent.maica_setting_dict["mpostal_default_reply_time"] * 60
         wait_replying_count = 0
         for i in persistent._maica_send_or_received_mpostals:
             min_response_time = def_min_response_time
