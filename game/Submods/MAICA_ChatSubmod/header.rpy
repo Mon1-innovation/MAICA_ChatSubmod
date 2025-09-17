@@ -1755,7 +1755,7 @@ screen maica_setting():
                         hbox:
                             $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
                             textbutton _("会话长度: "):
-                                action NullAction()
+                                action Show("maica_context_length_input")
                                 hovered SetField(_tooltip, "value", tooltip_session_length)
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
@@ -1780,7 +1780,7 @@ screen maica_setting():
                                     style_prefix "nf_check"
                                     textbutton _("[persistent.maica_setting_dict.get('max_history_token')]"):
                                         xalign 1.0
-                                        action NullAction()
+                                        action Show("maica_context_length_input")
                                         hovered SetField(_tooltip, "value", tooltip_session_length)
                                         unhovered SetField(_tooltip, "value", _tooltip.default)
 
@@ -2105,6 +2105,51 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
                 spacing 100
 
                 textbutton _("OK") action ok_action
+
+screen maica_context_length_input():
+    # 长度
+    ## Ensure other screens do not get input while this screen is displayed.
+    python:
+        if '_max_history_token' not in persistent.maica_setting_dict:
+            persistent.maica_setting_dict['_max_history_token'] = str(persistent.maica_setting_dict['max_history_token'])
+        def apply_length():
+            if persistent.maica_setting_dict['_max_history_token'] == "":
+                persistent.maica_setting_dict['_max_history_token'] = '512'
+            persistent.maica_setting_dict['max_history_token'] = int(persistent.maica_setting_dict['_max_history_token'])
+            if persistent.maica_setting_dict['max_history_token'] < 512:
+                persistent.maica_setting_dict['max_history_token'] = 512
+            if persistent.maica_setting_dict['max_history_token'] > 28672:
+                persistent.maica_setting_dict['max_history_token'] = 28672 
+            del persistent.maica_setting_dict['_max_history_token']
+    modal True
+    zorder 225
+
+    style_prefix "confirm"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        vbox:
+            ymaximum 300
+            xmaximum 800
+            xfill True
+            yfill False
+            spacing 5
+
+            label _("请输入上下文长度"):
+                style "confirm_prompt"
+                xalign 0.5
+            hbox:
+                input default str(persistent.maica_setting_dict['_max_history_token']) value DictInputValue(persistent.maica_setting_dict, "_max_history_token") length 5 allow "0123456789"
+
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("OK") action [
+                    Function(apply_length),
+                    Hide("maica_context_length_input")
+                ]
 
 screen maica_seed_input():
     python:
