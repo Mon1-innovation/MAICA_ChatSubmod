@@ -452,7 +452,10 @@ label maica_mods_preferences:
         call maica_input_information
         m 3eua "写完了? 谢谢你! {w=0.5}我会抽空全部记下来的."
     return
-
+label maica_call_from_setting(label):
+    $ renpy.call(label)
+    call maica_show_setting_screen
+    return
 label maica_input_information:
     python:
         while True:

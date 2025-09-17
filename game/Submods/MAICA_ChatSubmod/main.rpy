@@ -321,11 +321,46 @@ label maica_mpostal_show_mpscreen:
     
     return
 
+label _maica_return_game_menu(*args, **kwargs):
+    call _enter_game_menu from _call__enter_game_menu_1
+
+    if renpy.has_label("game_menu"):
+        jump expression "game_menu"
+
+    if renpy.has_screen("submods"):
+        $ renpy.show_screen("submods")
+        $ renpy.show_screen("maica_setting")
+        #$ renpy.show_screen("maica_mpostals")
+        $ ui.interact()
+        jump _noisy_return
+
+    jump expression "submods"
+
+label maica_show_setting_screen:
+
+    python:
+        if not _windows_hidden:
+
+            temp_space = {}
+            _mas_game_menu_start(temp_space)
+
+            renpy.call_in_new_context(
+                "_maica_return_game_menu",
+            )
+
+            _mas_game_menu_end(temp_space)
+    
+    return
 init 999 python:
     @store.mas_submod_utils.functionplugin("maica_mpostal_show_backtoscreen")
     def _backtompmenu():
         if not mas_inEVL("maica_mpostal_show_mpscreen") and not renpy.get_screen("maica_mpostals"):
             MASEventList.push("maica_mpostal_show_mpscreen")
+        return
+    @store.mas_submod_utils.functionplugin("maica_mpostal_show_backtoscreen")
+    def _backtomenu():
+        if not mas_inEVL("maica_show_setting_screen") and not renpy.get_screen("maica_setting"):
+            MASEventList.push("maica_show_setting_screen")
         return
 
 label show_workload:
