@@ -1881,7 +1881,7 @@ screen maica_setting():
                                             action [
                                                 Hide("maica_setting"),
                                                 Function(store.maica_apply_setting),
-                                                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
+                                                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_input_information")
                                                 ]
                                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                                             unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -1892,7 +1892,7 @@ screen maica_setting():
                                             action [
                                                 Hide("maica_setting"),
                                                 Function(store.maica_apply_setting),
-                                                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
+                                                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_delete_information")
                                                 ]
                                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                                             unhovered SetField(_tooltip, "value", _tooltip.default)

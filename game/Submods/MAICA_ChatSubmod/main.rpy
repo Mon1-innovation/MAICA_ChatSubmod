@@ -357,7 +357,7 @@ init 999 python:
         if not mas_inEVL("maica_mpostal_show_mpscreen") and not renpy.get_screen("maica_mpostals"):
             MASEventList.push("maica_mpostal_show_mpscreen")
         return
-    @store.mas_submod_utils.functionplugin("maica_mpostal_show_backtoscreen")
+    @store.mas_submod_utils.functionplugin("maica_call_from_setting")
     def _backtomenu():
         if not mas_inEVL("maica_show_setting_screen") and not renpy.get_screen("maica_setting"):
             MASEventList.push("maica_show_setting_screen")
