@@ -2182,7 +2182,7 @@ screen maica_seed_input():
             yfill False
             spacing 5
 
-            label _("请输入种子(整数)"):
+            label _("请输入种子"):
                 style "confirm_prompt"
                 xalign 0.5
             hbox:
