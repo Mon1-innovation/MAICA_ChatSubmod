@@ -79,7 +79,6 @@ init 10 python:
         "post_additive":1,
         "amt_aggressive":True,
         "tz":None,
-        "_seed":"0"
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -2153,9 +2152,14 @@ screen maica_context_length_input():
 
 screen maica_seed_input():
     python:
+        if "_seed" not in persistent.maica_advanced_setting:
+            persistent.maica_advanced_setting["_seed"] = str(persistent.maica_advanced_setting["seed"])
         def apply_seed():
+            if persistent.maica_advanced_setting['_seed'] == "":
+                persistent.maica_advanced_setting['_seed'] = '0'
             seed = int(persistent.maica_advanced_setting['_seed'])
             persistent.maica_advanced_setting['seed'] = seed
+            del persistent.maica_advanced_setting["_seed"]
                 
     #seed输入
     ## Ensure other screens do not get input while this screen is displayed.s
