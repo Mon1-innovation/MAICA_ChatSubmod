@@ -16,7 +16,9 @@ style generic_fancy_check_text_dark is gui_button_text_dark:
     outlines []
     yoffset 3
 
-
+style maica_check_nohover_text is maica_check_button_text:
+    color "#AAAAAA"
+    hover_color "#AAAAAA"
 translate chinese style generic_fancy_check_text is gui_button_text:
     font "gui/font/npy.ttf"
 

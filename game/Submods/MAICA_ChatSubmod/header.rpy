@@ -456,6 +456,7 @@ screen divider(message):
             text "  "
             text message:
                 xalign 0.5
+                size 25
             text "  "
             add "bar2"
 
@@ -2209,10 +2210,12 @@ screen maica_setting():
 
                             xmaximum 950
                             xfill True
-                        style_prefix "generic_fancy_check"
+
                         vbox:
                             xmaximum 950
                             xfill True
+                            style_prefix "generic_fancy_check"
+
                             textbutton _("输出到控制台: [persistent.maica_setting_dict.get('console')]"):
                                 action ToggleDict(persistent.maica_setting_dict, "console", True, False)
                                 hovered SetField(_tooltip, "value", _("在对话期间是否使用console显示相关信息, wzt的癖好\n说谁呢, 不觉得这很酷吗"))
@@ -2220,6 +2223,7 @@ screen maica_setting():
                         vbox:
                             xmaximum 950
                             xfill True
+                            style_prefix "maica_check"
                             textbutton _("控制台字体: [persistent.maica_setting_dict.get('console_font')]"):
                                 action ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
                                 hovered SetField(_tooltip, "value", _("console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"))
@@ -2227,6 +2231,8 @@ screen maica_setting():
                         vbox:
                             xmaximum 950
                             xfill True
+                            style_prefix "maica_check"
+        
                             textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
                                 action Function(store.change_loglevel)
                                 hovered SetField(_tooltip, "value", _("这将影响submod_log.log中每条log的等级, 低于该等级的log将不会记录\n这也会影响其他子模组"))
@@ -2234,11 +2240,15 @@ screen maica_setting():
                         vbox:
                             xmaximum 950
                             xfill True
+                            style_prefix "maica_check"
+
                             textbutton _("控制台log等级: [logging.getLevelName(store.maica.maica.console_logger.level)]"):
                                 action Function(store.change_conloglevel)
                                 hovered SetField(_tooltip, "value", _("这将影响控制台中每条log的等级, 低于该等级的log将不会记录"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
                         vbox:
+                            style_prefix "generic_fancy_check"
+
                             textbutton _("回信时显示控制台"):
                                 action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
                 vbox:
@@ -2257,20 +2267,30 @@ screen maica_setting():
                             xmaximum 950
                             xfill True
                         vbox:
-                            style_prefix "generic_fancy_check"
+                            xmaximum 950
+                            xfill True
+                            style_prefix "maica_check_nohover"
                             text _("状态码更新速度：")
                             text "[persistent.maica_setting_dict.get('status_update_time')]s"
                             use prog_bar(expl=_("状态码更新频率"), len=300,tooltip="在Submod界面处的状态码更新频率", var="status_update_time", min=1, max=60)
-
-
-                            textbutton _("查看后端负载"):
-                                action Show("maica_workload_stat")
-
+                        vbox:
+                            xmaximum 950
+                            xfill True
+                            style_prefix "generic_fancy_check"
                             textbutton _("动态的天堂树林"):
 
                                 action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
                                 hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效\n如果产生显存相关错误, 删减精灵包或禁用此选项"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
+                        vbox:
+                            xmaximum 950
+                            xfill True
+                            style_prefix "maica_check"
+
+                            textbutton _("查看后端负载"):
+                                action Show("maica_workload_stat")
+
+
                 hbox:
                     use divider(_("统计数据"))
 
@@ -2282,7 +2302,7 @@ screen maica_setting():
                         hovered SetField(_tooltip, "value", _("和MAICA有关的统计数据"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
                 vbox:
-
+                    style_prefix "maica_check_nohover"
 
                     frame:
                         xmaximum 950
@@ -2292,28 +2312,37 @@ screen maica_setting():
                             xmaximum 950
                             xfill True
                         vbox:
-                            style_prefix "generic_fancy_check"
 
+                            xmaximum 950
+                            xfill True
                             text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]")
 
-
                             text _("累计MSpire轮次: [store.maica.maica.stat.get('mspire_count')]")
-
+     
 
                             text _("累计收到Token: [store.maica.maica.stat.get('received_token')]")
 
 
+                        vbox:
+                            xmaximum 950
+                            xfill True
                             text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]")
 
-
+                        vbox:
+                            xmaximum 950
+                            xfill True
                             text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]")
 
 
                             text _("当前用户: [store.maica.maica.user_acc]")
 
 
-
+                        vbox:
+                            style_prefix "generic_fancy_check"
+                            xmaximum 950
+                            xfill True
                             textbutton _("重置统计数据"):
+
                                 action Function(store.maica.maica.reset_stat)
 
 
