@@ -1,8 +1,8 @@
-label maica_talking(mspire = False):
+label maica_talking(mspire=False):
     if persistent.maica_setting_dict['console']:
         show monika at t22
         show screen mas_py_console_teaching
-    call maica_init_connect(use_pause_instand_wait = True)
+    call maica_init_connect (use_pause_instand_wait=True)
     if _return == "disconnected":
         return "disconnected"
     python:
@@ -32,14 +32,14 @@ label maica_talking(mspire = False):
                             store.action = {}
                             _return = "canceled"
                             break
-
+                    
                     question = mas_input(
                                 _("说吧, [player]"),
                                 default="",
                                 length=75 if not config.language == "english" else 375,
                                 screen="maica_input_screen"
-                                #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
-                            ).strip(' \t\n\r') #mas_input
+                                
+                            ).strip(' \t\n\r') 
                     if question == "":
                         continue
                     if question == "nevermind":
@@ -64,8 +64,8 @@ label maica_talking(mspire = False):
                 _return = "disconnected"
                 store.mas_submod_utils.submod_log.warning("label maica_talking::disconnected maybe unexpected")
                 break
-
-
+            
+            
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
             received_message = ""
@@ -78,7 +78,7 @@ label maica_talking(mspire = False):
                 if not ai.is_connected() and persistent.maica_setting_dict['auto_reconnect']:
                     ai.init_connect()
                     store.mas_ptod._update_console_history("Websocket is closed, reconnecting...")
-
+                
                 store.mas_ptod.write_command("Maica.status:{} | message_queue: {}/{}token | time: {}".format(
                     ai.status, ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
                     round(gentime - start_time)
@@ -89,7 +89,7 @@ label maica_talking(mspire = False):
                         _return = "disconnected"
                         break
                 if ai.len_message_queue() == 0:
-                    #renpy.show(monika 1eua)
+                    
                     store.mas_ptod.write_command("Wait message...")
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                     if len(_history_list):
@@ -116,13 +116,13 @@ label maica_talking(mspire = False):
                 afm_pref = renpy.game.preferences.afm_enable
                 renpy.game.preferences.afm_enable = False
                 break
-            
-    # store.mas_ptod.write_command()
 
-    # store.mas_ptod._update_console_history([])
+
+
+
 
 label maica_talking.end:
-    if persistent.maica_setting_dict['console']:    
+    if persistent.maica_setting_dict['console']:
         $ store.mas_ptod.clear_console()
         hide screen mas_py_console_teaching
         show monika at t11
@@ -162,7 +162,7 @@ label maica_mpostal_load:
                 )
     return
 
-label maica_init_connect(use_pause_instand_wait = False):
+label maica_init_connect(use_pause_instand_wait=False):
     python:
         ai = store.maica.maica
         ai.content_func = store.mas_ptod._update_console_history
@@ -209,7 +209,7 @@ label maica_mpostal_read:
     else:
         window hide
     call maica_mpostal_load
-    call maica_init_connect(use_pause_instand_wait = True)
+    call maica_init_connect (use_pause_instand_wait=True)
     if _return == "disconnected":
         jump maica_mpostal_read.failed
 
@@ -222,8 +222,8 @@ label maica_mpostal_read:
             start_time = time.time()
             ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"])
             not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
-            current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
-
+            current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  
+            
             ai.console_logger.info("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
             cur_postal["responsed_status"] = "failed"            
             while ai.is_responding() or ai.len_message_queue() > 0 :
@@ -231,8 +231,8 @@ label maica_mpostal_read:
                     gentime = time.time()
                 else:
                     gentime = ai._gen_time
-
-
+                
+                
                 store.mas_ptod.write_command("Maica.status:{} | time: {}".format(
                     ai.status, ai.len_message_queue(),
                     round(gentime - start_time)
@@ -241,7 +241,7 @@ label maica_mpostal_read:
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
                         cur_postal["responsed_content"] = cur_postal["responsed_content"] + renpy.substitute(_("无法回复信件, 查看submod_log以获取详细原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]" + "\nt{}".format(time.time()))) + ("\n" if len(cur_postal["responsed_content"]) else "")
-
+                        
                         _return = "failed"
                         store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")
                         break
@@ -254,7 +254,7 @@ label maica_mpostal_read:
                 cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol_big_bracket_only)
                 cur_postal["responsed_status"] = "received"
                 _return = "success"   
-
+            
             if cur_postal.get("failed_count", 0) >= 3:
                 cur_postal["responsed_status"] = "fatal"
                 cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 因失败次数过多, 该信件将不会再回复")) + "\n" +cur_postal["responsed_content"]
@@ -272,9 +272,9 @@ label maica_mpostal_read.failed:
         window show
     $ mas_HKBRaiseShield()
     return _return
-    
 
-label maica_mpostal_show(content = "no content"):
+
+label maica_mpostal_show(content="no content"):
     python:
         import time
         store._MP = MASPoem(
@@ -283,15 +283,15 @@ label maica_mpostal_show(content = "no content"):
             prompt = "mpostal",
             text = content,
         )
-    call mas_showpoem(store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
+    call mas_showpoem (store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
     return
-        
-label maica_mpostal_show_backtoscreen(content = "no content"):
-    call maica_mpostal_show(content)
+
+label maica_mpostal_show_backtoscreen(content="no content"):
+    call maica_mpostal_show (content)
     return
 
 label _maica_mpostal_return_game_menu(*args, **kwargs):
-    call _enter_game_menu from _call__enter_game_menu_1
+    call _enter_game_menu from _call__enter_game_menu_4
 
     if renpy.has_label("game_menu"):
         jump expression "game_menu"
@@ -309,20 +309,20 @@ label maica_mpostal_show_mpscreen:
 
     python:
         if not _windows_hidden:
-
+            
             temp_space = {}
             _mas_game_menu_start(temp_space)
-
+            
             renpy.call_in_new_context(
                 "_maica_mpostal_return_game_menu",
             )
-
+            
             _mas_game_menu_end(temp_space)
-    
+
     return
 
 label _maica_return_game_menu(*args, **kwargs):
-    call _enter_game_menu from _call__enter_game_menu_1
+    call _enter_game_menu from _call__enter_game_menu_5
 
     if renpy.has_label("game_menu"):
         jump expression "game_menu"
@@ -330,7 +330,7 @@ label _maica_return_game_menu(*args, **kwargs):
     if renpy.has_screen("submods"):
         $ renpy.show_screen("submods")
         $ renpy.show_screen("maica_setting")
-        # $ renpy.show_screen("maica_mpostals")
+
         $ ui.interact()
         jump _noisy_return
 
@@ -340,16 +340,16 @@ label maica_show_setting_screen:
 
     python:
         if not _windows_hidden:
-
+            
             temp_space = {}
             _mas_game_menu_start(temp_space)
-
+            
             renpy.call_in_new_context(
                 "_maica_return_game_menu",
             )
-
+            
             _mas_game_menu_end(temp_space)
-    
+
     return
 init 999 python:
     @store.mas_submod_utils.functionplugin("maica_mpostal_show_backtoscreen")
@@ -374,4 +374,4 @@ label show_workload:
         else:
             ai.console_logger.debug("workload data not intact: '{}'".format(str(data)))
     return
-
+# Decompiled by unrpyc: https://github.com/CensoredUsername/unrpyc

@@ -11,16 +11,16 @@ init 999 python in maica:
         def triggered(self, data):
             self.last_triggered = time.time()
             return self.callback(data.get("affection", 0.1))
-            
+        
         def can_triggered(self):
             return (time.time() - self.last_triggered) >= 600.0
 
     def aff_callback(affection):
-        #from math import ceil
+        
         affection = float(affection)
         maica.console_logger.debug("<mtrigger> aff_callback called")
         if affection < 0:
-            pass#store.mas_loseAffection(1, -affection)
+            pass
         elif affection > 0:
             store.mas_gainAffection(1, affection)
 
@@ -28,7 +28,7 @@ init 999 python in maica:
     aff_trigger.condition = aff_trigger.can_triggered
     maica.mtrigger_manager.add_trigger(aff_trigger)
 
-#################################################################################
+
 
     class ClothesTrigger(MTriggerBase):
         def __init__(self, template, name):
@@ -50,12 +50,12 @@ init 999 python in maica:
             Returns True if we have the outfit and it's unlocked
             """
             return outfit_name in store.mas_selspr.CLOTH_SEL_MAP and store.mas_selspr.CLOTH_SEL_MAP[outfit_name].unlocked
-
+        
         def triggered(self, data):
             clothes = data.get("selection", None)
             if clothes is not None:
                 self.callback(clothes)
-
+        
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
                 maica.console_logger.warning("<mtrigger> {} is not a vaild outfit".format(clothes))
@@ -66,14 +66,14 @@ init 999 python in maica:
     clothes_trigger = ClothesTrigger(common_switch_template, "clothes")
     maica.mtrigger_manager.add_trigger(clothes_trigger)
 
-#################################################################################
+
 
     unlocked_games_dict = {
         ev.prompt: ev.eventlabel
         for ev in store.mas_games.game_db.values()
         if store.mas_isGameUnlocked(ev.prompt)
     }
-    
+
     unlocked_games_dict["玩家自行选择"] = "mas_pick_a_game"
     unlocked_games_dict[False] = "mas_pick_a_game"
     unlocked_games_dict["Pong"] = "game_pong"
@@ -89,7 +89,7 @@ init 999 python in maica:
             return
         game_label = unlocked_games_dict[item]
         store.renpy.call("mttrigger_minigame", game_label)
-    
+
     minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
         exprop=MTriggerExprop(
             item_name_zh="玩小游戏",
@@ -99,9 +99,9 @@ init 999 python in maica:
         description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
     )
     maica.mtrigger_manager.add_trigger(minigame_trigger)
-    
 
-#################################################################################
+
+
 
     def mtrigger_kiss_condition():
         return store.mas_shouldKiss(1)
@@ -115,7 +115,7 @@ init 999 python in maica:
         )
     maica.mtrigger_manager.add_trigger(kiss_trigger)
 
-#################################################################################
+
 
     def mtrigger_leave_callback(arg):
         maica.console_logger.debug("<mtrigger> mtrigger_leave_callback called")
@@ -124,7 +124,7 @@ init 999 python in maica:
         exprop=MTriggerExprop(item_name_zh="帮助玩家离开游戏", item_name_en="help player quit game"))
     maica.mtrigger_manager.add_trigger(leave_trigger)
 
-#################################################################################
+
 
     def mtrigger_takeout_callback(arg):
         maica.console_logger.debug("<mtrigger> mtrigger_takeout_callback called")
@@ -133,7 +133,7 @@ init 999 python in maica:
         exprop=MTriggerExprop(item_name_zh="和玩家一起出门", item_name_en="go outside with player"))
     maica.mtrigger_manager.add_trigger(takeout_trigger)
 
-#################################################################################
+
 
     def mtrigger_idle_callback(arg):
         maica.console_logger.debug("<mtrigger> mtrigger_idle_callback called")
@@ -143,7 +143,7 @@ init 999 python in maica:
         exprop=MTriggerExprop(item_name_zh="当玩家表示想要短暂离开(<1小时)时调用", item_name_en="Call when the player indicates they want to take a temporary leave (<1 hour)."))
     maica.mtrigger_manager.add_trigger(idle_trigger)
 
-#################################################################################
+
 
     class WeatherTrigger(MTriggerBase):
         def __init__(self):
@@ -162,38 +162,38 @@ init 999 python in maica:
                 description = _("内置 | 更换天气 {size=-5}* 在天堂树林内不启用"),
                 condition = self.condition
             )
-
+        
         def condition(self):
             current = store.mas_getCurrentBackgroundId()
             return store.mas_isMoniAff(higher=True) and not current in("heaven_forest_d", "heaven_forest")
-            
+        
         def build(self):
             self.weathers = self.get_weather_dict()
             self.weathers_list = self.get_weather_list()
             return super(WeatherTrigger, self).build()
-
+        
         def get_weather_list(self):
             return list(self.weathers.keys())
-
+        
         def get_weather_dict(self):
             import store.mas_weather as mas_weather
-
-            # Default weather at the top
+            
+            
             weathers = {store.mas_weather_def.prompt: store.mas_weather_def}
-
-            # Build and sort other weather list
+            
+            
             other_weathers = {
                 mw_obj.prompt: mw_obj
                 for mw_id, mw_obj in mas_weather.WEATHER_MAP.items()
                 if mw_id != "def" and mw_obj.unlocked
             }
-
-            # Sort by prompt and merge with default weather
+            
+            
             sorted_weathers = dict(sorted(other_weathers.items()))
             weathers.update(sorted_weathers)
-
+            
             return weathers
-
+        
         def callback(self, selection):
             selection = u"\u6674\u5929" if selection == "Clear" and u"\u6674\u5929" in self.weathers else selection
             if not selection in self.weathers:
@@ -205,7 +205,7 @@ init 999 python in maica:
     weather_trigger = WeatherTrigger()
     maica.mtrigger_manager.add_trigger(weather_trigger)
 
-#################################################################################
+
 
     def mtrigger_location_condition():
         return store.mas_isMoniEnamored(True)
@@ -218,7 +218,7 @@ init 999 python in maica:
         exprop = MTriggerExprop(item_name_zh="切换游戏内场景", item_name_en="change in-game location"))
     maica.mtrigger_manager.add_trigger(location_trigger)
 
-#################################################################################
+
 
     def mtrigger_backup_condition():
         return store.mas_submod_utils.isSubmodInstalled("Extra Plus")
@@ -231,7 +231,7 @@ init 999 python in maica:
         exprop=MTriggerExprop(item_name_zh="备份存档", item_name_en="backup savefile"))
     maica.mtrigger_manager.add_trigger(backup_trigger)
 
-#################################################################################
+
 
     def mtrigger_hold_condition():
         return store.renpy.seen_label("monika_holdme_prep")
@@ -244,7 +244,7 @@ init 999 python in maica:
         exprop = MTriggerExprop(item_name_zh="拥抱玩家", item_name_en="hold player"))
     maica.mtrigger_manager.add_trigger(hold_trigger)
 
-#################################################################################
+
 
     class MusicTrigger(MTriggerBase):
         web_musicplayer_installed = store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
@@ -276,14 +276,14 @@ init 999 python in maica:
             m.append(self.PLAYER_CHOICE)
             m.append("停止/静音")
             return m
-
+        
         def build(self):
             self.musics = self.song_list()
             return super(MusicTrigger, self).build()
         
         def find(self,selection):
             return [x for x in store.songs.music_choices if selection in x][0]
-
+        
         def callback(self, selection):
             if selection == self.PLAYER_CHOICE:
                 store.renpy.call("mtrigger_music_menu")
@@ -302,12 +302,12 @@ init 999 python in maica:
             if selection == "停止/静音":
                 store.mas_play_song(None)
                 return
-
+            
             store.mas_play_song(self.find(selection))
     music_trigger = MusicTrigger()
     maica.mtrigger_manager.add_trigger(music_trigger)
 
-#################################################################################
+
 
     class HairTrigger(MTriggerBase):
         def __init__(self, template, name):
@@ -329,12 +329,12 @@ init 999 python in maica:
             Returns True if we have the outfit and it's unlocked
             """
             return outfit_name in store.mas_selspr.HAIR_SEL_MAP and store.mas_selspr.HAIR_SEL_MAP[outfit_name].unlocked
-
+        
         def triggered(self, data):
             clothes = data.get("selection", None)
             if clothes is not None:
                 self.callback(clothes)
-
+        
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
                 maica.console_logger.warning("<mtrigger> {} is not a vaild hair".format(clothes))
@@ -345,7 +345,7 @@ init 999 python in maica:
     hair_trigger = HairTrigger(common_switch_template, "hair")
     maica.mtrigger_manager.add_trigger(hair_trigger)
 
-#################################################################################
+
 
     class AcsTrigger(MTriggerBase):
         def __init__(self, template, name):
@@ -366,12 +366,12 @@ init 999 python in maica:
             Returns True if we have the outfit and it's unlocked
             """
             return outfit_name in store.mas_selspr.ACS_SEL_MAP and store.mas_selspr.ACS_SEL_MAP[outfit_name].unlocked
-
+        
         def triggered(self, data):
             clothes = data.get("selection", None)
             if clothes is not None:
                 self.callback(clothes)
-
+        
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
                 maica.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
@@ -381,10 +381,4 @@ init 999 python in maica:
 
     acs_trigger = AcsTrigger(common_switch_template, "acs")
     maica.mtrigger_manager.add_trigger(acs_trigger)
-                    
-#################################################################################
-
-
-
-
-
+# Decompiled by unrpyc: https://github.com/CensoredUsername/unrpyc
