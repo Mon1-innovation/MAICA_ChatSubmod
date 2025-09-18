@@ -19,12 +19,12 @@ init -1500 python:
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
 default persistent._maica_send_or_received_mpostals = []
-#{
-#    "raw_title":"",
-#    "raw_content":"",
-#    "responsed_content": "",
-#    "responsed_status":"delaying|notupload|received|readed|failed|fatal"
-#}
+
+
+
+
+
+
 
 init 5 python in maica:
     try:
@@ -45,17 +45,17 @@ init 5 python in maica:
             self.input_value = ""
             self.editable = True
             self.returnable = True
-    
+        
         def get_text(self):
             return self.input_value
         
         def process_str(self, s):
             res = ""
             if isinstance(s, unicode):
-                # 's' is already Unicode
+                
                 res = s
             else:
-                # Detect encoding and decode to Unicode
+                
                 encoding_info = chardet.detect(s)
                 encoding = encoding_info['encoding']
                 if encoding is not None:
@@ -65,11 +65,11 @@ init 5 python in maica:
             if len(res) > 375:
                 res = res[:375]
             return res
-
-
+        
+        
         def set_text(self, s):
             self.input_value = self.process_str(s)
-
+        
         def add_text(self, s):
             self.input_value += self.process_str(s)
 
@@ -78,7 +78,7 @@ init 5 python in maica:
     import store
     import maica, os, json
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
-    
+
     maica.logger = store.mas_submod_utils.submod_log
     data = {}
     def change_token(content):
@@ -102,12 +102,12 @@ init 5 python in maica:
 
 """.format(store.maica_ver)
 
-    #maica.update_screen_func = renpy.pause
+
     if store.persistent.maica_stat is None:
         store.persistent.maica_stat = maica.stat.copy()
     else:    
         maica.update_stat(store.persistent.maica_stat)
-    
+
     if store.persistent.maica_mtrigger_status is None:
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
     else:
@@ -115,7 +115,7 @@ init 5 python in maica:
 
 
 
-    maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
+    maica_basedir = renpy.config.basedir 
     def init_selector():
         import json_exporter
         sentiment = json_exporter.emotion_selector
@@ -189,32 +189,32 @@ init 5 python in maica:
                         store.mas_submod_utils.submod_log.warning("Download from github mirror failed, try to download from 0721play")
                         res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False)
                         res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False)
-
-
+                    
+                    
                     if res.status_code == 200 and res2.status_code == 200:
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
                             store.maica.maica.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
-                    
+                        
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
                             file.write(res2.content)
                             store.maica.maica.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
-                        
+                    
                     else:
                         store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}", res.status_code, res2.status_code)
                         failed = True
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed: {}".format(e))
                     failed = True
-
+            
             
             url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
             response = requests.get(url, verify=False)
             if response.status_code == 200:
                 path = os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem") if not renpy.android else os.path.join(ANDROID_MASBASE, "game", "python-packages", "certifi", "cacert.pem")
-                # 将文件保存到本地
+                
                 with open(path, "wb") as file:
                     file.write(response.content)
                 store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
@@ -227,7 +227,7 @@ init 5 python in maica:
         store.maica.maica.is_outdated = check_is_outdated(store.maica_ver)
         if store.maica.maica.is_outdated:
             store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
-
+        
         if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
@@ -236,13 +236,13 @@ init 5 python in maica:
         check_workload()
 
     def progress_bar(percentage, current=None, total=None, bar_length=20):
-        # Calculate the number of filled positions in the progress bar
+        
         filled_length = int(round(bar_length * percentage / 100.0))
         
-        # Generate the progress bar string
+        
         bar = '▇' * filled_length + '▁' * (bar_length - filled_length)
         
-        # Format the output string based on the presence of total
+        
         if total is not None:
             return '|{}| {}% | {} / {}'.format(bar, int(percentage), current, total)
         elif current is not None:
@@ -276,7 +276,7 @@ init -700 python:
         sha256_hash = hashlib.sha256()
         try:
             with open(file_path, 'rb') as f:
-                # 读取文件并更新哈希对象
+                
                 for byte_block in iter(lambda: f.read(4096), b""):
                     sha256_hash.update(byte_block)
         except IOError as e:
@@ -306,8 +306,8 @@ init -700 python:
     def mail_exist():
         basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
         mail_files = []
-
-        # 遍历目录中的文件
+        
+        
         for filename in os.listdir(basedir):
             if filename.endswith('.mail'):
                 return True
@@ -321,22 +321,22 @@ init -700 python:
 
         :return: 邮件文件列表，(title, content)
         """
-
+        
         basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
         mail_files = []
-
-        # 遍历目录中的文件
+        
+        
         for filename in os.listdir(basedir):
             if filename.endswith('.mail'):
-                # 获取完整文件路径
+                
                 file_path = os.path.join(basedir, filename)
                 failed = False
-                # 读取文件内容并检测编码
+                
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
                     encoding, confidence = chardet.detect(raw_data)['encoding'], chardet.detect(raw_data)['confidence']
                     if not isinstance(encoding, str) or (not encoding.lower() in ['ascii', 'utf-8', 'gbk'] and not confidence >= 0.95):
-                        # The detection might be wrong!
+                        
                         try:
                             raw_data.decode('utf-8')
                             encoding = 'utf-8'
@@ -344,7 +344,7 @@ init -700 python:
                             encoding = None
                     if not raw_data:
                         failed = 'empty'
-
+                        
                         store.maica_note_mail_bad = MASPoem(
                             poem_id="note_mail_empty",
                             prompt="",
@@ -371,11 +371,11 @@ init -700 python:
                             with open(os.path.join(basedir, renpy.substitute(_("关于你的信.txt"))), "w") as mp_failure_file:
                                 mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
                     
-                    # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
+                    
                     elif encoding is None:
-                        #encoding = 'utf-8'
+                        
                         failed = 'corrupt'
-
+                        
                         store.maica_note_mail_bad = MASPoem(
                             poem_id="note_mail_bad",
                             prompt="",
@@ -404,8 +404,8 @@ init -700 python:
                         if not os.path.exists(os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))):
                             with open(os.path.join(basedir, renpy.substitute(_("关于你的信.txt"))), "w") as mp_failure_file:
                                 mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
-                    
-                    # 解码文件内容
+                
+                
                 if not failed:
                     content = raw_data.decode(encoding)
                 elif failed == 'corrupt':
@@ -418,15 +418,15 @@ init -700 python:
                         os.remove(file_path+"_empty")
                     os.rename(file_path, file_path+"_empty")
                     continue
-
                 
-                # 去掉后缀添加到结果列表
+                
+                
                 file_name_without_extension = os.path.splitext(filename)[0]
                 mail_files.append((file_name_without_extension, content))
                 
-                # 删除文件
+                
                 os.remove(file_path)
-
+        
         return mail_files
     def has_mail_waitsend():
         num = 0
@@ -444,7 +444,7 @@ init 999 python:
             if persistent.maica_setting_dict['max_history_token'] > 4096:
                 persistent.maica_setting_dict['max_history_token'] = 4096
             maica_reset_setting()
-
+        
         def migration_1_2_8():
             import logging
             persistent.maica_setting_dict['log_level'] = logging.DEBUG
@@ -465,3 +465,4 @@ init 999 python:
         ]
         migration.migrate()
         persistent._maica_last_version = store.maica_ver
+# Decompiled by unrpyc: https://github.com/CensoredUsername/unrpyc
