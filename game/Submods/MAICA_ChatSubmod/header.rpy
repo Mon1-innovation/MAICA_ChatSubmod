@@ -1014,7 +1014,7 @@ screen maica_workload_stat():
                 text ""
 
             hbox:
-                text renpy.substitute(_("下次更新数据")) + store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 75):
+                text renpy.substitute(_("下次更新数据")) + store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 78, total=store.update_interval, unit="s"):
                     size 15
                 timer 1.0 repeat True action Function(check_and_update)
 

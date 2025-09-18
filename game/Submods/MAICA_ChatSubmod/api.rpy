@@ -235,7 +235,7 @@ init 5 python in maica:
             store.mas_unlockEVL("maica_greeting", "GRE")
         check_workload()
 
-    def progress_bar(percentage, current=None, total=None, bar_length=20):
+    def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
         # Calculate the number of filled positions in the progress bar
         filled_length = int(round(bar_length * percentage / 100.0))
         
@@ -244,9 +244,17 @@ init 5 python in maica:
         
         # Format the output string based on the presence of total
         if total is not None:
-            return '|{}| {}% | {} / {}'.format(bar, int(percentage), current, total)
+            if not current:
+                current = total * percentage / 100.0
+            if unit:
+                return '|{}| {}% | {}{} / {}{}'.format(bar, int(percentage), int(current), unit, total, unit)
+            else:
+                return '|{}| {}% | {} / {}'.format(bar, int(percentage), int(current), total)
         elif current is not None:
-            return '|{}| {}% | {}'.format(bar, int(percentage), current)
+            if unit:
+                return '|{}| {}% | {}{}'.format(bar, int(percentage), current, unit)
+            else:
+                return '|{}| {}% | {}'.format(bar, int(percentage), current)
         else:
             return '|{}| {}%'.format(bar, int(percentage))
 
