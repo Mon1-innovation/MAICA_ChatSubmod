@@ -34,3 +34,4 @@ label text_split:
 
     call maica_hide_console
     return
+# Decompiled by unrpyc: https://github.com/CensoredUsername/unrpyc

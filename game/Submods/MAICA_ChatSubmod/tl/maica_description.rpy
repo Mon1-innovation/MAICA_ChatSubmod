@@ -31,14 +31,14 @@ translate english python in maica:
 
     })
     maica.MaicaAiStatus._descriptions.update({
-        maica.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: u"Waiting to send MPostal request",  # 新增
-        maica.MaicaAiStatus.SEND_SETTING: u"Uploading settings",  # 新增
-        maica.MaicaAiStatus.FAILED_GET_NODE: u"Failed to get service node, server may be under maintenance or offline",  # 新增
-        maica.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket is connecting (this should be quick)",  # 新增
-        maica.MaicaAiStatus.VERSION_OLD: u"Submod version is outdated, please update to the latest version",  # 新增
+        maica.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: u"Waiting to send MPostal request",  
+        maica.MaicaAiStatus.SEND_SETTING: u"Uploading settings",  
+        maica.MaicaAiStatus.FAILED_GET_NODE: u"Failed to get service node, server may be under maintenance or offline",  
+        maica.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket is connecting (this should be quick)",  
+        maica.MaicaAiStatus.VERSION_OLD: u"Submod version is outdated, please update to the latest version",  
     })
     maica.MaicaAiStatus._descriptions.update({
-        maica.MaicaAiStatus.NO_INTERTENT: u"Submod offline, double check installation and connectivity according to Readme",  # 新增
+        maica.MaicaAiStatus.NO_INTERTENT: u"Submod offline, double check installation and connectivity according to Readme",  
     })
     store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["You", "Us", "Mod", "MAICA"])
@@ -47,3 +47,4 @@ translate english python in maica:
     store.mas_setEVLPropValues("maica_prepend_reread", prompt="What is Heaven Forest after all", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="About 'MSpire'", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="About 'MPostal'", category=["You", "Us", "Mod", "MAICA"])
+# Decompiled by unrpyc: https://github.com/CensoredUsername/unrpyc
