@@ -637,6 +637,7 @@ screen maica_node_setting():
 
                     
             hbox:
+                xpos 10
                 style_prefix "confirm"
                 textbutton _("更新节点列表"):
                     style_prefix "confirm"
@@ -707,6 +708,7 @@ screen maica_mspire_setting():
                     text _("根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
                         size 15
             hbox:
+                xpos 10
                 style_prefix "confirm"
                 textbutton _("关闭"):
                     action Hide("maica_mspire_setting")
@@ -818,6 +820,7 @@ screen maica_triggers():
                                 textbutton _("※ 当前不满足触发条件")
 
             hbox:
+                xpos 10
                 style_prefix "confirm"
                 textbutton _("关闭"):
                     action Hide("maica_triggers")
@@ -905,6 +908,7 @@ screen maica_mpostals():
                                     action Function(_delect_portal, postal["raw_title"])
                             
             hbox:
+                xpos 10
                 style_prefix "confirm"
                 textbutton _("关闭"):
                     action Hide("maica_mpostals")
@@ -1102,6 +1106,7 @@ screen maica_log():
                             size 18
                         text "================================"
             hbox:
+                xpos 10
                 textbutton _("关闭"):
                     style_prefix "confirm"
                     action Hide("maica_log")
@@ -1278,6 +1283,7 @@ screen maica_tz_setting():
                         textbutton "UTC+14|Pacific/Kiritimati":
                             action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Kiritimati")
             hbox:
+                xpos 10
                 textbutton _("关闭"):
                     style_prefix "confirm"
                     action [
@@ -1529,6 +1535,7 @@ screen maica_advance_setting():
 
                     
             hbox:
+                xpos 10
                 style_prefix "confirm"
                 textbutton _("保存设置"):
                     action [
