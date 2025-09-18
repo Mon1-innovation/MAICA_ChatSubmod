@@ -246,10 +246,12 @@ init 10 python:
         res = store.maica.maica.upload_history(history)
         renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, {}".format(res.get("exception", "未知错误"))))
 
-    
-    def maica_apply_setting(ininit=False):
+    def run_migrations():
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
             persistent.maica_setting_dict["mspire_interval"] = 10
+
+    def maica_apply_setting(ininit=False):
+        run_migrations()
             
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
@@ -287,7 +289,33 @@ init 10 python:
         if not ininit:
             renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
             
-            
+    def maica_discard_setting():
+        persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica.auto_reconnect 
+        maica_discard_advanced_setting()
+        if persistent.maica_advanced_setting_status.get('seed') == False and persistent.maica_advanced_setting.get('seed') == 42 and store.maica.maica.modelconfig.get('seed') == 42:
+            persistent.maica_setting_dict["42seed"] = True
+        else:
+            persistent.maica_setting_dict["42seed"] = False
+        persistent.maica_setting_dict["sf_extraction"] = store.maica.maica.sf_extraction
+        persistent.maica_setting_dict["chat_session"] = store.maica.maica.chat_session
+        persistent.maica_setting_dict['enable_mf'] = store.maica.maica.enable_mf
+        persistent.maica_setting_dict['enable_mt'] = store.maica.maica.enable_mt
+        persistent.maica_setting_dict["mspire_use_cache"] = store.maica.maica.mspire_use_cache
+        persistent.maica_setting_dict["console_font"] = store.mas_ptod.font
+        persistent.maica_setting_dict["target_lang"] = store.maica.maica.target_lang
+        persistent.maica_setting_dict["mspire_category"] = store.maica.maica.mspire_category
+        persistent.maica_setting_dict["mspire_search_type"] = store.maica.maica.mspire_type
+        persistent.maica_setting_dict["log_level"] = store.mas_submod_utils.submod_log.level
+        persistent.maica_setting_dict["log_conlevel"] = store.maica.maica.console_logger.level
+        # persistent.maica_setting_dict["mspire_session"] = store.maica.maica.mspire_session
+        persistent.maica_setting_dict["provider_id"] = store.maica.maica.provider_id
+        persistent.maica_setting_dict["max_history_token"] = store.maica.maica.max_history_token
+        persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
+        store.maica.maica.mtrigger_manager.__init__()
+        store.maica.maica.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
+
+        renpy.notify(_("MAICA: 已撤销设置修改"))
+
     
     def maica_apply_advanced_setting():
         settings_dict = {}
@@ -297,12 +325,13 @@ init 10 python:
         store.maica.maica.modelconfig.update(settings_dict)
         store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
             
-    
-    def change_chatsession():
-        persistent.maica_setting_dict["chat_session"] += 1
-        if persistent.maica_setting_dict["chat_session"] not in range(0, 10):
-            persistent.maica_setting_dict["chat_session"] = 0
-
+    def maica_discard_advanced_setting():
+        settings_dict = {}
+        for k, v in persistent.maica_advanced_setting_status.items():
+            persistent.maica_advanced_setting_status[k] = False
+        for k, v in store.maica.maica.modelconfig.items():
+            settings_dict[k] = store.maica.maica.modelconfig[k]
+        persistent.maica_advanced_setting_status.update(settings_dict)
 
 
     def common_can_add(var, min, max):
@@ -482,52 +511,60 @@ screen maica_setting_pane():
         style_prefix "check"
 
         timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
+        vbox:
+            xpos 400
+            xsize 500
         
-        if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
-            text _("> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
-        if store.maica.maica.is_outdated is None:
-            text _("> 无法验证版本号, 如果出现问题请更新至最新版"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
-        elif store.maica.maica.is_outdated is True:
-            text _("> 当前版本已不再支持, 请更新至最新版"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
-        
-        if renpy.android and not os.path.exists(os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')):
-            text _("> 警告: 找不到证书, 你是不是忘记安装数据包了?"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
+            if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
+                hbox:
 
-        if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
-            text _("> 警告: 与 Better Loading 不兼容"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
-        if store.mas_submod_utils.isSubmodInstalled("Log Screen"):
-            text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
-                xalign 1.0 yalign 0.0
-                xoffset -10
-                style "main_menu_version"
-        text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
-            xalign 1.0 yalign 0.0
-            xoffset -10
-            style "main_menu_version"
+                    text _("> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"):
+                        style "main_menu_version_l"
 
-        text renpy.substitute(_("> Websocket:")) + renpy.substitute(stat):
-            xalign 1.0 yalign 0.0
-            xoffset -10
-            style "main_menu_version"
+            if store.maica.maica.is_outdated is None:
+                hbox:
+
+                    text _("> 未能联网验证版本信息, 如果出现问题请尝试更新"):
+                        style "main_menu_version_l"
+
+            elif store.maica.maica.is_outdated is True:
+                hbox:
+         
+                    text _("> 当前版本支持已终止, 请更新至最新版"):
+                        style "main_menu_version_l"
+            
+            if renpy.android and not os.path.exists(os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')):
+                hbox:
+
+                    text _("> 警告: 找不到证书, 你是不是忘记安装数据包了?"):
+                        style "main_menu_version_l"
+
+            if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
+                hbox:
+
+                    text _("> 警告: 与 Better Loading 不兼容"):
+                        style "main_menu_version_l"
+
+            if store.mas_submod_utils.isSubmodInstalled("Log Screen"):
+                hbox:
+
+                    text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
+                        style "main_menu_version_l"
+
+            hbox:
+
+                text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
+                    style "main_menu_version_l"
+
+            hbox:
+   
+                text renpy.substitute(_("> Websocket:")) + renpy.substitute(stat):
+                    style "main_menu_version_l"
+
         if not maica.maica.is_accessable():
-            textbutton _("> 生成令牌")  
+            textbutton _("> 使用账号生成令牌")  
         elif not maica.maica.is_connected():
-            textbutton _("> 生成令牌"):
+            textbutton _("> 使用账号生成令牌"):
                 action Show("maica_login")
             
         if maica.maica.has_token() and not maica.maica.is_connected():
@@ -543,7 +580,7 @@ screen maica_setting_pane():
                 textbutton _("> 重置当前对话"):
                     action Function(reset_session)
             else:
-                textbutton _("> 手动上传设置 [[请先使MAICA完成连接]")
+                textbutton _("> 手动上传设置 [[请先等待连接建立]")
                      
                 textbutton _("> 重置当前对话 [[现在暂时不能重置]")
 
@@ -553,7 +590,7 @@ screen maica_setting_pane():
             textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
                 action Function(upload_chat_history)
 
-            textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住了, 点我断开连接")):
+            textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住, 退出以断开连接")):
                 action Function(store.maica.maica.close_wss_session)
 
         else:
@@ -573,13 +610,8 @@ screen maica_setting_pane():
                 action Show("maica_support")
 
 screen maica_node_setting():
+    $ _tooltip = store._tooltip
     python:
-        submods_screen = store.renpy.get_screen("submods", "screens")
-
-        if submods_screen:
-            _tooltip = submods_screen.scope.get("tooltip", None)
-        else:
-            _tooltip = None
         def set_provider(id):
             persistent.maica_setting_dict["provider_id"] = id
 
@@ -591,128 +623,131 @@ screen maica_node_setting():
     frame:
         xalign 0.5
         yalign 0.24
-        vbox:
+        has vbox:
             xmaximum 1000
             spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            vbox:
+                xsize 30
+            vbox:
                 xmaximum 1000
                 xfill True
-                yfill True
-                mousewheel True
-                draggable True
-                
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
+                yfill False
 
 
 
-                    for provider in MaicaProviderManager.servers:
-                        text str(provider.get('id')) + ' | ' + provider.get('name')
-                        
+                for provider in MaicaProviderManager.servers:
+                    text str(provider.get('id')) + ' | ' + provider.get('name')
+                    
 
+                    hbox:
+                        text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
+                    hbox:
+                        text renpy.substitute(_("当前模型: ")) + provider.get('servingModel', 'No model provided')
+
+
+                    hbox:
                         hbox:
-                            text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
-                        hbox:
-                            text renpy.substitute(_("当前模型: ")) + provider.get('servingModel', 'No model provided')
-
-
-                        hbox:
-                            textbutton _("> 使用该节点"):
+                            style_prefix "generic_fancy_check"
+                            textbutton _("使用该节点"):
                                 action [
                                     Function(set_provider, provider.get('id')),
                                     Hide("maica_node_setting")
                                 ]
-                            
+                        hbox:
+                            style_prefix "maica_check"
                             textbutton renpy.substitute(_("> 打开官网")) + "(" + provider.get('portalPage') + ")":
                                 action OpenURL(provider.get('portalPage'))
 
-                            if provider.get("isOfficial", False):
+                        if provider.get("isOfficial", False):
+                            hbox:
+                                style_prefix "maica_check_nohover"
                                 textbutton _(" √ MAICA 官方服务器")
-                            
+                        
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("刷新节点列表"):
+                action Function(store.maica.maica.MaicaProviderManager.get_provider)
 
-                    
-            hbox:
-                xpos 10
-                style_prefix "confirm"
-                textbutton _("更新节点列表"):
-                    style_prefix "confirm"
-                    action Function(store.maica.maica.MaicaProviderManager.get_provider)
-
-                textbutton _("关闭"):
-                    style_prefix "confirm"
-                    action Hide("maica_node_setting")
-                
-                textbutton _("测试当前节点可用性"):
-                    style_prefix "confirm"
-                    action Function(store.maica.maica.accessable)
+            textbutton _("关闭"):
+                action Hide("maica_node_setting")
+            
+            textbutton _("测试当前节点可用性"):
+                action Function(store.maica.maica.accessable)
                         
 screen maica_mspire_setting():
-    python:
-        submods_screen = store.renpy.get_screen("submods", "screens")
-
-        if submods_screen:
-            _tooltip = submods_screen.scope.get("tooltip", None)
-        else:
-            _tooltip = None
-        def set_provider(id):
-            persistent.maica_setting_dict["provider_id"] = id
+    $ _tooltip = store._tooltip
 
     modal True
     zorder 215
     
     style_prefix "check"
 
+
     frame:
         xalign 0.5
         yalign 0.24
-        vbox:
+        has vbox:
             xmaximum 1000
             spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            vbox:
+                xsize 30
+            vbox:
                 xmaximum 1000
                 xfill True
-                yfill True
-                mousewheel True
-                draggable True
-                
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
-                    textbutton "percise_page":
-                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "percise_page")
-                    text _("仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"):
-                        size 15
-                    textbutton "fuzzy_page":
-                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "fuzzy_page")
-                    text _("根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快.\n"):
-                        size 15
-                    textbutton "in_percise_category":
-                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_percise_category")
-                    text _("先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
-                        size 15
-                    textbutton "in_fuzzy_category":
-                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_category")
-                    text _("根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
-                        size 15
-                    textbutton "in_fuzzy_all":
-                        action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_all")
-                    text _("根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
-                        size 15
-            hbox:
-                xpos 10
-                style_prefix "confirm"
-                textbutton _("关闭"):
-                    action Hide("maica_mspire_setting")
-                
+                yfill False
+                style_prefix "generic_fancy_check"
+                textbutton "percise_page":
+                    action SetDict(persistent.maica_setting_dict, "mspire_search_type", "percise_page")
+                text _("仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"):
+                    style "small_expl_hw"
+                    size 15
+                textbutton "fuzzy_page":
+                    action SetDict(persistent.maica_setting_dict, "mspire_search_type", "fuzzy_page")
+                text _("根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快.\n"):
+                    style "small_expl_hw"
+                    size 15
+                textbutton "in_percise_category":
+                    action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_percise_category")
+                text _("先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
+                    style "small_expl_hw"
+                    size 15
+                textbutton "in_fuzzy_category":
+                    action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_category")
+                text _("根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
+                    style "small_expl_hw"
+                    size 15
+                textbutton "in_fuzzy_all":
+                    action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_all")
+                text _("根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"):
+                    style "small_expl_hw"
+                    size 15
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("关闭"):
+                action Hide("maica_mspire_setting")
+            
                 # textbutton _("当前方式: [persistent.maica_setting_dict.get('mspire_search_type', 'None')]")
 
 
@@ -2179,6 +2214,11 @@ screen maica_setting():
             textbutton _("保存设置"):
                 action [
                         Function(store.maica_apply_setting),
+                        Hide("maica_setting")
+                        ]
+            textbutton _("放弃修改"):
+                action [
+                        Function(store.maica_discard_setting),
                         Hide("maica_setting")
                         ]
             textbutton _("重置设置"):

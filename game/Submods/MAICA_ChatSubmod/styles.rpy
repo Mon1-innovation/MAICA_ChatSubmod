@@ -1,8 +1,18 @@
 style ed_debug_text:
     size 15
 
+style main_menu_version_l is main_menu_version:
+    text_align 0.0
+
 style small_link is main_menu_version:
     size 10
+
+style small_expl is main_menu_version:
+    text_align 0.0
+    size 15
+
+style small_expl_hw is maica_check_nohover_button_text:
+    size 15
 
 style maica_default is default
 
