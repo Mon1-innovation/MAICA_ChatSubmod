@@ -762,103 +762,105 @@ screen maica_triggers():
 
     modal True
     zorder 215
-    
+
     style_prefix "check"
 
     frame:
         xalign 0.5
         yalign 0.24
-        vbox:
+        has vbox:
             xmaximum 1000
             spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            vbox:
+                xsize 30
+            vbox:
                 xmaximum 1000
                 xfill True
-                yfill True
-                mousewheel True
-                draggable True
-                
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
+                yfill False
+                style_prefix "generic_fancy_check"
+                text _("MTrigger空间使用情况: ")
+                text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
+                    color ("#FF0000" if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 else gui.interface_text_color)
+                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
+                    color ("#FF0000" if maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9 else gui.interface_text_color)
+                if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
+                    text _("> 注意: 当空间不足时将自动关闭部分MTrigger!"):
+                        color "#ff0000"
+                        size 15
 
-                    text _("MTrigger空间使用情况: ")
-                    text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
-                        color ("#FF0000" if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 else gui.interface_text_color)
-                    text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
-                        color ("#FF0000" if maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9 else gui.interface_text_color)
-                    if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
-                        text _("> 注意: 当空间不足时将自动关闭部分MTrigger!"):
-                            color "#ff0000"
-                            size 15
-
-                    for trigger in maica_triggers.triggers:
-                        label trigger.name
-                        if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
-                            hbox:
-                                text _("空间占用: -"):
-                                    size 15
-                        elif trigger.method == 0:
-                            hbox:
-                                text _("空间占用: request"):
-                                    size 15
-                                text str(len(trigger)):
-                                    size 15
-                        elif trigger.method == 1:
-                            hbox:
-                                text _("空间占用: table"):
-                                    size 15
-                                text str(len(trigger)):
-                                    size 15
-
+                for trigger in maica_triggers.triggers:
+                    label trigger.name
+                    if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
                         hbox:
-                            if hasattr(trigger, 'web_musicplayer_installed'):
-                                text _("内置 | 更换背景音乐 "):
-                                    size 15
-                                text _("* 支持 "):
-                                    yalign 1.0
-                                    size 10
-                                textbutton "{u}Netease Music{/u}" style "small_link" action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas"):
-                                    yalign 1.0
-                                    text_size 10
-                                text _(" 和 "):
-                                    yalign 1.0
-                                    size 10
-                                textbutton "{u}Youtube Music{/u}" style "small_link" action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic"):
-                                    yalign 1.0
-                                    text_size 10
-                                text _(" 子模组"):
-                                    yalign 1.0
-                                    size 10
-
-                            else:
-                                text trigger.description:
-                                    size 15
-                        
-                        
-                        
+                            text _("空间占用: -"):
+                                size 15
+                    elif trigger.method == 0:
                         hbox:
-                            if maica_triggers.trigger_status(trigger.name):
-                                textbutton _("√ 已启用"):
-                                    action Function(maica_triggers.disable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
-                            else:
-                                textbutton _("× 已禁用"):
-                                    action Function(maica_triggers.enable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
-                            
-                            if not trigger.condition():
-                                textbutton _("※ 当前不满足触发条件")
+                            text _("空间占用: request"):
+                                size 15
+                            text str(len(trigger)):
+                                size 15
+                    elif trigger.method == 1:
+                        hbox:
+                            text _("空间占用: table"):
+                                size 15
+                            text str(len(trigger)):
+                                size 15
 
-            hbox:
-                xpos 10
-                style_prefix "confirm"
-                textbutton _("关闭"):
-                    action Hide("maica_triggers")
+                    hbox:
+                        if hasattr(trigger, 'web_musicplayer_installed'):
+                            text _("内置 | 更换背景音乐 "):
+                                size 15
+                            text _("* 支持 "):
+                                yalign 1.0
+                                size 10
+                            textbutton "{u}Netease Music{/u}" style "small_link" action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas"):
+                                yalign 1.0
+                                text_size 10
+                            text _(" 和 "):
+                                yalign 1.0
+                                size 10
+                            textbutton "{u}Youtube Music{/u}" style "small_link" action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic"):
+                                yalign 1.0
+                                text_size 10
+                            text _(" 子模组"):
+                                yalign 1.0
+                                size 10
+
+                        else:
+                            text trigger.description:
+                                size 15
+                    
+                    
+                    
+                    hbox:
+                        if maica_triggers.trigger_status(trigger.name):
+                            textbutton _("√ 已启用"):
+                                action Function(maica_triggers.disable_trigger, trigger.name)
+                                selected maica_triggers.trigger_status(trigger.name)
+                        else:
+                            textbutton _("× 已禁用"):
+                                action Function(maica_triggers.enable_trigger, trigger.name)
+                                selected maica_triggers.trigger_status(trigger.name)
+                        
+                        if not trigger.condition():
+                            textbutton _("※ 当前不满足触发条件")
+
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("关闭"):
+                action Hide("maica_triggers")
 
 screen maica_mpostals():
     python:
@@ -879,74 +881,74 @@ screen maica_mpostals():
 
     modal True
     zorder 215
-    
+
     style_prefix "check"
 
     frame:
         xalign 0.5
         yalign 0.24
-        vbox:
+        has vbox:
             xmaximum 1000
             spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            vbox:
+                xsize 30
+            vbox:
                 xmaximum 1000
                 xfill True
-                yfill True
-                mousewheel True
-                draggable True
-                
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
-                    # hbox:
-                    #     textbutton _("{size=15}因能力有限, 阅读信件后信件列表将在返回太空教室后重新显示.")
-
-                    hbox:
-                        text ""
-                    for postal in persistent._maica_send_or_received_mpostals:
-                        label postal["raw_title"]
-                        text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
-                            size 10                       
-                        text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
-                            size 10
-                        text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  "") + "\n":
+                yfill False
+                style_prefix "generic_fancy_check"
+                hbox:
+                    text ""
+                for postal in persistent._maica_send_or_received_mpostals:
+                    label postal["raw_title"]
+                    text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
+                        size 10                       
+                    text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
+                        size 10
+                    text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  "") + "\n":
+                        size 15
+                    if postal["responsed_content"] != "":
+                        text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  ""):
                             size 15
+                    hbox:
+                        textbutton _("阅读[player]写的信"):
+                            action [
+                                    Hide("maica_mpostals"),
+                                    Hide("maica_setting"),
+                                    Function(store.maica_apply_setting),
+                                    Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["raw_content"])
+                            ]
                         if postal["responsed_content"] != "":
-                            text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  ""):
-                                size 15
-                        hbox:
-                            textbutton _("阅读[player]写的信"):
+                            textbutton _("阅读[m_name]的回信"):
                                 action [
                                         Hide("maica_mpostals"),
                                         Hide("maica_setting"),
                                         Function(store.maica_apply_setting),
-                                        Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["raw_content"])
+                                        Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
                                 ]
-                            if postal["responsed_content"] != "":
-                                textbutton _("阅读[m_name]的回信"):
-                                    action [
-                                            Hide("maica_mpostals"),
-                                            Hide("maica_setting"),
-                                            Function(store.maica_apply_setting),
-                                            Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
-                                    ]
-                            
-                            if postal["responsed_status"] in ("fatal"):
-                                textbutton _("重新寄信"):
-                                    action SetDict(postal, "responsed_status", "delaying")
-                            hbox:
-                                textbutton _("删除"):
-                                    action Function(_delect_portal, postal["raw_title"])
-                            
-            hbox:
-                xpos 10
-                style_prefix "confirm"
-                textbutton _("关闭"):
-                    action Hide("maica_mpostals")
+                        
+                        if postal["responsed_status"] in ("fatal"):
+                            textbutton _("重新寄信"):
+                                action SetDict(postal, "responsed_status", "delaying")
+                        hbox:
+                            textbutton _("删除"):
+                                action Function(_delect_portal, postal["raw_title"])
+                        
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("关闭"):
+                action Hide("maica_mpostals")
 
 screen maica_support():
     python:
@@ -957,55 +959,57 @@ screen maica_support():
             _tooltip = None
     modal True
     zorder 215
-    
+
     style_prefix "check"
 
     frame:
         xalign 0.5
         yalign 0.24
-        vbox:
+        has vbox:
             xmaximum 1000
             spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            vbox:
+                xsize 30
+            vbox:
                 xmaximum 1000
                 xfill True
-                yfill True
-                mousewheel True
-                draggable True
-                
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
+                yfill False
+                style_prefix "generic_fancy_check"
+                text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
 
-                    text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
+                text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章.")
 
-                    text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章.")
+                if config.language == 'chinese':
+                    imagebutton:
+                        idle "mod_assets/maica_img/aifadian.png"
+                        insensitive "mod_assets/maica_img/aifadian.png"
+                        hover "mod_assets/maica_img/aifadian.png"
+                        selected_idle "mod_assets/maica_img/aifadian.png"
+                        selected_hover "mod_assets/maica_img/aifadian.png"
+                        action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
+                else:
+                    imagebutton:
+                        idle "mod_assets/maica_img/unifans.png"
+                        insensitive "mod_assets/maica_img/unifans.png"
+                        hover "mod_assets/maica_img/unifans.png"
+                        selected_idle "mod_assets/maica_img/unifans.png"
+                        selected_hover "mod_assets/maica_img/unifans.png"
+                        action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
-                    if config.language == 'chinese':
-                        imagebutton:
-                            idle "mod_assets/maica_img/aifadian.png"
-                            insensitive "mod_assets/maica_img/aifadian.png"
-                            hover "mod_assets/maica_img/aifadian.png"
-                            selected_idle "mod_assets/maica_img/aifadian.png"
-                            selected_hover "mod_assets/maica_img/aifadian.png"
-                            action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
-                    else:
-                        imagebutton:
-                            idle "mod_assets/maica_img/unifans.png"
-                            insensitive "mod_assets/maica_img/unifans.png"
-                            hover "mod_assets/maica_img/unifans.png"
-                            selected_idle "mod_assets/maica_img/unifans.png"
-                            selected_hover "mod_assets/maica_img/unifans.png"
-                            action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
-
-            hbox:
-                textbutton _("关闭"):
-                    style_prefix "confirm"
-                    action Hide("maica_support") 
+        hbox:
+            style_prefix "confirm"
+            textbutton _("关闭"):
+                action Hide("maica_support") 
 
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
@@ -1115,36 +1119,40 @@ screen maica_log():
     frame:
         xalign 0.5
         yalign 0.24
-        vbox:
+        has vbox:
             xmaximum 1000
             spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            vbox:
+                xsize 30
+
+            vbox:
                 xmaximum 1000
                 xfill True
-                yfill True
-                mousewheel True
-                draggable True
+                yfill False
+                style_prefix "generic_fancy_check"
                 
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
+                text maica_log.get("title")
 
-                    text maica_log.get("title")
-
-                    text "========================================================="
-                    for content in maica_log.get("content"):
-                        text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
-                            size 18
-                        text "================================"
-            hbox:
-                xpos 10
-                textbutton _("关闭"):
-                    style_prefix "confirm"
-                    action Hide("maica_log")
+                text "————————————————————————————————————————————————————"
+                for content in maica_log.get("content"):
+                    text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
+                        size 18
+                    text "————————————————————————————"
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("关闭"):
+                action Hide("maica_log")
 
 screen maica_tz_setting():
     python:
@@ -1195,6 +1203,7 @@ screen maica_tz_setting():
                 yfill True
                 mousewheel True
                 draggable True
+                style_prefix "generic_fancy_check"
                 
                 vbox:
                     xmaximum 1000
@@ -1319,8 +1328,8 @@ screen maica_tz_setting():
                             action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Kiritimati")
             hbox:
                 xpos 10
+                style_prefix "confirm"
                 textbutton _("关闭"):
-                    style_prefix "confirm"
                     action [
                         SetDict(persistent.maica_advanced_setting_status, "tz", persistent.maica_advanced_setting['tz']),
                         Hide("maica_tz_setting")
@@ -1370,6 +1379,7 @@ screen maica_advance_setting():
                     xmaximum 1000
                     xfill True
                     yfill False
+                    style_prefix "generic_fancy_check"
                     hbox:
                         text _("{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA 官方文档{/i}{/u}{/a}")
                     hbox:
