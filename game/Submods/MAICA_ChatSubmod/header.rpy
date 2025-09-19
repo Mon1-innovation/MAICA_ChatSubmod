@@ -646,7 +646,7 @@ screen maica_addition_setting():
     
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -701,7 +701,7 @@ screen maica_node_setting():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -775,7 +775,7 @@ screen maica_mspire_setting():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -846,7 +846,7 @@ screen maica_triggers():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -965,7 +965,7 @@ screen maica_mpostals():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -1043,7 +1043,7 @@ screen maica_support():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -1197,7 +1197,7 @@ screen maica_log():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xmaximum 1000
             spacing 5
@@ -1269,7 +1269,7 @@ screen maica_tz_setting():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         vbox:
             xmaximum 1000
             spacing 5
@@ -1440,7 +1440,7 @@ screen maica_advance_setting():
 
     frame:
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         vbox:
             xmaximum 1000
             spacing 5
@@ -1894,24 +1894,30 @@ screen maica_common_debugger(text):
 
 
 screen maica_setting():
+    
     python:
-        submods_screen = store.renpy.get_screen("submods", "screens")
-
-        if submods_screen:
-            _tooltip = submods_screen.scope.get("tooltip", None)
-        else:
-            _tooltip = None
         store.len = len
 
     modal True
     zorder 215
 
     style_prefix "check"
+    default tooltip = Tooltip("")
+    
+    python:
+        submods_screen = store.renpy.get_screen("maica_setting", "screens")
+
+        if submods_screen:
+            store._main_tooltip = submods_screen.scope.get("tooltip", None)
+        else:
+            store._main_tooltip = None
+
+    $ _tooltip = store._main_tooltip
 
     frame:
         xsize 1100
         xalign 0.5
-        yalign 0.24
+        yalign 0.3
         has vbox:
             xsize 1100
             spacing 5
@@ -1919,7 +1925,7 @@ screen maica_setting():
             id "viewport"
             scrollbars "vertical"
             xsize 1100
-            ysize 550
+            ysize 640
 
             mousewheel True
             draggable True
@@ -2298,6 +2304,7 @@ screen maica_setting():
                         xpos 30
                         use maica_statics()
 
+
         hbox:
             xpos 10
             style_prefix "confirm"
@@ -2318,6 +2325,12 @@ screen maica_setting():
                         Function(renpy.notify, _("MAICA: 设置已重置")),
                         Hide("maica_setting")
                     ]
+
+    text tooltip.value:
+        xalign 0 yalign 1.0
+        xoffset 500 yoffset -30
+        style "main_menu_version"
+
                 
 screen maica_select_language(ok_action = Hide("maica_select_language")):
     #登录输入账户窗口, 也用来用作通用的输入窗口
