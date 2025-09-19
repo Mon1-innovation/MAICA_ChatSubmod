@@ -197,7 +197,7 @@ screen maica_advance_setting():
                 if item in persistent.maica_advanced_setting:
                     persistent.maica_advanced_setting[item] = store.maica.maica.default_setting[item]
                     persistent.maica_advanced_setting_status[item] = False
-                    
+
     modal True
     zorder 216
     
@@ -468,7 +468,7 @@ screen maica_login():
             textbutton "{u}MAICA服务条款{/u}":
                 action OpenURL("https://maica.monika.love/tos")
                 yalign 1.0
-                # text_size 15
+
         hbox:
             style_prefix "small_expl"
             text _("※ 还没有DCC账号? "):
@@ -476,12 +476,9 @@ screen maica_login():
             textbutton "{u}注册一个{/u}":
                 action OpenURL("https://maica.monika.love/tos")
                 yalign 1.0
-                # text_size 15
-
 
 
 screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input")):
-    #登录输入账户窗口, 也用来用作通用的输入窗口
     ## Ensure other screens do not get input while this screen is displayed.s
     modal True
     zorder 225
@@ -489,54 +486,52 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
     use maica_setter_small_frame(message, ok_action):
         input default "" value VariableInputValue(returnto) length 64
 
-screen maica_mspire_input(addition = "", edittarget = None):
+screen maica_addition_input(addition="", edittarget=None):
+    python:
+        if persistent._mas_player_addition == None:
+            persistent._mas_player_addition = ""
+        def apply(edittarget):
+            addition = "[player]" + persistent._mas_player_addition
+            if not persistent._mas_player_addition.strip():
+                return
+            if addition in persistent.mas_player_additions:
+                return
+            if edittarget:
+                persistent.mas_player_additions[persistent.mas_player_additions.index(edittarget)] = addition
+            else:
+                persistent.mas_player_additions.append(addition)
+            del persistent._mas_player_addition
+            
+    modal True
+    zorder 225
+
+    use maica_setter_medium_frame(title=_("请输入MFocus信息"), ok_action=[Function(apply, edittarget), SetField(persistent ,"selectbool", None), Hide("maica_addition_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_addition_input")]):
+        hbox:
+            input default addition value FieldInputValue(persistent, "_mas_player_addition")
+
+
+screen maica_mspire_input(addition="", edittarget=None):
     python:
         if persistent._mas_player_addition == None:
             persistent._mas_player_addition = ""
         def apply(edittarget):
             addition = persistent._mas_player_addition
-            if persistent._mas_player_addition == "":
+            if not persistent._mas_player_addition.strip:
                 return
-            persistent.maica_setting_dict["mspire_category"].append(addition)
+            if addition in persistent.maica_setting_dict["mspire_category"]:
+                return
             if edittarget:
                 persistent.maica_setting_dict["mspire_category"][persistent.maica_setting_dict["mspire_category"].index(edittarget)] = addition
+            else:
+                persistent.maica_setting_dict["mspire_category"].append(addition)
             del persistent._mas_player_addition
             
-        
     modal True
     zorder 225
 
-    style_prefix "confirm"
-
-    frame:
-        xalign 0.5
-        yalign 0.5
-        vbox:
-            ymaximum 300
-            xmaximum 800
-            xfill True
-            yfill False
-            spacing 5
-
-            label _("请输入分类"):
-                style "confirm_prompt"
-                xalign 0.5
-            hbox:
-                input default addition value FieldInputValue(persistent, "_mas_player_addition")
-
-            hbox:
-                xalign 0.5
-                spacing 100
-
-                textbutton _("OK") action [
-                    Function(apply, edittarget),
-                    SetField(persistent ,"selectbool", None),
-                    Hide("maica_mspire_input")
-                ]
-
-                textbutton _("取消"):
-                    action [SetField(persistent ,"selectbool", None), Hide("maica_mspire_input")]
-
+    use maica_setter_medium_frame(title=_("请输入MSpire话题"), ok_action=[Function(apply, edittarget), SetField(persistent, "selectbool", None), Hide("maica_mspire_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_mspire_input")]):
+        hbox:
+            input default addition value FieldInputValue(persistent, "_mas_player_addition")
 
 screen maica_seed_input():
     python:
@@ -594,6 +589,7 @@ screen maica_addition_setting():
             persistent.selectbool = {}
             isinit = True
         def build_dict():
+            global persistent
             for item in persistent.mas_player_additions:
                 persistent.selectbool[item] = False
 
@@ -601,13 +597,26 @@ screen maica_addition_setting():
             build_dict()
         def delete_seleted():
             global persistent
-            import copy
-            res = copy.deepcopy(persistent.mas_player_additions)
-            for item in res:
-                if persistent.selectbool[item]:
-                    persistent.mas_player_additions.remove(item)
+            persistent.mas_player_additions = {k: v for k, v in iterize(persistent.mas_player_additions) if not persistent.selectbool[k]}
+
+        def selected_one():
+            global persistent
+            toggled = [k for k, v in iterize(persistent.selectbool) if v]
+            if len(toggled) == 1:
+                return toggled[0]
+            else:
+                return False
         
+        def selected_one_tf():
+            global persistent
+            toggled = [k for k, v in iterize(persistent.selectbool) if v]
+            if len(toggled) == 1:
+                return True
+            else:
+                return False
+
         def maica_addition_setting_close():
+            global persistent
             persistent.selectbool = None
 
     modal True
@@ -615,22 +624,22 @@ screen maica_addition_setting():
     
     use maica_common_outer_frame():
         use maica_common_inner_frame():
-            style_prefix "maica_check"
+            style_prefix "generic_fancy_check"
             for item in persistent.selectbool:
                 hbox:
                     textbutton item:
                         action ToggleDict(persistent.selectbool, item)
                     
-                    textbutton "<编辑>":
-                        action [Show("maica_addition_input", addition = item, edittarget = item),SetField(persistent ,"selectbool", None)]
-        
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("删除选择内容"):
+            textbutton _("删除条目"):
                 action [Function(delete_seleted), Function(build_dict)]
 
-            textbutton _("添加内容"):
+            textbutton _("编辑条目"):
+                action [SensitiveIf(selected_one_tf()), Show("maica_addition_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
+
+            textbutton _("添加条目"):
                 action [Show("maica_addition_input")]
             
             textbutton _("关闭"):
@@ -645,6 +654,7 @@ screen maica_mspire_category_setting():
             persistent.selectbool = {}
             isinit = True
         def build_dict():
+            global persistent
             for item in persistent.maica_setting_dict["mspire_category"]:
                 persistent.selectbool[item] = False
 
@@ -652,13 +662,26 @@ screen maica_mspire_category_setting():
             build_dict()
         def delete_seleted():
             global persistent
-            import copy
-            res = copy.deepcopy(persistent.maica_setting_dict["mspire_category"])
-            for item in res:
-                if persistent.selectbool[item]:
-                    persistent.maica_setting_dict["mspire_category"].remove(item)
-        
+            persistent.mas_player_additions = {k: v for k, v in iterize(persistent.maica_setting_dict["mspire_category"]) if not persistent.selectbool[k]}
+
+        def selected_one():
+            global persistent
+            toggled = [k for k, v in iterize(persistent.selectbool) if v]
+            if len(toggled) == 1:
+                return toggled[0]
+            else:
+                return False
+
+        def selected_one_tf():
+            global persistent
+            toggled = [k for k, v in iterize(persistent.selectbool) if v]
+            if len(toggled) == 1:
+                return True
+            else:
+                return False
+
         def maica_mspire_setting():
+            global persistent
             persistent.selectbool = None
 
     modal True
@@ -666,22 +689,22 @@ screen maica_mspire_category_setting():
 
     use maica_common_outer_frame():
         use maica_common_inner_frame():
-
+            style_prefix "generic_fancy_check"
             for item in persistent.selectbool:
                 hbox:
                     textbutton item:
                         action ToggleDict(persistent.selectbool, item)
-                
-                    textbutton "<编辑>":
-                        action [Show("maica_mspire_input", addition = item, edittarget = item),SetField(persistent ,"selectbool", None)]
         
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("删除所选分类"):
+            textbutton _("删除条目"):
                 action [Function(delete_seleted), SetField(persistent ,"selectbool", None)]
 
-            textbutton _("添加分类"):
+            textbutton _("编辑条目"):
+                action [SensitiveIf(selected_one_tf()), Show("maica_mspire_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
+
+            textbutton _("添加条目"):
                 action [Show("maica_mspire_input"),SetField(persistent ,"selectbool", None)]
             
             textbutton _("关闭"):
@@ -833,19 +856,14 @@ screen maica_triggers():
                         hbox:
                             style_prefix "small_expl_hw"
                             text _("* 支持 "):
-                                yalign 1.0
                                 size 15
                             textbutton "{u}Netease Music{/u}":
                                 action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas")
-                                yalign 1.0
                             text _(" 和 "):
-                                yalign 1.0
                                 size 15
                             textbutton "{u}Youtube Music{/u}":
                                 action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic")
-                                yalign 1.0
                             text _(" 子模组"):
-                                yalign 1.0
                                 size 15
 
                     else:

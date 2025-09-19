@@ -127,6 +127,13 @@ init 10 python:
     store.nvw_folded = True
     store.stat_folded = True
 
+    from bot_interface import PY2, PY3
+    def iterize(dict):
+        if PY2:
+            return dict.iteritems()
+        elif PY3:
+            return dict.items()
+
     def _maica_clear():
         store._maica_LoginAcc = ""
         store._maica_LoginPw = ""
@@ -339,19 +346,23 @@ init 10 python:
         persistent.maica_advanced_setting_status.update(settings_dict)
 
 
-    def common_can_add(var, min, max):
-        return min <= persistent.maica_setting_dict[var] <= (max - 1)
+    def common_can_add(var, min, max, sdict):
+        s_dict = getattr(persistent, sdict)
+        return min <= s_dict[var] <= (max - 1)
 
-    def common_add(var, min, max):
+    def common_add(var, min, max, sdict):
+        s_dict = getattr(persistent, sdict)
         if common_can_add(var, min, max):
-            persistent.maica_setting_dict[var] += 1
+            s_dict[var] += 1
 
-    def common_can_sub(var, min, max):
-        return (min + 1) <= persistent.maica_setting_dict[var] <= max
+    def common_can_sub(var, min, max, sdict):
+        s_dict = getattr(persistent, sdict)
+        return (min + 1) <= s_dict[var] <= max
 
-    def common_sub(var, min, max):
+    def common_sub(var, min, max, sdict):
+        s_dict = getattr(persistent, sdict)
         if common_can_sub(var, min, max):
-            persistent.maica_setting_dict[var] -= 1
+            s_dict[var] -= 1
 
 
 
