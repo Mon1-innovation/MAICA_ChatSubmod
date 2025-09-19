@@ -5,11 +5,15 @@ style main_menu_version_l is main_menu_version:
     text_align 0.0
 
 style small_link is main_menu_version:
+    text_align 0.0
     size 10
 
 style small_expl is main_menu_version:
     text_align 0.0
     size 15
+
+style small_link_hw is maica_check_nohover_button_text:
+    size 10
 
 style small_expl_hw is maica_check_nohover_button_text:
     size 15
@@ -55,6 +59,10 @@ style maica_check_nohover_text is maica_check_button_text:
     color "#AAAAAA"
     hover_color "#AAAAAA"
 
+style maica_check_nohover_text_dark is maica_check_button_text:
+    color "#BFBFBF"
+    hover_color "#BFBFBF"
+
 style maica_check_nohover_button is maica_check_button:
     hover_background None
 
@@ -68,6 +76,12 @@ style maica_check_nohover_button_dark is maica_check_button_dark:
 style maica_check_nohover_button_text_dark is maica_check_button_text_dark:
     color "#BFBFBF"
     hover_color "#BFBFBF"
+
+style maica_check_nohover_label_text is maica_check_nohover_text
+
+style maica_check_nohover_label_text_dark is maica_check_nohover_text_dark
+
+
 
 
 
