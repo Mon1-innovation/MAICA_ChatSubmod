@@ -1,18 +1,22 @@
 init -1:
 
-    image bar1 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=0.1, yalign=0.5, size=(300, 25))
-    image bar2 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=0.9, yalign=0.5, size=(300, 25))
+    screen sbar(a, w):
+        add Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=a, yalign=0.5, size=(w, 25))
+
+    image bar1 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=0.0, yalign=0.5, size=(300, 25))
+    image bar2 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=1.0, yalign=0.5, size=(300, 25))
+    image bar3 = Transform("gui/scrollbar/horizontal_poem_bar_d.png", xalign=0.5, yalign=0.5, size=(750, 25))
 
     screen divider(message):
 
         hbox:
-            yminimum 75
+            ysize 75
             xfill True
 
             hbox:
                 xalign 0.5
                 yalign 0.6
-                xminimum 900
+                xsize 900
                 add "bar1"
                 text "  "
                 text message:
@@ -21,16 +25,28 @@ init -1:
                 text "  "
                 add "bar2"
 
-    screen divider_small(message):
+    screen divider_plain():
 
         hbox:
-            yminimum 50
+            ysize 75
             xfill True
 
             hbox:
                 xalign 0.5
                 yalign 0.6
-                xminimum 600
+                xsize 900
+                add "bar3"
+
+    screen divider_small(message):
+
+        hbox:
+            ysize 50
+            xfill True
+
+            hbox:
+                xalign 0.5
+                yalign 0.6
+                xsize 600
                 add "bar1"
                 text "  "
                 text message:
@@ -38,6 +54,18 @@ init -1:
                     size 20
                 text "  "
                 add "bar2"
+
+    screen divider_plain_small():
+
+        hbox:
+            ysize 50
+            xfill True
+
+            hbox:
+                xalign 0.5
+                yalign 0.6
+                xsize 600
+                add "bar3"
 
     screen intro_tooltip():
         python:

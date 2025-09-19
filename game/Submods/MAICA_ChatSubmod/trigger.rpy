@@ -5,7 +5,7 @@ init 999 python in maica:
     import time
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3"),method=MTriggerMethod.request)
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3 * 有10分钟冷却"),method=MTriggerMethod.request)
             self.last_triggered = time.time()
         
         def triggered(self, data):
@@ -159,7 +159,7 @@ init 999 python in maica:
                     curr_value=store.mas_current_weather.prompt
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换天气 {size=-5}* 在天堂树林内不启用"),
+                description = _("内置 | 更换天气 * 在天堂树林内不生效"),
                 condition = self.condition
             )
 
@@ -227,7 +227,7 @@ init 999 python in maica:
         store.renpy.call("mas_backup")
 
     backup_trigger = MTriggerBase(customize_template, "backup", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
-        description = _("内置 | 备份存档 {size=-5}* 需要 Extra Plus 子模组"), method=MTriggerMethod.table,
+        description = _("内置 | 备份存档 * 需要 Extra Plus 子模组"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="备份存档", item_name_en="backup savefile"))
     maica.mtrigger_manager.add_trigger(backup_trigger)
 
@@ -263,7 +263,7 @@ init 999 python in maica:
 
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换背景音乐 {size=-5}* 支持{a=https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas}{i}Netease Music{/i}{/a}和{a=https://github.com/Booplicate/MAS-Submods-YouTubeMusic}{i}Youtube Music{/i}{/s}子模组"),
+                description = _("内置 | 更换背景音乐"),
                 perf_suggestion=True,
             )
         

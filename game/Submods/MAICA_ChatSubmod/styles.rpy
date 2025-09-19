@@ -4,24 +4,90 @@ style ed_debug_text:
 style main_menu_version_l is main_menu_version:
     text_align 0.0
 
-style small_link is main_menu_version:
+style small_link is default:
     text_align 0.0
     size 10
 
-style small_expl is main_menu_version:
+style small_link_text is small_link
+
+style small_expl is default:
     text_align 0.0
     size 15
+
+style small_expl_text is small_expl
 
 style small_link_hw is maica_check_nohover_button_text:
     size 10
 
+style small_link_hw_text is small_link_hw
+
 style small_expl_hw is maica_check_nohover_button_text:
     size 15
+
+style small_expl_hw_text is small_expl_hw
+
+
+
+
+
+
+style small_link_button is small_link
+
+style small_link_button_text is small_link_button:
+    color gui.text_color
+    hover_color "#da9ab4"
+
+style small_link_button_dark is small_link
+
+style small_link_button_text_dark is small_link_button_dark:
+    color gui.text_color
+    hover_color "#da9ab4"
+
+style small_expl_button is small_expl
+
+style small_expl_button_text is small_expl_button:
+    color gui.text_color
+    hover_color "#da9ab4"
+
+style small_expl_button_dark is small_expl
+
+style small_expl_button_text_dark is small_expl_button_dark:
+    color gui.text_color
+    hover_color "#da9ab4"
+
+style small_link_hw_button is small_link_hw
+
+style small_link_hw_button_text is small_link_hw_button:
+    color "#AAAAAA"
+    hover_color "#000000"
+
+style small_link_hw_button_dark is small_link_hw
+
+style small_link_hw_button_text_dark is small_link_hw_button_dark:
+    color "#BFBFBF"
+    hover_color "#FFAA99"
+
+style small_expl_hw_button is small_expl_hw
+
+style small_expl_hw_button_text is small_expl_hw_button:
+    color "#AAAAAA"
+    hover_color "#000000"
+
+style small_expl_hw_button_dark is small_expl_hw
+
+style small_expl_hw_button_text_dark is small_expl_hw_button_dark:
+    color "#BFBFBF"
+    hover_color "#FFAA99"
+
+
+
+
 
 style maica_default is default
 
 style maica_default_small is maica_default:
     size 20
+
 
 
 

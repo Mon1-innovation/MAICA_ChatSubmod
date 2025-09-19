@@ -12,42 +12,18 @@ screen maica_log():
             persistent.maica_setting_dict["provider_id"] = int(id)
 
     modal True
-    zorder 215
+    zorder 216
     
-    style_prefix "check"
+    use maica_common_outer_frame():
+        use maica_common_inner_frame():
+            style_prefix "generic_fancy_check"
+            
+            use divider_small(maica_log.get("title"))
 
-    frame:
-        xalign 0.5
-        yalign 0.3
-        has vbox:
-            xmaximum 1000
-            spacing 5
-        viewport:
-            id "viewport"
-            scrollbars "vertical"
-            ymaximum 500
-            xmaximum 1000
-            xfill True
-            yfill True
-            mousewheel True
-            draggable True
-            has hbox
-            vbox:
-                xsize 30
-
-            vbox:
-                xmaximum 1000
-                xfill True
-                yfill False
-                style_prefix "generic_fancy_check"
-                
-                text maica_log.get("title")
-
-                text "————————————————————————————————————————————————————"
-                for content in maica_log.get("content"):
-                    text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
-                        size 18
-                    text "————————————————————————————"
+            for content in maica_log.get("content"):
+                text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
+                    size 18
+                use divider_plain_small()
         hbox:
             xpos 10
             style_prefix "confirm"
@@ -56,12 +32,6 @@ screen maica_log():
 
 screen maica_tz_setting():
     python:
-        submods_screen = store.renpy.get_screen("submods", "screens")
-        if submods_screen:
-            _tooltip = submods_screen.scope.get("tooltip", None)
-        else:
-            _tooltip = None
-
         def get_gmt_offset_timezone():
             import time
             # 获取当前本地时间的 UTC 偏移量（以秒为单位）
@@ -84,167 +54,142 @@ screen maica_tz_setting():
         current_tz = get_gmt_offset_timezone()
 
     modal True
-    zorder 215
+    zorder 216
     
-    style_prefix "check"
+    use maica_common_outer_frame():
+        use maica_common_inner_frame():
+            style_prefix "generic_fancy_check"
+            
+            text _("{size=-10}如果这里没有你的时区, 请根据你当地的UTC时间选择")
 
-    frame:
-        xalign 0.5
-        yalign 0.3
-        vbox:
-            xmaximum 1000
-            spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
-                xmaximum 1000
-                xfill True
-                yfill True
-                mousewheel True
-                draggable True
-                style_prefix "generic_fancy_check"
-                
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
-                    text _("{size=-10}如果这里没有你的时区, 请根据你当地的UTC时间选择")
-
-                    hbox:
-                        textbutton _("根据语言自动选择"):
-                            action SetDict(persistent.maica_advanced_setting, "tz", None)
-                    
-                    hbox:
-                        textbutton _("根据系统时区自动选择"):
-                            action SetDict(persistent.maica_advanced_setting, "tz", current_tz)
-
-                    hbox:
-                        textbutton "UTC-12|Etc/GMT+12":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Etc/GMT+12")
-
-                    hbox:
-                        textbutton "UTC-11|Pacific/Midway":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Midway")
-
-                    hbox:
-                        textbutton "UTC-10|Pacific/Honolulu":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Honolulu")
-
-                    hbox:
-                        textbutton "UTC-9|America/Anchorage":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Anchorage")
-
-                    hbox:
-                        textbutton "UTC-8|America/Los_Angeles":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Los_Angeles")
-
-                    hbox:
-                        textbutton "UTC-7|America/Denver":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Denver")
-
-                    hbox:
-                        textbutton "UTC-6|America/Chicago":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Chicago")
-
-                    hbox:
-                        textbutton "UTC-5|America/New_York":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/New_York")
-
-                    hbox:
-                        textbutton "UTC-4|America/Santiago":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Santiago")
-
-                    hbox:
-                        textbutton "UTC-3|America/Argentina/Buenos_Aires":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "America/Argentina/Buenos_Aires")
-
-                    hbox:
-                        textbutton "UTC-2|Atlantic/South_Georgia":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Atlantic/South_Georgia")
-
-                    hbox:
-                        textbutton "UTC-1|Atlantic/Azores":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Atlantic/Azores")
-
-                    hbox:
-                        textbutton "UTC+0|Europe/London":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/London")
-
-                    hbox:
-                        textbutton "UTC+1|Europe/Berlin":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Berlin")
-
-                    hbox:
-                        textbutton "UTC+2|Europe/Kaliningrad":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Kaliningrad")
-
-                    hbox:
-                        textbutton "UTC+3|Europe/Moscow":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Moscow")
-
-                    hbox:
-                        textbutton "UTC+4|Asia/Dubai":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Dubai")
-
-                    hbox:
-                        textbutton "UTC+5|Asia/Karachi":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Karachi")
-
-                    hbox:
-                        textbutton "UTC+6|Asia/Dhaka":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Dhaka")
-
-                    hbox:
-                        textbutton "UTC+7|Asia/Bangkok":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Bangkok")
-
-                    hbox:
-                        textbutton "UTC+8|Asia/Shanghai":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Shanghai")
-
-                    hbox:
-                        textbutton "UTC+9|Asia/Tokyo":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Tokyo")
-
-                    hbox:
-                        textbutton "UTC+10|Australia/Sydney":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Australia/Sydney")
-
-                    hbox:
-                        textbutton "UTC+11|Pacific/Noumea":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Noumea")
-
-                    hbox:
-                        textbutton "UTC+12|Pacific/Auckland":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Auckland")
-
-                    hbox:
-                        textbutton "UTC+13|Pacific/Tongatapu":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Tongatapu")
-
-                    hbox:
-                        textbutton "UTC+14|Pacific/Kiritimati":
-                            action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Kiritimati")
             hbox:
-                xpos 10
-                style_prefix "confirm"
-                textbutton _("关闭"):
-                    action [
-                        SetDict(persistent.maica_advanced_setting_status, "tz", persistent.maica_advanced_setting['tz']),
-                        Hide("maica_tz_setting")
-                        ]
+                textbutton _("根据语言自动选择"):
+                    action SetDict(persistent.maica_advanced_setting, "tz", None)
+            
+            hbox:
+                textbutton _("根据系统时区自动选择"):
+                    action SetDict(persistent.maica_advanced_setting, "tz", current_tz)
+
+            hbox:
+                textbutton "UTC-12|Etc/GMT+12":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Etc/GMT+12")
+
+            hbox:
+                textbutton "UTC-11|Pacific/Midway":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Midway")
+
+            hbox:
+                textbutton "UTC-10|Pacific/Honolulu":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Honolulu")
+
+            hbox:
+                textbutton "UTC-9|America/Anchorage":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/Anchorage")
+
+            hbox:
+                textbutton "UTC-8|America/Los_Angeles":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/Los_Angeles")
+
+            hbox:
+                textbutton "UTC-7|America/Denver":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/Denver")
+
+            hbox:
+                textbutton "UTC-6|America/Chicago":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/Chicago")
+
+            hbox:
+                textbutton "UTC-5|America/New_York":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/New_York")
+
+            hbox:
+                textbutton "UTC-4|America/Santiago":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/Santiago")
+
+            hbox:
+                textbutton "UTC-3|America/Argentina/Buenos_Aires":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "America/Argentina/Buenos_Aires")
+
+            hbox:
+                textbutton "UTC-2|Atlantic/South_Georgia":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Atlantic/South_Georgia")
+
+            hbox:
+                textbutton "UTC-1|Atlantic/Azores":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Atlantic/Azores")
+
+            hbox:
+                textbutton "UTC+0|Europe/London":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Europe/London")
+
+            hbox:
+                textbutton "UTC+1|Europe/Berlin":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Berlin")
+
+            hbox:
+                textbutton "UTC+2|Europe/Kaliningrad":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Kaliningrad")
+
+            hbox:
+                textbutton "UTC+3|Europe/Moscow":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Europe/Moscow")
+
+            hbox:
+                textbutton "UTC+4|Asia/Dubai":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Dubai")
+
+            hbox:
+                textbutton "UTC+5|Asia/Karachi":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Karachi")
+
+            hbox:
+                textbutton "UTC+6|Asia/Dhaka":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Dhaka")
+
+            hbox:
+                textbutton "UTC+7|Asia/Bangkok":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Bangkok")
+
+            hbox:
+                textbutton "UTC+8|Asia/Shanghai":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Shanghai")
+
+            hbox:
+                textbutton "UTC+9|Asia/Tokyo":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Asia/Tokyo")
+
+            hbox:
+                textbutton "UTC+10|Australia/Sydney":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Australia/Sydney")
+
+            hbox:
+                textbutton "UTC+11|Pacific/Noumea":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Noumea")
+
+            hbox:
+                textbutton "UTC+12|Pacific/Auckland":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Auckland")
+
+            hbox:
+                textbutton "UTC+13|Pacific/Tongatapu":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Tongatapu")
+
+            hbox:
+                textbutton "UTC+14|Pacific/Kiritimati":
+                    action SetDict(persistent.maica_advanced_setting, "tz", "Pacific/Kiritimati")
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("关闭"):
+                action [
+                    SetDict(persistent.maica_advanced_setting_status, "tz", persistent.maica_advanced_setting['tz']),
+                    Hide("maica_tz_setting")
+                    ]
 
 
 screen maica_advance_setting():
+    $ _tooltip = store._tooltip
     python:
-        submods_screen = store.renpy.get_screen("submods", "screens")
-
-        if submods_screen:
-            _tooltip = submods_screen.scope.get("tooltip", None)
-        else:
-            _tooltip = None
-        
         def reset_to_default():
             for item in store.maica.maica.default_setting:
                 if item == 'seed':
@@ -253,241 +198,195 @@ screen maica_advance_setting():
                     persistent.maica_advanced_setting[item] = store.maica.maica.default_setting[item]
                     persistent.maica_advanced_setting_status[item] = False
                     
-
     modal True
-    zorder 215
+    zorder 216
     
-    style_prefix "check"
+    use maica_common_outer_frame():
+        use maica_common_inner_frame():
+            style_prefix "generic_fancy_check"
+            hbox:
+                text _("关于这些参数的详细解释, 参见 ")
+                textbutton _("{u}MAICA 官方文档{/u}"):
+                    action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt")
+                text _(" 和 ")
+                textbutton _("{u}OPENAI 中文文档{/u}"):
+                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat")
+            hbox:
+                text _("{size=-10}注意: 只有已被勾选(标记了X)的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
+            hbox:
+                if not persistent.maica_setting_dict.get('use_custom_model_config'):
+                    text _("{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!")
 
-    frame:
-        xalign 0.5
-        yalign 0.3
-        vbox:
-            xmaximum 1000
-            spacing 5
-            viewport:
-                id "viewport"
-                scrollbars "vertical"
-                ymaximum 500
-                xmaximum 1000
-                xfill True
-                yfill True
-                mousewheel True
-                draggable True
+            use divider_small(_("超参数"))
+
+            hbox:
+                textbutton "top_p":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "top_p")
+                    hovered SetField(_tooltip, "value", _("token权重过滤范围. 非常不建议动这个"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
                 
-                vbox:
-                    xmaximum 1000
-                    xfill True
-                    yfill False
-                    style_prefix "generic_fancy_check"
-                    hbox:
-                        text _("{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA 官方文档{/i}{/u}{/a}")
-                    hbox:
-                        text _("{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/i}{/u}{/a}")
-                    hbox:
-                        text _("{size=-10}注意: 只有已被勾选(标记了X)的高级设置才会被使用, 未使用的设置将使用服务端的默认设置")
-                    hbox:
-                        if not persistent.maica_setting_dict.get('use_custom_model_config'):
-                            text _("{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!")
-
-                    hbox:
-                        text ""
-                    hbox:
-                        text _("{size=-10}================超参数================")
-
-                    hbox:
-                        textbutton "top_p":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "top_p")
-                            hovered SetField(_tooltip, "value", _("token权重过滤范围. 非常不建议动这个"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        
-                        if persistent.maica_advanced_setting_status.get("top_p", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "top_p", 0.9, step=0.01,offset=0.1 ,style="slider")
-                                xsize 200
-                            
-                            textbutton "[persistent.maica_advanced_setting.get('top_p', 'None')]"
-
-                    hbox:
-                        textbutton "temperature":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "temperature")
-                            hovered SetField(_tooltip, "value", _("token选择的随机程度. 数值越高, 模型输出会越偏离普遍最佳情况"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        if persistent.maica_advanced_setting_status.get("temperature", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "temperature", 1.0, step=0.01,offset=0 ,style="slider")
-                                xsize 200
-                            textbutton "[persistent.maica_advanced_setting.get('temperature', 'None')]"
+                if persistent.maica_advanced_setting_status.get("top_p", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "top_p", 0.9, step=0.01,offset=0.1 ,style="slider")
+                        xsize 200
                     
-                    hbox:
-                        textbutton "max_tokens":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "max_tokens")
-                            hovered SetField(_tooltip, "value", _("模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
+                    textbutton "[persistent.maica_advanced_setting.get('top_p', 'None')]"
 
-                        if persistent.maica_advanced_setting_status.get("max_tokens", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "max_tokens", 2048, step=1,offset=0 ,style="slider")
-                                xsize 200
-                            textbutton "[persistent.maica_advanced_setting.get('max_tokens', 'None')]"
+            hbox:
+                textbutton "temperature":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "temperature")
+                    hovered SetField(_tooltip, "value", _("token选择的随机程度. 数值越高, 模型输出会越偏离普遍最佳情况"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                if persistent.maica_advanced_setting_status.get("temperature", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "temperature", 1.0, step=0.01,offset=0 ,style="slider")
+                        xsize 200
+                    textbutton "[persistent.maica_advanced_setting.get('temperature', 'None')]"
+            
+            hbox:
+                textbutton "max_tokens":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "max_tokens")
+                    hovered SetField(_tooltip, "value", _("模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+                if persistent.maica_advanced_setting_status.get("max_tokens", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "max_tokens", 2048, step=1,offset=0 ,style="slider")
+                        xsize 200
+                    textbutton "[persistent.maica_advanced_setting.get('max_tokens', 'None')]"
+            
+            hbox:
+                textbutton "frequency_penalty":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "frequency_penalty")
+                    hovered SetField(_tooltip, "value", _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                
+                if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "frequency_penalty", 1.0, step=0.01,offset=0 ,style="slider")
+                        xsize 200
+                    textbutton "[persistent.maica_advanced_setting.get('frequency_penalty', 'None')]"
+            
+            hbox:
+                textbutton "presence_penalty":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
+                    hovered SetField(_tooltip, "value", _("token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                
+                if persistent.maica_advanced_setting_status.get("presence_penalty", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "presence_penalty", 1.0, step=0.01,offset=0 ,style="slider")
+                        xsize 200
+                    textbutton "[persistent.maica_advanced_setting.get('presence_penalty', 'None')]"
+
+            hbox:
+                if not persistent.maica_setting_dict.get('42seed'):
+                    textbutton "seed":
+                        action ToggleDict(persistent.maica_advanced_setting_status, "seed")
                     
-                    hbox:
-                        textbutton "frequency_penalty":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "frequency_penalty")
-                            hovered SetField(_tooltip, "value", _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        
-                        if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "frequency_penalty", 1.0, step=0.01,offset=0 ,style="slider")
-                                xsize 200
-                            textbutton "[persistent.maica_advanced_setting.get('frequency_penalty', 'None')]"
-                    
-                    hbox:
-                        textbutton "presence_penalty":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
-                            hovered SetField(_tooltip, "value", _("token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        
-                        if persistent.maica_advanced_setting_status.get("presence_penalty", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "presence_penalty", 1.0, step=0.01,offset=0 ,style="slider")
-                                xsize 200
-                            textbutton "[persistent.maica_advanced_setting.get('presence_penalty', 'None')]"
- 
-                    hbox:
-                        if not persistent.maica_setting_dict.get('42seed'):
-                            textbutton "seed":
-                                action ToggleDict(persistent.maica_advanced_setting_status, "seed")
-                            
-                            if persistent.maica_advanced_setting_status.get("seed", False):
-                                #bar:
-                                #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
-                                #    xsize 600
-                                textbutton "[persistent.maica_advanced_setting.get('seed', 'None')] ":
-                                    action Show("maica_seed_input")
+                    if persistent.maica_advanced_setting_status.get("seed", False):
+                        #bar:
+                        #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
+                        #    xsize 600
+                        textbutton "[persistent.maica_advanced_setting.get('seed', 'None')] ":
+                            action Show("maica_seed_input")
+                else:
+                    textbutton "seed ":
+                        action NullAction()
+                        selected persistent.maica_advanced_setting_status.get('seed', False)
 
-                                # textbutton "+1000":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1000)
+                    textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
 
-                                # textbutton "+100":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 100)
-
-                                # textbutton "+25":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 25)
-
-                                # textbutton "+1":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] + 1)
-
-                                # textbutton "-1":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1)
-                                
-                                # textbutton "-25":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 25)
-                                
-                                # textbutton "-100":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 100)
-                                
-                                # textbutton "-1000":
-                                #     action SetDict(persistent.maica_advanced_setting, "seed", persistent.maica_advanced_setting["seed"] - 1000)
-
-                        else:
-                            textbutton "seed ":
-                                action NullAction()
-                                selected persistent.maica_advanced_setting_status.get('seed', False)
-
-                            textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
-
-                            textbutton _("!已启用最佳实践")
-
-
-                    hbox:
-                        text _("{size=-10}================偏好================")
-
-                    hbox:
-                        textbutton "tnd_aggressive":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
-                            hovered SetField(_tooltip, "value", _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        
-                        if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 3, step=1,offset=0 ,style="slider")
-                                xsize 100
-                            textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
-                    hbox:
-                        textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
-                            action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
-                                ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
-                            hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
-                            action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
-                                ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
-                            hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
-                            action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
-                                ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
-                            hovered SetField(_tooltip, "value", _("在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                            selected persistent.maica_advanced_setting_status.get('esc_aggressive')
-                        textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
-                            action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
-                                ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
-                            hovered SetField(_tooltip, "value", _("当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 比较明显地改善MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏\n* 当对话未使用MTrigger或仅有好感触发器, 此功能不会生效"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                            selected persistent.maica_advanced_setting_status.get('amt_aggressive')
-                    hbox:
-                        textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
-                            action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
-                                ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
-                            hovered SetField(_tooltip, "value", _("要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 在少数情况下造成意料之外的问题"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                            selected persistent.maica_advanced_setting_status.get('nsfw_acceptive')
-
-                    hbox:
-                        textbutton "pre_additive":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "pre_additive")
-                            hovered SetField(_tooltip, "value", _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        
-                        if persistent.maica_advanced_setting_status.get("pre_additive", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "pre_additive", 5, step=1,offset=0 ,style="slider")
-                                xsize 50
-                            textbutton "[persistent.maica_advanced_setting.get('pre_additive', 'None')]"
-
-                        textbutton "post_additive":
-                            action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
-                            hovered SetField(_tooltip, "value", _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                        
-                        if persistent.maica_advanced_setting_status.get("post_additive", False):
-                            bar:
-                                value DictValue(persistent.maica_advanced_setting, "post_additive", 5, step=1,offset=0 ,style="slider")
-                                xsize 50
-                            textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
-
-                    hbox:      
-                        textbutton _("选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
-                            action Show("maica_tz_setting")
-                            selected persistent.maica_advanced_setting_status.get('tz')
+                    textbutton _("!已启用最佳实践")
 
 
             hbox:
-                xpos 10
-                style_prefix "confirm"
-                textbutton _("保存设置"):
-                    action [
-                        Function(maica_apply_advanced_setting),
-                        Hide("maica_advance_setting")
-                    ]
-                textbutton _("重置设置"):
-                    action [
-                        Function(reset_to_default),
-                        Hide("maica_advance_setting")
-                    ]
+                text _("{size=-10}================偏好================")
+
+            hbox:
+                textbutton "tnd_aggressive":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
+                    hovered SetField(_tooltip, "value", _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                
+                if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 3, step=1,offset=0 ,style="slider")
+                        xsize 100
+                    textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
+            hbox:
+                textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
+                        ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
+                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
+                        ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
+                    hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
+                        ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
+                    hovered SetField(_tooltip, "value", _("在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('esc_aggressive')
+                textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
+                        ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
+                    hovered SetField(_tooltip, "value", _("当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 比较明显地改善MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏\n* 当对话未使用MTrigger或仅有好感触发器, 此功能不会生效"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('amt_aggressive')
+            hbox:
+                textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
+                        ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
+                    hovered SetField(_tooltip, "value", _("要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 在少数情况下造成意料之外的问题"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('nsfw_acceptive')
+
+            hbox:
+                textbutton "pre_additive":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "pre_additive")
+                    hovered SetField(_tooltip, "value", _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                
+                if persistent.maica_advanced_setting_status.get("pre_additive", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "pre_additive", 5, step=1,offset=0 ,style="slider")
+                        xsize 50
+                    textbutton "[persistent.maica_advanced_setting.get('pre_additive', 'None')]"
+
+                textbutton "post_additive":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
+                    hovered SetField(_tooltip, "value", _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                
+                if persistent.maica_advanced_setting_status.get("post_additive", False):
+                    bar:
+                        value DictValue(persistent.maica_advanced_setting, "post_additive", 5, step=1,offset=0 ,style="slider")
+                        xsize 50
+                    textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
+
+            hbox:      
+                textbutton _("选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
+                    action Show("maica_tz_setting")
+                    selected persistent.maica_advanced_setting_status.get('tz')
+
+
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("保存设置"):
+                action [
+                    Function(maica_apply_advanced_setting),
+                    Hide("maica_advance_setting")
+                ]
+            textbutton _("重置设置"):
+                action [
+                    Function(reset_to_default),
+                    Hide("maica_advance_setting")
+                ]
 
 
                 
@@ -497,14 +396,13 @@ screen maica_select_language():
     zorder 225
 
     use maica_setter_small_frame(ok_action=Hide("maica_select_language")):
+        style_prefix "generic_fancy_check"
         hbox:
-            style_prefix "generic_fancy_check"
-            hbox:
-                textbutton _("zh | 简体中文"):
-                    action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn)
-            hbox:
-                textbutton _("en | English"):
-                    action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.en)
+            textbutton _("zh | 简体中文"):
+                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn)
+        hbox:
+            textbutton _("en | English"):
+                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.en)
        
 
 default use_email = True
@@ -525,25 +423,31 @@ screen maica_login():
         hbox:
             if use_email:
                 textbutton _("输入DCC账号邮箱"):
+                    style "confirm_button"
                     action Show("maica_login_input",message = _("请输入DCC账号邮箱"),returnto = "_maica_LoginEmail")
             else:
                 textbutton _("输入DCC账号用户名"):
+                    style "confirm_button"
                     action Show("maica_login_input",message = _("请输入DCC账号用户名") ,returnto = "_maica_LoginAcc")
 
         hbox:
             style_prefix "maica_check"
             if use_email:
-                textbutton _("改为用户名登录"):
+                textbutton _("> 改为用户名登录"):
+                    text_size 15
                     action [ToggleVariable("use_email"), Function(_maica_clear)]
                     selected False
 
             else:
-                textbutton _("改为邮箱登录"):
+                textbutton _("> 改为邮箱登录"):
+                    ysize 20
+                    text_size 20
                     action [ToggleVariable("use_email"), Function(_maica_clear)]
                     selected False
 
         hbox:
             textbutton _("输入密码"):
+                style "confirm_button"
                 action Show("maica_login_input",message = _("请输入密码"),returnto = "_maica_LoginPw")
         hbox:
             text ""
@@ -558,9 +462,21 @@ screen maica_login():
         #     textbutton _("取消"):
         #         action [Function(_maica_clear), Hide("maica_login")]
         hbox:
-            text _("{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}")
+            style_prefix "small_expl"
+            text _("※ 使用MAICA Blessland, 即认为你同意 "):
+                size 15
+            textbutton "{u}MAICA服务条款{/u}":
+                action OpenURL("https://maica.monika.love/tos")
+                yalign 1.0
+                # text_size 15
         hbox:
-            text _("{size=-10}※ 还没有DCC账号? {a=https://forum.monika.love/signup}{i}{u}注册一个{/u}{/i}{/a}")
+            style_prefix "small_expl"
+            text _("※ 还没有DCC账号? "):
+                size 15
+            textbutton "{u}注册一个{/u}":
+                action OpenURL("https://maica.monika.love/tos")
+                yalign 1.0
+                # text_size 15
 
 
 
@@ -570,7 +486,7 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
     modal True
     zorder 225
 
-    use maica_setter_small_frame(message, ok_action)
+    use maica_setter_small_frame(message, ok_action):
         input default "" value VariableInputValue(returnto) length 64
 
 screen maica_mspire_input(addition = "", edittarget = None):
@@ -914,21 +830,23 @@ screen maica_triggers():
                     if hasattr(trigger, 'web_musicplayer_installed'):
                         text _("内置 | 更换背景音乐 "):
                             size 15
-                        text _("* 支持 "):
-                            yalign 1.0
-                            size 10
-                        textbutton "{u}Netease Music{/u}" style "small_link" action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas"):
-                            yalign 1.0
-                            text_size 10
-                        text _(" 和 "):
-                            yalign 1.0
-                            size 10
-                        textbutton "{u}Youtube Music{/u}" style "small_link" action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic"):
-                            yalign 1.0
-                            text_size 10
-                        text _(" 子模组"):
-                            yalign 1.0
-                            size 10
+                        hbox:
+                            style_prefix "small_expl_hw"
+                            text _("* 支持 "):
+                                yalign 1.0
+                                size 15
+                            textbutton "{u}Netease Music{/u}":
+                                action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas")
+                                yalign 1.0
+                            text _(" 和 "):
+                                yalign 1.0
+                                size 15
+                            textbutton "{u}Youtube Music{/u}":
+                                action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic")
+                                yalign 1.0
+                            text _(" 子模组"):
+                                yalign 1.0
+                                size 15
 
                     else:
                         text trigger.description:
@@ -937,16 +855,17 @@ screen maica_triggers():
                 
                 
                 hbox:
-                    if maica_triggers.trigger_status(trigger.name):
-                        textbutton _("已启用"):
-                            action Function(maica_triggers.disable_trigger, trigger.name)
-                            selected maica_triggers.trigger_status(trigger.name)
+                    if trigger.condition():
+                        if maica_triggers.trigger_status(trigger.name):
+                            textbutton _("已启用"):
+                                action Function(maica_triggers.disable_trigger, trigger.name)
+                                selected maica_triggers.trigger_status(trigger.name)
+                        else:
+                            textbutton _("已禁用"):
+                                action Function(maica_triggers.enable_trigger, trigger.name)
+                                selected maica_triggers.trigger_status(trigger.name)
+                        
                     else:
-                        textbutton _("已禁用"):
-                            action Function(maica_triggers.enable_trigger, trigger.name)
-                            selected maica_triggers.trigger_status(trigger.name)
-                    
-                    if not trigger.condition():
                         if maica_triggers.trigger_status(trigger.name):
                             textbutton _("当前不满足触发条件"):
                                 style "generic_fancy_check_button_disabled"

@@ -319,7 +319,7 @@ init 10 python:
         persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
         store.maica.maica.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
-        renpy.notify(_("MAICA: 已撤销设置修改"))
+        renpy.notify(_("MAICA: 已放弃设置修改"))
 
     
     def maica_apply_advanced_setting():
@@ -520,7 +520,9 @@ screen maica_setting_pane():
                     style "main_menu_version_l"
 
         if not maica.maica.is_accessable():
-            textbutton _("> 使用账号生成令牌")  
+            textbutton _("> 使用账号生成令牌"):
+                action Show("maica_login")
+            
         elif not maica.maica.is_connected():
             textbutton _("> 使用账号生成令牌"):
                 action Show("maica_login")
