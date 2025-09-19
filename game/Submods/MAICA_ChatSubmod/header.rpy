@@ -493,8 +493,7 @@ screen divider_small(message):
             text "  "
             add "bar2"
 
-screen maica_setting_pane():
-
+screen intro_tooltip():
     python:
         submods_screen = store.renpy.get_screen("submods", "screens")
 
@@ -502,6 +501,9 @@ screen maica_setting_pane():
             store._tooltip = submods_screen.scope.get("tooltip", None)
         else:
             store._tooltip = None
+
+
+screen maica_setting_pane():
 
     python:
         import store.maica as maica
@@ -515,6 +517,7 @@ screen maica_setting_pane():
         xfill True
         style_prefix "check"
 
+        use intro_tooltip()
         timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
         vbox:
             xpos 400

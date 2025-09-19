@@ -19,6 +19,7 @@ init 999:
         text_align 0.0
 
     style main_menu_version_dark:
+        color "#e4c0cf"
         text_align 0.0
 
     style generic_fancy_check_button_disabled:
