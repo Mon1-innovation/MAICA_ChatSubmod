@@ -672,10 +672,10 @@ screen maica_addition_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("删除选择内容"):
-                action [Function(delete_seleted), Function(build_dict)]
+                action [Function(delete_seleted), SetField(persistent ,"selectbool", None)]
 
             textbutton _("添加内容"):
-                action [Show("maica_addition_input")]
+                action [Show("maica_addition_input"),SetField(persistent ,"selectbool", None)]
             
             textbutton _("关闭"):
                 action [Function(maica_addition_setting_close), Hide("maica_addition_setting")]
@@ -2472,6 +2472,7 @@ screen maica_addition_input(addition = ""):
 
                 textbutton _("OK") action [
                     Function(apply),
+                    SetField(persistent ,"selectbool", None),
                     Hide("maica_addition_input")
                 ]
 
