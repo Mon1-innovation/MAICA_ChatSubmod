@@ -668,8 +668,12 @@ screen maica_addition_setting():
                 xfill True
                 yfill False
                 for item in persistent.selectbool:
-                    textbutton item:
-                        action ToggleDict(persistent.selectbool, item)
+                    hbox:
+                        textbutton item:
+                            action ToggleDict(persistent.selectbool, item)
+                    
+                        textbutton "<编辑>":
+                            action [Show("maica_addition_input", addition = item, edittarget = item),SetField(persistent ,"selectbool", None)]
         
         hbox:
             xpos 10
@@ -2438,13 +2442,17 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
 
                 textbutton _("OK") action ok_action
 
-screen maica_addition_input(addition = ""):
+screen maica_addition_input(addition = "", edittarget = None):
     python:
         if persistent._mas_player_addition == None:
             persistent._mas_player_addition = ""
-        def apply():
-            addition = "[player]" + persistent._mas_player_addition
+        def apply(edittarget):
+            addition = ("[player]" if "[player]" not in persistent._mas_player_addition else "") + persistent._mas_player_addition
+            if persistent.mas_player_additions == "":
+                return
             persistent.mas_player_additions.append(addition)
+            if edittarget:
+                persistent.mas_player_additions[persistent.mas_player_additions.index(edittarget)] = addition
             del persistent._mas_player_addition
             
         
@@ -2474,10 +2482,13 @@ screen maica_addition_input(addition = ""):
                 spacing 100
 
                 textbutton _("OK") action [
-                    Function(apply),
+                    Function(apply, edittarget),
                     SetField(persistent ,"selectbool", None),
                     Hide("maica_addition_input")
                 ]
+
+                textbutton _("取消"):
+                    action [SetField(persistent ,"selectbool", None), Hide("maica_addition_input")]
 
 
 screen maica_seed_input():
