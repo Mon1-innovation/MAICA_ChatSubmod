@@ -613,6 +613,73 @@ screen maica_setting_pane():
         if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "donation")):
             textbutton _("> 向 MAICA 捐赠"):
                 action Show("maica_support")
+screen maica_addition_setting():
+    $ _tooltip = store._tooltip
+    python:
+        isinit = False
+        if persistent.selectbool == None:
+            persistent.selectbool = {}
+            isinit = True
+        def build_dict():
+            for item in persistent.mas_player_additions:
+                persistent.selectbool[item] = False
+
+        if isinit:
+            build_dict()
+        def delete_seleted():
+            global persistent
+            import copy
+            res = copy.deepcopy(persistent.mas_player_additions)
+            for item in res:
+                if persistent.selectbool[item]:
+                    persistent.mas_player_additions.remove(item)
+        
+        def maica_addition_setting_close():
+            persistent.selectbool = None
+
+
+    modal True
+    zorder 215
+    
+    frame:
+        xalign 0.5
+        yalign 0.24
+        has vbox:
+            xmaximum 1000
+            spacing 5
+        viewport:
+            id "viewport"
+            scrollbars "vertical"
+            ymaximum 500
+            xmaximum 1000
+            xfill True
+            yfill True
+            mousewheel True
+            draggable True
+            has hbox
+            style_prefix "generic_fancy_check"
+            vbox:
+                xsize 30
+            vbox:
+                xmaximum 1000
+                xfill True
+                yfill False
+                for item in persistent.selectbool:
+                    textbutton item:
+                        action ToggleDict(persistent.selectbool, item)
+        
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            textbutton _("删除选择内容"):
+                action [Function(delete_seleted), Function(build_dict)]
+
+            textbutton _("添加内容"):
+                action [Show("maica_addition_input")]
+            
+            textbutton _("关闭"):
+                action [Function(maica_addition_setting_close), Hide("maica_addition_setting")]
+
 
 screen maica_node_setting():
     $ _tooltip = store._tooltip
@@ -2036,11 +2103,12 @@ screen maica_setting():
                         hbox:
                             style_prefix "maica_check"
                             textbutton _("编辑MFocus信息"):
-                                action [
-                                                Hide("maica_setting"),
-                                                Function(store.maica_apply_setting),
-                                                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
-                                                ]
+                                #action [
+                                #                Hide("maica_setting"),
+                                #                Function(store.maica_apply_setting),
+                                #                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
+                                #                ]
+                                action Show("maica_addition_setting")
                                 hovered SetField(_tooltip, "value", tooltip_mf_info)
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
@@ -2366,6 +2434,46 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
                 spacing 100
 
                 textbutton _("OK") action ok_action
+
+screen maica_addition_input(addition = ""):
+    python:
+        if persistent._mas_player_addition == None:
+            persistent._mas_player_addition = ""
+        def apply():
+            addition = "[player]" + persistent._mas_player_addition
+            persistent.mas_player_additions.append(addition)
+            del persistent._mas_player_addition
+            
+        
+    modal True
+    zorder 225
+
+    style_prefix "confirm"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        vbox:
+            ymaximum 300
+            xmaximum 800
+            xfill True
+            yfill False
+            spacing 5
+
+            label _("请输入额外信息"):
+                style "confirm_prompt"
+                xalign 0.5
+            hbox:
+                input default addition value FieldInputValue(persistent, "_mas_player_addition")
+
+            hbox:
+                xalign 0.5
+                spacing 100
+
+                textbutton _("OK") action [
+                    Function(apply),
+                    Hide("maica_addition_input")
+                ]
 
 
 screen maica_seed_input():
