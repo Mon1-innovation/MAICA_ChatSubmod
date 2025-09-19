@@ -2173,16 +2173,16 @@ screen maica_setting():
                                 hovered SetField(_tooltip, "value", tooltip_mf_info)
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        hbox:
-                            style_prefix "maica_check"
-                            textbutton _("添加MFocus信息"):
-                                action [
-                                                Hide("maica_setting"),
-                                                Function(store.maica_apply_setting),
-                                                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
-                                                ]
-                                hovered SetField(_tooltip, "value", tooltip_mf_info)
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                        #hbox:
+                        #    style_prefix "maica_check"
+                        #    textbutton _("添加MFocus信息"):
+                        #        action [
+                        #                        Hide("maica_setting"),
+                        #                        Function(store.maica_apply_setting),
+                        #                        Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
+                        #                        ]
+                        #        hovered SetField(_tooltip, "value", tooltip_mf_info)
+                        #        unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         hbox:
                             style_prefix "maica_check"
@@ -2196,12 +2196,12 @@ screen maica_setting():
                                 hovered SetField(_tooltip, "value", tooltip_mf_info)
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        hbox:
-                            style_prefix "maica_check"
-                            textbutton _("清除MFocus信息"):
-                                action Function(reset_player_information)
-                                hovered SetField(_tooltip, "value", tooltip_mf_info)
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                        #hbox:
+                        #    style_prefix "maica_check"
+                        #    textbutton _("清除MFocus信息"):
+                        #        action Function(reset_player_information)
+                        #        hovered SetField(_tooltip, "value", tooltip_mf_info)
+                        #        unhovered SetField(_tooltip, "value", _tooltip.default)
 
                         hbox:
                             style_prefix "maica_check"
