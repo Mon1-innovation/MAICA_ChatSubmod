@@ -251,6 +251,7 @@ init 10 python:
             persistent.maica_setting_dict["mspire_interval"] = 10
 
     def maica_apply_setting(ininit=False):
+        import copy
         run_migrations()
             
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
@@ -278,7 +279,7 @@ init 10 python:
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
-        store.persistent.maica_mtrigger_status = store.maica.maica.mtrigger_manager.output_settings()
+        store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica.mtrigger_manager.output_settings())
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
             store.maica.maica.MoodStatus.emote_translate = {}
@@ -291,11 +292,16 @@ init 10 python:
             
     def maica_discard_setting():
         persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica.auto_reconnect 
-        maica_discard_advanced_setting()
-        if persistent.maica_advanced_setting_status.get('seed') == False and persistent.maica_advanced_setting.get('seed') == 42 and store.maica.maica.modelconfig.get('seed') == 42:
+
+        # 没开42 但是相关设置改变了 证明之前开了42
+        if not persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica.modelconfig):
+            persistent.maica_setting_dict["42seed"] = True
+        # 正常情况
+        elif persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica.modelconfig):
             persistent.maica_setting_dict["42seed"] = True
         else:
             persistent.maica_setting_dict["42seed"] = False
+        maica_discard_advanced_setting()
         persistent.maica_setting_dict["sf_extraction"] = store.maica.maica.sf_extraction
         persistent.maica_setting_dict["chat_session"] = store.maica.maica.chat_session
         persistent.maica_setting_dict['enable_mf'] = store.maica.maica.enable_mf
@@ -311,8 +317,7 @@ init 10 python:
         persistent.maica_setting_dict["provider_id"] = store.maica.maica.provider_id
         persistent.maica_setting_dict["max_history_token"] = store.maica.maica.max_history_token
         persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
-        store.maica.maica.mtrigger_manager.__init__()
-        store.maica.maica.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
+        store.maica.maica.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
         renpy.notify(_("MAICA: 已撤销设置修改"))
 
