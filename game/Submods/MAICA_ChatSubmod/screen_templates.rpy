@@ -78,6 +78,11 @@ init -1:
 
     screen sub_button(tooltip, var, min, max, sdict):
         $ _tooltip = store._tooltip
+        python:
+            if isinstance(max, float):
+                isfloat = True
+            else:
+                isfloat = False
         hbox:
             style_prefix "addsub_fancy_check"
             textbutton "-":
@@ -87,6 +92,11 @@ init -1:
 
     screen add_button(tooltip, var, min, max, sdict):
         $ _tooltip = store._tooltip
+        python:
+            if isinstance(max, float):
+                isfloat = True
+            else:
+                isfloat = False
         hbox:
             style_prefix "addsub_fancy_check"
             textbutton "+":
@@ -98,6 +108,10 @@ init -1:
         $ _tooltip = store._tooltip
         python:
             s_dict = getattr(persistent, sdict)
+            if isinstance(max, float):
+                isfloat = True
+            else:
+                isfloat = False
             if not istime:
                 disp_v = str(s_dict[var])
             elif istime == "m":
@@ -105,12 +119,13 @@ init -1:
             else:
                 disp_v = str(int(s_dict[var] / 60)) + "m" + str(int(s_dict[var] % 60)) + "s"
         hbox:
-            hbox:
-                style_prefix "maica_check"
-                textbutton "{}: ".format(expl):
-                    action Show("maica_common_setter", expl=expl, var=var, min=min, max=max, sdict=sdict)
-                    hovered SetField(_tooltip, "value", tooltip)
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
+            if sdict == "maica_setting_dict":
+                hbox:
+                    style_prefix "maica_check"
+                    textbutton "{}: ".format(expl):
+                        action Show("maica_common_setter", expl=expl, var=var, min=min, max=max, sdict=sdict)
+                        hovered SetField(_tooltip, "value", tooltip)
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
 
             use sub_button(tooltip, var, min, max, sdict)
 
@@ -119,7 +134,7 @@ init -1:
                 bar:
                     xpos 20
                     yoffset 10
-                    value DictValue(s_dict, var, (max - min), step=10, offset=min ,style="slider")
+                    value DictValue(s_dict, var, (max - min), step=10 if not isfloat else 0.01, offset=min ,style="slider")
                     xsize (len - 100)
                     hovered SetField(_tooltip, "value", tooltip)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -135,15 +150,16 @@ init -1:
             use add_button(tooltip, var, min, max, sdict)
 
     screen num_bar(expl, len, tooltip, var, min, max, sdict="maica_setting_dict"):
-
         $ _tooltip = store._tooltip
+        python:
+            s_dict = getattr(persistent, sdict)
         hbox:
             use sub_button(tooltip, var, min, max, sdict)
 
             hbox:
                 xsize len
                 style_prefix "maica_check"
-                textbutton (expl + ": " + str(persistent.maica_setting_dict[var])):
+                textbutton (expl + ": " + str(s_dict[var])):
                     xalign 0.5
                     action Show("maica_common_setter", expl=expl, var=var, min=min, max=max, sdict=sdict)
                     hovered SetField(_tooltip, "value", tooltip)
@@ -169,7 +185,7 @@ init -1:
                 isfloat = True
             else:
                 isfloat = False
-            def apply_var(var, min, max, isfloat):
+            def apply_var(var, min, max, isfloat, s_dict):
                 str_var = '_' + var
                 if s_dict[str_var] == "":
                     renpy.hide_screen("maica_common_setter")
@@ -196,7 +212,7 @@ init -1:
 
         style_prefix "confirm"
 
-        use maica_setter_small_frame(title=_("请输入[expl]([min]~[max][minutes]):"), ok_action=Function(apply_var, var, min, max, isfloat), cancel_action=Hide("maica_common_setter")):
+        use maica_setter_small_frame(title=_("请输入{}({}~{}{}):".format(expl, min, max, minutes)), ok_action=Function(apply_var, var, min, max, isfloat, s_dict), cancel_action=Hide("maica_common_setter")):
             hbox:
                 input:
                     default str(s_dict[str_var])

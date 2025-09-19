@@ -116,6 +116,10 @@ style maica_check_button_text_dark is generic_fancy_check_button_text_dark:
     hover_color "#FFAA99"
     selected_color "#BFBFBF"
 
+style maica_check_text is maica_check_nohover_text
+
+style maica_check_text_dark is maica_check_nohover_text_dark
+
 
 
 

@@ -205,6 +205,7 @@ screen maica_advance_setting():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
             hbox:
+                style_prefix "maica_check"
                 text _("关于这些参数的详细解释, 参见 ")
                 textbutton _("{u}MAICA 官方文档{/u}"):
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt")
@@ -218,119 +219,106 @@ screen maica_advance_setting():
                     text _("{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!")
 
             use divider_small(_("超参数"))
+            $ sdict = "maica_advanced_setting"
 
             hbox:
+                spacing 5
                 textbutton "top_p":
                     action ToggleDict(persistent.maica_advanced_setting_status, "top_p")
                     hovered SetField(_tooltip, "value", _("token权重过滤范围. 非常不建议动这个"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 
                 if persistent.maica_advanced_setting_status.get("top_p", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "top_p", 0.9, step=0.01,offset=0.1 ,style="slider")
-                        xsize 200
-                    
-                    textbutton "[persistent.maica_advanced_setting.get('top_p', 'None')]"
+                    use prog_bar("top_p", 250, _("token权重过滤范围. 非常不建议动这个"), "top_p", 0.1, 1.0, sdict=sdict)
 
             hbox:
+                spacing 5
                 textbutton "temperature":
                     action ToggleDict(persistent.maica_advanced_setting_status, "temperature")
                     hovered SetField(_tooltip, "value", _("token选择的随机程度. 数值越高, 模型输出会越偏离普遍最佳情况"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("temperature", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "temperature", 1.0, step=0.01,offset=0 ,style="slider")
-                        xsize 200
-                    textbutton "[persistent.maica_advanced_setting.get('temperature', 'None')]"
-            
+                    use prog_bar("temperature", 250, _("token选择的随机程度. 数值越高, 模型输出会越偏离普遍最佳情况"), "temperature", 0.0, 1.0, sdict=sdict)
+
             hbox:
+                spacing 5
                 textbutton "max_tokens":
                     action ToggleDict(persistent.maica_advanced_setting_status, "max_tokens")
                     hovered SetField(_tooltip, "value", _("模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 if persistent.maica_advanced_setting_status.get("max_tokens", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "max_tokens", 2048, step=1,offset=0 ,style="slider")
-                        xsize 200
-                    textbutton "[persistent.maica_advanced_setting.get('max_tokens', 'None')]"
-            
+                    use prog_bar("max_tokens", 250, _("模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"), "max_tokens", 1, 2048, sdict=sdict)
+
             hbox:
+                spacing 5
                 textbutton "frequency_penalty":
                     action ToggleDict(persistent.maica_advanced_setting_status, "frequency_penalty")
                     hovered SetField(_tooltip, "value", _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                
                 if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "frequency_penalty", 1.0, step=0.01,offset=0 ,style="slider")
-                        xsize 200
-                    textbutton "[persistent.maica_advanced_setting.get('frequency_penalty', 'None')]"
-            
+                    use prog_bar("max_tokens", 250, _("模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"), "max_tokens", 1, 2048, sdict=sdict)
+
             hbox:
+                spacing 5
                 textbutton "presence_penalty":
                     action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
                     hovered SetField(_tooltip, "value", _("token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                
                 if persistent.maica_advanced_setting_status.get("presence_penalty", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "presence_penalty", 1.0, step=0.01,offset=0 ,style="slider")
-                        xsize 200
-                    textbutton "[persistent.maica_advanced_setting.get('presence_penalty', 'None')]"
+                    use prog_bar("frequency_penalty", 250, _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"), "frequency_penalty", 0.0, 1.0, sdict=sdict)
 
             hbox:
+                spacing 5
                 if not persistent.maica_setting_dict.get('42seed'):
                     textbutton "seed":
                         action ToggleDict(persistent.maica_advanced_setting_status, "seed")
-                    
+                        hovered SetField(_tooltip, "value", _("生成种子. 一般而言影响很小且随机"))
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
                     if persistent.maica_advanced_setting_status.get("seed", False):
-                        #bar:
-                        #    value DictValue(persistent.maica_advanced_setting, "seed", 998, step=1,offset=1 ,style="slider")
-                        #    xsize 600
-                        textbutton "[persistent.maica_advanced_setting.get('seed', 'None')] ":
-                            action Show("maica_seed_input")
+                        use num_bar("seed", 200, _("生成种子. 一般而言影响很小且随机"), "seed", -2147483648, 2147483647, sdict=sdict)
                 else:
                     textbutton "seed ":
                         action NullAction()
+                        hovered SetField(_tooltip, "value", _("! 最佳实践已启用, 种子锁定为42"))
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
                         selected persistent.maica_advanced_setting_status.get('seed', False)
 
-                    textbutton "[persistent.maica_advanced_setting.get('seed', 'None')]"
-
-                    textbutton _("!已启用最佳实践")
-
+            use divider_small(_("高级设置"))
 
             hbox:
-                text _("{size=-10}================偏好================")
-
-            hbox:
+                spacing 5
                 textbutton "tnd_aggressive":
                     action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
                     hovered SetField(_tooltip, "value", _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                
                 if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "tnd_aggressive", 3, step=1,offset=0 ,style="slider")
-                        xsize 100
-                    textbutton "[persistent.maica_advanced_setting.get('tnd_aggressive', 'None')]"
+                    use num_bar("tnd_aggressive", 200, _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"), "tnd_aggressive", 0, 3, sdict=sdict)
+
             hbox:
+                spacing 5
                 textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
                     hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+            hbox:
+                spacing 5
                 textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
                     hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+            hbox:
+                spacing 5
                 textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
                     hovered SetField(_tooltip, "value", _("在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('esc_aggressive')
+            hbox:
+                spacing 5
                 textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
@@ -338,6 +326,7 @@ screen maica_advance_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('amt_aggressive')
             hbox:
+                spacing 5
                 textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
                         ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
@@ -346,30 +335,26 @@ screen maica_advance_setting():
                     selected persistent.maica_advanced_setting_status.get('nsfw_acceptive')
 
             hbox:
+                spacing 5
                 textbutton "pre_additive":
                     action ToggleDict(persistent.maica_advanced_setting_status, "pre_additive")
                     hovered SetField(_tooltip, "value", _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                
                 if persistent.maica_advanced_setting_status.get("pre_additive", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "pre_additive", 5, step=1,offset=0 ,style="slider")
-                        xsize 50
-                    textbutton "[persistent.maica_advanced_setting.get('pre_additive', 'None')]"
+                    use num_bar("pre_additive", 200, _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"), "pre_additive", 0, 5, sdict=sdict)
 
+            hbox:
+                spacing 5
                 textbutton "post_additive":
                     action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
                     hovered SetField(_tooltip, "value", _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                
                 if persistent.maica_advanced_setting_status.get("post_additive", False):
-                    bar:
-                        value DictValue(persistent.maica_advanced_setting, "post_additive", 5, step=1,offset=0 ,style="slider")
-                        xsize 50
-                    textbutton "[persistent.maica_advanced_setting.get('post_additive', 'None')]"
+                    use num_bar("post_additive", 200, _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"), "post_additive", 0, 5, sdict=sdict)
 
-            hbox:      
-                textbutton _("选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
+            hbox:
+                spacing 5
+                textbutton _("时区设置: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
                     action Show("maica_tz_setting")
                     selected persistent.maica_advanced_setting_status.get('tz')
 
