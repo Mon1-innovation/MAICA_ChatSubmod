@@ -343,7 +343,7 @@ init 10 python:
             persistent.maica_advanced_setting_status[k] = k in store.maica.maica.modelconfig
             if k in store.maica.maica.modelconfig:
                 persistent.maica_advanced_setting[k] = store.maica.maica.modelconfig[k]
-            else:
+            elif k in store.maica.maica.default_setting:
                 persistent.maica_advanced_setting[k] = store.maica.maica.default_setting[k]
 
     def common_can_add(var, min, max, sdict):
