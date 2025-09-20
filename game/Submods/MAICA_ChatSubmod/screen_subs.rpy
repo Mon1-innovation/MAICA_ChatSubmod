@@ -519,53 +519,6 @@ screen maica_mspire_input(addition="", edittarget=None):
         hbox:
             input default addition value FieldInputValue(persistent, "_mas_player_addition")
 
-screen maica_seed_input():
-    python:
-        if "_seed" not in persistent.maica_advanced_setting:
-            persistent.maica_advanced_setting["_seed"] = str(persistent.maica_advanced_setting["seed"])
-        def apply_seed():
-            if persistent.maica_advanced_setting['_seed'] == "":
-                persistent.maica_advanced_setting['_seed'] = '0'
-            seed = int(persistent.maica_advanced_setting['_seed'])
-            if seed > 2147483647:
-                seed = 2147483647
-            elif seed < -2147483648:
-                seed = -2147483648
-            persistent.maica_advanced_setting['seed'] = seed
-            del persistent.maica_advanced_setting["_seed"]
-                
-    #seed输入
-    ## Ensure other screens do not get input while this screen is displayed.s
-    modal True
-    zorder 225
-
-    style_prefix "confirm"
-
-    frame:
-        xalign 0.5
-        yalign 0.5
-        vbox:
-            ymaximum 300
-            xmaximum 800
-            xfill True
-            yfill False
-            spacing 5
-
-            label _("请输入种子"):
-                style "confirm_prompt"
-                xalign 0.5
-            hbox:
-                input default str(persistent.maica_advanced_setting['_seed']) value DictInputValue(persistent.maica_advanced_setting, "_seed") allow "-0123456789"
-
-            hbox:
-                xalign 0.5
-                spacing 100
-
-                textbutton _("OK") action [
-                    Function(apply_seed),
-                    Hide("maica_seed_input")
-                ]
-
 
 screen maica_addition_setting():
     $ _tooltip = store._tooltip
@@ -584,7 +537,7 @@ screen maica_addition_setting():
             build_dict()
         def delete_seleted():
             global persistent
-            persistent.mas_player_additions = {k: v for k, v in iterize(persistent.mas_player_additions) if not persistent.selectbool[k]}
+            persistent.mas_player_additions = [i for i in persistent.mas_player_additions if not persistent.selectbool[i]]
 
         def selected_one():
             global persistent
@@ -650,7 +603,7 @@ screen maica_mspire_category_setting():
             build_dict()
         def delete_seleted():
             global persistent
-            persistent.mas_player_additions = {k: v for k, v in iterize(persistent.maica_setting_dict["mspire_category"]) if not persistent.selectbool[k]}
+            persistent.maica_setting_dict["mspire_category"] = [i for i in persistent.maica_setting_dict["mspire_category"] if not persistent.selectbool[i]]
 
         def selected_one():
             global persistent
