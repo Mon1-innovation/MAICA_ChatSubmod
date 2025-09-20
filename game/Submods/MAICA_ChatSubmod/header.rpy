@@ -340,11 +340,9 @@ init 10 python:
     def maica_discard_advanced_setting():
         settings_dict = {}
         for k, v in persistent.maica_advanced_setting_status.items():
-            persistent.maica_advanced_setting_status[k] = False
-        for k, v in store.maica.maica.modelconfig.items():
-            settings_dict[k] = store.maica.maica.modelconfig[k]
-        persistent.maica_advanced_setting_status.update(settings_dict)
-
+            persistent.maica_advanced_setting_status[k] = k in store.maica.maica.modelconfig
+            if k in store.maica.maica.modelconfig:
+                persistent.maica_advanced_setting[k] = store.maica.maica.modelconfig[k]
 
     def common_can_add(var, min, max, sdict):
         if isinstance(max, float):

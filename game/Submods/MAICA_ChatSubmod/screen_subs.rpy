@@ -302,6 +302,7 @@ screen maica_advance_setting():
                         ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
                     hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('mf_aggressive')
             hbox:
                 spacing 5
                 textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
@@ -309,6 +310,7 @@ screen maica_advance_setting():
                         ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
                     hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('sfe_aggressive')
             hbox:
                 spacing 5
                 textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
@@ -364,7 +366,6 @@ screen maica_advance_setting():
             style_prefix "confirm"
             textbutton _("保存设置"):
                 action [
-                    Function(maica_apply_advanced_setting),
                     Hide("maica_advance_setting")
                 ]
             textbutton _("重置设置"):
