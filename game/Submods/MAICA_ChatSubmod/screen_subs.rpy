@@ -257,7 +257,7 @@ screen maica_advance_setting():
                     hovered SetField(_tooltip, "value", _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
-                    use prog_bar("max_tokens", 250, _("模型一轮生成的token数限制. 一般而言不会影响表现, 只会截断超长的部分"), "max_tokens", 1, 2048, sdict=sdict)
+                    use prog_bar("frequency_penalty", 250, _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"), "frequency_penalty", 0.0, 1.0, sdict=sdict)
 
             hbox:
                 spacing 5
