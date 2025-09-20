@@ -266,7 +266,7 @@ screen maica_advance_setting():
                     hovered SetField(_tooltip, "value", _("token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("presence_penalty", False):
-                    use prog_bar("frequency_penalty", 250, _("token频率惩罚. 数值越高, 反复出现的token越不可能继续出现, 一般会产生更短且更延拓的结果"), "frequency_penalty", 0.0, 1.0, sdict=sdict)
+                    use prog_bar("presence_penalty", 250, _("token重现惩罚. 数值越高, 出现过的token越不可能再次出现, 一般会产生更跳跃的结果"), "presence_penalty", 0.0, 1.0, sdict=sdict)
 
             hbox:
                 spacing 5
