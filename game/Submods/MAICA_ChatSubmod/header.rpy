@@ -613,6 +613,14 @@ screen maica_setting():
         else:
             store._tooltip = None
 
+        def reset_adv_to_default():
+            for item in store.maica.maica.default_setting:
+                if item == 'seed':
+                    store.maica.maica.default_setting[item] = 0
+                if item in persistent.maica_advanced_setting:
+                    persistent.maica_advanced_setting[item] = store.maica.maica.default_setting[item]
+                    persistent.maica_advanced_setting_status[item] = False
+
     $ _tooltip = store._tooltip
 
     $ w = 1100
@@ -1011,6 +1019,7 @@ screen maica_setting():
                         ]
             textbutton _("重置设置"):
                 action [
+                        Function(reset_adv_to_default),
                         Function(store.maica_reset_setting),
                         Function(store.maica_apply_setting, ininit = True),
                         Function(renpy.notify, _("MAICA: 设置已重置")),
