@@ -574,6 +574,7 @@ screen maica_addition_setting():
             persistent.selectbool = {}
             isinit = True
         def build_dict():
+            persistent.selectbool = {}
             global persistent
             for item in persistent.mas_player_additions:
                 persistent.selectbool[item] = False
@@ -606,7 +607,7 @@ screen maica_addition_setting():
 
     modal True
     zorder 216
-    
+    timer 0.01 repeat False action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
@@ -639,6 +640,7 @@ screen maica_mspire_category_setting():
             persistent.selectbool = {}
             isinit = True
         def build_dict():
+            persistent.selectbool = {}
             global persistent
             for item in persistent.maica_setting_dict["mspire_category"]:
                 persistent.selectbool[item] = False
@@ -671,7 +673,7 @@ screen maica_mspire_category_setting():
 
     modal True
     zorder 216
-
+    timer 0.01 repeat False action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
