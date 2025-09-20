@@ -331,7 +331,31 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
         self.__ws_cookie = ""
         self.enable_strict_mode = False
-        self.default_setting = {}
+        self.default_setting = {
+            "amt_aggressive": True,
+            "deformation": False,
+            "enable_mf": True,
+            "enable_mt": True,
+            "esc_aggressive": True,
+            "frequency_penalty": 0.44,
+            "max_length": 8192,
+            "max_tokens": 1600,
+            "mf_aggressive": False,
+            "mt_extraction": True,
+            "nsfw_acceptive": True,
+            "post_additive": 1,
+            "pre_additive": 0,
+            "presence_penalty": 0.34,
+            "seed": None,
+            "sf_extraction": True,
+            "sfe_aggressive": False,
+            "stream_output": True,
+            "target_lang": "zh",
+            "temperature": 0.22,
+            "tnd_aggressive": 1,
+            "top_p": 0.7,
+            "tz": None
+        }
         self.workload_raw = {
             "None":{
                 "0": {
@@ -1294,9 +1318,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
         
         if self.__accessable:
-            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "defaults").json()["content"]
-            if type(res) == dict:
-                self.default_setting = res
+            try:
+                res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "defaults").json()["content"]
+                if type(res) == dict:
+                    self.default_setting.update(res)
+            except Exception as e:
+                logger.error("accessable(): Maica get default setting error: {}".format(e))
         
 
 
