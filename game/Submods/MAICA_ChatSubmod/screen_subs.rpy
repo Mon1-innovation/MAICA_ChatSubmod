@@ -748,7 +748,7 @@ screen maica_node_setting():
             textbutton _("关闭"):
                 action Hide("maica_node_setting")
             
-            textbutton _("测试当前节点可用性"):
+            textbutton _("测试[MaicaProviderManager.get_server_by_id(store.maica.maica.provider_id).get('name')]节点可用性"):
                 action Function(store.maica.maica.accessable)
                         
 screen maica_mspire_setting():
