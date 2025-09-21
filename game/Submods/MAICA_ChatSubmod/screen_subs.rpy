@@ -662,13 +662,14 @@ screen maica_node_setting():
         use maica_common_inner_frame():
 
             for provider in MaicaProviderManager.servers:
-                text str(provider.get('id')) + ' | ' + provider.get('name')
-                
+                use maica_l2_subframe():
+                    text str(provider.get('id')) + ' | ' + provider.get('name')
+                    
 
-                hbox:
-                    text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
-                hbox:
-                    text renpy.substitute(_("当前模型: ")) + provider.get('servingModel', 'No model provided')
+                    hbox:
+                        text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
+                    hbox:
+                        text renpy.substitute(_("当前模型: ")) + provider.get('servingModel', 'No model provided')
 
 
                 hbox:
@@ -769,69 +770,70 @@ screen maica_triggers():
                     size 15
 
             for trigger in maica_triggers.triggers:
-                label trigger.name
-                if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
-                    hbox:
-                        text _("空间占用: -"):
-                            size 15
-                elif trigger.method == 0:
-                    hbox:
-                        text _("空间占用: request"):
-                            size 15
-                        text str(len(trigger)):
-                            size 15
-                elif trigger.method == 1:
-                    hbox:
-                        text _("空间占用: table"):
-                            size 15
-                        text str(len(trigger)):
-                            size 15
-
-                hbox:
-                    if hasattr(trigger, 'web_musicplayer_installed'):
-                        text _("内置 | 更换背景音乐 "):
-                            size 15
+                use maica_l2_subframe():
+                    label trigger.name
+                    if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
                         hbox:
-                            style_prefix "small_expl_hw"
-                            text _("* 支持 "):
+                            text _("空间占用: -"):
                                 size 15
-                            textbutton "{u}Netease Music{/u}":
-                                action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas")
-                            text _(" 和 "):
+                    elif trigger.method == 0:
+                        hbox:
+                            text _("空间占用: request"):
                                 size 15
-                            textbutton "{u}Youtube Music{/u}":
-                                action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic")
-                            text _(" 子模组"):
+                            text str(len(trigger)):
+                                size 15
+                    elif trigger.method == 1:
+                        hbox:
+                            text _("空间占用: table"):
+                                size 15
+                            text str(len(trigger)):
                                 size 15
 
-                    else:
-                        text trigger.description:
-                            size 15
-                
-                
-                
-                hbox:
-                    if trigger.condition():
-                        if maica_triggers.trigger_status(trigger.name):
-                            textbutton _("已启用"):
-                                action Function(maica_triggers.disable_trigger, trigger.name)
-                                selected maica_triggers.trigger_status(trigger.name)
+                    hbox:
+                        if hasattr(trigger, 'web_musicplayer_installed'):
+                            text _("内置 | 更换背景音乐 "):
+                                size 15
+                            hbox:
+                                style_prefix "small_expl_hw"
+                                text _("* 支持 "):
+                                    size 15
+                                textbutton "{u}Netease Music{/u}":
+                                    action OpenURL("https://github.com/MAS-Submod-MoyuTeam/NeteaseInMas")
+                                text _(" 和 "):
+                                    size 15
+                                textbutton "{u}Youtube Music{/u}":
+                                    action OpenURL("https://github.com/Booplicate/MAS-Submods-YouTubeMusic")
+                                text _(" 子模组"):
+                                    size 15
+
                         else:
-                            textbutton _("已禁用"):
-                                action Function(maica_triggers.enable_trigger, trigger.name)
-                                selected maica_triggers.trigger_status(trigger.name)
-                        
-                    else:
-                        if maica_triggers.trigger_status(trigger.name):
-                            textbutton _("当前不满足触发条件"):
-                                style "generic_fancy_check_button_disabled"
-                                action Function(maica_triggers.disable_trigger, trigger.name)
-                                selected maica_triggers.trigger_status(trigger.name)
+                            text trigger.description:
+                                size 15
+                    
+                    
+                    
+                    hbox:
+                        if trigger.condition():
+                            if maica_triggers.trigger_status(trigger.name):
+                                textbutton _("已启用"):
+                                    action Function(maica_triggers.disable_trigger, trigger.name)
+                                    selected maica_triggers.trigger_status(trigger.name)
+                            else:
+                                textbutton _("已禁用"):
+                                    action Function(maica_triggers.enable_trigger, trigger.name)
+                                    selected maica_triggers.trigger_status(trigger.name)
+                            
                         else:
-                            textbutton _("当前不满足触发条件"):
-                                style "generic_fancy_check_button_disabled"
-                                action Function(maica_triggers.enable_trigger, trigger.name)
-                                selected maica_triggers.trigger_status(trigger.name)
+                            if maica_triggers.trigger_status(trigger.name):
+                                textbutton _("当前不满足触发条件"):
+                                    style "generic_fancy_check_button_disabled"
+                                    action Function(maica_triggers.disable_trigger, trigger.name)
+                                    selected maica_triggers.trigger_status(trigger.name)
+                            else:
+                                textbutton _("当前不满足触发条件"):
+                                    style "generic_fancy_check_button_disabled"
+                                    action Function(maica_triggers.enable_trigger, trigger.name)
+                                    selected maica_triggers.trigger_status(trigger.name)
         hbox:
             xpos 10
             style_prefix "confirm"

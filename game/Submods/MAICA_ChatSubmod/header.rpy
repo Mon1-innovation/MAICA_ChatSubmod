@@ -551,8 +551,8 @@ screen maica_setting_pane():
                     style "main_menu_version_l"
 
         if not maica.maica.is_accessable():
-            textbutton _("> 使用账号生成令牌"):
-                action Show("maica_login")
+            textbutton _("> 使用账号生成令牌")
+                # action Show("maica_login")
             
         elif not maica.maica.is_connected():
             textbutton _("> 使用账号生成令牌"):
@@ -755,7 +755,7 @@ screen maica_setting():
                     action Show("maica_select_language")
                     hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    
+
             hbox:
                 style_prefix "maica_check"
                 textbutton _("时区设置: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
