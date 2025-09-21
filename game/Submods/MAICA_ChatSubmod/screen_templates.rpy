@@ -113,7 +113,10 @@ init -1:
             else:
                 isfloat = False
             if not istime:
-                disp_v = str(s_dict[var])
+                if not isfloat:
+                    disp_v = str(s_dict[var])
+                else:
+                    disp_v = "{:.{}f}".format(s_dict[var], 2)
             elif istime == "m":
                 disp_v = str(int(s_dict[var] / 60)) + "h" + str(int(s_dict[var] % 60)) + "m"
             else:
@@ -134,7 +137,7 @@ init -1:
                 bar:
                     xpos 20
                     yoffset 10
-                    value DictValue(s_dict, var, (max - min), step=10 if not isfloat else 0.01, offset=min ,style="slider")
+                    value DictValue(s_dict, var, (max - min), offset=min ,style="slider")
                     xsize (len - 100)
                     hovered SetField(_tooltip, "value", tooltip)
                     unhovered SetField(_tooltip, "value", _tooltip.default)

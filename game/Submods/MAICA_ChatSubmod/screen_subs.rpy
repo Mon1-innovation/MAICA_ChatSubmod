@@ -360,7 +360,6 @@ screen maica_advance_setting():
                     action Show("maica_tz_setting")
                     selected persistent.maica_advanced_setting_status.get('tz')
 
-
         hbox:
             xpos 10
             style_prefix "confirm"
@@ -375,9 +374,7 @@ screen maica_advance_setting():
                 ]
 
 
-                
 screen maica_select_language():
-    ## Ensure other screens do not get input while this screen is displayed.s
     modal True
     zorder 225
 

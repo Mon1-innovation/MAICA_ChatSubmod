@@ -308,7 +308,7 @@ init 10 python:
             persistent.maica_setting_dict["42seed"] = True
         else:
             persistent.maica_setting_dict["42seed"] = False
-        maica_discard_advanced_setting()
+        # maica_discard_advanced_setting()
         persistent.maica_setting_dict["sf_extraction"] = store.maica.maica.sf_extraction
         persistent.maica_setting_dict["chat_session"] = store.maica.maica.chat_session
         persistent.maica_setting_dict['enable_mf'] = store.maica.maica.enable_mf
@@ -352,7 +352,7 @@ init 10 python:
         else:
             unit = 1
         s_dict = getattr(persistent, sdict)
-        return min <= s_dict[var] <= (max - unit)
+        return min <= s_dict[var] < max
 
     def common_add(var, min, max, sdict):
         if isinstance(max, float):
@@ -362,6 +362,8 @@ init 10 python:
         s_dict = getattr(persistent, sdict)
         if common_can_add(var, min, max, sdict):
             s_dict[var] += unit
+            if s_dict[var] > max:
+                s_dict[var] = max
 
     def common_can_sub(var, min, max, sdict):
         if isinstance(max, float):
@@ -369,7 +371,7 @@ init 10 python:
         else:
             unit = 1
         s_dict = getattr(persistent, sdict)
-        return (min + unit) <= s_dict[var] <= max
+        return min < s_dict[var] <= max
 
     def common_sub(var, min, max, sdict):
         if isinstance(max, float):
@@ -379,6 +381,8 @@ init 10 python:
         s_dict = getattr(persistent, sdict)
         if common_can_sub(var, min, max, sdict):
             s_dict[var] -= unit
+            if s_dict[var] < min:
+                s_dict[var] = min
 
 
 
