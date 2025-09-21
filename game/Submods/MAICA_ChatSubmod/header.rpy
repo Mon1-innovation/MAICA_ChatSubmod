@@ -737,18 +737,25 @@ screen maica_setting():
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
-            hbox:
-                style_prefix "generic_fancy_check"
                 textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
                     action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
+                    hovered SetField(_tooltip, "value", _("一个agent模型先于核心模型接收相同或相似的输入内容, 并调用工具以获取信息. 这些信息会被提供给核心模型.\n* MFocus是MAICA的重要功能之一, 一般不建议禁用"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+            hbox:
+                style_prefix "generic_fancy_check"
+                textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
+                    hovered SetField(_tooltip, "value", _("一个agent模型后于核心模型接收本轮的输入输出, 并调用工具以指示前端作出角色行为.\n* MTrigger是MAICA的重要功能之一, 一般不建议禁用"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
             hbox:
                 style_prefix "maica_check"
                 textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
                     action Show("maica_select_language")
                     hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+                    
             hbox:
                 style_prefix "maica_check"
                 textbutton _("时区设置: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
@@ -769,8 +776,14 @@ screen maica_setting():
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("设置高级参数"):
-                            action Show("maica_advance_setting")
+                        if persistent.maica_setting_dict.get('use_custom_model_config'):
+                            textbutton _("设置高级参数"):
+                                style "maica_check_button"
+                                action Show("maica_advance_setting")
+                        else:
+                            textbutton _("设置高级参数"):
+                                style "maica_check_button_disabled"
+                                action Show("maica_advance_setting")
                     hbox:
                         style_prefix "generic_fancy_check"
                         textbutton _("锁定最佳实践"):
