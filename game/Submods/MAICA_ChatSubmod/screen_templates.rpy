@@ -322,6 +322,24 @@ init -1:
                 spacing 5
                 transclude
 
+    screen maica_l1_subframe():
+        hbox:
+            frame:
+                xsize 950
+                xpos 30
+                has vbox:
+                    xsize 950
+                transclude
+
+    screen maica_l2_subframe():
+        hbox:
+            frame:
+                xsize 850
+                xpos 30
+                has vbox:
+                    xsize 850
+                transclude
+
     screen maica_message(message = "Non Message", ok_action = Hide("maica_message")):
         modal True
         zorder 225

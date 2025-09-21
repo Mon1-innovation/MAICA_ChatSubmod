@@ -359,10 +359,10 @@ class TalkSplitV2():
     def __init__(self, print_func = fuckprint):
         self.sentence_present = ''
         if PY3:
-            self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]')
-            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;~]')
-            self.pattern_crit_punc = re.compile(r'[.。!！?？~]')
-            self.pattern_excrit_punc = re.compile(r'[!！~]')
+            self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]+')
+            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;~]+')
+            self.pattern_crit_punc = re.compile(r'[.。!！?？~]+')
+            self.pattern_excrit_punc = re.compile(r'[!！~]+')
             self.pattern_numeric = re.compile(r'[0-9]')
             self.pattern_content = re.compile(r'[一-龥A-Za-z]')
             self.pattern_semileft = re.compile(r'[(（\[]')
@@ -377,6 +377,11 @@ class TalkSplitV2():
             self.pattern_content = datapy2.pattern_content
             self.pattern_semileft = datapy2.pattern_semileft
             self.pattern_semiright = datapy2.pattern_semiright
+
+        self.list_uncrit_punc = '.。!！?？；;~'
+        self.list_crit_punc = '.。!！?？；;~'
+        self.list_excrit_puc = '!！~'
+
         self.print_func = print_func
 
     def test_patterns(self, text):
@@ -395,37 +400,42 @@ class TalkSplitV2():
 
     def init1(self):
         self.sentence_present = ''
-        self.apc=[];self.upc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
+
     def add_part(self, part):
         self.sentence_present += part
+
     def split_present_sentence(self):
-        self.apc=[];self.upc=[];self.cpc=[];self.epc=[];self.slc=[];self.src=[]
+        apc=[]; upc=[]; cpc=[]; epc=[]; slc=[]; src=[]
         length_present = len(self.sentence_present.encode())
         self.print_func("length_present: {}".format(length_present))
+
         if length_present <= 60:
             return None
+        
         def is_decimal(five_related_cells):
             if five_related_cells[2] == '.':
                 nums = len(self.pattern_numeric.findall(five_related_cells)); cnts = len(self.pattern_content.findall(five_related_cells))
                 if nums>=2 or cnts<=1:
                     return True
             return False
+        
         def get_real_len(pos):
             sce = self.sentence_present[0:pos]
             return len(sce.encode())
+        
         def check_sanity_pos(pos):
-            if self.slc:
+            if slc:
                 lc = 0
-                for l in self.slc:
+                for l in slc:
                     lc += 1
                     if l[0] > pos:
                         lc -= 1
                         break
             else:
                 lc = 0
-            if self.src:
+            if src:
                 rc = 0
-                for r in self.src:
+                for r in src:
                     rc += 1
                     if r[0] > pos:
                         rc -= 1
@@ -436,58 +446,71 @@ class TalkSplitV2():
                 return True
             else:
                 return False
+            
         def split_at_pos(pos):
             sce = self.sentence_present[0:pos+1]
             self.sentence_present = self.sentence_present[pos+1:]
             return sce
-        cell_i = -1
-        for cell in self.sentence_present:
-            cell_i += 1
-            if self.pattern_all_punc.findall(cell):
-                self.apc.append([cell_i, cell])
-                if not is_decimal(('  '+self.sentence_present+'  ')[cell_i:cell_i+5]):
-                    if self.pattern_uncrit_punc.findall(cell):
-                        self.upc.append([cell_i, cell])
-                        if self.pattern_crit_punc.findall(cell):
-                            self.cpc.append([cell_i, cell])
-                            if self.pattern_excrit_punc.findall(cell):
-                                self.epc.append([cell_i, cell])
-            elif self.pattern_semileft.findall(cell):
-                self.slc.append([cell_i, cell])
-            elif self.pattern_semiright.findall(cell):
-                self.src.append([cell_i, cell])
-        self.print_func(self.apc);self.print_func(self.upc);self.print_func(self.cpc);self.print_func(self.epc);self.print_func(length_present)
+        
+        # We're doing v2.5 overhaul from here
+
+        def check_has(string, l):
+            for i in l:
+                if i in string:
+                    return True
+            return False
+
+        matches = self.pattern_all_punc.finditer(self.sentence_present)
+        for match in matches:
+            pos = match.end(); content = match.group()
+            match_tuple = (pos, content)
+            apc.append(match_tuple)
+            if len(content) > 1 or not is_decimal(('  ' + self.sentence_present + '  ')[pos:pos+5]):
+                if check_has(content, self.list_uncrit_punc):
+                    upc.append(match_tuple)
+                    if check_has(content, self.list_crit_punc):
+                        cpc.append(match_tuple)
+                        if check_has(content, self.list_excrit_puc):
+                            epc.append(match_tuple)
+        slc_matches = self.pattern_semileft.finditer(self.sentence_present)
+        for match in slc_matches:
+            slc.append((match.start(), match.group()))
+        src_matches = self.pattern_semiright.finditer(self.sentence_present)
+        for match in src_matches:
+            src.append((match.start(), match.group()))
+
+        self.print_func(apc); self.print_func(upc); self.print_func(cpc); self.print_func(epc); self.print_func(length_present)
         # if length_present <= 60:
         #     return None
-        if self.epc:
-            for char in reversed(self.epc):
+        if epc:
+            for char in reversed(epc):
                 if 30 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No epc or none fits
         if length_present <= 100:
             return None
-        if self.cpc:
-            for char in reversed(self.cpc):
+        if cpc:
+            for char in reversed(cpc):
                 if 30 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No cpc or still none fits
         if length_present <= 125:
             return None
-        if self.upc:
-            for char in reversed(self.upc):
+        if upc:
+            for char in reversed(upc):
                 if 10 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No upc or still none fits
         if length_present <= 150:
             return None
-        if self.apc:
-            for char in reversed(self.apc):
+        if apc:
+            for char in reversed(apc):
                 if 3 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # Falling back -- sanity given up
             if length_present <= 180:
                 return None
-            for char in reversed(self.apc):
+            for char in reversed(apc):
                 if 3 <= get_real_len(char[0]) <= 200:
                     return split_at_pos(char[0])
         return split_at_pos(get_real_len(200))

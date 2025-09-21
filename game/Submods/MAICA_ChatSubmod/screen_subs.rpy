@@ -865,47 +865,45 @@ screen maica_mpostals():
             hbox:
                 text ""
             for postal in persistent._maica_send_or_received_mpostals:
-                frame:
-                    vbox:
-                        xsize 850
-                        label postal["raw_title"]:
-                            style "maica_check_nohover_label"
-                        text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
-                            xalign 0.0
-                            style "small_link"
-                        text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
-                            xalign 0.0
-                            style "small_link"
-                        text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  ""):
+                use maica_l2_subframe():
+                    label postal["raw_title"]:
+                        style "maica_check_nohover_label"
+                    text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
+                        xalign 0.0
+                        style "small_link"
+                    text renpy.substitute(_("寄信时间: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
+                        xalign 0.0
+                        style "small_link"
+                    text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  ""):
+                        xalign 0.0
+                        style "small_expl_hw"
+                    if postal["responsed_content"] != "":
+                        text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
                             xalign 0.0
                             style "small_expl_hw"
+                    hbox:
+                        textbutton _("阅读[player]写的信"):
+                            action [
+                                    Hide("maica_mpostals"),
+                                    Hide("maica_setting"),
+                                    Function(store.maica_apply_setting),
+                                    Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["raw_content"])
+                            ]
                         if postal["responsed_content"] != "":
-                            text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
-                                xalign 0.0
-                                style "small_expl_hw"
-                        hbox:
-                            textbutton _("阅读[player]写的信"):
+                            textbutton _("阅读[m_name]的回信"):
                                 action [
                                         Hide("maica_mpostals"),
                                         Hide("maica_setting"),
                                         Function(store.maica_apply_setting),
-                                        Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["raw_content"])
+                                        Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
                                 ]
-                            if postal["responsed_content"] != "":
-                                textbutton _("阅读[m_name]的回信"):
-                                    action [
-                                            Hide("maica_mpostals"),
-                                            Hide("maica_setting"),
-                                            Function(store.maica_apply_setting),
-                                            Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
-                                    ]
-                            
-                            if postal["responsed_status"] in ("fatal"):
-                                textbutton _("重新寄信"):
-                                    action SetDict(postal, "responsed_status", "delaying")
-                            hbox:
-                                textbutton _("删除"):
-                                    action Function(_delect_portal, postal["raw_title"])
+                        
+                        if postal["responsed_status"] in ("fatal"):
+                            textbutton _("重新寄信"):
+                                action SetDict(postal, "responsed_status", "delaying")
+                        hbox:
+                            textbutton _("删除"):
+                                action Function(_delect_portal, postal["raw_title"])
                         
         hbox:
             xpos 10
@@ -914,44 +912,20 @@ screen maica_mpostals():
                 action Hide("maica_mpostals")
 
 screen maica_support():
-    python:
-        submods_screen = store.renpy.get_screen("submods", "screens")
-        if submods_screen:
-            _tooltip = submods_screen.scope.get("tooltip", None)
-        else:
-            _tooltip = None
+    $ _tooltip = store._tooltip
+
     modal True
     zorder 215
 
-    style_prefix "check"
-
-    frame:
-        xalign 0.5
-        yalign 0.3
-        has vbox:
-            xmaximum 1000
-            spacing 5
-        viewport:
-            id "viewport"
-            scrollbars "vertical"
-            ymaximum 500
-            xmaximum 1000
-            xfill True
-            yfill True
-            mousewheel True
-            draggable True
-            has hbox
-            vbox:
-                xsize 30
-            vbox:
-                xmaximum 1000
-                xfill True
-                yfill False
-                style_prefix "generic_fancy_check"
+    use maica_common_outer_frame():
+        use maica_common_inner_frame():
+            style_prefix "maica_nohover"
+            hbox:
                 text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
-
+            hbox:
                 text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章.")
-
+            hbox:
+                xalign 0.5
                 if config.language == 'chinese':
                     imagebutton:
                         idle "mod_assets/maica_img/aifadian.png"
@@ -970,6 +944,7 @@ screen maica_support():
                         action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
         hbox:
+            xpos 10
             style_prefix "confirm"
             textbutton _("关闭"):
                 action Hide("maica_support") 
