@@ -124,6 +124,7 @@ style maica_check_text_dark is maica_check_nohover_text_dark
 
 
 
+
 style maica_check_button_disabled is generic_fancy_check_button_disabled:
     foreground None
     padding (4,4,4,4)

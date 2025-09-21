@@ -365,12 +365,14 @@ screen maica_advance_setting():
             style_prefix "confirm"
             textbutton _("保存设置"):
                 action [
-                    Hide("maica_advance_setting")
+                    Hide("maica_advance_setting"),
+                    Function(renpy.notify, _("MAICA: 已保存高级设置"))
                 ]
             textbutton _("重置设置"):
                 action [
                     Function(reset_to_default),
-                    Hide("maica_advance_setting")
+                    Hide("maica_advance_setting"),
+                    Function(renpy.notify, _("MAICA: 已重置高级设置") if store.maica.maica.is_accessable() else _("MAICA: 已重置高级设置(缺省值)"))
                 ]
 
 

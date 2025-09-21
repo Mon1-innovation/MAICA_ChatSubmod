@@ -1039,7 +1039,7 @@ screen maica_setting():
                         Function(reset_adv_to_default),
                         Function(store.maica_reset_setting),
                         Function(store.maica_apply_setting, ininit = True),
-                        Function(renpy.notify, _("MAICA: 设置已重置")),
+                        Function(renpy.notify, _("MAICA: 已重置设置")),
                         Hide("maica_setting")
                     ]
 
