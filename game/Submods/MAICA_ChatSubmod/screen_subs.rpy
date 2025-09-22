@@ -961,7 +961,9 @@ screen maica_support():
 
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
-    $ stat = store.maica.maica.workload_raw
+    python:
+        stat = copy.deepcopy(store.maica.maica.workload_raw)
+        del stat["onliners"]
     python:
         store.update_interval = 15
 
