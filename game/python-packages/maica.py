@@ -393,7 +393,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     "tflops": 400,
                     "mean_consumption": 100
                 },
-            }
+            },
+            "onliners":0
         }
         self.console_logger = logging.getLogger(name="mas_console_logger")
         self.console_logger.setLevel(logging.DEBUG)
@@ -1119,13 +1120,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def get_workload_lite(self):
         """
         获取最高负载设备的占用
-        
+
         Args:
             无。
-        
+
         Returns:
             工作负载信息简化版。
-        
+
         """
 
         data = {
@@ -1136,14 +1137,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "total_w": 0,
             "mem_pencent":0,
             "max_tflops":0,
-            "cur_tflops":0
+            "cur_tflops":0,
+            "onliners":0
         }
         if not self.__accessable:
             return data
     # Use iteritems() for Python 2
         avgcount = 0
         if PY2:
-            for group in self.workload_raw.itervalues():
+            # 处理 onliners 键
+            if isinstance(self.workload_raw.get('onliners'), (int, float)):
+                data['onliners'] = int(self.workload_raw['onliners'])
+
+            for group_name, group in self.workload_raw.iteritems():
+                if group_name == 'onliners':
+                    continue
                 for card in group.itervalues():
                     if card["mean_utilization"] > data["max_usage"]:
                         data["max_usage"] = card["mean_utilization"]
@@ -1155,7 +1163,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     data["max_tflops"] += int(card["tflops"])
                     data["cur_tflops"] += int(card["tflops"]) * card["mean_utilization"] * 0.01
         elif PY3:
-            for group in self.workload_raw.values():
+            # 处理 onliners 键
+            if isinstance(self.workload_raw.get('onliners'), (int, float)):
+                data['onliners'] = int(self.workload_raw['onliners'])
+
+            for group_name, group in self.workload_raw.items():
+                if group_name == 'onliners':
+                    continue
                 for card in group.values():
                     if card["mean_utilization"] > data["max_usage"]:
                         data["max_usage"] = card["mean_utilization"]
