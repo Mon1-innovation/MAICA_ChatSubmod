@@ -411,19 +411,6 @@ init 10 python:
                 renpy.notify(_("MAICA: 加载高级参数失败, 查看submod_log.log获取详细原因").format(e))
             store.mas_submod_utils.submod_log.error("Failed to load custom model config: {}".format(e))
     
-    def change_loglevel():
-        import logging
-        l = [logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
-        curr = l.index(persistent.maica_setting_dict["log_level"])
-        persistent.maica_setting_dict["log_level"] = l[(curr + 1) % len(l)]
-        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-
-    def change_conloglevel():
-        import logging
-        l = [logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
-        curr = l.index(persistent.maica_setting_dict["log_conlevel"])
-        persistent.maica_setting_dict["log_conlevel"] = l[(curr + 1) % len(l)]
-        store.maica.maica.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
     def try_eval(str):
         try:
             return eval(str)
@@ -942,8 +929,8 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("submod_log.log 等级:[logging.getLevelName(store.mas_submod_utils.submod_log.level)]"):
-                    action Function(store.change_loglevel)
+                textbutton _("submod_log.log 等级:[logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
+                    action Show("maica_select_log_level", log = "log_level")#Function(store.change_loglevel)
                     hovered SetField(_tooltip, "value", _("重要性低于设置等级的log将不会被记录在submod_log.log中.\n* 这也会影响其他子模组"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
@@ -974,14 +961,14 @@ screen maica_setting():
                     hbox:
                         style_prefix "maica_check"
                         textbutton _("控制台字体: [persistent.maica_setting_dict.get('console_font')]"):
-                            action ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
+                            action Show("maica_select_console_font")#ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
                             hovered SetField(_tooltip, "value", _("console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("控制台log等级: [logging.getLevelName(store.maica.maica.console_logger.level)]"):
-                            action Function(store.change_conloglevel)
+                        textbutton _("控制台log等级: [logging.getLevelName(persistent.maica_setting_dict['log_conlevel'])]"):
+                            action Show("maica_select_log_level", log = "log_conlevel")
                             hovered SetField(_tooltip, "value", _("重要性低于设置等级的log将不会显示在控制台中"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:

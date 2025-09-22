@@ -773,7 +773,7 @@ screen maica_triggers():
                 text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
                     color "#FF0000"
             else:
-                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
+                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE)
 
             if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
                 text _("> 注意: 当空间不足时将自动关闭部分MTrigger!"):
@@ -1004,6 +1004,41 @@ screen maica_workload_stat():
                 text renpy.substitute(_("下次更新数据")) + store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 78, total=store.update_interval, unit="s"):
                     size 15
                 timer 1.0 repeat True action Function(check_and_update)
+
+screen maica_select_console_font():
+    modal True
+    zorder 225
+
+    use maica_setter_small_frame(ok_action=Hide("maica_select_console_font")):
+        style_prefix "generic_fancy_check"
+        hbox:
+            textbutton _("SarasaMonoTC | 思源黑体等宽"):
+                action SetDict(persistent.maica_setting_dict, "console_font", store.maica_confont)
+        hbox:
+            textbutton _("mplus-1mn | 默认等宽字体"):
+                action SetDict(persistent.maica_setting_dict, "console_font", store.mas_ui.MONO_FONT)
+
+screen maica_select_log_level(log = "log_level"):
+    modal True
+    zorder 225
+    python:
+        import logging
+        log_levels = [
+            (logging.NOTSET, _("NOTSET")),
+            (logging.DEBUG, _("DEBUG")),
+            (logging.INFO, _("INFO")),
+            (logging.WARNING, _("WARNING")),
+            (logging.ERROR, _("ERROR")),
+            (logging.CRITICAL, _("CRITICAL"))
+        ]
+
+    use maica_setter_small_frame(ok_action=Hide("maica_select_log_level")):
+        style_prefix "generic_fancy_check"
+        for level, name in log_levels:
+            hbox:
+                textbutton "{} | {}".format(level, name):
+                    action SetDict(persistent.maica_setting_dict, log, level)
+                    selected level == persistent.maica_setting_dict[log]
 
 screen maica_statics():
     $ _tooltip = store._tooltip
