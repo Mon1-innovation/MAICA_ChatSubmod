@@ -962,8 +962,8 @@ screen maica_support():
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
     python:
-        stat = copy.deepcopy(store.maica.maica.workload_raw)
-        del stat["onliners"]
+        stat = {k, v for k, v in iterize(store.maica.maica.workload_raw) if k != "onliners"}
+        onliners = store.maica.maica.workload_raw.get("onliners")
     python:
         store.update_interval = 15
 
@@ -983,6 +983,8 @@ screen maica_workload_stat():
             style_prefix "maica_default_small"
             xsize 942
             spacing 5
+
+            text _("当前在线人数: ") + onliners
 
             for server in stat:
 
