@@ -994,7 +994,7 @@ screen maica_workload_stat():
                     hbox:
                         text stat[server][card]["name"]:
                             size 15
-                        text store.maica.progress_bar(stat[server][card]["mean_utilization"]):
+                        text store.maica.progress_bar(stat[server][card]["mean_utilization"], total=int(stat[server][card]["tflops"]), unit="TFlops"):
                             size 10
                             #font maica_confont
 
