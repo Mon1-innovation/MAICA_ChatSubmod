@@ -984,7 +984,7 @@ screen maica_workload_stat():
             xsize 942
             spacing 5
 
-            text _("当前在线人数: ") + onliners
+            text _("当前在线人数: ") + str(onliners)
 
             for server in stat:
 
