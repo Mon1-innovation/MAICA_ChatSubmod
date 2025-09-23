@@ -560,7 +560,7 @@ screen maica_setting_pane():
             else:
                 textbutton _("> 手动上传设置 [[请先等待连接建立]")
                      
-                textbutton _("> 重置当前对话 [[现在暂时不能重置]")
+                textbutton _("> 重置当前对话 [[请先等待连接建立]")
 
             textbutton _("> 导出当前对话"):
                 action Function(output_chat_history)
@@ -704,7 +704,7 @@ screen maica_setting():
                 $ user_disp = store.maica.maica.user_acc or _("未登录")
                 textbutton _("当前用户: [user_disp]"):
                     action NullAction()
-                    hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往DCC论坛"))
+                    hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往注册网站"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
@@ -804,7 +804,7 @@ screen maica_setting():
                     has vbox:
                         xmaximum 950
                         xfill True
-                    $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型. 需要重新上传存档生效.")
+                    $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型.\n* 需要重新上传存档生效")
                     hbox:
                         style_prefix "maica_check_nohover"
                         textbutton _("当前有[len(persistent.mas_player_additions)]条自定义MFocus信息"):
@@ -857,7 +857,7 @@ screen maica_setting():
                     style_prefix "generic_fancy_check"
                     textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
                         action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                        hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题默认不使用MFocus"))
+                        hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题不使用MFocus和MTrigger"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
             else:
                 hbox:
@@ -893,14 +893,14 @@ screen maica_setting():
 
                     hbox:
                         style_prefix "generic_fancy_check"
-                        textbutton _("MSpire 使用缓存"):
+                        textbutton _("MSpire使用缓存"):
                             action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
                             hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("MTrigger 列表"):
+                textbutton _("MTrigger列表"):
                     action Show("maica_triggers")
                     hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -916,7 +916,7 @@ screen maica_setting():
                         xfill True
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("查看MPostals往来信件"):
+                        textbutton _("MPostal历史信件"):
                             action Show("maica_mpostals")
                             hovered SetField(_tooltip, "value", _("查看MPostal历史信件"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -929,7 +929,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("submod_log.log 等级:[logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
+                textbutton _("submod_log.log 等级: [logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
                     action Show("maica_select_log_level", log = "log_level")#Function(store.change_loglevel)
                     hovered SetField(_tooltip, "value", _("重要性低于设置等级的log将不会被记录在submod_log.log中.\n* 这也会影响其他子模组"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -941,7 +941,7 @@ screen maica_setting():
                 style_prefix "generic_fancy_check"
                 textbutton _("动态的天堂树林"):
                     action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
-                    hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效\n* 如果产生显存相关错误, 删减精灵包或禁用此选项"))
+                    hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效.\n* 如果产生显存相关错误, 删减精灵包或禁用此选项"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:

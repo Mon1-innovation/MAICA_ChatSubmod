@@ -210,10 +210,10 @@ screen maica_advance_setting():
                 textbutton _("{u}MAICA 官方文档{/u}"):
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt")
                 text _(" 和 ")
-                textbutton _("{u}OPENAI 中文文档{/u}"):
-                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat")
+                textbutton _("{u}OpenAI 中文文档{/u}"):
+                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat" if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else "https://platform.openai.com/docs/api-reference/completions/create#completions_create")
             hbox:
-                text _("{size=-10}注意: 只有已被勾选(标记了X)的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
+                text _("{size=-10}注意: 只有被勾选的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
             hbox:
                 if not persistent.maica_setting_dict.get('use_custom_model_config'):
                     text _("{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!")
@@ -682,6 +682,7 @@ screen maica_node_setting():
                                 Function(set_provider, provider.get('id')),
                                 Hide("maica_node_setting")
                             ]
+                            selected persistent.maica_setting_dict["provider_id"] == provider.get('id')
                     hbox:
                         style_prefix "maica_check"
                         textbutton renpy.substitute(_("> 打开官网")) + "(" + provider.get('portalPage') + ")":
@@ -701,7 +702,7 @@ screen maica_node_setting():
             textbutton _("关闭"):
                 action Hide("maica_node_setting")
             
-            textbutton _("测试[MaicaProviderManager.get_server_by_id(store.maica.maica.provider_id).get('name')]节点可用性"):
+            textbutton _("测试当前节点可用性"):
                 action Function(store.maica.maica.accessable)
                         
 screen maica_mspire_setting():

@@ -71,3 +71,20 @@ translate english strings:
 
     old "内置 | 带[m_name]出去"
     new "Integrated | Take [m_name] out"
+
+# TODO: Translation updated at 2025-09-23 23:29
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:8
+    old "内置 | 调整好感, 范围为单次-1~3 * 有10分钟冷却"
+    new "Intergrated | Adjust affection, -1~3 per time * 10 minutes cooldown"
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:152
+    old "内置 | 更换天气 * 在天堂树林内不生效"
+    new "Intergrated | Change weather * Not effective in Heaven Forest"
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:229
+    old "内置 | 备份存档 * 需要 Extra Plus 子模组"
+    new "Intergrated | Backup persistent * Extra Plus Submod required"
+

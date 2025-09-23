@@ -564,8 +564,8 @@ translate english strings:
     new "Recover history to chat session '[store.maica.maica.chat_session]'"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:930
-    old "MTrigger 列表"
-    new "Mtrigger trigger list"
+    old "MTrigger列表"
+    new "Mtrigger triggers list"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1019
     old "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
@@ -769,7 +769,7 @@ translate english strings:
     new "The refreshing frequency of status code on Submod screen"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1140
-    old "查看MPostals往来信件"
+    old "MPostal历史信件"
     new "Reread MPostal letters"
 
     old "回信时显示控制台"
@@ -848,7 +848,7 @@ translate english strings:
     new "Set seed to 42 and override the corresponding advanced section.\nThis removes the randomness in generation completely and performs better statistically."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1426
-    old "MSpire 使用缓存"
+    old "MSpire使用缓存"
     new "Use cache for MSpire"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1428
@@ -1022,4 +1022,212 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1579
     old "启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"
     new "Enable MSpire cache.\n* Forces default super params and best practice"
+
+# TODO: Translation updated at 2025-09-23 23:29
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:329
+    old "MAICA: 已放弃设置修改"
+    new "MAICA: Settings discarded"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:503
+    old "> 未能联网验证版本信息, 如果出现问题请尝试更新"
+    new "> Couldn't acquire online version stream, please check updates manually"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:509
+    old "> 当前版本支持已终止, 请更新至最新版"
+    new "> Support for current version has ended, an update is required"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:541
+    old "> 使用账号生成令牌"
+    new "> Generate token with an account"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:561
+    old "> 手动上传设置 [[请先等待连接建立]"
+    new "> Upload settings manually [[wait for connection establishment first]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:563
+    old "> 重置当前对话 [[请先等待连接建立]"
+    new "> Reset current chat session [[wait for connection establishment first]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:571
+    old "{size=-10}* 如果对话卡住, 退出以断开连接"
+    new "{size=-10}* If conversation hangs, logout to interrupt"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:694
+    old "连接与安全"
+    new "Connection and Safety"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:704
+    old "未登录"
+    new "Not logged in"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:705
+    old "当前用户: [user_disp]"
+    new "Current user: [user_disp]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:707
+    old "如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往注册网站"
+    new "To change account or logout, navigate to Submods menu.\n* To change account properties or password, navigate to registration site"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:723
+    old "行为与表现"
+    new "Performance and Behavior"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:729
+    old "一个agent模型先于核心模型接收相同或相似的输入内容, 并调用工具以获取信息. 这些信息会被提供给核心模型.\n* MFocus是MAICA的重要功能之一, 一般不建议禁用"
+    new "An agent model will recieve input prior to the core model, and acquire information with tools.\n* MFocus is a major mechanism of MAICA, suggested to enable"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:736
+    old "一个agent模型后于核心模型接收本轮的输入输出, 并调用工具以指示前端作出角色行为.\n* MTrigger是MAICA的重要功能之一, 一般不建议禁用"
+    new "An agent model will recieve input subsequent to the core model, and guide character's action.\n* MTrigger is a major mechanism of MAICA, suggested to enable"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:748
+    old "时区设置: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
+    new "Timezone: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:782
+    old "会话与数据"
+    new "Sessions and Data"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:792
+    old "当前会话"
+    new "Current chat session"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:796
+    old "会话长度"
+    new "Chat session length"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:807
+    old "由你补充的设定信息, 由MFocus检索并呈递到核心模型.\n* 需要重新上传存档生效"
+    new "User-provided implementations, handled and sent to core model by MFocus.\n* May need a restart for changes to take effect"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:810
+    old "当前有[len(persistent.mas_player_additions)]条自定义MFocus信息"
+    new "[len(persistent.mas_player_additions)] MFocus info present"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:828
+    old "编辑MFocus信息"
+    new "Edit MFocus info"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:847
+    old "导出自定义MFocus信息到主目录"
+    new "Export MFocus info to main directory"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:853
+    old "工具与功能"
+    new "Tools and Functions"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:858
+    old "启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"
+    new "Enable MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:860
+    old "是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题不使用MFocus和MTrigger"
+    new "Enable MSpire to generate vanilla-like conversations.\n* Repeat topics must be disabled to take effect\n* MSpire doesn't use MF/MT"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:867
+    old "是否允许由MSpire生成的对话.\n! 复述话题已启用, MSpire不会生效"
+    new "Enable MSpire to generate vanilla-like conversations.\n! Repeat topice enabled, with which MSpire conflicts"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:877
+    old "MSpire话题"
+    new "MSpire topics"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:881
+    old "MSpire对话的最小时间间隔"
+    new "Minimal interval of MSpire conversations"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:882
+    old "MSpire最小间隔"
+    new "MSpire minimal interval"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:887
+    old "MSpire搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"
+    new "MSpire searching method: [persistent.maica_setting_dict.get('mspire_search_type')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:891
+    old "MSpire搜索话题的模式"
+    new "Way of MSpire searching for topics"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:905
+    old "查看和配置MTrigger条目"
+    new "Configure MTrigger triggers"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:921
+    old "查看MPostal历史信件"
+    new "Reread MPostal history letters"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:924
+    old "MPostal回信的最小时间间隔"
+    new "Minimal interval of MPostal replies"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:925
+    old "MPostal最小间隔"
+    new "MPostal minimal interval"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:928
+    old "界面与日志"
+    new "Interfaces and Log"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:932
+    old "submod_log.log 等级: [logging.getLevelName(persistent.maica_setting_dict['log_level'])]"
+    new "submod_log.log verbosity: [logging.getLevelName(persistent.maica_setting_dict['log_level'])]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:934
+    old "重要性低于设置等级的log将不会被记录在submod_log.log中.\n* 这也会影响其他子模组"
+    new "Lower level logs will not appear in submod_log.log.\n* This effect is global"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:938
+    old "状态码更新频率"
+    new "Status code update interval"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:944
+    old "使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效.\n* 如果产生显存相关错误, 删减精灵包或禁用此选项"
+    new "Use dynamic forest background with improved illumination, may increase render consumation. Restart to take effect.\n* Remove some spritepacks or disable this if VRAM overflows"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:970
+    old "控制台log等级: [logging.getLevelName(persistent.maica_setting_dict['log_conlevel'])]"
+    new "Console logging verbosity: [logging.getLevelName(persistent.maica_setting_dict['log_conlevel'])]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:972
+    old "重要性低于设置等级的log将不会显示在控制台中"
+    new "Lower level logs will not appear in console"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:980
+    old "统计与信息"
+    new "Statics and Information"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:984
+    old "展开性能监控"
+    new "Expand performance monitor"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:984
+    old "收起性能监控"
+    new "Retract performance monitor"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:988
+    old "显示/收起服务器的性能状态指标"
+    new "Expand/retract server performance monitor"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:998
+    old "展开统计数据"
+    new "Expand statics"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:998
+    old "收起统计数据"
+    new "Retract statics"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1002
+    old "显示/收起你的使用统计数据"
+    new "Expand/retract client-side statics"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1019
+    old "放弃修改"
+    new "Discard modifications"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1025
+    old "MAICA: 已重置设置"
+    new "MAICA: Settings reset"
 
