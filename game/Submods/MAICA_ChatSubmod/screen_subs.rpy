@@ -962,7 +962,7 @@ screen maica_support():
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
     python:
-        stat = {k, v for k, v in iterize(store.maica.maica.workload_raw) if k != "onliners"}
+        stat = {k: v for k, v in iterize(store.maica.maica.workload_raw) if k != "onliners"}
         onliners = store.maica.maica.workload_raw.get("onliners")
     python:
         store.update_interval = 15
