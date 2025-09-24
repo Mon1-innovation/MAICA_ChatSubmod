@@ -474,10 +474,10 @@ class TalkSplitV2():
                             epc.append(match_tuple)
         slc_matches = self.pattern_semileft.finditer(self.sentence_present)
         for match in slc_matches:
-            slc.append((match.start(), match.group()))
+            slc.append((match.end(), match.group()))
         src_matches = self.pattern_semiright.finditer(self.sentence_present)
         for match in src_matches:
-            src.append((match.start(), match.group()))
+            src.append((match.end(), match.group()))
 
         self.print_func(apc); self.print_func(upc); self.print_func(cpc); self.print_func(epc); self.print_func(length_present)
         # if length_present <= 60:
