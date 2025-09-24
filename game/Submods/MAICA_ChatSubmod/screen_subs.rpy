@@ -932,37 +932,31 @@ screen maica_support():
     modal True
     zorder 92
 
-    use maica_common_outer_frame():
-        use maica_common_inner_frame():
-            style_prefix "maica_nohover"
-            hbox:
-                text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
-            hbox:
-                text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章.")
-            hbox:
-                xalign 0.5
-                if config.language == 'chinese':
-                    imagebutton:
-                        idle "mod_assets/maica_img/aifadian.png"
-                        insensitive "mod_assets/maica_img/aifadian.png"
-                        hover "mod_assets/maica_img/aifadian.png"
-                        selected_idle "mod_assets/maica_img/aifadian.png"
-                        selected_hover "mod_assets/maica_img/aifadian.png"
-                        action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
-                else:
-                    imagebutton:
-                        idle "mod_assets/maica_img/unifans.png"
-                        insensitive "mod_assets/maica_img/unifans.png"
-                        hover "mod_assets/maica_img/unifans.png"
-                        selected_idle "mod_assets/maica_img/unifans.png"
-                        selected_hover "mod_assets/maica_img/unifans.png"
-                        action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
-
+    use maica_setter_medium_frame(title=_("向 MAICA 捐赠"), ok_action=Hide("maica_support")):
         hbox:
-            xpos 10
-            style_prefix "confirm"
-            textbutton _("关闭"):
-                action Hide("maica_support") 
+            text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
+        hbox:
+            style_prefix "maica_check"
+            text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."):
+                size 15
+        hbox:
+            xalign 0.5
+            if config.language == 'chinese':
+                imagebutton:
+                    idle "mod_assets/maica_img/aifadian.png"
+                    insensitive "mod_assets/maica_img/aifadian.png"
+                    hover "mod_assets/maica_img/aifadian.png"
+                    selected_idle "mod_assets/maica_img/aifadian.png"
+                    selected_hover "mod_assets/maica_img/aifadian.png"
+                    action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
+            else:
+                imagebutton:
+                    idle "mod_assets/maica_img/unifans.png"
+                    insensitive "mod_assets/maica_img/unifans.png"
+                    hover "mod_assets/maica_img/unifans.png"
+                    selected_idle "mod_assets/maica_img/unifans.png"
+                    selected_hover "mod_assets/maica_img/unifans.png"
+                    action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
