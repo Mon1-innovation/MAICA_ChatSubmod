@@ -458,7 +458,10 @@ class TalkSplitV2():
         def split_at_pos(pos):
             sce = self.sentence_present[0:pos]
             self.sentence_present = self.sentence_present[pos:]
-            return sce
+            if len(sce) > 1 and not sce.isspace():
+                return sce
+            else:
+                return None
         
         # We're doing v2.5 overhaul from here
 
@@ -529,7 +532,8 @@ class TalkSplitV2():
             res = self.split_present_sentence()
             if res:
                 sce.append(res)
-        sce.append(self.sentence_present)
+        if self.sentence_present and len(self.sentence_present) > 1 and not self.sentence_present.isspace():
+            sce.append(self.sentence_present)
         self.init1()
         return sce
 
