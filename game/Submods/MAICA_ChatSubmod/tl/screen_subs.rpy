@@ -126,10 +126,6 @@ translate english strings:
     old "刷新节点列表"
     new "Refresh servers list"
 
-    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:704
-    old "测试当前节点可用性"
-    new "Test current node connectivity"
-
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:719
     old "仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"
     new "Select the single most related page, ignoring sample range. Relatively fast since no recursive search performed.\n"
