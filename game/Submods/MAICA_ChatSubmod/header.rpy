@@ -1033,7 +1033,7 @@ screen maica_setting():
     if tooltip.value:
         frame:
             xalign 0 yalign 1.0
-            xoffset 95 yoffset -25
+            xoffset 105 yoffset -25
             text tooltip.value:
                 style "main_menu_version"
 
