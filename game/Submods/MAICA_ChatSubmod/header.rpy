@@ -789,11 +789,11 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
-            use num_bar(_("当前会话"), 200, tooltip_chat_session, "chat_session", 0, 9)
+            use num_bar(_("当前会话"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
 
 
             $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-            use prog_bar(_("会话长度"), 400, tooltip_session_length, "max_history_token", 512, 28672)
+            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "max_history_token", 512, 28672)
 
 
             hbox:
@@ -879,7 +879,7 @@ screen maica_setting():
 
 
                     $ tooltip_ms_time = _("MSpire对话的最小时间间隔")
-                    use prog_bar(_("MSpire最小间隔"), 250, tooltip_ms_time, "mspire_interval", 10, 180, "m")
+                    use prog_bar(_("MSpire最小间隔"), 250 if config.language == "chinese" else 400, tooltip_ms_time, "mspire_interval", 10, 180, "m")
 
 
                     hbox:
@@ -922,7 +922,7 @@ screen maica_setting():
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     $ tooltip_mp_time = _("MPostal回信的最小时间间隔")
-                    use prog_bar(_("MPostal最小间隔"), 250, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, "m")
+                    use prog_bar(_("MPostal最小间隔"), 250 if config.language == "chinese" else 400, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, "m")
             
             hbox:
                 use divider(_("界面与日志"))
@@ -935,7 +935,7 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
 
-                use prog_bar(expl=_("状态码更新频率"), len=250, tooltip="在Submod界面处的状态码更新频率", var="status_update_time", min=1, max=60, istime="s")
+                use prog_bar(expl=_("状态码更新频率"), len=250 if config.language == "chinese" else 400, tooltip="在Submod界面处的状态码更新频率", var="status_update_time", min=1, max=60, istime="s")
 
             hbox:
                 style_prefix "generic_fancy_check"
