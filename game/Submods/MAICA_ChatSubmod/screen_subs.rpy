@@ -206,12 +206,16 @@ screen maica_advance_setting():
             style_prefix "generic_fancy_check"
             hbox:
                 style_prefix "maica_check"
-                text _("关于这些参数的详细解释, 参见 ")
+                text _("关于这些参数的详细解释, 参见 "):
+                    size 20
                 textbutton _("{u}MAICA 官方文档{/u}"):
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt")
-                text _(" 和 ")
+                    text_size 20
+                text _(" 和 "):
+                    size 20
                 textbutton _("{u}OpenAI 中文文档{/u}"):
                     action OpenURL("https://www.openaidoc.com.cn/api-reference/chat" if config.language == "chinese" else "https://platform.openai.com/docs/api-reference/completions/create#completions_create")
+                    text_size 20
             hbox:
                 text _("{size=-10}注意: 只有被勾选的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
             hbox:
