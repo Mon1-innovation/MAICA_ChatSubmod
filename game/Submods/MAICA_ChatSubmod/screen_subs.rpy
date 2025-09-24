@@ -995,7 +995,7 @@ screen maica_workload_stat():
                             size 15
                         text store.maica.progress_bar(stat[server][card]["mean_utilization"], total=int(stat[server][card]["tflops"]), unit="TFlops"):
                             size 10
-                            #font maica_confont
+                            font maica_confont
 
                         text "VRAM: " + str(stat[server][card]["mean_memory"]) + " / " + str(stat[server][card]["vram"]):
                             size 10
@@ -1004,8 +1004,11 @@ screen maica_workload_stat():
                 text ""
 
             hbox:
-                text renpy.substitute(_("下次更新数据")) + store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 78, total=store.update_interval, unit="s"):
+                text renpy.substitute(_("下次更新数据")):
                     size 15
+                text store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 78, total=store.update_interval, unit="s"):
+                    size 15
+                    font maica_confont
                 timer 1.0 repeat True action Function(check_and_update)
 
 screen maica_select_console_font():
