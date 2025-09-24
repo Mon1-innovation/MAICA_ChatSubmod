@@ -211,7 +211,7 @@ screen maica_advance_setting():
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt")
                 text _(" 和 ")
                 textbutton _("{u}OpenAI 中文文档{/u}"):
-                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat" if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else "https://platform.openai.com/docs/api-reference/completions/create#completions_create")
+                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat" if config.language == "chinese" else "https://platform.openai.com/docs/api-reference/completions/create#completions_create")
             hbox:
                 text _("{size=-10}注意: 只有被勾选的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
             hbox:
