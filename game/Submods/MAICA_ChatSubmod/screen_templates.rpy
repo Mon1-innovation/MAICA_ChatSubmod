@@ -213,7 +213,7 @@ init -1:
                     del s_dict[str_var]
                     
         modal True
-        zorder 225
+        zorder 100
 
         style_prefix "confirm"
 
@@ -347,7 +347,7 @@ init -1:
 
     screen maica_message(message = "Non Message", ok_action = Hide("maica_message")):
         modal True
-        zorder 225
+        zorder 100
 
         style_prefix "confirm"
 

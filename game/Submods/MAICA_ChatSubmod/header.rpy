@@ -399,7 +399,7 @@ init 10 python:
     def export_player_information():
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
-        renpy.notify("MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
+        renpy.notify(_("MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
 
     def update_model_setting(ininit = False):
         import os, json
@@ -620,7 +620,7 @@ screen maica_setting():
     $ y = 0.5
 
     modal True
-    zorder 215
+    zorder 90
 
     style_prefix "maica_check"
 

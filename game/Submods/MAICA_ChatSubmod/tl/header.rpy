@@ -1231,3 +1231,11 @@ translate english strings:
     old "MAICA: 已重置设置"
     new "MAICA: Settings reset"
 
+# TODO: Translation updated at 2025-09-24 16:28
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:402
+    old "MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
+    new "MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"
+
