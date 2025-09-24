@@ -360,7 +360,7 @@ class TalkSplitV2():
         self.sentence_present = ''
         if PY3:
             self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]+')
-            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;~]+')
+            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;，,~]+')
             self.pattern_crit_punc = re.compile(r'[.。!！?？~]+')
             self.pattern_excrit_punc = re.compile(r'[!！~]+')
             self.pattern_numeric = re.compile(r'[0-9]')
@@ -378,8 +378,8 @@ class TalkSplitV2():
             self.pattern_semileft = datapy2.pattern_semileft
             self.pattern_semiright = datapy2.pattern_semiright
 
-        self.list_uncrit_punc = '.。!！?？；;~'
-        self.list_crit_punc = '.。!！?？；;~'
+        self.list_uncrit_punc = '.。!！?？；;，,~'
+        self.list_crit_punc = '.。!！?？~'
         self.list_excrit_puc = '!！~'
 
         self.print_func = print_func
@@ -413,9 +413,17 @@ class TalkSplitV2():
             return None
         
         def is_decimal(five_related_cells):
+
+            def num_amount(text):
+                i = 0
+                for c in text:
+                    if c.isdigit():
+                        i += 1
+                return i
+
             if five_related_cells[2] == '.':
-                nums = len(self.pattern_numeric.findall(five_related_cells)); cnts = len(self.pattern_content.findall(five_related_cells))
-                if nums>=2 or cnts<=1:
+                cnts = len(self.pattern_content.findall(five_related_cells))
+                if (num_amount(five_related_cells[0:2]) and num_amount(five_related_cells[3:5])) or (cnts<=1 and num_amount(five_related_cells[0:2]) != 2) or five_related_cells[1].isupper():
                     return True
             return False
         
@@ -465,7 +473,7 @@ class TalkSplitV2():
             pos = match.end(); content = match.group()
             match_tuple = (pos, content)
             apc.append(match_tuple)
-            if len(content) > 1 or not is_decimal(('  ' + self.sentence_present + '  ')[pos:pos+5]):
+            if len(content) > 1 or not is_decimal(('   ' + self.sentence_present + ' ')[pos:pos+5]):
                 if check_has(content, self.list_uncrit_punc):
                     upc.append(match_tuple)
                     if check_has(content, self.list_crit_punc):
