@@ -1108,7 +1108,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 data = res.json()
                 if data["success"]:
                     self.workload_raw = data["content"]
-                logger.debug("Workload updated successfully.")
+                    logger.debug("Workload updated successfully.")
+                else:
+                    logger.error("Failed to update workload: {}".format(data))
             else:
                 logger.error("Failed to update workload.")
 
