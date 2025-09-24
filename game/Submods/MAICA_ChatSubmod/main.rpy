@@ -368,7 +368,7 @@ label show_workload:
         ai = store.maica.maica
         data = ai.get_workload_lite()
         if data["total_inuse_vmem"] and data["total_vmem"] and data["avg_usage"]:
-            ai.console_logger.info("<DISABLE_VERBOSITY><MAICA LLM Server> Current Workload")
+            ai.console_logger.info("<DISABLE_VERBOSITY><MAICA LLM Server> Current Workload ({} users online)".format(data["onliners"]))
             ai.console_logger.info("<DISABLE_VERBOSITY>VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB"))
             ai.console_logger.info("<DISABLE_VERBOSITY>UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops"))
         else:

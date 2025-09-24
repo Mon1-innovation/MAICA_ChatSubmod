@@ -106,6 +106,7 @@ init -1:
 
     screen prog_bar(expl, len, tooltip, var, min, max, istime=False, sdict="maica_setting_dict"):
         $ _tooltip = store._tooltip
+        $ expl = renpy.substitute(expl)
         python:
             s_dict = getattr(persistent, sdict)
             if isinstance(max, float):
@@ -154,6 +155,7 @@ init -1:
 
     screen num_bar(expl, len, tooltip, var, min, max, sdict="maica_setting_dict"):
         $ _tooltip = store._tooltip
+        $ expl = renpy.substitute(expl)
         python:
             s_dict = getattr(persistent, sdict)
         hbox:
@@ -211,7 +213,7 @@ init -1:
                     del s_dict[str_var]
                     
         modal True
-        zorder 225
+        zorder 100
 
         style_prefix "confirm"
 
@@ -345,7 +347,7 @@ init -1:
 
     screen maica_message(message = "Non Message", ok_action = Hide("maica_message")):
         modal True
-        zorder 225
+        zorder 100
 
         style_prefix "confirm"
 

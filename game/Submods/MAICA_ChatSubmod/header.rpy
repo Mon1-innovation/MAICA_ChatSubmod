@@ -399,7 +399,7 @@ init 10 python:
     def export_player_information():
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
-        renpy.notify("MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt")
+        renpy.notify(_("MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
 
     def update_model_setting(ininit = False):
         import os, json
@@ -560,7 +560,7 @@ screen maica_setting_pane():
             else:
                 textbutton _("> 手动上传设置 [[请先等待连接建立]")
                      
-                textbutton _("> 重置当前对话 [[现在暂时不能重置]")
+                textbutton _("> 重置当前对话 [[请先等待连接建立]")
 
             textbutton _("> 导出当前对话"):
                 action Function(output_chat_history)
@@ -620,7 +620,7 @@ screen maica_setting():
     $ y = 0.5
 
     modal True
-    zorder 215
+    zorder 90
 
     style_prefix "maica_check"
 
@@ -704,7 +704,7 @@ screen maica_setting():
                 $ user_disp = store.maica.maica.user_acc or _("未登录")
                 textbutton _("当前用户: [user_disp]"):
                     action NullAction()
-                    hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往DCC论坛"))
+                    hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往注册网站"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
@@ -789,11 +789,11 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
-            use num_bar(_("当前会话"), 200, tooltip_chat_session, "chat_session", 0, 9)
+            use num_bar(_("当前会话"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
 
 
             $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-            use prog_bar(_("会话长度"), 400, tooltip_session_length, "max_history_token", 512, 28672)
+            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "max_history_token", 512, 28672)
 
 
             hbox:
@@ -804,7 +804,7 @@ screen maica_setting():
                     has vbox:
                         xmaximum 950
                         xfill True
-                    $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型. 需要重新上传存档生效.")
+                    $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型.\n* 需要重新上传存档生效")
                     hbox:
                         style_prefix "maica_check_nohover"
                         textbutton _("当前有[len(persistent.mas_player_additions)]条自定义MFocus信息"):
@@ -857,7 +857,7 @@ screen maica_setting():
                     style_prefix "generic_fancy_check"
                     textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
                         action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                        hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题默认不使用MFocus"))
+                        hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题不使用MFocus和MTrigger"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
             else:
                 hbox:
@@ -879,7 +879,7 @@ screen maica_setting():
 
 
                     $ tooltip_ms_time = _("MSpire对话的最小时间间隔")
-                    use prog_bar(_("MSpire最小间隔"), 250, tooltip_ms_time, "mspire_interval", 10, 180, "m")
+                    use prog_bar(_("MSpire最小间隔"), 250 if config.language == "chinese" else 400, tooltip_ms_time, "mspire_interval", 10, 180, "m")
 
 
                     hbox:
@@ -893,14 +893,14 @@ screen maica_setting():
 
                     hbox:
                         style_prefix "generic_fancy_check"
-                        textbutton _("MSpire 使用缓存"):
+                        textbutton _("MSpire使用缓存"):
                             action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
                             hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("MTrigger 列表"):
+                textbutton _("MTrigger列表"):
                     action Show("maica_triggers")
                     hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -916,32 +916,32 @@ screen maica_setting():
                         xfill True
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("查看MPostals往来信件"):
+                        textbutton _("MPostal历史信件"):
                             action Show("maica_mpostals")
                             hovered SetField(_tooltip, "value", _("查看MPostal历史信件"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     $ tooltip_mp_time = _("MPostal回信的最小时间间隔")
-                    use prog_bar(_("MPostal最小间隔"), 250, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, "m")
+                    use prog_bar(_("MPostal最小间隔"), 250 if config.language == "chinese" else 400, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, "m")
             
             hbox:
                 use divider(_("界面与日志"))
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("submod_log.log 等级:[logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
+                textbutton _("submod_log.log 等级: [logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
                     action Show("maica_select_log_level", log = "log_level")#Function(store.change_loglevel)
                     hovered SetField(_tooltip, "value", _("重要性低于设置等级的log将不会被记录在submod_log.log中.\n* 这也会影响其他子模组"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
 
-                use prog_bar(expl=_("状态码更新频率"), len=250, tooltip="在Submod界面处的状态码更新频率", var="status_update_time", min=1, max=60, istime="s")
+                use prog_bar(expl=_("状态码更新频率"), len=250 if config.language == "chinese" else 400, tooltip="在Submod界面处的状态码更新频率", var="status_update_time", min=1, max=60, istime="s")
 
             hbox:
                 style_prefix "generic_fancy_check"
                 textbutton _("动态的天堂树林"):
                     action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
-                    hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效\n* 如果产生显存相关错误, 删减精灵包或禁用此选项"))
+                    hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效.\n* 如果产生显存相关错误, 删减精灵包或禁用此选项"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
@@ -1033,7 +1033,7 @@ screen maica_setting():
     if tooltip.value:
         frame:
             xalign 0 yalign 1.0
-            xoffset 475 yoffset -25
+            xoffset 105 yoffset -25
             text tooltip.value:
                 style "main_menu_version"
 

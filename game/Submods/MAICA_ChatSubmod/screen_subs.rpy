@@ -12,7 +12,7 @@ screen maica_log():
             persistent.maica_setting_dict["provider_id"] = int(id)
 
     modal True
-    zorder 216
+    zorder 92
     
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -54,7 +54,7 @@ screen maica_tz_setting():
         current_tz = get_gmt_offset_timezone()
 
     modal True
-    zorder 216
+    zorder 92
     
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -199,21 +199,25 @@ screen maica_advance_setting():
                     persistent.maica_advanced_setting_status[item] = False
 
     modal True
-    zorder 216
+    zorder 92
     
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
             hbox:
                 style_prefix "maica_check"
-                text _("关于这些参数的详细解释, 参见 ")
+                text _("关于这些参数的详细解释, 参见 "):
+                    size 20
                 textbutton _("{u}MAICA 官方文档{/u}"):
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt")
-                text _(" 和 ")
-                textbutton _("{u}OPENAI 中文文档{/u}"):
-                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat")
+                    text_size 20
+                text _(" 和 "):
+                    size 20
+                textbutton _("{u}OpenAI 中文文档{/u}"):
+                    action OpenURL("https://www.openaidoc.com.cn/api-reference/chat" if config.language == "chinese" else "https://platform.openai.com/docs/api-reference/completions/create#completions_create")
+                    text_size 20
             hbox:
-                text _("{size=-10}注意: 只有已被勾选(标记了X)的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
+                text _("{size=-10}注意: 只有被勾选的高级参数才会被使用, 未勾选的参数将使用服务端默认设置")
             hbox:
                 if not persistent.maica_setting_dict.get('use_custom_model_config'):
                     text _("{size=-10}你当前未启用'使用高级参数', 该页的所有设置都不会生效!")
@@ -378,7 +382,7 @@ screen maica_advance_setting():
 
 screen maica_select_language():
     modal True
-    zorder 225
+    zorder 92
 
     use maica_setter_small_frame(ok_action=Hide("maica_select_language")):
         style_prefix "generic_fancy_check"
@@ -393,7 +397,7 @@ screen maica_select_language():
 default use_email = True
 screen maica_login():
     modal True
-    zorder 215
+    zorder 92
 
     $ ok_action = [
                     Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
@@ -466,7 +470,7 @@ screen maica_login():
 screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input")):
     ## Ensure other screens do not get input while this screen is displayed.s
     modal True
-    zorder 225
+    zorder 92
 
     use maica_setter_small_frame(message, ok_action):
         input default "" value VariableInputValue(returnto) length 64
@@ -488,7 +492,7 @@ screen maica_addition_input(addition="", edittarget=None):
             del persistent._mas_player_addition
             
     modal True
-    zorder 225
+    zorder 92
 
     use maica_setter_medium_frame(title=_("请输入MFocus信息"), ok_action=[Function(apply, edittarget), SetField(persistent ,"selectbool", None), Hide("maica_addition_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_addition_input")]):
         hbox:
@@ -512,7 +516,7 @@ screen maica_mspire_input(addition="", edittarget=None):
             del persistent._mas_player_addition
             
     modal True
-    zorder 225
+    zorder 92
 
     use maica_setter_medium_frame(title=_("请输入MSpire话题"), ok_action=[Function(apply, edittarget), SetField(persistent, "selectbool", None), Hide("maica_mspire_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_mspire_input")]):
         hbox:
@@ -559,7 +563,7 @@ screen maica_addition_setting():
             persistent.selectbool = None
 
     modal True
-    zorder 216
+    zorder 92
     timer 0.01 repeat False action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -625,7 +629,7 @@ screen maica_mspire_category_setting():
             persistent.selectbool = None
 
     modal True
-    zorder 216
+    zorder 92
     timer 0.01 repeat False action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -658,7 +662,7 @@ screen maica_node_setting():
             persistent.maica_setting_dict["provider_id"] = id
 
     modal True
-    zorder 216
+    zorder 92
 
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -682,6 +686,7 @@ screen maica_node_setting():
                                 Function(set_provider, provider.get('id')),
                                 Hide("maica_node_setting")
                             ]
+                            selected persistent.maica_setting_dict["provider_id"] == provider.get('id')
                     hbox:
                         style_prefix "maica_check"
                         textbutton renpy.substitute(_("> 打开官网")) + "(" + provider.get('portalPage') + ")":
@@ -701,14 +706,14 @@ screen maica_node_setting():
             textbutton _("关闭"):
                 action Hide("maica_node_setting")
             
-            textbutton _("测试[MaicaProviderManager.get_server_by_id(store.maica.maica.provider_id).get('name')]节点可用性"):
+            textbutton _("测试当前节点可用性"):
                 action Function(store.maica.maica.accessable)
                         
 screen maica_mspire_setting():
     $ _tooltip = store._tooltip
 
     modal True
-    zorder 216
+    zorder 92
 
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -755,7 +760,7 @@ screen maica_triggers():
         maica_triggers = store.maica.maica.mtrigger_manager
 
     modal True
-    zorder 216
+    zorder 92
 
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -866,7 +871,7 @@ screen maica_mpostals():
     $ _tooltip = store._tooltip
 
     modal True
-    zorder 216
+    zorder 92
 
     use maica_common_outer_frame():
         use maica_common_inner_frame():
@@ -925,45 +930,39 @@ screen maica_support():
     $ _tooltip = store._tooltip
 
     modal True
-    zorder 215
+    zorder 92
 
-    use maica_common_outer_frame():
-        use maica_common_inner_frame():
-            style_prefix "maica_nohover"
-            hbox:
-                text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
-            hbox:
-                text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章.")
-            hbox:
-                xalign 0.5
-                if config.language == 'chinese':
-                    imagebutton:
-                        idle "mod_assets/maica_img/aifadian.png"
-                        insensitive "mod_assets/maica_img/aifadian.png"
-                        hover "mod_assets/maica_img/aifadian.png"
-                        selected_idle "mod_assets/maica_img/aifadian.png"
-                        selected_hover "mod_assets/maica_img/aifadian.png"
-                        action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
-                else:
-                    imagebutton:
-                        idle "mod_assets/maica_img/unifans.png"
-                        insensitive "mod_assets/maica_img/unifans.png"
-                        hover "mod_assets/maica_img/unifans.png"
-                        selected_idle "mod_assets/maica_img/unifans.png"
-                        selected_hover "mod_assets/maica_img/unifans.png"
-                        action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
-
+    use maica_setter_medium_frame(title=_("向 MAICA 捐赠"), ok_action=Hide("maica_support")):
         hbox:
-            xpos 10
-            style_prefix "confirm"
-            textbutton _("关闭"):
-                action Hide("maica_support") 
+            text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
+        hbox:
+            style_prefix "maica_check"
+            text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."):
+                size 15
+        hbox:
+            xalign 0.5
+            if config.language == 'chinese':
+                imagebutton:
+                    idle "mod_assets/maica_img/aifadian.png"
+                    insensitive "mod_assets/maica_img/aifadian.png"
+                    hover "mod_assets/maica_img/aifadian.png"
+                    selected_idle "mod_assets/maica_img/aifadian.png"
+                    selected_hover "mod_assets/maica_img/aifadian.png"
+                    action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=zh")
+            else:
+                imagebutton:
+                    idle "mod_assets/maica_img/unifans.png"
+                    insensitive "mod_assets/maica_img/unifans.png"
+                    hover "mod_assets/maica_img/unifans.png"
+                    selected_idle "mod_assets/maica_img/unifans.png"
+                    selected_hover "mod_assets/maica_img/unifans.png"
+                    action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
 
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
     python:
-        stat = copy.deepcopy(store.maica.maica.workload_raw)
-        del stat["onliners"]
+        stat = {k: v for k, v in iterize(store.maica.maica.workload_raw) if k != "onliners"}
+        onliners = store.maica.maica.workload_raw.get("onliners")
     python:
         store.update_interval = 15
 
@@ -972,7 +971,7 @@ screen maica_workload_stat():
             store.maica.maica.update_workload()
 
     modal True
-    zorder 215
+    zorder 90
     
     style_prefix "check"
 
@@ -984,6 +983,8 @@ screen maica_workload_stat():
             xsize 942
             spacing 5
 
+            text renpy.substitute(_("当前在线人数: ")) + str(onliners)
+
             for server in stat:
 
                 use divider_small(server)
@@ -992,7 +993,7 @@ screen maica_workload_stat():
                     hbox:
                         text stat[server][card]["name"]:
                             size 15
-                        text store.maica.progress_bar(stat[server][card]["mean_utilization"]):
+                        text store.maica.progress_bar(stat[server][card]["mean_utilization"], total=int(stat[server][card]["tflops"]), unit="TFlops"):
                             size 10
                             #font maica_confont
 
@@ -1009,7 +1010,7 @@ screen maica_workload_stat():
 
 screen maica_select_console_font():
     modal True
-    zorder 225
+    zorder 92
 
     use maica_setter_small_frame(ok_action=Hide("maica_select_console_font")):
         style_prefix "generic_fancy_check"
@@ -1022,7 +1023,7 @@ screen maica_select_console_font():
 
 screen maica_select_log_level(log = "log_level"):
     modal True
-    zorder 225
+    zorder 92
     python:
         import logging
         log_levels = [
@@ -1046,7 +1047,7 @@ screen maica_statics():
     $ _tooltip = store._tooltip
 
     modal True
-    zorder 215
+    zorder 90
     
     style_prefix "check"
 
