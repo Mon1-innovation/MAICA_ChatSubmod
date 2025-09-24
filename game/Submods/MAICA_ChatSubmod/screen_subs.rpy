@@ -304,7 +304,7 @@ screen maica_advance_setting():
                 textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
-                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"))
+                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化tnd_aggressive"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_aggressive')
             hbox:

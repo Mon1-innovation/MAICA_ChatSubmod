@@ -960,8 +960,8 @@ translate english strings:
     new "Acquire some information even if not called explicitly.\n+ Higher: keen and less hallucination\n- Higher: higher likeability of distraction and misfocusing"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1245
-    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"
-    new "Require agent model to generate guidance instead of default MFocus mechanism.\n+ Higher information density and naturalness\n- Heavily depends on agent instruction following behavior\n- Disables tnd_aggressive"
+    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化tnd_aggressive"
+    new "Require agent model to generate guidance instead of default MFocus mechanism.\n+ Higher information density and naturalness\n- Heavily depends on agent instruction following behavior\n- Will likely neutralize tnd_aggressive"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1250
     old "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"
