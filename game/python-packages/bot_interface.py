@@ -448,8 +448,8 @@ class TalkSplitV2():
                 return False
             
         def split_at_pos(pos):
-            sce = self.sentence_present[0:pos+1]
-            self.sentence_present = self.sentence_present[pos+1:]
+            sce = self.sentence_present[0:pos]
+            self.sentence_present = self.sentence_present[pos:]
             return sce
         
         # We're doing v2.5 overhaul from here
