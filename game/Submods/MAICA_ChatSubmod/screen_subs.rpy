@@ -42,7 +42,7 @@ screen maica_tz_setting():
             -7: "America/Denver",
             -6: "America/Chicago",
             -5: "America/New_York",
-            -4: "America/Santiago",
+            -4: "America/Indiana/Vincennes",
             -3: "America/Argentina/Buenos_Aires",
             -2: "Atlantic/South_Georgia",
             -1: "Atlantic/Azores",
@@ -91,7 +91,7 @@ screen maica_tz_setting():
             hbox:
                 style_prefix "maica_check"
                 textbutton _("根据语言自动选择"):
-                    action SetDict(persistent.maica_setting_dict, "tz", mdef_setting['tz'])
+                    action SetDict(persistent.maica_setting_dict, "tz", 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes')
             
             hbox:
                 style_prefix "maica_check"
