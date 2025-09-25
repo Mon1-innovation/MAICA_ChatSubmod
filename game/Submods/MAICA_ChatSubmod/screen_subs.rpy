@@ -467,10 +467,10 @@ screen maica_addition_setting():
             else:
                 return False
         
-        def selected_one_tf():
+        def selected_count_tf(num):
             global persistent
             toggled = [k for k, v in iterize(persistent.selectbool) if v]
-            if len(toggled) == 1:
+            if len(toggled) == num:
                 return True
             else:
                 return False
@@ -481,7 +481,7 @@ screen maica_addition_setting():
 
     modal True
     zorder 92
-    timer 0.01 repeat False action Function(build_dict)
+    on "show" action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
@@ -494,10 +494,10 @@ screen maica_addition_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("删除条目"):
-                action [Function(delete_seleted), Function(build_dict)]
+                action [SensitiveIf(not selected_count_tf(0)), Function(delete_seleted), Function(build_dict)]
 
             textbutton _("编辑条目"):
-                action [SensitiveIf(selected_one_tf()), Show("maica_addition_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
+                action [SensitiveIf(selected_count_tf()), Show("maica_addition_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
 
             textbutton _("添加条目"):
                 action [Show("maica_addition_input")]
@@ -533,10 +533,10 @@ screen maica_mspire_category_setting():
             else:
                 return False
 
-        def selected_one_tf():
+        def selected_count_tf(num=1):
             global persistent
             toggled = [k for k, v in iterize(persistent.selectbool) if v]
-            if len(toggled) == 1:
+            if len(toggled) == num:
                 return True
             else:
                 return False
@@ -547,7 +547,7 @@ screen maica_mspire_category_setting():
 
     modal True
     zorder 92
-    timer 0.01 repeat False action Function(build_dict)
+    on "show" action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
@@ -560,10 +560,10 @@ screen maica_mspire_category_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("删除条目"):
-                action [Function(delete_seleted), SetField(persistent ,"selectbool", None)]
+                action [SensitiveIf(not selected_count_tf(0)), Function(delete_seleted), SetField(persistent ,"selectbool", None)]
 
             textbutton _("编辑条目"):
-                action [SensitiveIf(selected_one_tf()), Show("maica_mspire_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
+                action [SensitiveIf(selected_count_tf()), Show("maica_mspire_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
 
             textbutton _("添加条目"):
                 action [Show("maica_mspire_input"),SetField(persistent ,"selectbool", None)]
@@ -888,6 +888,7 @@ screen maica_workload_stat_lite():
     zorder 100
     fixed:
         frame:
+            xsize 350
             xoffset 15 yoffset 15
             has vbox
             hbox:
@@ -901,6 +902,13 @@ screen maica_workload_stat_lite():
                 text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops"):
                     size 20
                     font maica_confont
+            hbox:
+                text renpy.substitute(_("下次更新数据")):
+                    size 15
+                text store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 20, total=store.update_interval, unit="s"):
+                    size 15
+                    font maica_confont
+                timer 1.0 repeat True action Function(check_and_update)
 
 
 
