@@ -1,7 +1,8 @@
+default return_code = None
 label maica_talking(mspire = False):
     call maica_show_console
     call maica_init_connect(use_pause_instand_wait = True)
-    if _return == "disconnected":
+    if return_code == "disconnected":
         return "disconnected"
     python:
         import time
@@ -28,7 +29,7 @@ label maica_talking(mspire = False):
                     if "stop" in store.action:
                         if store.action["stop"]:
                             store.action = {}
-                            _return = "canceled"
+                            return_code = "canceled"
                             break
 
                     question = mas_input(
@@ -41,7 +42,7 @@ label maica_talking(mspire = False):
                     if question == "":
                         continue
                     if question == "nevermind":
-                        _return = "canceled"
+                        return_code = "canceled"
                         ai.content_func = None
                         break
                     to_history = copy.deepcopy(_history_list[-1])
@@ -59,7 +60,7 @@ label maica_talking(mspire = False):
                 is_retry_before_sendmessage = question if question else False
                 continue
             else:
-                _return = "disconnected"
+                return_code = "disconnected"
                 store.mas_submod_utils.submod_log.warning("label maica_talking::disconnected maybe unexpected")
                 break
 
@@ -84,7 +85,7 @@ label maica_talking(mspire = False):
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
                         renpy.say(m, _("好像出了什么问题..."))
-                        _return = "disconnected"
+                        return_code = "disconnected"
                         break
                 if ai.len_message_queue() == 0:
                     #renpy.show(monika 1eua)
@@ -103,14 +104,14 @@ label maica_talking(mspire = False):
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.console_logger.error("!!SUBMOD ERROR when chatting: {}".format(e))
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
-            _return = "mtrigger_triggering"
+            return_code = "mtrigger_triggering"
             store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
             ai.console_logger.debug("<chat_action> {}".format(store.action))
             if store.action['stop']:
-                _return = "canceled"
+                return_code = "canceled"
                 break
             if mspire:
-                _return = "canceled"
+                return_code = "canceled"
                 afm_pref = renpy.game.preferences.afm_enable
                 renpy.game.preferences.afm_enable = False
                 break
@@ -123,7 +124,7 @@ label maica_talking.end:
     call maica_hide_console
     if persistent.maica_setting_dict['console']:    
         $ store.mas_ptod.clear_console()
-    return _return
+    return return_code
 
 label maica_show_console:
     if persistent.maica_setting_dict['console']:

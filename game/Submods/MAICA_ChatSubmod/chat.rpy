@@ -188,7 +188,7 @@ label maica_prepend_2:
                     show monika at t22
                     show screen mas_py_console_teaching
                     $ store.maica.maica.content_func = store.mas_ptod._update_console_history
-                    $ store.maica.maica.console_logger.critical(store.maica.maica.ascii_icon)
+                    $ store.maica.maica.console_logger.critical("<DISABLE_VERBOSITY>"+store.maica.maica.ascii_icon)
                     $ store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
                     pause 2.3
                 $ store.maica.maica.init_connect()
@@ -556,12 +556,14 @@ label maica_main:
 label .talking_start:
     call maica_talking
     # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
+    if config.debug:
+        m "return：[_return]"
     if _return == "canceled":
         m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
     elif store.maica.maica.mtrigger_manager._running:
         $ store.maica.maica.mtrigger_manager._running = False
         jump .talking_start
-    else:
+    elif _return != "mtrigger_triggering":
         $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(_return))
         if store.maica.maica.status == store.maica.maica.MaicaAiStatus.TOKEN_FAILED:
             m 2rusdlb "...好像你的令牌还没有设置好."
