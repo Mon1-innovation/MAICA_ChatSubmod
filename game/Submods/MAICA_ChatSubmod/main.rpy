@@ -364,7 +364,7 @@ init 999 python:
         return
 
 label show_workload:
-    python hide:
+    # python hide:
         # ai = store.maica.maica
         # data = ai.get_workload_lite()
         # if data["total_inuse_vmem"] and data["total_vmem"] and data["avg_usage"]:
