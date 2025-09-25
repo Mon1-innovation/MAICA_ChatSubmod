@@ -1084,8 +1084,8 @@ translate english strings:
     new "An agent model will recieve input subsequent to the core model, and guide character's action.\n* MTrigger is a major mechanism of MAICA, suggested to enable"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:748
-    old "时区设置: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
-    new "Timezone: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
+    old "时区设置: [persistent.maica_setting_dict.get('tz')]"
+    new "Timezone: [persistent.maica_setting_dict.get('tz')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:782
     old "会话与数据"

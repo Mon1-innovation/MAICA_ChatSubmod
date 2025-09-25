@@ -887,10 +887,9 @@ screen maica_workload_stat_lite():
     
     zorder 100
     fixed:
-        has frame
-        xalign 0.3
-        #yalign 0.5
-        vbox:
+        frame:
+            xalign 0.3
+            has vbox
             # hbox:
             #     text "ovo"
             hbox:
