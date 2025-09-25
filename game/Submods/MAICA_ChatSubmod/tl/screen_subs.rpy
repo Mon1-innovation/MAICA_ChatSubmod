@@ -206,3 +206,11 @@ translate english strings:
     old "CRITICAL"
     new "CRITICAL"
 
+# TODO: Translation updated at 2025-09-25 20:59
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:851
+    old "向 MAICA 捐赠"
+    new "Donate to MAICA"
+
