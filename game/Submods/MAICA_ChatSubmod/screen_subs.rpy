@@ -889,7 +889,8 @@ screen maica_workload_stat_lite():
     fixed:
         frame:
             xsize 619
-            xoffset 5 yoffset 440
+            xoffset 5 yoffset 450
+            background "mod_assets/console/cn_frame_stats.png"
             has vbox
             hbox:
                 text renpy.substitute(_("当前在线人数: ")) + str(onliners):
