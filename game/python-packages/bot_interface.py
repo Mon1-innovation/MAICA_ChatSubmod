@@ -360,7 +360,7 @@ class TalkSplitV2():
         self.sentence_present = ''
         if PY3:
             self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]+')
-            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;~]+')
+            self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;，,~]+')
             self.pattern_crit_punc = re.compile(r'[.。!！?？~]+')
             self.pattern_excrit_punc = re.compile(r'[!！~]+')
             self.pattern_numeric = re.compile(r'[0-9]')
@@ -378,8 +378,8 @@ class TalkSplitV2():
             self.pattern_semileft = datapy2.pattern_semileft
             self.pattern_semiright = datapy2.pattern_semiright
 
-        self.list_uncrit_punc = '.。!！?？；;~'
-        self.list_crit_punc = '.。!！?？；;~'
+        self.list_uncrit_punc = '.。!！?？；;，,~'
+        self.list_crit_punc = '.。!！?？~'
         self.list_excrit_puc = '!！~'
 
         self.print_func = print_func
@@ -413,9 +413,17 @@ class TalkSplitV2():
             return None
         
         def is_decimal(five_related_cells):
+
+            def num_amount(text):
+                i = 0
+                for c in text:
+                    if c.isdigit():
+                        i += 1
+                return i
+
             if five_related_cells[2] == '.':
-                nums = len(self.pattern_numeric.findall(five_related_cells)); cnts = len(self.pattern_content.findall(five_related_cells))
-                if nums>=2 or cnts<=1:
+                cnts = len(self.pattern_content.findall(five_related_cells))
+                if (num_amount(five_related_cells[0:2]) and num_amount(five_related_cells[3:5])) or (cnts<=1 and num_amount(five_related_cells[0:2]) != 2) or five_related_cells[1].isupper():
                     return True
             return False
         
@@ -448,9 +456,12 @@ class TalkSplitV2():
                 return False
             
         def split_at_pos(pos):
-            sce = self.sentence_present[0:pos+1]
-            self.sentence_present = self.sentence_present[pos+1:]
-            return sce
+            sce = self.sentence_present[0:pos]
+            self.sentence_present = self.sentence_present[pos:]
+            if len(sce) > 1 and not sce.isspace():
+                return sce
+            else:
+                return None
         
         # We're doing v2.5 overhaul from here
 
@@ -465,7 +476,7 @@ class TalkSplitV2():
             pos = match.end(); content = match.group()
             match_tuple = (pos, content)
             apc.append(match_tuple)
-            if len(content) > 1 or not is_decimal(('  ' + self.sentence_present + '  ')[pos:pos+5]):
+            if len(content) > 1 or not is_decimal(('   ' + self.sentence_present + ' ')[pos:pos+5]):
                 if check_has(content, self.list_uncrit_punc):
                     upc.append(match_tuple)
                     if check_has(content, self.list_crit_punc):
@@ -474,10 +485,10 @@ class TalkSplitV2():
                             epc.append(match_tuple)
         slc_matches = self.pattern_semileft.finditer(self.sentence_present)
         for match in slc_matches:
-            slc.append((match.start(), match.group()))
+            slc.append((match.end(), match.group()))
         src_matches = self.pattern_semiright.finditer(self.sentence_present)
         for match in src_matches:
-            src.append((match.start(), match.group()))
+            src.append((match.end(), match.group()))
 
         self.print_func(apc); self.print_func(upc); self.print_func(cpc); self.print_func(epc); self.print_func(length_present)
         # if length_present <= 60:
@@ -521,7 +532,8 @@ class TalkSplitV2():
             res = self.split_present_sentence()
             if res:
                 sce.append(res)
-        sce.append(self.sentence_present)
+        if self.sentence_present and len(self.sentence_present) > 1 and not self.sentence_present.isspace():
+            sce.append(self.sentence_present)
         self.init1()
         return sce
 

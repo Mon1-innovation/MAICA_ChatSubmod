@@ -304,7 +304,7 @@ screen maica_advance_setting():
                 textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
-                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时会禁用tnd_aggressive"))
+                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化tnd_aggressive"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_aggressive')
             hbox:
@@ -1022,7 +1022,7 @@ screen maica_workload_stat():
                             size 15
                         text store.maica.progress_bar(stat[server][card]["mean_utilization"], total=int(stat[server][card]["tflops"]), unit="TFlops"):
                             size 10
-                            #font maica_confont
+                            font maica_confont
 
                         text "VRAM: " + str(stat[server][card]["mean_memory"]) + " / " + str(stat[server][card]["vram"]):
                             size 10
@@ -1031,8 +1031,11 @@ screen maica_workload_stat():
                 text ""
 
             hbox:
-                text renpy.substitute(_("下次更新数据")) + store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 78, total=store.update_interval, unit="s"):
+                text renpy.substitute(_("下次更新数据")):
                     size 15
+                text store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 78, total=store.update_interval, unit="s"):
+                    size 15
+                    font maica_confont
                 timer 1.0 repeat True action Function(check_and_update)
 
 screen maica_select_console_font():

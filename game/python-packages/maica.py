@@ -806,7 +806,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         data = json.loads(message)
         if data.get("status", "unknown") in ('maica_connection_initiated'):
             if self.target_lang == self.MaicaAiLang.en:
-                data.content = "Illuminator: MAICA websocket connection initiated."
+                data['content'] = "Illuminator: MAICA websocket connection initiated."
         if data.get("status", "unknown") in ('ws_cookie'):
             logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
                 (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
