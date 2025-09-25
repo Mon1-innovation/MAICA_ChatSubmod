@@ -896,7 +896,8 @@ screen maica_workload_stat_lite():
                 text renpy.substitute(_("当前在线人数: ")) + str(onliners):
                     size 15
                 hbox:
-                    text "  "
+                    text "  ":
+                        size 15
                     text renpy.substitute(_("下次更新数据")):
                         size 15
                     text store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 10, total=store.update_interval, unit="s"):
