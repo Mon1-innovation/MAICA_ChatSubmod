@@ -888,7 +888,7 @@ screen maica_workload_stat_lite():
     zorder 100
     fixed:
         frame:
-            xsize 350
+            xsize 600
             xoffset 15 yoffset 15
             has vbox
             hbox:
