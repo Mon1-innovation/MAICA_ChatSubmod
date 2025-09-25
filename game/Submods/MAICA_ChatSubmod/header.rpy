@@ -79,7 +79,6 @@ init 10 python:
         "pre_additive":0,
         "post_additive":1,
         "amt_aggressive":True,
-        "tz":None,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -748,7 +747,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("时区设置: [persistent.maica_setting_dict.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
+                textbutton _("时区设置: [persistent.maica_setting_dict.get('tz')]"):
                     action Show("maica_tz_setting")
             hbox:
                 frame:
