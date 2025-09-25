@@ -889,18 +889,18 @@ screen maica_workload_stat_lite():
     fixed:
         frame:
             xsize 600
-            xoffset 15 yoffset 15
+            xoffset 15 yoffset 430
             has vbox
             hbox:
                 text renpy.substitute(_("当前在线人数: ")) + str(onliners):
                     size 20
             hbox:
                 text "VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB"):
-                    size 20
+                    size 15
                     font maica_confont
             hbox:
                 text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops"):
-                    size 20
+                    size 15
                     font maica_confont
             hbox:
                 text renpy.substitute(_("下次更新数据")):
