@@ -888,8 +888,8 @@ screen maica_workload_stat_lite():
     zorder 100
     fixed:
         frame:
-            xsize 600
-            xoffset 15 yoffset 430
+            xsize 595
+            xoffset 15 yoffset 460
             has vbox
             hbox:
                 text renpy.substitute(_("当前在线人数: ")) + str(onliners):
