@@ -32,8 +32,41 @@ screen maica_log():
 
 screen maica_tz_setting():
     python:
+        # 从-12开始
+        store.timezone_dict = {
+            -12: "Etc/GMT+12",
+            -11: "Pacific/Midway",
+            -10: "Pacific/Honolulu",
+            -9: "America/Anchorage",
+            -8: "America/Los_Angeles",
+            -7: "America/Denver",
+            -6: "America/Chicago",
+            -5: "America/New_York",
+            -4: "America/Santiago",
+            -3: "America/Argentina/Buenos_Aires",
+            -2: "Atlantic/South_Georgia",
+            -1: "Atlantic/Azores",
+            0: "Europe/London",
+            1: "Europe/Berlin",
+            2: "Europe/Kaliningrad",
+            3: "Europe/Moscow",
+            4: "Asia/Dubai",
+            5: "Asia/Karachi",
+            6: "Asia/Dhaka",
+            7: "Asia/Bangkok",
+            8: "Asia/Shanghai",
+            9: "Asia/Tokyo",
+            10: "Australia/Sydney",
+            11: "Pacific/Noumea",
+            12: "Pacific/Auckland",
+            13: "Pacific/Tongatapu",
+            14: "Pacific/Kiritimati"
+        }
+        store.timezone_list = sorted(list(store.timezone_dict.keys()))
         def get_gmt_offset_timezone():
             import time
+            import sys
+
             # 获取当前本地时间的 UTC 偏移量（以秒为单位）
             if time.localtime().tm_isdst:
                 offset_sec = -time.altzone
@@ -42,14 +75,7 @@ screen maica_tz_setting():
 
             # 将偏移量转换为小时
             offset_hours = offset_sec // 3600
-
-            # 生成 Etc/GMT± 的时区名称
-            if offset_hours == 0:
-                return "Etc/GMT"
-            elif offset_hours > 0:
-                return "Etc/GMT-{}".format(offset_hours)
-            else:
-                return "Etc/GMT+{}".format(-offset_hours)
+            return store.timezone_dict[offset_hours]
 
         current_tz = get_gmt_offset_timezone()
 
@@ -61,122 +87,21 @@ screen maica_tz_setting():
             style_prefix "generic_fancy_check"
             
             text _("{size=-10}如果这里没有你的时区, 请根据你当地的UTC时间选择")
-
-            hbox:
-                textbutton _("根据语言自动选择"):
-                    action SetDict(persistent.maica_setting_dict, "tz", maica_default_dict['tz'])
             
             hbox:
+                style_prefix "maica_check"
+                textbutton _("根据语言自动选择"):
+                    action SetDict(persistent.maica_setting_dict, "tz", mdef_setting['tz'])
+            
+            hbox:
+                style_prefix "maica_check"
                 textbutton _("根据系统时区自动选择"):
                     action SetDict(persistent.maica_setting_dict, "tz", current_tz)
 
-            hbox:
-                textbutton "UTC-12|Etc/GMT+12":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Etc/GMT+12")
-
-            hbox:
-                textbutton "UTC-11|Pacific/Midway":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Pacific/Midway")
-
-            hbox:
-                textbutton "UTC-10|Pacific/Honolulu":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Pacific/Honolulu")
-
-            hbox:
-                textbutton "UTC-9|America/Anchorage":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/Anchorage")
-
-            hbox:
-                textbutton "UTC-8|America/Los_Angeles":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/Los_Angeles")
-
-            hbox:
-                textbutton "UTC-7|America/Denver":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/Denver")
-
-            hbox:
-                textbutton "UTC-6|America/Chicago":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/Chicago")
-
-            hbox:
-                textbutton "UTC-5|America/New_York":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/New_York")
-
-            hbox:
-                textbutton "UTC-4|America/Santiago":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/Santiago")
-
-            hbox:
-                textbutton "UTC-3|America/Argentina/Buenos_Aires":
-                    action SetDict(persistent.maica_setting_dict, "tz", "America/Argentina/Buenos_Aires")
-
-            hbox:
-                textbutton "UTC-2|Atlantic/South_Georgia":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Atlantic/South_Georgia")
-
-            hbox:
-                textbutton "UTC-1|Atlantic/Azores":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Atlantic/Azores")
-
-            hbox:
-                textbutton "UTC+0|Europe/London":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Europe/London")
-
-            hbox:
-                textbutton "UTC+1|Europe/Berlin":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Europe/Berlin")
-
-            hbox:
-                textbutton "UTC+2|Europe/Kaliningrad":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Europe/Kaliningrad")
-
-            hbox:
-                textbutton "UTC+3|Europe/Moscow":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Europe/Moscow")
-
-            hbox:
-                textbutton "UTC+4|Asia/Dubai":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Asia/Dubai")
-
-            hbox:
-                textbutton "UTC+5|Asia/Karachi":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Asia/Karachi")
-
-            hbox:
-                textbutton "UTC+6|Asia/Dhaka":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Asia/Dhaka")
-
-            hbox:
-                textbutton "UTC+7|Asia/Bangkok":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Asia/Bangkok")
-
-            hbox:
-                textbutton "UTC+8|Asia/Shanghai":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Asia/Shanghai")
-
-            hbox:
-                textbutton "UTC+9|Asia/Tokyo":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Asia/Tokyo")
-
-            hbox:
-                textbutton "UTC+10|Australia/Sydney":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Australia/Sydney")
-
-            hbox:
-                textbutton "UTC+11|Pacific/Noumea":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Pacific/Noumea")
-
-            hbox:
-                textbutton "UTC+12|Pacific/Auckland":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Pacific/Auckland")
-
-            hbox:
-                textbutton "UTC+13|Pacific/Tongatapu":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Pacific/Tongatapu")
-
-            hbox:
-                textbutton "UTC+14|Pacific/Kiritimati":
-                    action SetDict(persistent.maica_setting_dict, "tz", "Pacific/Kiritimati")
+            for item in timezone_list:
+                hbox:
+                    textbutton "UTC" + "{}".format("+" if item >= 0 else "") + str(item) + "|" + timezone_dict[item]:
+                        action SetDict(persistent.maica_setting_dict, "tz", timezone_dict[item])
         hbox:
             xpos 10
             style_prefix "confirm"
