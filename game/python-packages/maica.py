@@ -328,7 +328,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._in_mspire = False
         self.mspire_use_cache = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
-        
+        self.tz = "Asia/Shanghai"
         self.__ws_cookie = ""
         self.enable_strict_mode = False
         self.default_setting = {
@@ -778,7 +778,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "type": "params",
                 "chat_params": {}
             }
-            data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token})
+            data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz})
             data['chat_params'].update(self.modelconfig)
             if self.enable_strict_mode and self.__ws_cookie != "":
                 data['cookie'] = self.__ws_cookie

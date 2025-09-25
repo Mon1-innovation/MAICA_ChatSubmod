@@ -59,7 +59,8 @@ init 10 python:
         "show_console_when_reply": False,
         "mpostal_default_reply_time": 360,
         "42seed":False,
-        "use_anim_background": True
+        "use_anim_background": True,
+        "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes'
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -286,6 +287,7 @@ init 10 python:
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
+        store.maica.maica.tz = persistent.maica_setting_dict["tz"]
         store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica.mtrigger_manager.output_settings())
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
@@ -324,6 +326,7 @@ init 10 python:
         persistent.maica_setting_dict["provider_id"] = store.maica.maica.provider_id
         persistent.maica_setting_dict["max_history_token"] = store.maica.maica.max_history_token
         persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
+        persistent.maica_setting_dict["tz"] = store.maica.maica.tz
         store.maica.maica.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
         renpy.notify(_("MAICA: 已放弃设置修改"))
@@ -745,7 +748,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("时区设置: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
+                textbutton _("时区设置: [persistent.maica_setting_dict.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"):
                     action Show("maica_tz_setting")
             hbox:
                 frame:
