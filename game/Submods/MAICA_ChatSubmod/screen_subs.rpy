@@ -895,6 +895,14 @@ screen maica_workload_stat_lite():
             hbox:
                 text renpy.substitute(_("当前在线人数: ")) + str(onliners):
                     size 20
+                hbox:
+                    text renpy.substitute(_("下次更新数据")):
+                        size 15
+                    text store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 10, total=store.update_interval, unit="s"):
+                        size 15
+                        font maica_confont
+                    timer 1.0 repeat True action Function(check_and_update)
+
             hbox:
                 text "VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB"):
                     size 15
@@ -903,13 +911,6 @@ screen maica_workload_stat_lite():
                 text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops"):
                     size 15
                     font maica_confont
-            hbox:
-                text renpy.substitute(_("下次更新数据")):
-                    size 15
-                text store.maica.progress_bar(((store.workload_throttle.remain / store.update_interval)) * 100, bar_length = 20, total=store.update_interval, unit="s"):
-                    size 15
-                    font maica_confont
-                timer 1.0 repeat True action Function(check_and_update)
 
 
 
