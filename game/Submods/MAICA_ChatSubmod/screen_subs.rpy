@@ -894,9 +894,8 @@ screen maica_workload_stat_lite():
             has vbox
             hbox:
                 text renpy.substitute(_("当前在线人数: ")) + str(onliners):
-                    size 20
+                    size 15
                 hbox:
-                    yalign 0.5
                     text "  "
                     text renpy.substitute(_("下次更新数据")):
                         size 15
