@@ -1,7 +1,5 @@
 label maica_talking(mspire = False):
-    if persistent.maica_setting_dict['console']:
-        show monika at t22
-        show screen mas_py_console_teaching
+    call maica_show_console
     call maica_init_connect(use_pause_instand_wait = True)
     if _return == "disconnected":
         return "disconnected"
@@ -122,19 +120,20 @@ label maica_talking(mspire = False):
     # store.mas_ptod._update_console_history([])
 
 label maica_talking.end:
+    call maica_hide_console
     if persistent.maica_setting_dict['console']:    
         $ store.mas_ptod.clear_console()
-        hide screen mas_py_console_teaching
-        show monika at t11
     return _return
 
 label maica_show_console:
     if persistent.maica_setting_dict['console']:
+        $ maica_enableWorkLoadScreen()
         show screen mas_py_console_teaching
         show monika at t22
     return
 label maica_hide_console:
     if persistent.maica_setting_dict['console']:
+        $ maica_disableWorkLoadScreen()
         hide screen mas_py_console_teaching
         show monika at t11
     return
@@ -375,3 +374,19 @@ label show_workload:
             ai.console_logger.debug("workload data not intact: '{}'".format(str(data)))
     return
 
+
+init -1 python:
+
+    # quick functions to enable disable the mouse tracker
+    def maica_enableWorkLoadScreen():
+        if not maica_isWorkLoadScreenVisible():
+            config.overlay_screens.append("maica_workload_stat_lite")
+
+
+    def maica_disableWorkLoadScreen():
+        if maica_isWorkLoadScreenVisible():
+            config.overlay_screens.remove("maica_workload_stat_lite")
+            renpy.hide_screen("maica_workload_stat_lite")
+
+    def maica_isWorkLoadScreenVisible():
+        return "maica_workload_stat_lite" in config.overlay_screens

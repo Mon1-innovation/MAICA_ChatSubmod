@@ -927,7 +927,6 @@ screen maica_mpostals():
                 action Hide("maica_mpostals")
 
 screen maica_support():
-    $ _tooltip = store._tooltip
 
     modal True
     zorder 92
@@ -957,6 +956,34 @@ screen maica_support():
                     selected_idle "mod_assets/maica_img/unifans.png"
                     selected_hover "mod_assets/maica_img/unifans.png"
                     action OpenURL("https://forum.monika.love/iframe/redir_donation.php?lang=en")
+
+screen maica_workload_stat_lite():
+    python:
+        onliners = store.maica.maica.workload_raw.get("onliners")
+        ai = store.maica.maica
+        data = ai.get_workload_lite()
+        store.update_interval = 15
+
+        @store.workload_throttle
+        def check_and_update():
+            store.maica.maica.update_workload()
+    
+    zorder 100
+    fixed:
+        xalign 0.3
+        #yalign 0.5
+        vbox:
+            hbox:
+                text "ovo"
+            hbox:
+                text renpy.substitute(_("当前在线人数: ")) + str(onliners)
+            hbox:
+                text "VRAM " + maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB")
+            hbox:
+                text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops")
+
+
+
 
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
