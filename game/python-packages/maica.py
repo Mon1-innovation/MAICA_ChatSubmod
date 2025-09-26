@@ -187,10 +187,10 @@ class MaicaAi(ChatBotInterface):
         isMaicaNameServer = None
         isfailedresponse = {
             "id": 0,
-            "name":"ERROR",
-            "deviceName": "Cannot find server",
+            "name":"ERROR: 无法获取节点信息",
+            "deviceName": "查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
             "isOfficial": False,
-            "portalPage": "https://www.google.com",
+            "portalPage": "https://forum.monika.love/d/3954",
             "servingModel": "None",
             "modelLink": "",
             "wsInterface": "wss://maicadev.monika.love/websocket",
@@ -198,8 +198,8 @@ class MaicaAi(ChatBotInterface):
         }
         fakelocalprovider = {
             "id": 9999,
-            "name":"Local Deployment",
-            "deviceName": "This is your local deployment of MAICA",
+            "name":"本地部署",
+            "deviceName": "当你有可用的本地部署时, 选择此节点",
             "isOfficial": False,
             "portalPage": "https://github.com/PencilMario/MAICA",
             "servingModel": "None",

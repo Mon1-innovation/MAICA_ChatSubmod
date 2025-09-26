@@ -47,3 +47,27 @@ translate english python in maica:
     store.mas_setEVLPropValues("maica_prepend_reread", prompt="What is Heaven Forest after all", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="About 'MSpire'", category=["You", "Us", "Mod", "MAICA"])
     store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="About 'MPostal'", category=["You", "Us", "Mod", "MAICA"])
+    maica.MaicaProviderManager.isfailedresponse.update(
+        {
+            "name":"ERROR: Unable to retrieve node information.",
+            "deviceName": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
+            "isOfficial": False,
+            "portalPage": "https://forum.monika.love/d/3954",
+            "servingModel": "None",
+            "modelLink": "",
+            "wsInterface": "wss://maicadev.monika.love/websocket",
+            "httpInterface": "https://maicadev.monika.love/api"
+        }
+    )
+    maica.MaicaProviderManager.isfailedresponse.update(
+        {
+            "name":"Local Deployment",
+            "deviceName": "When you have an available local deployment, select this node.",
+            "isOfficial": False,
+            "portalPage": "https://github.com/PencilMario/MAICA",
+            "servingModel": "None",
+            "modelLink": "",
+            "wsInterface": "ws://127.0.0.1:5000",
+            "httpInterface": "http://127.0.0.1:6000",
+        }
+    )
