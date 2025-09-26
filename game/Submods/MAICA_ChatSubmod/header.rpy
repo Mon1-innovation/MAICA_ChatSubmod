@@ -294,7 +294,8 @@ init 10 python:
         elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
             import json_exporter
             store.maica.maica.MoodStatus.emote_translate = json_exporter.emotion_etz
-        
+        if not persistent.maica_setting_dict.get('mspire_enable') and mas_inEVL("maica_mspire"):
+            store.MASEventList.clean()
         if not ininit:
             renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
             

@@ -431,8 +431,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "mpostal_count":0
         }
     def send_to_outside_func(self, content):
-        content = u"{}".format(content)
         content = key_replace(content, bot_interface.renpy_symbol_percentage)
+        content = u"{}".format(content)
         import unicodedata
         if self.content_func is None:
             return
