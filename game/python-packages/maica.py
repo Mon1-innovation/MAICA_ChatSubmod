@@ -187,19 +187,19 @@ class MaicaAi(ChatBotInterface):
         isMaicaNameServer = None
         isfailedresponse = {
             "id": 0,
-            "name":"ERROR: 无法获取节点信息",
-            "deviceName": "查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
+            "name":u"ERROR: 无法获取节点信息",
+            "deviceName": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
             "isOfficial": False,
             "portalPage": "https://forum.monika.love/d/3954",
-            "servingModel": "None",
+            "servingModel": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
             "modelLink": "",
             "wsInterface": "wss://maicadev.monika.love/websocket",
             "httpInterface": "https://maicadev.monika.love/api"
         }
         fakelocalprovider = {
             "id": 9999,
-            "name":"本地部署",
-            "deviceName": "当你有可用的本地部署时, 选择此节点",
+            "name":u"本地部署",
+            "deviceName": u"当你有可用的本地部署时, 选择此节点",
             "isOfficial": False,
             "portalPage": "https://github.com/PencilMario/MAICA",
             "servingModel": "None",
@@ -216,6 +216,7 @@ class MaicaAi(ChatBotInterface):
             res = requests.get(cls.provider_list, json={})
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
+                cls.isfailedresponse["deviceName"] = "Cannot get providers because server {}".format(res.status_code)
                 cls.servers.append(cls.isfailedresponse)
                 cls.servers.append(cls.fakelocalprovider)
                 #raise Exception("Cannot get providers because server error")
@@ -238,7 +239,6 @@ class MaicaAi(ChatBotInterface):
             for server in cls.servers:
                 if int(server["id"]) == id:
                     return server
-            cls.isfailedresponse["deviceName"] = "Cannot find server by id: {}".format(id)
             logger.error("Cannot find server by id: {}, returning default failed response".format(id))
             return cls.isfailedresponse
         @classmethod

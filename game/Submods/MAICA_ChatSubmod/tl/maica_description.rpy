@@ -53,7 +53,7 @@ translate english python in maica:
             "deviceName": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
             "isOfficial": False,
             "portalPage": "https://forum.monika.love/d/3954",
-            "servingModel": "None",
+            "servingModel": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
             "modelLink": "",
             "wsInterface": "wss://maicadev.monika.love/websocket",
             "httpInterface": "https://maicadev.monika.love/api"
