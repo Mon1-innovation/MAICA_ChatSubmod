@@ -144,6 +144,8 @@ init 10 python:
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
         persistent.mas_geolocation = ''
+        persistent.mas_player_additions = []
+        persistent.maica_setting_dict["mspire_category"] = []
 
     def _maica_verify_token():
         res = store.maica.maica._verify_token()
