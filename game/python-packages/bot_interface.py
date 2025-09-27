@@ -361,6 +361,7 @@ class TalkSplitV2():
         if PY3:
             self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]+')
             self.pattern_uncrit_punc = re.compile(r'[.。!！?？；;，,~]+')
+            self.pattern_subcrit_punc = re.compile(r'[.。!！?？；;~]+')
             self.pattern_crit_punc = re.compile(r'[.。!！?？~]+')
             self.pattern_excrit_punc = re.compile(r'[!！~]+')
             self.pattern_numeric = re.compile(r'[0-9]')
@@ -371,6 +372,7 @@ class TalkSplitV2():
             import datapy2
             self.pattern_all_punc = datapy2.pattern_all_punc
             self.pattern_uncrit_punc = datapy2.pattern_uncrit_punc
+            self.pattern_subcrit_punc = datapy2.pattern_subcrit_punc
             self.pattern_crit_punc = datapy2.pattern_crit_punc
             self.pattern_excrit_punc = datapy2.pattern_excrit_punc
             self.pattern_numeric = datapy2.pattern_numeric
@@ -379,6 +381,7 @@ class TalkSplitV2():
             self.pattern_semiright = datapy2.pattern_semiright
 
         self.list_uncrit_punc = '.。!！?？；;，,~'
+        self.list_subcrit_punc = '.。!！?？；;~'
         self.list_crit_punc = '.。!！?？~'
         self.list_excrit_puc = '!！~'
 
@@ -405,7 +408,7 @@ class TalkSplitV2():
         self.sentence_present += part
 
     def split_present_sentence(self):
-        apc=[]; upc=[]; cpc=[]; epc=[]; slc=[]; src=[]
+        apc=[]; upc=[]; spc=[]; cpc=[]; epc=[]; slc=[]; src=[]
         length_present = len(self.sentence_present.encode())
         self.print_func("length_present: {}".format(length_present))
 
@@ -450,7 +453,7 @@ class TalkSplitV2():
                         break
             else:
                 rc = 0
-            if lc == rc:
+            if lc <= rc:
                 return True
             else:
                 return False
@@ -459,7 +462,7 @@ class TalkSplitV2():
             sce = self.sentence_present[0:pos]
             self.sentence_present = self.sentence_present[pos:]
             if len(sce) > 1 and not sce.isspace():
-                return sce
+                return sce.lstrip()
             else:
                 return None
         
@@ -479,10 +482,12 @@ class TalkSplitV2():
             if len(content) > 1 or not is_decimal(('   ' + self.sentence_present + ' ')[pos:pos+5]):
                 if check_has(content, self.list_uncrit_punc):
                     upc.append(match_tuple)
-                    if check_has(content, self.list_crit_punc):
-                        cpc.append(match_tuple)
-                        if check_has(content, self.list_excrit_puc):
-                            epc.append(match_tuple)
+                    if check_has(content, self.list_subcrit_punc):
+                        spc.append(match_tuple)
+                        if check_has(content, self.list_crit_punc):
+                            cpc.append(match_tuple)
+                            if check_has(content, self.list_excrit_puc):
+                                epc.append(match_tuple)
         slc_matches = self.pattern_semileft.finditer(self.sentence_present)
         for match in slc_matches:
             slc.append((match.end(), match.group()))
@@ -505,14 +510,21 @@ class TalkSplitV2():
                 if 30 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No cpc or still none fits
-        if length_present <= 125:
+        if length_present <= 120:
+            return None
+        if spc:
+            for char in reversed(spc):
+                if 20 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
+                    return split_at_pos(char[0])
+        # No spc or still none fits
+        if length_present <= 140:
             return None
         if upc:
             for char in reversed(upc):
                 if 10 <= get_real_len(char[0]) <= 180 and check_sanity_pos(char[0]):
                     return split_at_pos(char[0])
         # No upc or still none fits
-        if length_present <= 150:
+        if length_present <= 160:
             return None
         if apc:
             for char in reversed(apc):
