@@ -143,6 +143,7 @@ init 10 python:
     
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
+        persistent.mas_geolocation = ''
 
     def _maica_verify_token():
         res = store.maica.maica._verify_token()
