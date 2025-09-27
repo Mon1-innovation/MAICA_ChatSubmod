@@ -1137,5 +1137,5 @@ init 5 python:
         )
     )
 label maica_set_location:
-    $ persistent.mas_geolocation = mas_input("你具体住在什么地方呢?")
+    $ persistent.mas_geolocation = mas_input(_("你具体住在什么地方呢?"))
     return
