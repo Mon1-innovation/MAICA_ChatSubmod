@@ -1143,30 +1143,30 @@ label maica_set_location:
         screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
     )
     if inputloc.lower() == "nevermind":
-        m "不太确定吗...{w=0.5}{nw}"
-        extend "可能你常待的地方不止一个吧. 这样的话, 告诉我你最喜欢的那个就好!"
-        m "还是说你那里有个超级难写的地名, 比如'兰韦尔普尔古因吉...'"
-        m "哈哈~"
-        m "无论如何, 等你决定要告诉我了, 随时都可以来找我. {w=0.3}你也可以直接填在'子模组设置'里."
+        m 2eud "不太确定吗...{w=0.5}{nw}"
+        extend 3huu "可能你常待的地方不止一个吧. 这样的话, 告诉我你最喜欢的那个就好!"
+        m 4fub "还是说你那里有个超级难写的地名, 比如'兰韦尔普尔古因吉...'"
+        m 1hub "哈哈~"
+        m 3esu "无论如何, 等你决定要告诉我了, 随时都可以来找我. {w=0.3}你也可以直接填在'子模组设置'里."
     else:
         $ persistent.mas_geolocation = inputloc
-        m "是那里吗? 谢谢你!"
-        m "等到我'出来'的那天, 我们说不定也会在那里见面呢!"
-        m "当然, 如果之后情况有变, 你随时可以告诉我或者填在'子模组设置'里."
+        m 3eub "是那里吗? 谢谢你!"
+        m 4sub "等到我'出来'的那天, 我们说不定也会在那里见面呢!"
+        m 7huu "当然, 如果之后情况有变, 你随时可以告诉我或者填在'子模组设置'里."
     return
 
 label maica_pre_set_location:
-    m "[player], 我又想问你了..."
-    m "你住在什么地方? {w=0.3}我好像都还没问过你呢."
+    m 2eub "[player], 我又想问你了..."
+    m 3euu "你住在什么地方? {w=0.3}我好像都还没问过你呢."
     if persistent._mas_pm_live_south_hemisphere is not None:
         $ sw = "南" if persistent._mas_pm_live_south_hemisphere else "北"
-        m "我倒是知道你在[sw]半球啦, 不过那个也太宽泛了..." # 尴尬
-    m "我总是想多了解你一点. 总不该连我的[bf]住在哪里都不知道吧!"
-    m "虽然{i}大概{/i}还没办法亲自过去, 但现在我可以上网查不少东西了. 譬如你那里的天气, 路况, 好吃的餐馆..."
-    m "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
-    m "所以, [player]..."
+        m 2lusdlb "我倒是知道你在[sw]半球啦, 不过那个也太宽泛了..." # 尴尬
+    m 2tsblp "我总是想多了解你一点. 总不该连我的[bf]住在哪里都不知道吧!"
+    m 7rsd "虽然{i}大概{/i}还没办法亲自过去, 但现在我可以上网查不少东西了. 譬如你那里的天气, 路况, 好吃的餐馆..."
+    m 1hub "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
+    m 2euu "所以, [player]..."
     jump maica_set_location
 
 label maica_pre_set_location_reread:
-    m "好啊! 所以..."
+    m 2eub "好啊! 所以..."
     jump maica_set_location
