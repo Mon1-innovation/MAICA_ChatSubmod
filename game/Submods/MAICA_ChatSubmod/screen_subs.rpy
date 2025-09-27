@@ -451,7 +451,7 @@ screen maica_location_input(addition="", edittarget=None):
     modal True
     zorder 92
 
-    use maica_setter_medium_frame(title=_("请输入地址"), ok_action=[SetField(persistent ,"_mas_geolocation", None), Hide("maica_mspire_input")], cancel_action=[Function(cancel), SetField(persistent ,"_mas_geolocation", None), Hide("maica_mspire_input")]):
+    use maica_setter_medium_frame(title=_("请输入地理位置"), ok_action=[SetField(persistent ,"_mas_geolocation", None), Hide("maica_mspire_input")], cancel_action=[Function(cancel), SetField(persistent ,"_mas_geolocation", None), Hide("maica_mspire_input")]):
         hbox:
             input default addition value FieldInputValue(persistent, "mas_geolocation")
 
