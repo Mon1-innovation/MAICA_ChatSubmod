@@ -439,6 +439,21 @@ screen maica_mspire_input(addition="", edittarget=None):
         hbox:
             input default addition value FieldInputValue(persistent, "_mas_player_addition")
 
+screen maica_location_input(addition="", edittarget=None):
+    python:
+        if persistent.mas_geolocation == None:
+            persistent.mas_geolocation = ""
+        if persistent._mas_geolocation == None:
+            persistent._mas_geolocation = persistent.mas_geolocation
+        def cancel():
+            persistent.mas_geolocation = persistent._mas_geolocation
+            
+    modal True
+    zorder 92
+
+    use maica_setter_medium_frame(title=_("请输入地址"), ok_action=[SetField(persistent ,"_mas_geolocation", None), Hide("maica_mspire_input")], cancel_action=[Function(cancel), SetField(persistent ,"_mas_geolocation", None), Hide("maica_mspire_input")]):
+        hbox:
+            input default addition value FieldInputValue(persistent, "mas_geolocation")
 
 screen maica_addition_setting():
     $ _tooltip = store._tooltip

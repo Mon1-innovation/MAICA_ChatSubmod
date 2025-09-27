@@ -1122,3 +1122,20 @@ label mas_corrupted_postmail_post_menu:
     m 1hub "那我就不瞎操心了."
     m 3eub "要紧的事情你肯定会告诉我的, [player]."
     return
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_set_location",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="你在哪里?",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+label maica_set_location:
+    $ persistent.mas_geolocation = mas_input("你具体住在什么地方呢?")
+    return

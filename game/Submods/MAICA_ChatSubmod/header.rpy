@@ -750,6 +750,11 @@ screen maica_setting():
                 style_prefix "maica_check"
                 textbutton _("时区设置: [persistent.maica_setting_dict.get('tz')]"):
                     action Show("maica_tz_setting")
+            
+            hbox:
+                style_prefix "maica_check"
+                textbutton _("位置: [persistent.mas_geolocation]"):
+                    action Show("maica_location_input", addition = persistent.mas_geolocation)
             hbox:
                 frame:
                     xmaximum 950
