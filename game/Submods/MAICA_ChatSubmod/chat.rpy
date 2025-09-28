@@ -1156,6 +1156,9 @@ label maica_set_location:
     return
 
 label maica_pre_set_location:
+    $ ev = mas_getEV("maica_pre_set_location")
+    if ev.shown_count > 0:
+        jump maica_pre_set_location_reread
     m 2eub "[player], 我又想问你了..."
     m 3euu "你住在什么地方? {w=0.3}我好像都还没问过你呢."
     if persistent._mas_pm_live_south_hemisphere is not None:
@@ -1166,7 +1169,7 @@ label maica_pre_set_location:
     m 1hub "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
     m 2euu "所以, [player]..."
     jump maica_set_location
-
+    return
 label maica_pre_set_location_reread:
     m 2eub "好啊! 所以..."
     jump maica_set_location
