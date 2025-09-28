@@ -162,25 +162,7 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
-if PY3:
-    pattern_content = re.compile(r'[一-龥A-Za-z]')
-else:
-    import datapy2
-    pattern_content = datapy2.pattern_content
-def is_decimal(five_related_cells):
 
-    def num_amount(text):
-        i = 0
-        for c in text:
-            if c.isdigit():
-                i += 1
-        return i
-
-    if five_related_cells[2] == '.':
-        cnts = len(pattern_content.findall(five_related_cells))
-        if (num_amount(five_related_cells[0:2]) and num_amount(five_related_cells[3:5])) or (cnts<=1 and num_amount(five_related_cells[0:2]) != 2) or five_related_cells[1].isupper():
-            return True
-    return False
 def fuckprint(*args, **kwargs):
     return
 
@@ -273,82 +255,6 @@ def is_precisely_a_talk(strin, debug_printfunc=fuckprint):
             return 0
         else:
             return len(strin)-1
-def add_pauses(strin):
-    if PY2:
-        if not isinstance(strin, (str, unicode)):
-            raise TypeError("Input should be a string or unicode, get {}".format(type(strin)))
-    else:
-        if not isinstance(strin, str):
-            raise TypeError("Input should be a string, get {}".format(type(strin)))
-    
-    allset = []
-    wordset = []
-    puncset = []
-    critset = []
-    excritset = []
-    
-    # Define unicode pattern if necessary
-    if PY3:
-        pattern_common_punc = r'(\s*[.!?;,~]+\s*)'
-        pattern_crit = r'[.!?~]'
-        pattern_excrit = r'[~!]'
-    else:
-        import datapy2
-        pattern_common_punc = datapy2.pattern_common_punc
-        pattern_crit = datapy2.pattern_crit
-        pattern_excrit = datapy2.pattern_excrit
-    
-    str_split = re.split(pattern_common_punc, strin)
-    relpos = 0
-    
-    for chop in str_split:
-        if chop != '':
-            print(chop)  # Depending on your environment, you might want to encode this if not displaying correctly
-            if re.findall(pattern_common_punc, chop):
-                puncset.append([relpos, chop])
-                if re.search(pattern_crit, chop):
-                    critset.append([relpos, chop])
-                    if re.search(pattern_excrit, chop):
-                        excritset.append([relpos, chop])
-            else:
-                wordset.append([relpos, chop])
-                
-            allset.append([relpos, chop])
-            relpos += 1
-    
-    lastnum = len(allset)-1
-
-    if PY3:
-        pr1 = r'\s*\.\.\.'
-        pr2 = r'\s*[；;:︰]'
-        pr3 = r'\s*[.。?？]'
-    else:
-        import datapy2
-        pr1 = datapy2.pr1
-        pr2 = datapy2.pr2
-        pr3 = datapy2.pr3
-    for i in puncset:
-        num = i[0]
-        if num == lastnum:
-            break
-        content = i[1]
-        if re.findall(pr1, content):
-            allset[num][1] += u'{w=0.5}'
-        else:
-            if re.findall(pr2, content):
-                if len(allset[num-1][1].encode('utf-8')) >= 12 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 12):
-                    allset[num][1] += u'{w=0.5}'
-                else:
-                    allset[num][1] += u'{w=0.2}'
-            elif re.findall(pr3, content):
-                if len(allset[num-1][1].encode('utf-8')) >= 24 or (len(allset) >= num+2 and len(allset[num+1][1].encode('utf-8')) >= 24):
-                    allset[num][1] += u'{w=0.3}'
-    
-    allstr = ''
-    for chop in allset:
-        allstr += chop[1]
-    
-    return str(allstr)
 
 
 class AiException(Exception):
@@ -444,6 +350,32 @@ class TalkSplitV2():
         for pattern_name, matches in results.items():
             self.print_func("{}: {}".format(pattern_name, matches))
 
+    @staticmethod
+    def check_has(string, l):
+        for i in l:
+            if i in string:
+                return True
+        return False
+
+    def is_decimal(self, five_related_cells):
+
+        def num_amount(text):
+            i = 0
+            for c in text:
+                if c.isdigit():
+                    i += 1
+            return i
+
+        if five_related_cells[2] == '.':
+            cnts = len(self.pattern_content.findall(five_related_cells))
+            if (num_amount(five_related_cells[0:2]) and num_amount(five_related_cells[3:5])) or (cnts<=1 and num_amount(five_related_cells[0:2]) != 2) or five_related_cells[1].isupper():
+                return True
+        return False
+    
+    @staticmethod
+    def insert_string(original_str, insert_str, index):
+        return original_str[:index] + insert_str + original_str[index:]
+
     def init1(self):
         self.sentence_present = ''
 
@@ -458,7 +390,6 @@ class TalkSplitV2():
         if length_present <= 60:
             return None
     
-        
         def get_real_len(pos):
             sce = self.sentence_present[0:pos]
             return len(sce.encode())
@@ -497,25 +428,19 @@ class TalkSplitV2():
         
         # We're doing v2.5 overhaul from here
 
-        def check_has(string, l):
-            for i in l:
-                if i in string:
-                    return True
-            return False
-
         matches = self.pattern_all_punc.finditer(self.sentence_present)
         for match in matches:
             pos = match.end(); content = match.group()
             match_tuple = (pos, content)
             apc.append(match_tuple)
-            if len(content) > 1 or not is_decimal(('   ' + self.sentence_present + ' ')[pos:pos+5]):
-                if check_has(content, self.list_uncrit_punc):
+            if len(content) > 1 or not self.is_decimal(('   ' + self.sentence_present + ' ')[pos:pos+5]):
+                if self.check_has(content, self.list_uncrit_punc):
                     upc.append(match_tuple)
-                    if check_has(content, self.list_subcrit_punc):
+                    if self.check_has(content, self.list_subcrit_punc):
                         spc.append(match_tuple)
-                        if check_has(content, self.list_crit_punc):
+                        if self.check_has(content, self.list_crit_punc):
                             cpc.append(match_tuple)
-                            if check_has(content, self.list_excrit_puc):
+                            if self.check_has(content, self.list_excrit_puc):
                                 epc.append(match_tuple)
         slc_matches = self.pattern_semileft.finditer(self.sentence_present)
         for match in slc_matches:
@@ -524,7 +449,7 @@ class TalkSplitV2():
         for match in src_matches:
             src.append((match.end(), match.group()))
 
-        self.print_func(apc); self.print_func(upc); self.print_func(cpc); self.print_func(epc); self.print_func(length_present)
+        # self.print_func(apc); self.print_func(upc); self.print_func(cpc); self.print_func(epc); self.print_func(length_present)
         # if length_present <= 60:
         #     return None
         if epc:
@@ -579,3 +504,62 @@ class TalkSplitV2():
         return sce
 
 
+    def add_pauses(self, strin):
+        if PY2:
+            if not isinstance(strin, (str, unicode)):
+                raise TypeError("Input should be a string or unicode, get {}".format(type(strin)))
+        else:
+            if not isinstance(strin, str):
+                raise TypeError("Input should be a string, get {}".format(type(strin)))
+        
+        def get_pre_i_space(ele, list):
+            pre_index = list.index(ele) - 1
+            pre_pos = list[pre_index][3] if pre_index >= 0 else 0
+            return ele[3] - pre_pos
+
+        iupc=[]; icpc=[]; iepc=[]
+        
+        matches = self.pattern_all_punc.finditer(strin)
+        lmatch = None; i = 0 
+        # This is a iterator but we need a list
+        matches = list(matches)
+        for match in matches:
+            # No pause needed for last punc
+            i += 1
+            if i == len(matches):
+                print('b')
+                break
+            pos = match.end(); content = match.group()
+            if not lmatch:
+                preseq = strin[:match.start()]
+            else:
+                preseq = strin[lmatch.end():match.start()]
+            prelen = len(preseq.encode('utf-8'))
+            alllen = len(strin[:match.start()].encode('utf-8'))
+            lmatch = match
+            match_tuple_b = (pos, content, prelen, alllen)
+            print(('   ' + strin + ' ')[pos:pos+5])
+            if len(content) > 1 or not self.is_decimal(('   ' + strin + ' ')[pos:pos+5]):
+                if self.check_has(content, self.list_excrit_puc):
+                    iepc.append(match_tuple_b)
+                elif self.check_has(content, self.list_crit_punc):
+                    icpc.append(match_tuple_b)
+                elif self.check_has(content, self.list_uncrit_punc):
+                    iupc.append(match_tuple_b)
+
+        for mb in iupc:
+            if prelen > 80:
+                strin = self.insert_string(strin, '{w=0.3}', mb[0])
+
+        for mb in icpc:
+            if len(mb[1]) > 1:
+                # ellipsis?
+                strin = self.insert_string(strin, '{w=0.5}', mb[0])
+            elif get_pre_i_space(mb, icpc) > 45:
+                strin = self.insert_string(strin, '{w=0.3}', mb[0])
+
+        for mb in iepc:
+            if prelen > 35:
+                strin = self.insert_string(strin, '{w=0.2}', mb[0])
+                
+        return strin

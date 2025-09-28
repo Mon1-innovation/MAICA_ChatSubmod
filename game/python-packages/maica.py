@@ -494,7 +494,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 talk = self.MoodStatus.analyze(talk)
                 emote = self.MoodStatus.get_emote()
                 self._append_to_message_list(emote,talk)
-        return (res[0], bot_interface.add_pauses(res[1]) if add_pause else res[1])
+        return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1])
     def _gen_token(self, account, pwd, token = "", email = None):
         if token != "":
             self.ciphertext = token

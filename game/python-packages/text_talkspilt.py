@@ -25,4 +25,5 @@ for i in range(len(text)):
 fin = spilter.announce_stop()
 print(fin)
 for i in fin:
+    i = spilter.add_pauses(i)
     print(i)

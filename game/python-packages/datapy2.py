@@ -1,6 +1,6 @@
 import re
 pattern_all_punc = re.compile(ur'[.。!！?？；;，,—~-]+')
-pattern_uncrit_punc = re.compile(ur'[.。!！?？；;~]+')
+pattern_uncrit_punc = re.compile(ur'[.。!！?？；;，,~]+')
 pattern_subcrit_punc = re.compile(ur'[.。!！?？；;~]+')
 pattern_crit_punc = re.compile(ur'[.。!！?？~]+')
 pattern_excrit_punc = re.compile(ur'[!！~]+')
