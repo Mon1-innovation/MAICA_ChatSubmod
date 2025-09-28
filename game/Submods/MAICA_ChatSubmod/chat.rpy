@@ -491,7 +491,8 @@ label maica_delete_information:
 label clear_all:
     $ HKBShowButtons()
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
-    call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
+    if maica_chr_exist:
+        call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
     $ mas_unlockEVL("maica_main", "EVE")
     return
 
@@ -578,7 +579,7 @@ label .talking_start:
     if maica_chr_exist:
         scene black with dissolve
         pause 2.0
-        call clear_all
+    call clear_all
     return
 init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
@@ -1156,6 +1157,9 @@ label maica_set_location:
     return
 
 label maica_pre_set_location:
+    $ ev = mas_getEV("maica_pre_set_location")
+    if ev.shown_count > 0:
+        jump maica_pre_set_location_reread
     m 2eub "[player], 我又想问你了..."
     m 3euu "你住在什么地方? {w=0.3}我好像都还没问过你呢."
     if persistent._mas_pm_live_south_hemisphere is not None:
@@ -1166,7 +1170,7 @@ label maica_pre_set_location:
     m 1hub "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
     m 2euu "所以, [player]..."
     jump maica_set_location
-
+    return
 label maica_pre_set_location_reread:
     m 2eub "好啊! 所以..."
     jump maica_set_location
