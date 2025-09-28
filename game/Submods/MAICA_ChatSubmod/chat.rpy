@@ -491,7 +491,8 @@ label maica_delete_information:
 label clear_all:
     $ HKBShowButtons()
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
-    call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
+    if maica_chr_exist:
+        call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
     $ mas_unlockEVL("maica_main", "EVE")
     return
 
@@ -578,7 +579,7 @@ label .talking_start:
     if maica_chr_exist:
         scene black with dissolve
         pause 2.0
-        call clear_all
+    call clear_all
     return
 init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
