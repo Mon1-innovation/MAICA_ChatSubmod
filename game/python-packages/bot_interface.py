@@ -162,6 +162,25 @@ def is_a_talk(strs):
                 if strs[index:index+len(s)] == s:
                     return index + 1
     return 0
+if PY3:
+    pattern_content = re.compile(r'[一-龥A-Za-z]')
+else:
+    import datapy2
+    pattern_content = datapy2.pattern_content
+def is_decimal(five_related_cells):
+
+    def num_amount(text):
+        i = 0
+        for c in text:
+            if c.isdigit():
+                i += 1
+        return i
+
+    if five_related_cells[2] == '.':
+        cnts = len(pattern_content.findall(five_related_cells))
+        if (num_amount(five_related_cells[0:2]) and num_amount(five_related_cells[3:5])) or (cnts<=1 and num_amount(five_related_cells[0:2]) != 2) or five_related_cells[1].isupper():
+            return True
+    return False
 def fuckprint(*args, **kwargs):
     return
 
@@ -438,21 +457,7 @@ class TalkSplitV2():
 
         if length_present <= 60:
             return None
-        
-        def is_decimal(five_related_cells):
-
-            def num_amount(text):
-                i = 0
-                for c in text:
-                    if c.isdigit():
-                        i += 1
-                return i
-
-            if five_related_cells[2] == '.':
-                cnts = len(self.pattern_content.findall(five_related_cells))
-                if (num_amount(five_related_cells[0:2]) and num_amount(five_related_cells[3:5])) or (cnts<=1 and num_amount(five_related_cells[0:2]) != 2) or five_related_cells[1].isupper():
-                    return True
-            return False
+    
         
         def get_real_len(pos):
             sce = self.sentence_present[0:pos]
