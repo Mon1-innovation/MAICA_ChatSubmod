@@ -81,12 +81,13 @@ renpy_symbol_big_bracket_only = {
     "}": ""
 }
 renpy_symbol_percentage = {
-    "%": "%%"
+    "%": r"%%"
 }
 renpy_symbol_enter = {
     "\n": ""
 }
 # 关键字替换字符串:
+
 def key_replace(*args):
         """
         传入格式说明：key_replace(原始字符串，{'关键字':'新数据'})
@@ -101,19 +102,42 @@ def key_replace(*args):
                 rep_info.append(key_info)
             else:  # 如果是字符串或其它，则将其添加到字符串列表中
                 str_main.append(key_info)
- 
+
         case_list = []  # 用于存储替换后的结果
         # 遍历传入的字符串和字典，分别进行替换操作
-        for case_data, key_dict in zip(str_main, rep_info):
-            for key_, value in key_dict.items():  # 遍历字典中的所有键值对
-                case_data = str(case_data).replace(key_, str(value))  # 替换指定的关键词
+def key_replace(*args):
+        """
+        传入格式说明：key_replace(原始字符串，{'关键字':'新数据'})
+        可变传参说明：key_replace(原始字符串1,原始字符串2,{'关键字1':'新数据1','关键字2':'新数据2'},{'关键字':'新数据'})
+        PS： 一个(原妼字符串)对应一个字典，一个字典可以传入多个关键字替换
+        :return:
+        """
+        str_main = []  # 用于存储传入的字符串主体
+        rep_info = []  # 用于存储传入替换关键字信息
+        for key_info in args:  # 遍历传入的参数
+            if isinstance(key_info, dict):  # 如果是字典格式，则代表是(替换关键字信息)
+                rep_info.append(key_info)
+            else:  # 如果是字符串或其它，则将其添加到字符串列表中
+                str_main.append(key_info)
+
+        case_list = []  # 用于存储替换后的结果
+        for case_data in str_main:
+            # 将所有字典应用到当前字符串
+            for key_dict in rep_info:
+                for key_, value in key_dict.items():  # 遍历字典中的所有键值对
+                    case_data = str(case_data).replace(key_, str(value))  # 替换指定的关键词
+
             try:
-                ast.literal_eval(case_data)  # 尝试将替换后的字符串解析为对应数据类型
+                result = ast.literal_eval(case_data)  # 尝试将替换后的字符串解析为对应数据类型
             except Exception:  # 如果解析失败，则将字符串加入到case_list中
                 case_list.append(case_data)
             else:  # 如果解析成功，则将解析后的结果加入到case_list中
-                case_list.append(ast.literal_eval(case_data))
- 
+                case_list.append(result)
+
+        if len(case_list) == 1:  # 如果case_list中元素个数为1，则返回该元素(而不是一个列表)
+            return case_list[0]
+        return case_list  # 否则，整体返回case_list
+
         if len(case_list) == 1:  # 如果case_list中元素个数为1，则返回该元素(而不是一个列表)
             return case_list[0]
         return case_list  # 否则，整体返回case_list
