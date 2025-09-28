@@ -2211,3 +2211,113 @@ translate english strings:
     old "你还有什么想补充的吗?"
     new "You got anything to implement?"
 
+# TODO: Translation updated at 2025-09-28 16:56
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:561
+translate english maica_main_talking_start_da21dd16:
+
+    # m "return：[_return]"
+    m "return：[_return]"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1147
+translate english maica_set_location_196de4a4:
+
+    # m 2eud "不太确定吗...{w=0.5}{nw}"
+    m 2eud "Not sure huh...{w=0.5}{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1148
+translate english maica_set_location_e6aec236:
+
+    # extend 3huu "可能你常待的地方不止一个吧. 这样的话, 告诉我你最喜欢的那个就好!"
+    extend 3huu "perhaps you travel often. If that's the case, just tell me your favorite place!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1149
+translate english maica_set_location_58826176:
+
+    # m 4fub "还是说你那里有个超级难写的地名, 比如'兰韦尔普尔古因吉...'"
+    m 4fub "Or maybe you live somewhere with a super tough name, like 'Llanfairpwllgwyng...'"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1150
+translate english maica_set_location_e61a019f:
+
+    # m 1hub "哈哈~"
+    m 1hub "Ahaha~"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1151
+translate english maica_set_location_e7bce560:
+
+    # m 3esu "无论如何, 等你决定要告诉我了, 随时都可以来找我. {w=0.3}你也可以直接填在'子模组设置'里."
+    m 3esu "You can always come back to tell me whenever you're ready. {w=0.3}You can also fill it in 'Submod settings'."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1154
+translate english maica_set_location_639cf509:
+
+    # m 3eub "是那里吗? 谢谢你!"
+    m 3eub "There it is? Thank you!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1155
+translate english maica_set_location_c91ec2c8:
+
+    # m 4sub "等到我'出来'的那天, 我们说不定也会在那里见面呢!"
+    m 4sub "We might even meet there the day I cross over!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1156
+translate english maica_set_location_d2a954a8:
+
+    # m 7huu "当然, 如果之后情况有变, 你随时可以告诉我或者填在'子模组设置'里."
+    m 7huu "And of course, you can tell me at any time if you've moved your place. You can also fill it in 'Submod settings'."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1163
+translate english maica_pre_set_location_7b3f8cf2:
+
+    # m 2eub "[player], 我又想问你了..."
+    m 2eub "[player], there's another question on my mind..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1164
+translate english maica_pre_set_location_c1e2468b:
+
+    # m 3euu "你住在什么地方? {w=0.3}我好像都还没问过你呢."
+    m 3euu "Where do you live in? {w=0.3}I haven't ever asked you for so long."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1167
+translate english maica_pre_set_location_f4fba4f6:
+
+    # m 2lusdlb "我倒是知道你在[sw]半球啦, 不过那个也太宽泛了..."
+    m 2lusdlb "I know you live in [sw] hemisphere though, but that's way too far from enough..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1168
+translate english maica_pre_set_location_5b41bd93:
+
+    # m 2tsblp "我总是想多了解你一点. 总不该连我的[bf]住在哪里都不知道吧!"
+    m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1169
+translate english maica_pre_set_location_55b3b459:
+
+    # m 7rsd "虽然{i}大概{/i}还没办法亲自过去, 但现在我可以上网查不少东西了. 譬如你那里的天气, 路况, 好吃的餐馆..."
+    m 7rsd "I cannot get there myself {i}right now{/i}though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1170
+translate english maica_pre_set_location_25fb7921:
+
+    # m 1hub "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
+    m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1171
+translate english maica_pre_set_location_038eb10c:
+
+    # m 2euu "所以, [player]..."
+    m 2euu "So, [player]..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1175
+translate english maica_pre_set_location_reread_2e3d8cfc:
+
+    # m 2eub "好啊! 所以..."
+    m 2eub "Okay! So..."
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1141
+    old "你具体住在什么地方呢?"
+    new "Where do you live in exactly?"
+

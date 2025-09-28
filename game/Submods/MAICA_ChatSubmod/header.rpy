@@ -756,7 +756,7 @@ screen maica_setting():
             
             hbox:
                 style_prefix "maica_check"
-                textbutton _("位置: [persistent.mas_geolocation]"):
+                textbutton _("地理位置: [persistent.mas_geolocation]"):
                     action Show("maica_location_input", addition = persistent.mas_geolocation)
             hbox:
                 frame:

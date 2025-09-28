@@ -214,3 +214,11 @@ translate english strings:
     old "向 MAICA 捐赠"
     new "Donate to MAICA"
 
+# TODO: Translation updated at 2025-09-28 16:56
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:454
+    old "请输入地理位置"
+    new "Please input your geolocation"
+

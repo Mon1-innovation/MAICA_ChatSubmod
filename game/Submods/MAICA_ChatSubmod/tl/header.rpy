@@ -1239,3 +1239,11 @@ translate english strings:
     old "MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
     new "MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"
 
+# TODO: Translation updated at 2025-09-28 16:56
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:759
+    old "地理位置: [persistent.mas_geolocation]"
+    new "Geolocation: [persistent.mas_geolocation]"
+
