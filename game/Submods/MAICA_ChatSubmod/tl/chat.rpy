@@ -2281,9 +2281,9 @@ translate english maica_pre_set_location_c1e2468b:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1167
 translate english maica_pre_set_location_f4fba4f6:
-
+    $ sw = "Southern" if persistent._mas_pm_live_south_hemisphere else "Northern"
     # m 2lusdlb "我倒是知道你在[sw]半球啦, 不过那个也太宽泛了..."
-    m 2lusdlb "I know you live in [sw] hemisphere though, but that's way too far from enough..."
+    m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1168
 translate english maica_pre_set_location_5b41bd93:
@@ -2320,4 +2320,12 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/chat.rpy:1141
     old "你具体住在什么地方呢?"
     new "Where do you live in exactly?"
+
+# TODO: Translation updated at 2025-09-28 17:45
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1148
+translate english maica_set_location_517808c8:
+
+    # extend 3huu "可能你常待的地方不止一个吧? 这样的话, 告诉我你最喜欢的那个就好!"
+    extend 3huu "perhaps you move often? If that's the case, just tell me your favorite place!"
 
