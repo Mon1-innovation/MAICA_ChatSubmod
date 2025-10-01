@@ -485,18 +485,14 @@ screen maica_setting_pane():
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
 
+    window:
+        background None
+        has fixed:
+            yfit True
 
-    vbox:
-        xmaximum 800
-        xfill True
-        style_prefix "check"
-
-        use intro_tooltip()
-        timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
         vbox:
             xpos 400
             xsize 500
-        
             if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
                 hbox:
 
@@ -511,7 +507,7 @@ screen maica_setting_pane():
 
             elif store.maica.maica.is_outdated is True:
                 hbox:
-         
+            
                     text _("> 当前版本支持已终止, 请更新至最新版"):
                         style "main_menu_version_l"
             
@@ -539,59 +535,67 @@ screen maica_setting_pane():
                     style "main_menu_version_l"
 
             hbox:
-   
+
                 text renpy.substitute(_("> Websocket:")) + renpy.substitute(stat):
                     style "main_menu_version_l"
 
-        if not maica.maica.is_accessable():
-            textbutton _("> 使用账号生成令牌")
-                # action Show("maica_login")
-            
-        elif not maica.maica.is_connected():
-            textbutton _("> 使用账号生成令牌"):
-                action Show("maica_login")
-            
-        if maica.maica.has_token() and not maica.maica.is_connected():
-            textbutton _("> 使用已保存令牌连接"):
-                action Function(store.maica.maica.init_connect)
+        vbox:
+            xmaximum 800
+            xfill True
+            style_prefix "check"
 
-            
-        elif maica.maica.is_connected():
-            if maica.maica.is_ready_to_input():
-                textbutton _("> 手动上传设置"):
-                    action Function(maica_apply_setting)
+            use intro_tooltip()
+            timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
+
+            if not maica.maica.is_accessable():
+                textbutton _("> 使用账号生成令牌")
+                    # action Show("maica_login")
                 
-                textbutton _("> 重置当前对话"):
-                    action Function(reset_session)
+            elif not maica.maica.is_connected():
+                textbutton _("> 使用账号生成令牌"):
+                    action Show("maica_login")
+                
+            if maica.maica.has_token() and not maica.maica.is_connected():
+                textbutton _("> 使用已保存令牌连接"):
+                    action Function(store.maica.maica.init_connect)
+
+                
+            elif maica.maica.is_connected():
+                if maica.maica.is_ready_to_input():
+                    textbutton _("> 手动上传设置"):
+                        action Function(maica_apply_setting)
+                    
+                    textbutton _("> 重置当前对话"):
+                        action Function(reset_session)
+                else:
+                    textbutton _("> 手动上传设置 [[请先等待连接建立]")
+                        
+                    textbutton _("> 重置当前对话 [[请先等待连接建立]")
+
+                textbutton _("> 导出当前对话"):
+                    action Function(output_chat_history)
+                
+                textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
+                    action Function(upload_chat_history)
+
+                textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住, 退出以断开连接")):
+                    action Function(store.maica.maica.close_wss_session)
+
             else:
-                textbutton _("> 手动上传设置 [[请先等待连接建立]")
-                     
-                textbutton _("> 重置当前对话 [[请先等待连接建立]")
-
-            textbutton _("> 导出当前对话"):
-                action Function(output_chat_history)
-            
-            textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
-                action Function(upload_chat_history)
-
-            textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住, 退出以断开连接")):
-                action Function(store.maica.maica.close_wss_session)
-
-        else:
-            textbutton _("> 使用已保存令牌连接")
-    
-        textbutton _("> MAICA对话设置 {size=-10}*部分选项重新连接生效"):
-            action Show("maica_setting")
+                textbutton _("> 使用已保存令牌连接")
         
-        if log_hasupdate:
-            textbutton _("> 更新日志与服务状态 {size=-10}*有新更新"):
-                action Show("maica_log")
-        else:
-            textbutton _("> 更新日志与服务状态"):
-                action Show("maica_log")
-        if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "donation")):
-            textbutton _("> 向 MAICA 捐赠"):
-                action Show("maica_support")
+            textbutton _("> MAICA对话设置 {size=-10}*部分选项重新连接生效"):
+                action Show("maica_setting")
+            
+            if log_hasupdate:
+                textbutton _("> 更新日志与服务状态 {size=-10}*有新更新"):
+                    action Show("maica_log")
+            else:
+                textbutton _("> 更新日志与服务状态"):
+                    action Show("maica_log")
+            if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "donation")):
+                textbutton _("> 向 MAICA 捐赠"):
+                    action Show("maica_support")
 
 
 screen maica_setting():
