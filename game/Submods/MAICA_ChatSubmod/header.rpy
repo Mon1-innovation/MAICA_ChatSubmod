@@ -485,14 +485,19 @@ screen maica_setting_pane():
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
 
-    window:
-        background None
-        has fixed:
-            yfit True
+    vbox:
+        # background None
+        # has vbox:
+            # yfit True
 
         vbox:
-            xpos 400
-            xsize 500
+            spacing 5
+            xpos 45
+            xsize 900
+
+            text "":
+                size 0
+
             if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
                 hbox:
 
@@ -539,6 +544,9 @@ screen maica_setting_pane():
                 text renpy.substitute(_("> Websocket:")) + renpy.substitute(stat):
                     style "main_menu_version_l"
 
+            text "":
+                size 0
+
         vbox:
             xmaximum 800
             xfill True
@@ -575,7 +583,7 @@ screen maica_setting_pane():
                 textbutton _("> 导出当前对话"):
                     action Function(output_chat_history)
                 
-                textbutton _("> 上传对话历史到会话 '[store.maica.maica.chat_session]'"):
+                textbutton _("> 上传对话历史到会话 [store.maica.maica.chat_session]"):
                     action Function(upload_chat_history)
 
                 textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住, 退出以断开连接")):

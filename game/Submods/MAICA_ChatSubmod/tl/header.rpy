@@ -560,8 +560,8 @@ translate english strings:
     new "[persistent.maica_setting_dict.get('max_history_token')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:850
-    old "上传对话历史到会话 '[store.maica.maica.chat_session]'"
-    new "Recover history to chat session '[store.maica.maica.chat_session]'"
+    old "上传对话历史到会话 [store.maica.maica.chat_session]"
+    new "Recover history to chat session [store.maica.maica.chat_session]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:930
     old "MTrigger列表"
