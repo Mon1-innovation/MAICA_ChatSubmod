@@ -592,8 +592,8 @@ translate english strings:
     new "> Manually upload settings [[Ensure connection is ready first]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:345
-    old "> 上传对话历史到会话 '[store.maica.maica.chat_session]'"
-    new "> Upload chat history to session '[store.maica.maica.chat_session]'"
+    old "> 上传对话历史到会话 [store.maica.maica.chat_session]"
+    new "> Upload chat history to session [store.maica.maica.chat_session]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:353
     old "> MAICA对话设置 {size=-10}*部分选项重新连接生效"
