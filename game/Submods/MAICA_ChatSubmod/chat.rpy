@@ -489,6 +489,7 @@ label maica_delete_information:
 
 
 label clear_all:
+    call maica_hide_console 
     $ HKBShowButtons()
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     if maica_chr_exist:
