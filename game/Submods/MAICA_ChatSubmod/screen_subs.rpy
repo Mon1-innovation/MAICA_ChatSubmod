@@ -1051,7 +1051,8 @@ screen maica_statics():
                 text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]"):
                     size 20
             hbox:
-                text _("当前用户: [store.maica.maica.user_acc]"):
+                $ user_disp = store.maica.maica.user_acc or renpy.substitute(_("未登录"))
+                text _("当前用户: [user_disp]"):
                     size 20
 
             hbox:
