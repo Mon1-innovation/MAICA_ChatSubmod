@@ -719,7 +719,7 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "maica_check_nohover"
-                $ user_disp = store.maica.maica.user_acc or _("未登录")
+                $ user_disp = store.maica.maica.user_acc or renpy.substitute(_("未登录"))
                 textbutton _("当前用户: [user_disp]"):
                     action NullAction()
                     hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往注册网站"))
