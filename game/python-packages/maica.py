@@ -840,9 +840,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.console_logger.error("!!MAICA SERVER FATAL: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
             self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
             self.wss_session.close()
-        if data["status"] == "delete_hint":
+        if data["status"] == "maica_history_slice_hint":
             self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
-        elif data["status"] == "delete":
+        elif data["status"] == "maica_history_sliced":
             self.history_status = self.MaicaAiStatus.TOKEN_MAX_EXCEEDED 
         # 错误code处理
         if data.get("status") == "wrong_input":
@@ -853,11 +853,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
             self.status = self.MaicaAiStatus.TOKEN_FAILED
             self.wss_session.close()
-        if data.get("status") == "length_exceeded":
+        if data.get("status") == "maica_input_length_exceeded":
             self.console_logger.error("!!SUBMOD ERROR: {}".format("Content too long!"))
             self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
             self.wss_session.close()
-        if data["status"] == "nickname":
+        if data["status"] == "maica_login_user":
             self.user_acc = data["content"]
             self.console_logger.info("maica: Login as '{}'".format(self.user_acc))
         if data['status'] == "maica_mtrigger_trigger":
