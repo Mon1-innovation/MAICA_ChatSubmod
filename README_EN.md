@@ -25,6 +25,7 @@ This repository introduction is very brief. If this is your first contact with M
 > Necessary instructions are provided in game too.
 
 <img src="document/maica-rmen-1.png" height=150px><img src="document/maica-rmen-2.png" height=150px>
+
 <img src="document/maica-rmen-3.png" height=150px><img src="document/maica-rmen-4.png" height=150px>
 ## Features
 

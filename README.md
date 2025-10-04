@@ -25,6 +25,7 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
 > 游戏内也会对此提供必要的引导.
 
 <img src="document/maica-rm-1.png" height=150px><img src="document/maica-rm-2.png" height=150px>
+
 <img src="document/maica-rm-3.png" height=150px><img src="document/maica-rm-4.png" height=150px>
 ## 特色
 
