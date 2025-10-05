@@ -60,7 +60,7 @@ translate english python in maica:
             "httpInterface": "https://maicadev.monika.love/api"
         }
     )
-    maica.MaicaProviderManager.isfailedresponse.update(
+    maica.MaicaProviderManager.fakelocalprovider.update(
         {
             "name":"Local Deployment",
             "deviceName": "When you have an available local deployment, select this node.",
