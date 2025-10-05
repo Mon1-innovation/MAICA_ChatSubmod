@@ -1015,15 +1015,22 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import requests, json
         res = requests.get(
             self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
-            data = json.dumps(
+            params = 
                 {
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
                     "content": lines
-                },
-            )
+                }
         )
-        return res.json()
+        if res.status_code == 200:
+            try:
+                return res.json()
+            except Exception as e:
+                logger.error("get_history:: {}".format(e))
+                return []
+        else:
+            logger.error("get_history:: return non http 200:: {}".format(res.text))
+            return []
     def upload_history(self, history):
         """
         将历史记录上传到Maica服务器
@@ -1046,11 +1053,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         content = {
             "access_token": self.ciphertext,
             "chat_session": self.chat_session,
-            "history": history
+            "content": history
         }
         res = requests.put(
             self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
-            json = content,
+            params = content,
             headers = {"Content-Type": "application/json"}
         )
         if res.status_code == 200:

@@ -243,7 +243,7 @@ init 10 python:
     def output_chat_history():
         import json
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
-            f.write(json.dumps(store.maica.maica.get_history().get("history"), []))
+            f.write(json.dumps(store.maica.maica.get_history(), []))
         renpy.notify(_("MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def upload_chat_history():
@@ -254,6 +254,8 @@ init 10 python:
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
             history = json.load(f)
         res = store.maica.maica.upload_history(history)
+        if not res.get("success", False):
+            store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(res))
         renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
 
     def run_migrations():
