@@ -89,7 +89,7 @@ init 5 python in maica:
         return True, content
     store.mas_registerAPIKey(
         "Maica_Token",
-        _("MAICA令牌"),
+        _("MAICA令牌{size=-10} *{i}(在子模组处登录后自动生成){/i}*"),
         on_change=change_token,
     )
     maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))

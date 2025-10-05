@@ -11,8 +11,8 @@ translate english strings:
     new "Now you can reconnect with saved token"
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:14
-    old "MAICA令牌"
-    new "MAICA token"
+    old "MAICA令牌{size=-10} *{i}(在子模组处登录后自动生成){/i}*"
+    new "MAICA token {size=-10} *{i}(Login at Submods settings instead){/i}*"
 
 # TODO: Translation updated at 2024-11-29 20:06
 
