@@ -655,6 +655,9 @@ translate english strings:
     old "MAICA: 历史上传成功"
     new "MAICA: History uploaded"
 
+    old "MAICA: 历史上传失败, 查看submod_log获取详细原因."
+    new "MAICA: Failed to upload history, check submod_log.log for details."
+
     # game/Submods/MAICA_ChatSubmod/header.rpy:190
     old "MAICA: 已上传设置"
     new "MAICA: Settings uploaded"

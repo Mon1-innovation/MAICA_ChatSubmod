@@ -254,7 +254,7 @@ init 10 python:
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
             history = json.load(f)
         res = store.maica.maica.upload_history(history)
-        renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, {}".format(res.get("exception", "未知错误"))))
+        renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
 
     def run_migrations():
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
