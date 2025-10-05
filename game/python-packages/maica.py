@@ -1048,8 +1048,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             "chat_session": self.chat_session,
             "history": history
         }
-        res = requests.post(
-            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "restore",
+        res = requests.put(
+            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
             json = content,
             headers = {"Content-Type": "application/json"}
         )
