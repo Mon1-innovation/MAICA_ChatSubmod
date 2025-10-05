@@ -482,7 +482,7 @@ screen maica_addition_setting():
             else:
                 return False
         
-        def selected_count_tf(num):
+        def selected_count_tf(num=1):
             global persistent
             toggled = [k for k, v in iterize(persistent.selectbool) if v]
             if len(toggled) == num:
