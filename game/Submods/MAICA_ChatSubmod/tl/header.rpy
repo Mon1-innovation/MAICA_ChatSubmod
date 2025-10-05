@@ -47,7 +47,7 @@ translate english strings:
     new "> Lougout current account"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:177
-    old "> MAICA对话设置 *部分选项需要重新连接"
+    old "> MAICA参数与设置 *部分选项需要重新连接"
     new "> MAICA chat settings *some options may need reconnection"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:201
@@ -596,7 +596,7 @@ translate english strings:
     new "> Upload chat history to session [store.maica.maica.chat_session]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:353
-    old "> MAICA对话设置 {size=-10}*部分选项重新连接生效"
+    old "> MAICA参数与设置 {size=-10}*部分选项重新连接生效"
     new "> MAICA chat settings {size=-10}*May need restarting to take effect"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:628

@@ -594,7 +594,7 @@ screen maica_setting_pane():
             else:
                 textbutton _("> 使用已保存令牌连接")
         
-            textbutton _("> MAICA对话设置 {size=-10}*部分选项重新连接生效"):
+            textbutton _("> MAICA参数与设置 {size=-10}*部分选项重新连接生效"):
                 action Show("maica_setting")
             
             if log_hasupdate:
