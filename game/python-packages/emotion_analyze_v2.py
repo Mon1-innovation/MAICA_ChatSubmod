@@ -93,7 +93,7 @@ class EmoSelector:
             return pos
         
         def idle_emo():
-            emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu', 'hua', 'huu'])
+            emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu', 'idle'])
             return emo
         
         self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
