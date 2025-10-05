@@ -222,3 +222,15 @@ translate english strings:
     old "请输入地理位置"
     new "Please input your geolocation"
 
+# TODO: Translation updated at 2025-10-05 16:09
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:374
+    old "{u}MAICA服务条款{/u}"
+    new "{u}MAICA ToS{/u}"
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:382
+    old "{u}注册一个{/u}"
+    new "{u}Register now{/u}"
+

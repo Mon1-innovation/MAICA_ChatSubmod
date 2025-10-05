@@ -213,7 +213,7 @@ init -1:
                     del s_dict[str_var]
                     
         modal True
-        zorder 100
+        zorder 95
 
         style_prefix "confirm"
 
@@ -226,6 +226,10 @@ init -1:
                     allow ("0123456789" + "." if isfloat else "")
 
     screen maica_common_warn(text=_("请输入正确的数值!")):
+
+        modal True
+        zorder 100
+
         use maica_setter_xsmall_frame(text, Hide("maica_common_warn"))
 
     screen maica_setter_xsmall_frame(title=None, ok_action=None, cancel_action=None):

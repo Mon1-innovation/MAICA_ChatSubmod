@@ -346,8 +346,7 @@ screen maica_login():
 
             else:
                 textbutton _("> 改为邮箱登录"):
-                    ysize 20
-                    text_size 20
+                    text_size 15
                     action [ToggleVariable("use_email"), Function(_maica_clear)]
                     selected False
 
@@ -371,7 +370,7 @@ screen maica_login():
             style_prefix "small_expl"
             text _("※ 使用MAICA Blessland, 即认为你同意 "):
                 size 15
-            textbutton "{u}MAICA服务条款{/u}":
+            textbutton _("{u}MAICA服务条款{/u}"):
                 action OpenURL("https://maica.monika.love/tos")
                 yalign 1.0
 
@@ -379,7 +378,7 @@ screen maica_login():
             style_prefix "small_expl"
             text _("※ 还没有DCC账号? "):
                 size 15
-            textbutton "{u}注册一个{/u}":
+            textbutton _("{u}注册一个{/u}"):
                 action OpenURL("https://maica.monika.love/tos")
                 yalign 1.0
 
@@ -482,7 +481,7 @@ screen maica_addition_setting():
             else:
                 return False
         
-        def selected_count_tf(num):
+        def selected_count_tf(num=1):
             global persistent
             toggled = [k for k, v in iterize(persistent.selectbool) if v]
             if len(toggled) == num:
