@@ -1057,7 +1057,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         }
         res = requests.put(
             self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
-            params = content,
+            json = content,
             headers = {"Content-Type": "application/json"}
         )
         if res.status_code == 200:
