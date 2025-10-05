@@ -346,8 +346,7 @@ screen maica_login():
 
             else:
                 textbutton _("> 改为邮箱登录"):
-                    ysize 20
-                    text_size 20
+                    text_size 15
                     action [ToggleVariable("use_email"), Function(_maica_clear)]
                     selected False
 
