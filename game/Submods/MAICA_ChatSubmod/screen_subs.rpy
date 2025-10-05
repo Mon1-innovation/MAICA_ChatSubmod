@@ -371,7 +371,7 @@ screen maica_login():
             style_prefix "small_expl"
             text _("※ 使用MAICA Blessland, 即认为你同意 "):
                 size 15
-            textbutton "{u}MAICA服务条款{/u}":
+            textbutton _("{u}MAICA服务条款{/u}"):
                 action OpenURL("https://maica.monika.love/tos")
                 yalign 1.0
 
@@ -379,7 +379,7 @@ screen maica_login():
             style_prefix "small_expl"
             text _("※ 还没有DCC账号? "):
                 size 15
-            textbutton "{u}注册一个{/u}":
+            textbutton _("{u}注册一个{/u}"):
                 action OpenURL("https://maica.monika.love/tos")
                 yalign 1.0
 
