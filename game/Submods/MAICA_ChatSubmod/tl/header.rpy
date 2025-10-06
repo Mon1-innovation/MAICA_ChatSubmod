@@ -1250,3 +1250,15 @@ translate english strings:
     old "地理位置: [persistent.mas_geolocation]"
     new "Geolocation: [persistent.mas_geolocation]"
 
+# TODO: Translation updated at 2025-10-06 22:29
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:543
+    old "> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, 而不是源代码"
+    new "> Warning: MAICA Libs version not found. Please install from Release, not source code"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:548
+    old "> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"
+    new "> Warning: MAICA Libs v[libv] mismatch with UI v[uiv]. Please fully update from Release"
+
