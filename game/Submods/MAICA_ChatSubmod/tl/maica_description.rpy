@@ -40,14 +40,14 @@ translate english python in maica:
     maica.MaicaAiStatus._descriptions.update({
         maica.MaicaAiStatus.NO_INTERTENT: u"Submod offline, double check installation and connectivity according to Readme",  # 新增
     })
-    store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_wants_preferences_reread", prompt="About my preferences", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_chr_reread", prompt="About HeavenForest.sce", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_prepend_reread", prompt="What is Heaven Forest after all", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="About 'MSpire'", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="About 'MPostal'", category=["You", "Us", "Mod", "MAICA"])
-    store.mas_setEVLPropValues("maica_pre_set_location", prompt="Where [player] lives", category=["You", "Us", "Mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_wants_preferences_reread", prompt="About my preferences", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_chr_reread", prompt="About HeavenForest.sce", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_prepend_reread", prompt="What is Heaven Forest after all", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="About 'MSpire'", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="About 'MPostal'", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_pre_set_location", prompt="Where [player] lives", category=["you", "us", "mod", "MAICA"])
     maica.MaicaProviderManager.isfailedresponse.update(
         {
             "name":"ERROR: Unable to retrieve node information.",
