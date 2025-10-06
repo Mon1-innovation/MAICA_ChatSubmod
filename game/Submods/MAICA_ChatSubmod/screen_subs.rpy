@@ -406,13 +406,23 @@ screen maica_addition_input(addition="", edittarget=None):
             else:
                 persistent.mas_player_additions.append(addition)
             del persistent._mas_player_addition
+        def paste(content=None):
+            if not content:
+                content = (pygame.scrap.get(pygame.SCRAP_TEXT).strip() or pygame.scrap.get(pygame.SCRAP_TEXT).strip())
+            if content:
+                persistent['_mas_player_addition'] = content
             
     modal True
     zorder 92
 
-    use maica_setter_medium_frame(title=_("请输入MFocus信息"), ok_action=[Function(apply, edittarget), SetField(persistent ,"selectbool", None), Hide("maica_addition_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_addition_input")]):
+    use maica_setter_medium_frame(title=renpy.substitute(_("请输入MFocus信息")), ok_action=[Function(apply, edittarget), SetField(persistent ,"selectbool", None), Hide("maica_addition_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_addition_input")]):
         hbox:
             input default addition value FieldInputValue(persistent, "_mas_player_addition")
+            textbutton _("粘贴"):
+                style "mas_button_simple"
+                xalign 0.8
+                yalign 0.5
+                action Function(paste)
 
 
 screen maica_mspire_input(addition="", edittarget=None):
@@ -430,13 +440,23 @@ screen maica_mspire_input(addition="", edittarget=None):
             else:
                 persistent.maica_setting_dict["mspire_category"].append(addition)
             del persistent._mas_player_addition
-            
+        def paste(content=None):
+            if not content:
+                content = (pygame.scrap.get(pygame.SCRAP_TEXT).strip() or pygame.scrap.get(pygame.SCRAP_TEXT).strip())
+            if content:
+                persistent['_mas_player_addition'] = content
+
     modal True
     zorder 92
 
     use maica_setter_medium_frame(title=_("请输入MSpire话题"), ok_action=[Function(apply, edittarget), SetField(persistent, "selectbool", None), Hide("maica_mspire_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_mspire_input")]):
         hbox:
             input default addition value FieldInputValue(persistent, "_mas_player_addition")
+            textbutton _("粘贴"):
+                style "mas_button_simple"
+                xalign 0.8
+                yalign 0.5
+                action Function(paste)
 
 screen maica_location_input(addition="", edittarget=None):
     python:
