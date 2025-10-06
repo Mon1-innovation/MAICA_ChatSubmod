@@ -171,7 +171,7 @@ translate english strings:
     new "Requirements not satisfied"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:987
-    old "当前在线人数: "
+    old "当前总连接数: "
     new "Current onliners: "
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1019

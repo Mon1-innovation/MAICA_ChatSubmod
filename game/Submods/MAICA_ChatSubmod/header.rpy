@@ -572,7 +572,7 @@ screen maica_setting_pane():
                 
             elif maica.maica.is_connected():
                 if maica.maica.is_ready_to_input():
-                    textbutton _("> 设置"):
+                    textbutton _("> 手动上传设置"):
                         action Function(maica_apply_setting)
                     
                     textbutton _("> 重置当前对话"):

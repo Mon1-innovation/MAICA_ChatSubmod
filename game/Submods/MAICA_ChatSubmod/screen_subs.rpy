@@ -948,7 +948,7 @@ screen maica_workload_stat_lite():
             background "mod_assets/console/cn_frame_stats.png"
             has vbox
             hbox:
-                text renpy.substitute(_("当前在线人数: ")) + str(onliners):
+                text renpy.substitute(_("当前总连接数: ")) + str(onliners):
                     size 15
                 hbox:
                     text "  ":
@@ -997,7 +997,7 @@ screen maica_workload_stat():
             xsize 942
             spacing 5
 
-            text renpy.substitute(_("当前在线人数: ")) + str(onliners)
+            text renpy.substitute(_("当前总连接数: ")) + str(onliners)
 
             for server in stat:
 
