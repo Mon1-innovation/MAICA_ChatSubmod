@@ -891,7 +891,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if data['status'] == "maica_connection_established":
                 self.status = self.MaicaAiStatus.SESSION_CREATED            
         elif self.status in (self.MaicaAiStatus.WAIT_MODEL_INFOMATION, self.MaicaAiStatus.WAIT_SETTING_RESPONSE):
-            if not data['status'] in ("ok", "maica_connection_established", "maica_params_accepted"):
+            if not data['status'] in ("ok", "maica_connection_established", "maica_params_accepted", "maica_connection_security_cookie"):
                 self.status = self.MaicaAiStatus.MODEL_NOT_FOUND
             else:# data['status'] == "thread_ready":
                 self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
