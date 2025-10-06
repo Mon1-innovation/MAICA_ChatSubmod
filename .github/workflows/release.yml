@@ -56,6 +56,12 @@ jobs:
           echo "create_release=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: Create release version file
+      if: steps.check_release.outputs.create_release == 'true'
+      run: |
+        mkdir -p game/Submods/MAICA_ChatSubmod
+        echo "${{ steps.set_version.outputs.version }}" > game/Submods/MAICA_ChatSubmod/release_version
+
     - name: Create zip package
       if: steps.check_release.outputs.create_release == 'true'
       run: |

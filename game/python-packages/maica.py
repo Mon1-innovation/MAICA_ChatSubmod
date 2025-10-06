@@ -111,6 +111,8 @@ class MaicaAi(ChatBotInterface):
         TOOLONG_CONTENT_LENGTH = 13412
         # 无网络
         NO_INTERTENT = 13413
+        # 非发行版本
+        IS_SOURCECODE = 13414
         ######################### MAICA 服务器状态码
         MAIKA_PREFIX = 5000
         @classmethod
@@ -161,6 +163,7 @@ class MaicaAi(ChatBotInterface):
             VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
             TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看 MTrigger 列表并关闭不需要的触发器",
             NO_INTERTENT:u"子模组未能联网, 根据 Readme 说明检查安装和网络连接",
+            IS_SOURCECODE:u"你不应从源码直接安装, 请从Releases界面下载最新发行版."
         }
         @classmethod
         def get_description(cls, code):

@@ -28,6 +28,7 @@ translate english python in maica:
         maica.MaicaAiStatus.CERTIFI_BROKEN:u"You have a corrupted copy of MAS--likely because of other submods. Reinstallation required",
         maica.MaicaAiStatus.CERTIFI_AUTO_FIX:u"Tried autofixing broken cert module--restart the game to take effect, clean install if it doesn't.",
         maica.MaicaAiStatus.TOOLONG_CONTENT_LENGTH:u"Content too long, you should turn off big MTrigger.",
+        maica.MaicaAiStatus.IS_SOURCECODE:u"This is a sourcecode copy, not an official release. Please download the latest release from the Releases page.",
 
     })
     maica.MaicaAiStatus._descriptions.update({
