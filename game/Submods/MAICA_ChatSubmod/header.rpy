@@ -13,7 +13,7 @@ init -989 python:
             user_name="Mon1-innovation",
             repository_name="MAICA_ChatSubmod",
             update_dir="",
-            attachment_id=None
+            attachment_id=0
         )
 
 default persistent.maica_setting_dict = {

@@ -1,0 +1,81 @@
+name: Release on Push or Manual Dispatch
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (will be automatically extracted from api.rpy if not specified)'
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+
+    - name: Extract version from api.rpy
+      id: get_version
+      run: |
+        version=$(grep "maica_ver = '" game/Submods/MAICA_ChatSubmod/api.rpy | cut -d\' -f2)
+        echo "Extracted version: $version"
+        echo "version=$version" >> $GITHUB_OUTPUT
+
+    - name: Use provided or extracted version
+      id: set_version
+      run: |
+        version="${{ github.event.inputs.version }}"
+        if [ -z "$version" ]; then
+          version="${{ steps.get_version.outputs.version }}"
+        fi
+        echo "Using version: $version"
+        echo "version=$version" >> $GITHUB_OUTPUT
+
+    - name: Check if release exists
+      id: check_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        release=$(curl -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.set_version.outputs.version }})
+
+        if echo "$release" | grep -q "message.*Not Found"; then
+          echo "Release does not exist"
+          echo "create_release=true" >> $GITHUB_OUTPUT
+        else
+          echo "Release already exists"
+          echo "create_release=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create zip package
+      if: steps.check_release.outputs.create_release == 'true'
+      run: |
+        zip -r MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip . \
+          -x '.git*' \
+          -x '.github*' \
+          -x '*.git*' \
+          -x '.vscode/*'
+
+    - name: Create Release
+      if: steps.check_release.outputs.create_release == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.set_version.outputs.version }}
+        files: |
+          MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Skip release if already exists
+      if: steps.check_release.outputs.create_release == 'false'
+      run: |
+        echo "Release ${{ steps.set_version.outputs.version }} already exists. Skipping release creation."
