@@ -65,11 +65,24 @@ jobs:
           -x '*.git*' \
           -x '.vscode/*'
 
+    - name: Generate Release Notes
+      id: generate_release_notes
+      if: steps.check_release.outputs.create_release == 'true'
+      run: |
+        # Extract release notes from the latest commit message or a predefined template
+        release_notes=$(git log -1 --pretty=%B)
+        # Convert release notes to GitHub Flavored Markdown
+        echo "$release_notes" | sed 's/^/- /' > release_notes.md
+        # Prepend version information
+        echo "## MAICA ChatSubmod ${{ steps.set_version.outputs.version }}" | cat - release_notes.md > temp && mv temp release_notes.md
+        echo "RELEASE_NOTES_PATH=release_notes.md" >> $GITHUB_OUTPUT
+
     - name: Create Release
       if: steps.check_release.outputs.create_release == 'true'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.set_version.outputs.version }}
+        body_path: ${{ steps.generate_release_notes.outputs.RELEASE_NOTES_PATH }}
         files: |
           MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip
       env:
