@@ -234,7 +234,7 @@ init 5 python in maica:
         else:
             store.mas_unlockEVL("maica_greeting", "GRE")
         check_workload()
-        if not config.debug or not config.developer or store.maica.maica._ignore_accessable:
+        if not (config.debug or config.developer or store.maica.maica._ignore_accessable):
             if not os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "release_version")))
                 store.maica.maica.disable(13414)
 
