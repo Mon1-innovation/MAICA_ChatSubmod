@@ -431,7 +431,7 @@ screen maica_addition_input(addition="", edittarget=None):
                         style "mas_button_simple"
                         action Function(paste)
                 else:
-                    textbutton _("Clear"):
+                    textbutton _("Clear{#mas_apikeys}"):
                         style "mas_button_simple"
                         action Function(clear)
 
@@ -475,7 +475,7 @@ screen maica_mspire_input(addition="", edittarget=None):
                         style "mas_button_simple"
                         action Function(paste)
                 else:
-                    textbutton _("Clear"):
+                    textbutton _("Clear{#mas_apikeys}"):
                         style "mas_button_simple"
                         action Function(clear)
 
