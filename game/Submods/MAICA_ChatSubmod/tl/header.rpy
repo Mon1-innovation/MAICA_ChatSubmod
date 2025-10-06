@@ -48,7 +48,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:177
     old "> MAICA参数与设置 *部分选项需要重新连接"
-    new "> MAICA chat settings *some options may need reconnection"
+    new "> MAICA params and settings *some options may need reconnection"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:201
     old "累计对话轮次: [store.maica.maica.stat.get('message_count')]"
@@ -597,7 +597,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:353
     old "> MAICA参数与设置 {size=-10}*部分选项重新连接生效"
-    new "> MAICA chat settings {size=-10}*May need restarting to take effect"
+    new "> MAICA params and settings {size=-10}*May need restarting to take effect"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:628
     old "重现惩罚, 正值基于新标记出现在文本中的情况对其进行惩罚, 增加模型谈论新话题的可能性"
