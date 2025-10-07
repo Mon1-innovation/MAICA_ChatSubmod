@@ -905,7 +905,8 @@ screen maica_support():
 
     use maica_setter_medium_frame(title=_("向 MAICA 捐赠"), ok_action=Hide("maica_support")):
         hbox:
-            text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力.")
+            text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力."):
+                size 20
         hbox:
             style_prefix "maica_check"
             text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."):

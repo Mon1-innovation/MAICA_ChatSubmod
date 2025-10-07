@@ -360,10 +360,12 @@ label mtrigger_takeout:
 
 label mtrigger_backup:
     call maica_reconnect
+    call maica_hide_console
     if renpy.has_label('extra_mas_backup'):
         call extra_mas_backup
     elif renpy.has_label('mas_backup'):
         call mas_backup
     else:
         m "好像出了点问题...你还是手动备份一下吧?"
+        call maica_show_console
     return
