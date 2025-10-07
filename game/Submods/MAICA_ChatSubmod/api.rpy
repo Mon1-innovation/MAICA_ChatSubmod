@@ -234,10 +234,18 @@ init 5 python in maica:
         else:
             store.mas_unlockEVL("maica_greeting", "GRE")
         check_workload()
-        if not (config.debug or config.developer or store.maica.maica._ignore_accessable):
-            if not os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "release_version")))
-                store.maica.maica.disable(13414)
 
+    def validate_version():
+        # if not (config.debug or config.developer or store.maica.maica._ignore_accessable):
+        libv_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "maica_release_version"))
+        if not os.path.exists(libv_path):
+            libv = None
+        else:
+            with open(libv_path, 'r') as libv_file:
+                libv = libv_file.read()
+        uiv = maica_ver
+        return libv, uiv
+        
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
         # Calculate the number of filled positions in the progress bar
         filled_length = int(round(bar_length * percentage / 100.0))

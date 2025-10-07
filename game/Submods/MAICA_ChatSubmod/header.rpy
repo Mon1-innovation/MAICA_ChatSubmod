@@ -536,6 +536,18 @@ screen maica_setting_pane():
                     text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
                         style "main_menu_version_l"
 
+            $ libv, uiv = store.maica.maica.validate_version()
+            if not libv:
+                hbox:
+
+                    text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, 而不是源代码"):
+                        style "main_menu_version_l"
+            elif libv != uiv:
+                hbox:
+
+                    text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"):
+                        style "main_menu_version_l"
+
             hbox:
 
                 text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
