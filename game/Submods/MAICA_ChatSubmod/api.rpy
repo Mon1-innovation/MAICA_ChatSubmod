@@ -239,12 +239,12 @@ init 5 python in maica:
         # if not (config.debug or config.developer or store.maica.maica._ignore_accessable):
         libv_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "maica_release_version"))
         if not os.path.exists(libv_path):
-            libv = None
+            return None, None, None
         else:
             with open(libv_path, 'r') as libv_file:
                 libv = libv_file.read()
         uiv = store.maica_ver
-        return libv, uiv
+        return store.mas_utils.compareVersionLists(libv.strip().spilt('.'), uiv.strip().spilt('.')), libv, uiv
         
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
         # Calculate the number of filled positions in the progress bar
