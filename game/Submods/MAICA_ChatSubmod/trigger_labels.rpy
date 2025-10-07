@@ -299,3 +299,8 @@ label mtrigger_takeout:
     call bye_going_somewhere
     jump mtrigger_quit
     return
+
+label mtrigger_backup:
+    call maica_reconnect
+    call mas_backup
+    return
