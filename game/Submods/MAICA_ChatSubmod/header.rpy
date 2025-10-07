@@ -537,7 +537,7 @@ screen maica_setting_pane():
                         style "main_menu_version_l"
 
             $ res, libv, uiv = store.maica.validate_version()
-            if not res:
+            if res is None:
                 hbox:
 
                     text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, 而不是源代码"):
