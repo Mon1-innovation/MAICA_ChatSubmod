@@ -340,3 +340,45 @@ translate english strings:
     old "现在就带我去吗, [player]?{nw}{fast}"
     new "Are we going now, [player]?{nw}{fast}"
 
+# TODO: Translation updated at 2025-10-07 15:57
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:4
+translate english mtrigger_change_clothes_ab7b64b0:
+
+    # m "要我现在换吗, [player]?"
+    m "Should I change it now, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:34
+translate english mtrigger_change_hair_ab7b64b0:
+
+    # m "要我现在换吗, [player]?"
+    m "Should I change it now, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:64
+translate english mtrigger_change_acs_ab7b64b0:
+
+    # m "要我现在换吗, [player]?"
+    m "Should I change it now, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:234
+translate english mtrigger_music_auto_e5028230:
+
+    # m "要我放首'[selection]'吗, [player]?"
+    m "Shall I play '[selection]' now, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:368
+translate english mtrigger_backup_80a73472:
+
+    # m "好像出了点问题...你还是手动备份一下吧?"
+    m "Something might went wrong...could you do it yourself please?"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:5
+    old "要我现在换吗, [player]?{nw}{fast}"
+    new "Should I change it now, [player]?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:235
+    old "要我放首'[selection]'吗, [player]?{nw}{fast}"
+    new "Shall I play '[selection]' now, [player]?{nw}{fast}"
+
