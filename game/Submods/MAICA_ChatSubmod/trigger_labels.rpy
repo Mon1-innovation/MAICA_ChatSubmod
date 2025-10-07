@@ -347,5 +347,5 @@ label mtrigger_backup:
     elif renpy.has_label('mas_backup'):
         call mas_backup
     else:
-        m "好像出了一点问题...我下次再给你备份吧."
+        m "好像出了点问题...你还是手动备份一下吧?"
     return
