@@ -95,15 +95,14 @@ label mtrigger_acs_select:
 label mtrigger_kiss:
     call maica_reconnect
     if mas_shouldKiss(1):
+        call maica_hide_console
         m "那...来亲一个?"
         menu:
             "那...来亲一个?{nw}{fast}"
             "亲亲[m_name]":
-                pass
+                call monika_kissing_motion_short
             "算了":
-                return
-        call maica_hide_console
-        call monika_kissing_motion_short
+                pass
         call maica_show_console
     return 
 
@@ -122,6 +121,7 @@ label mttrigger_minigame(game):
 
 label mtrigger_leave: 
     call maica_reconnect
+    call maica_hide_console
     m "要走了吗?"
     menu:
         "要走了吗?{nw}{fast}"
@@ -131,7 +131,7 @@ label mtrigger_leave:
             return
         "还没呢":
             m 1eka "谢谢你多陪我一会, [player]."
-            return
+            call maica_show_console
     return
     
 label mtrigger_quit:
@@ -142,14 +142,17 @@ label mtrigger_quit:
 
 label mtrigger_location: 
     call maica_reconnect
+    call maica_hide_console
     if mas_isMoniEnamored(higher=True):
         call monika_change_background
     else:
         m 1eua "我们好像还没别的地方可去..."
         m 1eksdlb "抱歉啦, [player]."
+    call maica_show_console
     return
 
 label mtrigger_idle:
+    call maica_hide_console
     m "现在就去吗?"
     menu:
         "现在就去吗?{nw}{fast}"
@@ -158,6 +161,7 @@ label mtrigger_idle:
             pass
         "算了":
             m 1eka "好喔, [player]."
+            call maica_show_console
             return
     return "idle"
 
@@ -206,6 +210,19 @@ label mtrigger_music_menu:
     call maica_show_console
     return
 
+label mtrigger_music_auto(selection):
+    call maica_reconnect
+    call maica_hide_console
+    m "要我放首'[selection]'吗, [player]?"
+    menu:
+        "要我放首'[selection]'吗, [player]?{nw}{fast}"
+        "好啊":
+            $ store.mas_play_song(MusicTrigger.find(selection))
+        "算了":
+            pass
+    call maica_show_console
+    return
+
 label mtrigger_neteasemusic_search(keyword):
     call maica_reconnect
     call maica_hide_console
@@ -227,7 +244,6 @@ label mtrigger_youtubemusic_search(keyword):
 
     python:
         ready = False
-
 
     label .input_loop:
         show monika 1eua at t11
@@ -312,6 +328,7 @@ label mtrigger_youtubemusic_search(keyword):
 
 label mtrigger_takeout:
     call maica_reconnect
+    call maica_hide_console
     m "现在就带我去吗, [player]?"
     menu:
         "现在就带我去吗, [player]?{nw}{fast}"
@@ -320,4 +337,5 @@ label mtrigger_takeout:
             jump mtrigger_quit
         "算了":
             pass
+    call maica_show_console
     return

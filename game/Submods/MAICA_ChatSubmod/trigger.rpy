@@ -281,7 +281,8 @@ init 999 python in maica:
             self.musics = self.song_list()
             return super(MusicTrigger, self).build()
         
-        def find(self,selection):
+        @staticmethod
+        def find(selection):
             return [x for x in store.songs.music_choices if selection in x][0]
 
         def callback(self, selection):
@@ -289,7 +290,7 @@ init 999 python in maica:
                 store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:
-                if selection != False or selection.lower() != "false":
+                if selection and selection.lower() != "false":
                     if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
                         store.renpy.call("mtrigger_neteasemusic_search", selection)
                         return
@@ -302,8 +303,9 @@ init 999 python in maica:
             if selection == "停止/静音":
                 store.mas_play_song(None)
                 return
+            
+            store.renpy.call("mtrigger_music_auto", selection)
 
-            store.mas_play_song(self.find(selection))
     music_trigger = MusicTrigger()
     maica.mtrigger_manager.add_trigger(music_trigger)
 
