@@ -304,7 +304,7 @@ init 999 python in maica:
                 store.mas_play_song(None)
                 return
             
-            store.renpy.call("mtrigger_music_auto", selection)
+            store.renpy.call("mtrigger_music_auto", self.__class__, selection)
 
     music_trigger = MusicTrigger()
     maica.mtrigger_manager.add_trigger(music_trigger)

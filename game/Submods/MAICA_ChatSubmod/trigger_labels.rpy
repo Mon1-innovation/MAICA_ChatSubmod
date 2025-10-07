@@ -228,14 +228,14 @@ label mtrigger_music_menu:
     call maica_show_console
     return
 
-label mtrigger_music_auto(selection):
+label mtrigger_music_auto(cls, selection):
     call maica_reconnect
     call maica_hide_console
     m "要我放首'[selection]'吗, [player]?"
     menu:
         "要我放首'[selection]'吗, [player]?{nw}{fast}"
         "好啊":
-            $ store.mas_play_song(store.MusicTrigger.find(selection))
+            $ store.mas_play_song(cls.find(selection))
         "算了":
             pass
     call maica_show_console
