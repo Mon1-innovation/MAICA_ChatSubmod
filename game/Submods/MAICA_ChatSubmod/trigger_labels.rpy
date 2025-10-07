@@ -324,5 +324,5 @@ label mtrigger_takeout:
 
 label mtrigger_backup:
     call maica_reconnect
-    call mas_backup
+    call extra_mas_backup
     return
