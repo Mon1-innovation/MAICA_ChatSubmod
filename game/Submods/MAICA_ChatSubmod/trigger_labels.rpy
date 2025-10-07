@@ -235,7 +235,7 @@ label mtrigger_music_auto(selection):
     menu:
         "要我放首'[selection]'吗, [player]?{nw}{fast}"
         "好啊":
-            $ store.mas_play_song(MusicTrigger.find(selection))
+            $ store.mas_play_song(store.MusicTrigger.find(selection))
         "算了":
             pass
     call maica_show_console
