@@ -278,4 +278,5 @@ label mtrigger_youtubemusic_search(keyword):
 label mtrigger_takeout:
     call maica_reconnect
     call bye_going_somewhere
+    jump mtrigger_quit
     return
