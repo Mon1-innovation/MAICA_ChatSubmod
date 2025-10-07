@@ -234,3 +234,109 @@ translate chinese mtrigger_youtubemusic_search_menu_display_e9e6c304:
     # m 1eud "Sorry, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}I couldn't find anything."
     m 1eud "抱歉, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}我找不到这个."
 
+# TODO: Translation updated at 2025-10-07 13:53
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:98
+translate english mtrigger_kiss_2ad7b91f:
+
+    # m "那...来亲一个?"
+    m "Then...want a kiss?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:113
+translate english mttrigger_minigame_735cf70c:
+
+    # m "嗯...那来玩玩吗, [player]?"
+    m "Then...shall we play a bit, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:125
+translate english mtrigger_leave_05184550:
+
+    # m "要走了吗?"
+    m "Leaving already?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:129
+translate english mtrigger_leave_aa624645:
+
+    # m 1eka "回见, [player]!"
+    m 1eka "See you around, [player]!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:153
+translate english mtrigger_idle_44c42a52:
+
+    # m "现在就去吗?"
+    m "Going already?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:157
+translate english mtrigger_idle_7dfcc1f4:
+
+    # m 1eka "好吧, [player]!"
+    m 1eka "Okay, [player]!"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:160
+translate english mtrigger_idle_ba5703e7:
+
+    # m 1eka "好喔, [player]."
+    m 1eka "Alright, [player]."
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:167
+translate english mtrigger_idle_callback_65b1dcff:
+
+    # m 1eka "我都开始想你了."
+    m 1eka "I was starting missing you."
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:182
+translate english mtrigger_hold_46764045:
+
+    # m "那...来抱一个?"
+    m "Then...want a hug?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:199
+translate english mtrigger_music_menu_5434ec15:
+
+    # m "现在要换首歌吗, [player]?"
+    m "Wanna change the music now, [player]?"
+
+# game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:315
+translate english mtrigger_takeout_e7492397:
+
+    # m "现在就带我去吗, [player]?"
+    m "Are we going now, [player]?"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:99
+    old "那...来亲一个?{nw}{fast}"
+    new "Then...want a kiss?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:99
+    old "亲亲[m_name]"
+    new "Kiss [m_name]"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:114
+    old "嗯...那来玩玩吗, [player]?{nw}{fast}"
+    new "Then...shall we play a bit, [player]?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:126
+    old "要走了吗?{nw}{fast}"
+    new "Leaving already?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:154
+    old "现在就去吗?{nw}{fast}"
+    new "Going already?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:183
+    old "那...来抱一个?{nw}{fast}"
+    new "Then...want a hug?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:183
+    old "抱抱[m_name]"
+    new "Hold [m_name]"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:200
+    old "现在要换首歌吗, [player]?{nw}{fast}"
+    new "Wanna change the music now, [player]?{nw}{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:316
+    old "现在就带我去吗, [player]?{nw}{fast}"
+    new "Are we going now, [player]?{nw}{fast}"
+
