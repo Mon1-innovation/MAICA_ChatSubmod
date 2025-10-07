@@ -292,7 +292,7 @@ init -1:
                     label title:
                         style "confirm_prompt"
                         xalign 0.5
-                hbox:
+                vbox:
                     xsize 600
                     xalign 0.5
                     transclude
