@@ -95,6 +95,11 @@ label mtrigger_acs_select:
 label mtrigger_kiss:
     call maica_reconnect
     if mas_shouldKiss(1):
+        menu:
+            "现在亲[m_name]":
+                pass
+            "算了...":
+                return
         call maica_hide_console
         call monika_kissing_motion_short
         call maica_show_console
@@ -137,6 +142,15 @@ label mtrigger_location:
     return
 
 label mtrigger_idle:
+    menu:
+        m "你现在就要去了吗?"
+        
+        "是的":
+            pass
+        "还没有":
+            m 1eka "好喔, [player]."
+            return
+    m 1eka "好吧, [player]!"
     return "idle"
 
 label mtrigger_idle_callback:
@@ -157,6 +171,11 @@ label mtrigger_brb:
 label mtrigger_hold:
     call maica_reconnect
     call maica_hide_console
+    menu:
+        "抱抱[m_name]":
+            pass
+        "算了...":
+            return
     call monika_holdme_prep
     call monika_holdme_start
     call monika_holdme_reactions
@@ -278,4 +297,5 @@ label mtrigger_youtubemusic_search(keyword):
 label mtrigger_takeout:
     call maica_reconnect
     call bye_going_somewhere
+    jump mtrigger_quit
     return
