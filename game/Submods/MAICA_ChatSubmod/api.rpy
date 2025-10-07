@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.4.10'
+    maica_ver = '1.4.12'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -244,7 +244,7 @@ init 5 python in maica:
             with open(libv_path, 'r') as libv_file:
                 libv = libv_file.read()
         uiv = store.maica_ver
-        return store.mas_utils.compareVersionLists(libv.strip().spilt('.'), uiv.strip().spilt('.')), libv, uiv
+        return store.mas_utils.compareVersionLists(libv.strip().split('.'), uiv.strip().split('.')), libv, uiv
         
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
         # Calculate the number of filled positions in the progress bar
