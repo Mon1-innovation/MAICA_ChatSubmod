@@ -1,72 +1,90 @@
 label mtrigger_change_clothes(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    if outfit_name == "mas_pick_a_clothes":
-        call monika_clothes_select 
-        call maica_show_console
-        return 
-    call mas_transition_to_emptydesk
-    python:
-        renpy.pause(1.0, hard=True)
+    m "要我现在换吗, [player]?"
+    menu:
+        "要我现在换吗, [player]?{nw}{fast}"
+        "好啊":
+            if outfit_name == "mas_pick_a_clothes":
+                call monika_clothes_select 
+                call maica_show_console
+                return 
+            call mas_transition_to_emptydesk
+            python:
+                renpy.pause(1.0, hard=True)
 
-        outfit_to_wear = store.mas_sprites.get_sprite(
-            store.mas_sprites.SP_CLOTHES,
-            outfit_name
-        )
-        if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
-            store.monika_chr.change_clothes(outfit_to_wear, by_user=True, outfit_mode=True)
+                outfit_to_wear = store.mas_sprites.get_sprite(
+                    store.mas_sprites.SP_CLOTHES,
+                    outfit_name
+                )
+                if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
+                    store.monika_chr.change_clothes(outfit_to_wear, by_user=True, outfit_mode=True)
 
-        renpy.pause(4.0, hard=True)
+                renpy.pause(4.0, hard=True)
 
-    call mas_transition_from_emptydesk("monika 1eua")
+            call mas_transition_from_emptydesk("monika 1eua")
+        "算了":
+            pass
     call maica_show_console
     return
 
 label mtrigger_change_hair(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    if outfit_name == "mas_pick_a_clothes":
-        call monika_hair_select 
-        call maica_show_console
-        return 
-    call mas_transition_to_emptydesk
-    python:
-        renpy.pause(1.0, hard=True)
+    m "要我现在换吗, [player]?"
+    menu:
+        "要我现在换吗, [player]?{nw}{fast}"
+        "好啊":
+            if outfit_name == "mas_pick_a_clothes":
+                call monika_hair_select 
+                call maica_show_console
+                return 
+            call mas_transition_to_emptydesk
+            python:
+                renpy.pause(1.0, hard=True)
 
-        outfit_to_wear = store.mas_sprites.get_sprite(
-            store.mas_sprites.SP_HAIR,
-            outfit_name
-        )
-        if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
-            store.monika_chr.change_hair(outfit_to_wear, by_user=True)
+                outfit_to_wear = store.mas_sprites.get_sprite(
+                    store.mas_sprites.SP_HAIR,
+                    outfit_name
+                )
+                if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
+                    store.monika_chr.change_hair(outfit_to_wear, by_user=True)
 
-        renpy.pause(4.0, hard=True)
+                renpy.pause(4.0, hard=True)
 
-    call mas_transition_from_emptydesk("monika 1eua")
+            call mas_transition_from_emptydesk("monika 1eua")
+        "算了":
+            pass
     call maica_show_console
     return
 
 label mtrigger_change_acs(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    if outfit_name == "mas_pick_a_clothes":
-        call mtrigger_acs_select 
-        call maica_show_console
-        return 
-    call mas_transition_to_emptydesk
-    python:
-        renpy.pause(1.0, hard=True)
+    m "要我现在换吗, [player]?"
+    menu:
+        "要我现在换吗, [player]?{nw}{fast}"
+        "好啊":
+            if outfit_name == "mas_pick_a_clothes":
+                call mtrigger_acs_select 
+                call maica_show_console
+                return 
+            call mas_transition_to_emptydesk
+            python:
+                renpy.pause(1.0, hard=True)
 
-        outfit_to_wear = store.mas_sprites.get_sprite(
-            store.mas_sprites.SP_ACS,
-            outfit_name
-        )
-        if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
-            store.monika_chr.wear_acs(outfit_to_wear)
+                outfit_to_wear = store.mas_sprites.get_sprite(
+                    store.mas_sprites.SP_ACS,
+                    outfit_name
+                )
+                if outfit_to_wear is not None and store.mas_SELisUnlocked(outfit_to_wear):
+                    store.monika_chr.wear_acs(outfit_to_wear)
 
-        renpy.pause(4.0, hard=True)
+                renpy.pause(4.0, hard=True)
 
-    call mas_transition_from_emptydesk("monika 1eua")
+            call mas_transition_from_emptydesk("monika 1eua")
+        "算了":
+            pass
     call maica_show_console
     return
 label mtrigger_acs_select:
