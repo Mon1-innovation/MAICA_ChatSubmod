@@ -339,3 +339,13 @@ label mtrigger_takeout:
             pass
     call maica_show_console
     return
+
+label mtrigger_backup:
+    call maica_reconnect
+    if renpy.has_label('extra_mas_backup'):
+        call extra_mas_backup
+    elif renpy.has_label('mas_backup'):
+        call mas_backup
+    else:
+        m "好像出了一点问题...我下次再给你备份吧."
+    return

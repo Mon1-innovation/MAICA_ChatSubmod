@@ -224,7 +224,7 @@ init 999 python in maica:
         return store.mas_submod_utils.isSubmodInstalled("Extra Plus")
 
     def mtrigger_backup_callback(arg):
-        store.renpy.call("mas_backup")
+        store.renpy.call("mtrigger_backup")
 
     backup_trigger = MTriggerBase(customize_template, "backup", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
         description = _("内置 | 备份存档 * 需要 Extra Plus 子模组"), method=MTriggerMethod.table,
