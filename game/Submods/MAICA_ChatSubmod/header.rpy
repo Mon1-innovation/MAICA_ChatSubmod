@@ -536,7 +536,7 @@ screen maica_setting_pane():
                     text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
                         style "main_menu_version_l"
 
-            $ libv, uiv = store.maica.maica.validate_version()
+            $ libv, uiv = store.maica.validate_version()
             if not libv:
                 hbox:
 

@@ -527,7 +527,6 @@ class TalkSplitV2():
             # No pause needed for last punc
             i += 1
             if i == len(matches):
-                print('b')
                 break
             pos = match.end(); content = match.group()
             if not lmatch:
@@ -538,7 +537,7 @@ class TalkSplitV2():
             alllen = len(strin[:match.start()].encode('utf-8'))
             lmatch = match
             match_tuple_b = (pos, content, prelen, alllen)
-            print(('   ' + strin + ' ')[pos:pos+5])
+            # print(('   ' + strin + ' ')[pos:pos+5])
             if len(content) > 1 or not self.is_decimal(('   ' + strin + ' ')[pos:pos+5]):
                 if self.check_has(content, self.list_excrit_puc):
                     iepc.append(match_tuple_b)
@@ -547,19 +546,25 @@ class TalkSplitV2():
                 elif self.check_has(content, self.list_uncrit_punc):
                     iupc.append(match_tuple_b)
 
+        pending_insert = []
+
         for mb in iupc:
             if prelen > 80:
-                strin = self.insert_string(strin, '{w=0.3}', mb[0])
+                pending_insert.append(('{w=0.3}', mb[0]))
 
         for mb in icpc:
             if len(mb[1]) > 1:
                 # ellipsis?
-                strin = self.insert_string(strin, '{w=0.5}', mb[0])
+                if get_pre_i_space(mb, icpc) > 30:
+                    pending_insert.append(('{w=0.5}', mb[0]))
             elif get_pre_i_space(mb, icpc) > 45:
-                strin = self.insert_string(strin, '{w=0.3}', mb[0])
+                pending_insert.append(('{w=0.3}', mb[0]))
 
         for mb in iepc:
-            if prelen > 35:
-                strin = self.insert_string(strin, '{w=0.2}', mb[0])
+            if prelen > 45:
+                pending_insert.append(('{w=0.2}', mb[0]))
+
+        for tup in pending_insert[::-1]:
+            strin = self.insert_string(strin, *tup)
                 
         return strin

@@ -95,30 +95,38 @@ label mtrigger_acs_select:
 label mtrigger_kiss:
     call maica_reconnect
     if mas_shouldKiss(1):
+        m "那...来亲一个?"
         menu:
-            "现在亲[m_name]":
+            "那...来亲一个?{nw}{fast}"
+            "亲亲[m_name]":
                 pass
-            "算了...":
+            "算了":
                 return
         call maica_hide_console
         call monika_kissing_motion_short
         call maica_show_console
     return 
+
 label mttrigger_minigame(game):
     call maica_reconnect
     call maica_hide_console
-    $ renpy.call(game)
+    m "嗯...那来玩玩吗, [player]?"
+    menu:
+        "嗯...那来玩玩吗, [player]?{nw}{fast}"
+        "好啊":
+            $ renpy.call(game)
+        "算了":
+            pass
     call maica_show_console
     return
 
-
 label mtrigger_leave: 
     call maica_reconnect
-    m "要走了吗, [player]?"
+    m "要走了吗?"
     menu:
-        "要走了吗, [player]?{nw}{fast}"
+        "要走了吗?{nw}{fast}"
         "是的":
-            m 1eka "一会见, [player]!"
+            m 1eka "回见, [player]!"
             jump mtrigger_quit
             return
         "还没呢":
@@ -142,21 +150,21 @@ label mtrigger_location:
     return
 
 label mtrigger_idle:
+    m "现在就去吗?"
     menu:
-        m "你现在就要去了吗?"
-        
+        "现在就去吗?{nw}{fast}"
         "是的":
+            m 1eka "好吧, [player]!"
             pass
-        "还没有":
+        "算了":
             m 1eka "好喔, [player]."
             return
-    m 1eka "好吧, [player]!"
     return "idle"
 
 label mtrigger_idle_callback:
     call maica_reconnect
     m 1eka "你回来啦, [player]!"
-    m 1eka "我都要想你了."
+    m 1eka "我都开始想你了."
     #jump maica_main.talking_start
     return
 
@@ -171,10 +179,12 @@ label mtrigger_brb:
 label mtrigger_hold:
     call maica_reconnect
     call maica_hide_console
+    m "那...来抱一个?"
     menu:
+        "那...来抱一个?{nw}{fast}"
         "抱抱[m_name]":
             pass
-        "算了...":
+        "算了":
             return
     call monika_holdme_prep
     call monika_holdme_start
@@ -186,7 +196,13 @@ label mtrigger_hold:
 label mtrigger_music_menu:
     call maica_reconnect
     call maica_hide_console
-    call display_music_menu
+    m "现在要换首歌吗, [player]?"
+    menu:
+        "现在要换首歌吗, [player]?{nw}{fast}"
+        "好啊":
+            call display_music_menu
+        "算了":
+            pass
     call maica_show_console
     return
 
@@ -296,8 +312,14 @@ label mtrigger_youtubemusic_search(keyword):
 
 label mtrigger_takeout:
     call maica_reconnect
-    call bye_going_somewhere
-    jump mtrigger_quit
+    m "现在就带我去吗, [player]?"
+    menu:
+        "现在就带我去吗, [player]?{nw}{fast}"
+        "是的":
+            call bye_going_somewhere
+            jump mtrigger_quit
+        "算了":
+            pass
     return
 
 label mtrigger_backup:
