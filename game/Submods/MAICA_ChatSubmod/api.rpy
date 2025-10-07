@@ -243,7 +243,7 @@ init 5 python in maica:
         else:
             with open(libv_path, 'r') as libv_file:
                 libv = libv_file.read()
-        uiv = maica_ver
+        uiv = store.maica_ver
         return libv, uiv
         
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
