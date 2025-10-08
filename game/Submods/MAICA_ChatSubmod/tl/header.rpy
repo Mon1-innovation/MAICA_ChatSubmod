@@ -19,8 +19,8 @@ translate english strings:
     new "> MAICA connection status: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:151
-    old "> Websocket:[stat]"
-    new "> Websocket:[stat]"
+    old "> Websocket: [stat]"
+    new "> Websocket: [stat]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:157
     old "> 生成令牌"
@@ -679,8 +679,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:319
-    old "> Websocket:"
-    new "> Websocket:"
+    old "> Websocket: "
+    new "> Websocket: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:463
     old "MTrigger空间使用情况: "

@@ -555,7 +555,7 @@ screen maica_setting_pane():
 
             hbox:
 
-                text renpy.substitute(_("> Websocket:")) + renpy.substitute(stat):
+                text renpy.substitute(_("> Websocket: ")) + renpy.substitute(stat):
                     style "main_menu_version_l"
 
             text "":
