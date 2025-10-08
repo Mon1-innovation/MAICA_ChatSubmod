@@ -752,7 +752,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     elif self.status == self.MaicaAiStatus.SESSION_CREATED:
                         self.send_settings()
                         threading.Thread(target=self.send_mtrigger).start()
-                        self.status = self.MaicaAiStatus.WAIT_MODEL_INFOMATION
+                        self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
                      
                     # 发送设置, 切记仅在闲置时进行 
                     elif self.status == self.MaicaAiStatus.SEND_SETTING:
