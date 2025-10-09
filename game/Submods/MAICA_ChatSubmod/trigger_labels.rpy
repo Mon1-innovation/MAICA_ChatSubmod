@@ -57,8 +57,7 @@ label mtrigger_change_hair(outfit_name):
             pass
     call maica_show_console
     return
-label mtrigger_unwear_acs:
-    label mtrigger_change_acs(outfit_name):
+label mtrigger_unwear_acs(outfit_to_wear):
     call maica_reconnect
     call maica_hide_console
     m "要我现在换吗, [player]?"
