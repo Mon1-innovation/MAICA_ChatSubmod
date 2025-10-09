@@ -358,9 +358,11 @@ init 999 python in maica:
 
     class UnWearTrigger(MTriggerBase):
         def __init__(self, template, name):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key for key in store.monika_chr.get_acs()}
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
+                                    for key in store.monika_chr.get_acs()
+                                    if key.name in store.mas_selspr.ACS_SEL_MAP}
             #ACS_SEL_MAP
-            super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 取下饰品"),callback=self.clothes_callback, 
+            super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 取下饰品"),callback=self.clothes_callback,
                 exprop=MTriggerExprop(
                     item_name_zh = "取下饰品",
                     item_name_en = "remove accessory",
@@ -370,10 +372,14 @@ init 999 python in maica:
                 condition = self.condition
             )
         def condition(self):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key for key in store.monika_chr.get_acs()}
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
+                                    for key in store.monika_chr.get_acs()
+                                    if key.name in store.mas_selspr.ACS_SEL_MAP}
             return len(list(self.clothes_data.keys()))
         def on_build_pre(self):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key for key in store.monika_chr.get_acs()}
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
+                                    for key in store.monika_chr.get_acs()
+                                    if key.name in store.mas_selspr.ACS_SEL_MAP}
             self.exprop.item_list = list(self.clothes_data.keys())
 
         def triggered(self, data):
