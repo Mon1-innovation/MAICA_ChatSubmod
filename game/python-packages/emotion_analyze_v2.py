@@ -63,7 +63,7 @@ class EmoSelector:
         self.pre_emotes = []
         self.emote = ""
         self.pre_pos = 0
-        self.get_emote_func = sv_get_emote
+        self.get_emote_func = get_emote_func
         self.fallback_selector = FallBackEmo()
 
     def reset(self):
