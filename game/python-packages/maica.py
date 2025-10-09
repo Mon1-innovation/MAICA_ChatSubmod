@@ -587,15 +587,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 if res_data.get("success", False):
                     return res_data
                 else:
-                    self.console_logger.warning("Emotion analysis failed: {}".format(res_data))
+                    logger.warning("Emotion analysis failed: {}".format(res_data))
                     return res_data
             else:
-                self.console_logger.error("Emotion analysis request failed: Server returned {} - {}".format(res.status_code, res.text))
+                logger.error("Emotion analysis request failed: Server returned {} - {}".format(res.status_code, res.text))
                 return {"success": False, "exception": "Emotion analysis request failed"}
 
         except Exception as e:
             error_msg = traceback.format_exc()
-            self.console_logger.error("Emotion analysis request encountered an error: {}".format(error_msg))
+            logger.error("Emotion analysis request encountered an error: {}".format(error_msg))
             return {"success": False, "exception": "Emotion analysis request failed"}
 
 
