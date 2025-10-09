@@ -296,7 +296,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._serving_status = ""
         self.stat = {}
         self.multi_lock = threading.Lock()
-        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
+        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None, self.get_emotion)
         self.public_key = None
         self.ciphertext = None
         self.chat_session = 1
@@ -550,6 +550,36 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import requests
         try:
             res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality", params={"access_token": self.ciphertext})
+            if res.status_code == 200:
+                res = res.json()
+                if res.get("success", False):
+                    return res
+                else:
+                    logger.warning("Maica::_verify_token not passed: {}".format(res))
+                    return res
+            else:
+                logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
+                return {"success":False, "exception": "Maica::_verify_token requests.post failed"}
+
+        except Exception as e:
+            import traceback
+            logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
+            return {"success":False, "exception": "Maica::_verify_token failed"}
+
+    def get_emotion(self, type, text):
+
+        import requests, json
+        try:
+            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "emotion", 
+                               params={
+                                   "access_token": self.ciphertext,
+                                   "content":json.dumps({
+                                       "type":type,
+                                       "text":text,
+                                       "target_lang":self.target_lang
+                                   })
+                                }
+                               )
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
