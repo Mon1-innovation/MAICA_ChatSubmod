@@ -51,7 +51,7 @@ class FallBackEmo(object):
 
 class EmoSelector:
 
-    def __init__(self, selector, storage, sentiment, get_emote_func = None, eoc=None):
+    def __init__(self, selector, storage, sentiment, fallback_predictor = None, eoc=None):
         self.selector = selector
         self.storage = storage
         self.sentiment = sentiment
@@ -63,7 +63,7 @@ class EmoSelector:
         self.pre_emotes = []
         self.emote = ""
         self.pre_pos = 0
-        self.get_emote_func = get_emote_func
+        self.fallback_predictor = fallback_predictor
         self.fallback_selector = FallBackEmo()
 
     def reset(self):
@@ -174,8 +174,15 @@ class EmoSelector:
                 o = 0.0
                 self.fallback_selector.last = emo
             else:
-                emo = self.fallback_selector.predict()
-                logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
+                temp_match = None
+                result = self.fallback_predictor('norm', match)
+                if result.get('success'):
+                    content = result['content']
+                    if content[1] >= 0.5:
+                        temp_match = content[0]
+                emo = temp_match if temp_match else self.fallback_selector.predict()
+
+                logger.warning("[Maica::EmoSelector] {} is not in selector, normalized to {}".format(match, temp_match))
         if matches == []:
             emo = self.fallback_selector.predict()
 
