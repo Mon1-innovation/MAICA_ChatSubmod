@@ -34,7 +34,7 @@ ai = maica.MaicaAi("SirrrrrrP", "qwerty")
 
 
 
-ai.provider_id = 9999
+ai.provider_id = 0
 
 
 ai.in_mas = False
@@ -52,7 +52,7 @@ ai.target_lang = ai.MaicaAiLang.zh_cn
 
 ai._ignore_accessable = True
 ai.accessable()
-ai._gen_token("SirrrrrrP", "qwerty")
+ai._gen_token("SirrrrrrP", "qwerty", t)
 print(ai.ciphertext)
 print(f"{ai._verify_token()}")
 print("加密完成")
@@ -64,7 +64,8 @@ import time
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
-
+print(ai.get_emotion('add', "你也太可爱了!"))
+raise
 #ai.init_connect()
 try:
     if not ai.is_connected():
