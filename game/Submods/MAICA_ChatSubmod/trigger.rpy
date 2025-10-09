@@ -360,7 +360,6 @@ init 999 python in maica:
                     item_list = list(self.clothes_data.keys()),
                 ),
                 action = MTriggerAction.post,
-                method=MTriggerMethod.table
             )
         def outfit_has_and_unlocked(self, outfit_name):
             """
