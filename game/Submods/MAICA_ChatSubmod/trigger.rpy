@@ -267,6 +267,9 @@ init 999 python in maica:
                 perf_suggestion=True,
             )
         
+        def on_build_pre(self):
+            self.exprop.curr_value=store.songs.current_track
+        
         def song_list(self):
             m = []
             for s in store.songs.music_choices:
@@ -326,6 +329,10 @@ init 999 python in maica:
                 action = MTriggerAction.post,
                 method = MTriggerMethod.table
             )
+        
+        def on_build_pre(self):
+            self.exprop.curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
+
         def outfit_has_and_unlocked(self, outfit_name):
             """
             Returns True if we have the outfit and it's unlocked
@@ -346,6 +353,46 @@ init 999 python in maica:
 
     hair_trigger = HairTrigger(common_switch_template, "hair")
     maica.mtrigger_manager.add_trigger(hair_trigger)
+
+#################################################################################
+
+    class UnWearTrigger(MTriggerBase):
+        def __init__(self, template, name):
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name : key for key in store.monika_chr.wear_acs() if self.outfit_has_and_unlocked(key)}
+            #ACS_SEL_MAP
+            super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 脱下饰品"),callback=self.clothes_callback, 
+                exprop=MTriggerExprop(
+                    item_name_zh = "脱下饰品",
+                    item_name_en = "unwear accessory",
+                    item_list = list(self.clothes_data.keys()),
+                ),
+                action = MTriggerAction.post,
+            )
+        
+        def on_build_pre(self):
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name : key for key in store.monika_chr.wear_acs() if self.outfit_has_and_unlocked(key)}
+            self.exprop.item_list = list(self.clothes_data.keys())
+        def outfit_has_and_unlocked(self, outfit_name):
+            """
+            Returns True if we have the outfit and it's unlocked
+            """
+            return outfit_name in store.mas_selspr.ACS_SEL_MAP and store.mas_selspr.ACS_SEL_MAP[outfit_name].unlocked
+
+        def triggered(self, data):
+            clothes = data.get("selection", None)
+            if clothes is not None:
+                self.callback(clothes)
+
+        def clothes_callback(self, clothes):
+            if not clothes in self.clothes_data:
+                maica.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid acs".format(clothes))
+                return
+            acs = self.clothes_data[clothes]
+            return store.renpy.call("mtrigger_unwear_acs", acs)
+
+    maica.mtrigger_manager.add_trigger(UnWearTrigger(common_switch_template, "unwear"))
+
 
 #################################################################################
 
