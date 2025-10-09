@@ -172,8 +172,10 @@ class MTriggerBase(object):
 
         if self.template.name != common_affection_template.name and exprop.item_name_zh == "":
             raise Exception("Non affection template must have exprop.item_name_zh.")
-
+    def on_build_pre(self):
+        pass
     def build(self):
+        self.on_build_pre()
         data = {
             "template": self.template.name,
             "name": self.name,
