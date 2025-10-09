@@ -215,7 +215,7 @@ init 999 python in maica:
 
     location_trigger = MTriggerBase(customize_template, "location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
         description = _("内置 | 调用切换房间"), method=MTriggerMethod.table,
-        exprop = MTriggerExprop(item_name_zh="切换游戏内场景", item_name_en="change in-game location"))
+        exprop = MTriggerExprop(item_name_zh="切换游戏内场景/房间", item_name_en="change in-game location/room"))
     maica.mtrigger_manager.add_trigger(location_trigger)
 
 #################################################################################
