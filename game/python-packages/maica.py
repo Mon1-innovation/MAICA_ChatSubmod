@@ -933,7 +933,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.__ws_cookie = ""
         if self.multi_lock.locked():
             self.multi_lock.release()
-        raise Exception("Websocket closed, raising to cleanup")
+        self.close_wss_session()
 
         
     def chat(self, message):
