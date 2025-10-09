@@ -145,8 +145,7 @@ class EmoSelector:
                 continue
             if match in [u"感动", u"憧憬", u"脸红"] and self.main_strength > 0.7:
                 message = message.replace('[player]', '[mas_get_player_nickname()]')
-            if not keep_tags:
-                message = message.replace('[{}]'.format(rawmatch), '')
+
             if match == u"很开心":
                 match = u"开心"
             randf = random.random()
@@ -168,21 +167,33 @@ class EmoSelector:
 
             match = self.emote_translate.get(match, match)
 
-            if match in self.selector:
-                emo = match
-                m = 0.7
-                o = 0.0
-                self.fallback_selector.last = emo
-            else:
+            if not match in self.selector:
                 temp_match = None
                 result = self.fallback_predictor('norm', match)
                 if result.get('success'):
                     content = result['content']
                     if content[1] >= 0.5:
                         temp_match = content[0]
-                emo = temp_match if temp_match else self.fallback_selector.predict()
 
-                logger.warning("[Maica::EmoSelector] {} is not in selector, normalized to {}".format(match, temp_match))
+                if temp_match:
+                    message = message.replace('[{}]'.format(rawmatch), temp_match)
+                    logger.warning("[Maica::EmoSelector] {} is not in selector, normalized to {}".format(match, temp_match))
+                    if temp_match[0] != '[':
+                        continue
+                    match = rawmatch = temp_match.strip('[').strip(']')
+
+            if match in self.selector:
+                emo = match
+                m = 0.7
+                o = 0.0
+                self.fallback_selector.last = emo
+            else:
+                emo = self.fallback_selector.predict()
+                logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
+
+            if not keep_tags:
+                message = message.replace('[{}]'.format(rawmatch), '')
+
         if matches == []:
             emo = self.fallback_selector.predict()
 
