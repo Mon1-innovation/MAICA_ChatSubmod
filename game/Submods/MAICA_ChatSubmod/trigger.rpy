@@ -360,10 +360,10 @@ init 999 python in maica:
         def __init__(self, template, name):
             self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key for key in store.monika_chr.get_acs()}
             #ACS_SEL_MAP
-            super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 脱下饰品"),callback=self.clothes_callback, 
+            super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 取下饰品"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
                     item_name_zh = "取下饰品",
-                    item_name_en = "unwear accessory",
+                    item_name_en = "remove accessory",
                     item_list = list(self.clothes_data.keys()),
                 ),
                 action = MTriggerAction.post,
