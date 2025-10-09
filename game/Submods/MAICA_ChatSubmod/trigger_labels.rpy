@@ -57,6 +57,25 @@ label mtrigger_change_hair(outfit_name):
             pass
     call maica_show_console
     return
+label mtrigger_unwear_acs:
+    label mtrigger_change_acs(outfit_name):
+    call maica_reconnect
+    call maica_hide_console
+    m "要我现在换吗, [player]?"
+    menu:
+        "要我现在换吗, [player]?{nw}{fast}"
+        "好啊":
+            call mas_transition_to_emptydesk
+            python:
+                renpy.pause(1.0, hard=True)
+                store.monika_chr.remove_acs(outfit_to_wear)
+                renpy.pause(4.0, hard=True)
+
+            call mas_transition_from_emptydesk("monika 1eua")
+        "算了":
+            pass
+    call maica_show_console
+    return
 
 label mtrigger_change_acs(outfit_name):
     call maica_reconnect
