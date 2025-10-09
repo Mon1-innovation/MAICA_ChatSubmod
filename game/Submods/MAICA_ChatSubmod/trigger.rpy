@@ -358,7 +358,7 @@ init 999 python in maica:
 
     class UnWearTrigger(MTriggerBase):
         def __init__(self, template, name):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name : key for key in store.monika_chr.wear_acs() if self.outfit_has_and_unlocked(key)}
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name : key for key in store.monika_chr.get_acs() if self.outfit_has_and_unlocked(key)}
             #ACS_SEL_MAP
             super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 脱下饰品"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
@@ -370,7 +370,7 @@ init 999 python in maica:
             )
         
         def on_build_pre(self):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name : key for key in store.monika_chr.wear_acs() if self.outfit_has_and_unlocked(key)}
+            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name : key for key in store.monika_chr.get_acs() if self.outfit_has_and_unlocked(key)}
             self.exprop.item_list = list(self.clothes_data.keys())
         def outfit_has_and_unlocked(self, outfit_name):
             """
@@ -391,7 +391,7 @@ init 999 python in maica:
             acs = self.clothes_data[clothes]
             return store.renpy.call("mtrigger_unwear_acs", acs)
 
-    maica.mtrigger_manager.add_trigger(UnWearTrigger(common_switch_template, "unwear"))
+    maica.mtrigger_manager.add_trigger(UnWearTrigger(common_switch_template, "unwear_acs"))
 
 
 #################################################################################
