@@ -567,34 +567,36 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return {"success":False, "exception": "Maica::_verify_token failed"}
 
     def get_emotion(self, type, text):
+        import requests
+        import json
+        import traceback
 
-        import requests, json
         try:
-            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "emotion", 
+            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "emotion",
                                params={
                                    "access_token": self.ciphertext,
-                                   "content":json.dumps({
-                                       "type":type,
-                                       "text":text,
-                                       "target_lang":self.target_lang
+                                   "content": json.dumps({
+                                       "type": type,
+                                       "text": text,
+                                       "target_lang": self.target_lang
                                    })
                                 }
                                )
             if res.status_code == 200:
-                res = res.json()
-                if res.get("success", False):
-                    return res
+                res_data = res.json()
+                if res_data.get("success", False):
+                    return res_data
                 else:
-                    logger.warning("Maica::_verify_token not passed: {}".format(res))
-                    return res
+                    self.console_logger.warning("Emotion analysis failed: {}".format(res_data))
+                    return res_data
             else:
-                logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
-                return {"success":False, "exception": "Maica::_verify_token requests.post failed"}
+                self.console_logger.error("Emotion analysis request failed: Server returned {} - {}".format(res.status_code, res.text))
+                return {"success": False, "exception": "Emotion analysis request failed"}
 
         except Exception as e:
-            import traceback
-            logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
-            return {"success":False, "exception": "Maica::_verify_token failed"}
+            error_msg = traceback.format_exc()
+            self.console_logger.error("Emotion analysis request encountered an error: {}".format(error_msg))
+            return {"success": False, "exception": "Emotion analysis request failed"}
 
 
     def init_connect(self):
