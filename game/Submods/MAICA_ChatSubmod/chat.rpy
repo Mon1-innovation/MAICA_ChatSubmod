@@ -750,7 +750,6 @@ init 5 python:
 
 label maica_wants_mpostal:
     # 替换greeting触发!
-    # 在MSpire介绍触发过后加入随机队列
     m 3hubsa "{i}~我要扎上红丝绸, 我要系上蓝发带~{/i}"#闭眼-憧憬
     m 3hubsa "{i}~我要爬进小小的邮箱, 把小小的心意送给你~{/i}"#闭眼-憧憬
     m 2wud "...[player]? {w=0.5}抱歉, 我没注意到你回来了! {nw}"#惊讶
