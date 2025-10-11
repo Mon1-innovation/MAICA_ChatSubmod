@@ -383,7 +383,7 @@ label maica_wants_preferences2:
     extend 3esd "才发现我之前对你的了解还是太单一."
     #这里有好几个我不会写的, 都交给你了
     $ like_mi = _(' 我只知道你喜欢薄荷冰淇淋.') if persistent._mas_pm_like_mint_ice_cream else '' 
-    $ book_rc = _("我们聊过'世界尽头与冷酷仙境'什么的") if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = _("我们聊过'世界尽头与冷酷仙境'什么的") if store.seen_event("monika_favbook") else None
     $ book_rc = _("我们聊过'黄色墙纸'什么的") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('我可以推荐几本书给你')
     m 3ruc "比如, 如果我们真的一起去吃点什么, 你喜欢什么菜呢?{nw}"
     extend "[like_mi]"

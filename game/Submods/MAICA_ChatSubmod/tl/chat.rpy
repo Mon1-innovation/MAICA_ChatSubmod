@@ -647,7 +647,9 @@ translate english maica_wants_preferences2_a9999a95:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:267
 translate english maica_wants_preferences2_e34ab094:
-
+    $ like_mi = _(' The only thing you mentioned is that you like mint ice-cream.') if persistent._mas_pm_like_mint_ice_cream else '' 
+    $ book_rc = _("we've talked about 'Hard Boiled Wonderland and the End of the World'") if store.seen_event("monika_favbook") else None
+    $ book_rc = _("we've talked about 'Yellow Wallpaper'") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('I could recommend you some books')
     # extend "[like_mi]"
     extend "[like_mi]"
 
