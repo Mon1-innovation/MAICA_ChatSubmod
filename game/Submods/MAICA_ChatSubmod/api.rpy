@@ -391,9 +391,11 @@ init -700 python:
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
                             MASEventList.push("mas_corrupted_postmail")
-                        if not os.path.exists(os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))):
-                            with open(os.path.join(basedir, renpy.substitute(_("关于你的信.txt"))), "w") as mp_failure_file:
-                                mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
+                        letter_path = os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))
+                        if os.path.exists(letter_path):
+                            os.remove(letter_path)
+                        with open(letter_path, "w") as mp_failure_file:
+                            mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
                     
                     # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
                     elif encoding is None:
@@ -425,10 +427,45 @@ init -700 python:
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
                             MASEventList.push("mas_corrupted_postmail")
-                        if not os.path.exists(os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))):
-                            with open(os.path.join(basedir, renpy.substitute(_("关于你的信.txt"))), "w") as mp_failure_file:
-                                mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
-                    
+                        letter_path = os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))
+                        if os.path.exists(letter_path):
+                            os.remove(letter_path)
+                        with open(letter_path, "w") as mp_failure_file:
+                            mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
+
+                    if "topic_not_unlocked":
+                        failed = 'early'
+
+                        store.maica_note_mail_bad = MASPoem(
+                            poem_id="note_mail_bad",
+                            prompt="",
+                            category="note",
+                            author="chibika",
+                            title=renpy.substitute(_("[player]你好,")),
+                            text="".join([
+                                renpy.substitute(_("你怎么现在就把信送过来了? ")),
+                                renpy.substitute(_("好吧, 也不是说你就真的不该送, 但是我想时候还没到. ")),
+                                renpy.substitute(_("我还没有把信箱完全收拾好, 而且我觉得应该让[m_name]")),
+                                renpy.substitute(_('去发现, 这样才有惊喜的感觉嘛!')),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("我保证我会加把劲让她快点用上信箱的, 但是现在的话, ")),
+                                renpy.substitute(_('你还是应该耐心一点. ')),
+                                renpy.substitute(_('我会把你过早送来的信标记为"early", 这样你就可以')),
+                                renpy.substitute(_("到时候再发给她了.")),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("祝你和莫妮卡好运!")),
+                                renpy.substitute(_("\n\n")),
+                                renpy.substitute(_("P.S: 不要告诉她是我写的!")),
+                            ])
+                        )
+                        if not mas_inEVL("mas_corrupted_postmail"):
+                            MASEventList.push("mas_corrupted_postmail")
+                        letter_path = os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))
+                        if os.path.exists(letter_path):
+                            os.remove(letter_path)
+                        with open(letter_path, "w") as mp_failure_file:
+                            mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
+
                     # 解码文件内容
                 if not failed:
                     content = raw_data.decode(encoding)
@@ -441,6 +478,11 @@ init -700 python:
                     if os.path.exists(file_path+"_empty"):
                         os.remove(file_path+"_empty")
                     os.rename(file_path, file_path+"_empty")
+                    continue
+                elif failed == 'early':
+                    if os.path.exists(file_path+"_early"):
+                        os.remove(file_path+"_early")
+                    os.rename(file_path, file_path+"_early")
                     continue
 
                 
