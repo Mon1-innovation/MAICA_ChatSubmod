@@ -720,7 +720,7 @@ label mspire_delete_information:
 
 # MPostal is first introduced by a greeting!
 init 5 python:
-    if renpy.seen_label('maica_wants_mspire') and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100:
+    if not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100:
         @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
         def greeting_select():
             store.selected_greeting = "maica_wants_mpostal"
@@ -750,7 +750,6 @@ init 5 python:
 
 label maica_wants_mpostal:
     # 替换greeting触发!
-    # 在MSpire介绍触发过后加入随机队列
     m 3hubsa "{i}~我要扎上红丝绸, 我要系上蓝发带~{/i}"#闭眼-憧憬
     m 3hubsa "{i}~我要爬进小小的邮箱, 把小小的心意送给你~{/i}"#闭眼-憧憬
     m 2wud "...[player]? {w=0.5}抱歉, 我没注意到你回来了! {nw}"#惊讶
@@ -791,12 +790,12 @@ init 5 python:
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal():
-        if mail_exist() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or mas_getEV("maica_wants_mpostal").conditional is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+        if mail_exist() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_received")
     
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
     def push_mpostal_read():
-        if has_mail_waitsend() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or mas_getEV("maica_wants_mpostal").conditional is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+        if has_mail_waitsend() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
             return MASEventList.queue("maica_mpostal_read")
 # 目前MPostal使用session0
 label maica_mpostal_received:
