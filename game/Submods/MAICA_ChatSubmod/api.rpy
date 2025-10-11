@@ -30,8 +30,13 @@ init 5 python in maica:
     try:
         import maica_rss_provider
         update_info = maica_rss_provider.get_log()
-    except:
-        pass
+    except Exception as e:
+        update_info = {
+            "title": str(e),
+            "content": [],
+            "content_renpysafe": [],
+            "version":0
+    }
     import store, chardet
     import bot_interface
     class MaicaInputValue(store.InputValue):
