@@ -1,9 +1,9 @@
 label mtrigger_change_clothes(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?"
+    m "要我现在换吗, [player]?{nw}"
     menu:
-        "要我现在换吗, [player]?{nw}{fast}"
+        "要我现在换吗, [player]?{fast}"
         "好啊":
             if outfit_name == "mas_pick_a_clothes":
                 call monika_clothes_select 
@@ -31,9 +31,9 @@ label mtrigger_change_clothes(outfit_name):
 label mtrigger_change_hair(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?"
+    m "要我现在换吗, [player]?{nw}"
     menu:
-        "要我现在换吗, [player]?{nw}{fast}"
+        "要我现在换吗, [player]?{fast}"
         "好啊":
             if outfit_name == "mas_pick_a_clothes":
                 call monika_hair_select 
@@ -60,9 +60,9 @@ label mtrigger_change_hair(outfit_name):
 label mtrigger_unwear_acs(outfit_to_wear):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?"
+    m "要我现在换吗, [player]?{nw}"
     menu:
-        "要我现在换吗, [player]?{nw}{fast}"
+        "要我现在换吗, [player]?{fast}"
         "好啊":
             call mas_transition_to_emptydesk
             python:
@@ -79,9 +79,9 @@ label mtrigger_unwear_acs(outfit_to_wear):
 label mtrigger_change_acs(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?"
+    m "要我现在换吗, [player]?{nw}"
     menu:
-        "要我现在换吗, [player]?{nw}{fast}"
+        "要我现在换吗, [player]?{fast}"
         "好啊":
             if outfit_name == "mas_pick_a_clothes":
                 call mtrigger_acs_select 
@@ -132,9 +132,9 @@ label mtrigger_kiss:
     call maica_reconnect
     if mas_shouldKiss(1):
         call maica_hide_console
-        m "那...来亲一个?"
+        m "那...来亲一个?{nw}"
         menu:
-            "那...来亲一个?{nw}{fast}"
+            "那...来亲一个?{fast}"
             "亲亲[m_name]":
                 call monika_kissing_motion_short
             "算了":
@@ -145,9 +145,9 @@ label mtrigger_kiss:
 label mttrigger_minigame(game):
     call maica_reconnect
     call maica_hide_console
-    m "嗯...那来玩玩吗, [player]?"
+    m "嗯...那来玩玩吗, [player]?{nw}"
     menu:
-        "嗯...那来玩玩吗, [player]?{nw}{fast}"
+        "嗯...那来玩玩吗, [player]?{fast}"
         "好啊":
             $ renpy.call(game)
         "算了":
@@ -158,9 +158,9 @@ label mttrigger_minigame(game):
 label mtrigger_leave: 
     call maica_reconnect
     call maica_hide_console
-    m "要走了吗?"
+    m "要走了吗?{nw}"
     menu:
-        "要走了吗?{nw}{fast}"
+        "要走了吗?{fast}"
         "是的":
             m 1eka "回见, [player]!"
             jump mtrigger_quit
@@ -189,9 +189,9 @@ label mtrigger_location:
 
 label mtrigger_idle:
     call maica_hide_console
-    m "现在就去吗?"
+    m "现在就去吗?{nw}"
     menu:
-        "现在就去吗?{nw}{fast}"
+        "现在就去吗?{fast}"
         "是的":
             m 1eka "好吧, [player]!"
             pass
@@ -219,9 +219,9 @@ label mtrigger_brb:
 label mtrigger_hold:
     call maica_reconnect
     call maica_hide_console
-    m "那...来抱一个?"
+    m "那...来抱一个?{nw}"
     menu:
-        "那...来抱一个?{nw}{fast}"
+        "那...来抱一个?{fast}"
         "抱抱[m_name]":
             pass
         "算了":
@@ -236,9 +236,9 @@ label mtrigger_hold:
 label mtrigger_music_menu:
     call maica_reconnect
     call maica_hide_console
-    m "现在要换首歌吗, [player]?"
+    m "现在要换首歌吗, [player]?{nw}"
     menu:
-        "现在要换首歌吗, [player]?{nw}{fast}"
+        "现在要换首歌吗, [player]?{fast}"
         "好啊":
             call display_music_menu
         "算了":
@@ -249,9 +249,9 @@ label mtrigger_music_menu:
 label mtrigger_music_auto(cls, selection):
     call maica_reconnect
     call maica_hide_console
-    m "要我放首'[selection]'吗, [player]?"
+    m "要我放首'[selection]'吗, [player]?{nw}"
     menu:
-        "要我放首'[selection]'吗, [player]?{nw}{fast}"
+        "要我放首'[selection]'吗, [player]?{fast}"
         "好啊":
             $ store.mas_play_song(cls.find(selection))
         "算了":
@@ -365,9 +365,9 @@ label mtrigger_youtubemusic_search(keyword):
 label mtrigger_takeout:
     call maica_reconnect
     call maica_hide_console
-    m "现在就带我去吗, [player]?"
+    m "现在就带我去吗, [player]?{nw}"
     menu:
-        "现在就带我去吗, [player]?{nw}{fast}"
+        "现在就带我去吗, [player]?{fast}"
         "是的":
             call bye_going_somewhere
             jump mtrigger_quit

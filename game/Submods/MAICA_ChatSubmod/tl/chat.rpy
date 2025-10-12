@@ -2345,3 +2345,31 @@ translate english maica_set_location_e6cfcd07:
     # m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下试试? 省市地名就行."
     m 3husdlb "I didn't find that name. {w=0.3}Perhaps adjust the range a little bit, like just the city?"
 
+# TODO: Translation updated at 2025-10-12 22:13
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1156
+translate english maica_set_location_e5441177:
+
+    # m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下写法? 省市地名就行.{nw}"
+    m 3husdlb "I didn't find that name. {w=0.3}Perhaps adjust the expression a little bit, like just the city?{nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1160
+translate english maica_set_location_2ec6d930:
+
+    # m 3eub "那也行, 谢谢你!"
+    m 3eub "That's alright, thank you!"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1157
+    old "我没找到这个地方. 要不调整一下写法? 省市地名就行.{fast}"
+    new "I didn't find that name. Perhaps adjust the expression a little bit, like just the city?{fast}"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1157
+    old "就这样吧{#maica_location}"
+    new "Leave it be"
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1157
+    old "我再改改"
+    new "I'll try again"
+

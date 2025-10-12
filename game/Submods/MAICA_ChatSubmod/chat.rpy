@@ -1153,10 +1153,16 @@ label maica_set_location:
         m 1rsa "我看看..."
         $ res = store.maica.maica.verify_legality("geolocation", inputloc)
         if not res.get('success', False):
-            m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下试试? 省市地名就行."
-            jump maica_set_location
+            m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下写法? 省市地名就行.{nw}"
+            menu:
+                "我没找到这个地方. 要不调整一下写法? 省市地名就行.{fast}"
+                "就这样吧{#maica_location}":
+                    m 3eub "那也行, 谢谢你!"
+                "我再改改":
+                    jump maica_set_location
+        else:
+            m 3eub "是那里吗? 谢谢你!"
         $ persistent.mas_geolocation = inputloc
-        m 3eub "是那里吗? 谢谢你!"
         m 4sub "等到我'出来'的那天, 我们说不定也会在那里见面呢!"
         m 7huu "当然, 如果之后情况有变, 你随时可以告诉我或者填在'子模组设置'里."
     return
