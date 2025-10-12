@@ -490,9 +490,9 @@ screen maica_location_input(addition="", edittarget=None):
         def verify(position):
             res = store.maica.maica.verify_legality("geolocation", position)
             if res.get("success", False):
-                pass#renpy.show_screen("maica_message", message=_("验证成功"))
+                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功")) + "\n" + renpy.substitute(_("地区天气: ")) + str(res.get("content")))
             else:
-                renpy.show_screen("maica_message", message=renpy.substitute(_("地址验证失败")) + "\n" + renpy.substitute(_("失败原因:")) + res.get("exception"))
+                renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败")) + "\n" + renpy.substitute(_("失败原因: ")) + res.get("exception"))
 
             
     modal True
@@ -500,7 +500,16 @@ screen maica_location_input(addition="", edittarget=None):
 
     use maica_setter_medium_frame(title=_("请输入地理位置"), ok_action=[SetField(persistent ,"_mas_geolocation", None), Hide("maica_location_input")], cancel_action=[Function(cancel), SetField(persistent ,"_mas_geolocation", None), Hide("maica_location_input")]):
         hbox:
-            input default addition value FieldInputValue(persistent, "mas_geolocation")
+            xfill True
+            hbox:
+                xalign 0.0
+                input default addition value FieldInputValue(persistent, "mas_geolocation")
+            hbox:
+                xalign 0.9
+                yalign 0.5
+                textbutton _("验证"):
+                    style "mas_button_simple"
+                    action Function(verify, persistent.mas_geolocation)
 
 screen maica_addition_setting():
     $ _tooltip = store._tooltip

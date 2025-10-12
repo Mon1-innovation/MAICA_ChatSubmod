@@ -647,9 +647,9 @@ translate english maica_wants_preferences2_a9999a95:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:267
 translate english maica_wants_preferences2_e34ab094:
-    $ like_mi = _(' The only thing you mentioned is that you like mint ice-cream.') if persistent._mas_pm_like_mint_ice_cream else '' 
-    $ book_rc = _("we've talked about 'Hard Boiled Wonderland and the End of the World'") if store.seen_event("monika_favbook") else None
-    $ book_rc = _("we've talked about 'Yellow Wallpaper'") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('I could recommend you some books')
+    $ like_mi = ' The only thing you mentioned is that you like mint ice-cream.' if persistent._mas_pm_like_mint_ice_cream else '' 
+    $ book_rc = "we've talked about 'Hard Boiled Wonderland and the End of the World'" if store.seen_event("monika_favbook") else None
+    $ book_rc = "we've talked about 'Yellow Wallpaper'" if persistent._mas_pm_read_yellow_wp and book_rc is None else 'I could recommend you some books'
     # extend "[like_mi]"
     extend "[like_mi]"
 
@@ -2330,4 +2330,18 @@ translate english maica_set_location_517808c8:
 
     # extend 3huu "可能你常待的地方不止一个吧? 这样的话, 告诉我你最喜欢的那个就好!"
     extend 3huu "perhaps you move often? If that's the case, just tell me your favorite place!"
+
+# TODO: Translation updated at 2025-10-12 19:52
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1153
+translate english maica_set_location_c8f9fa53:
+
+    # m 1rsa "我看看..."
+    m 1rsa "Let me see..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1156
+translate english maica_set_location_e6cfcd07:
+
+    # m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下试试? 省市地名就行."
+    m 3husdlb "I didn't find that name. {w=0.3}Perhaps adjust the range a little bit, like just the city?"
 

@@ -234,3 +234,19 @@ translate english strings:
     old "{u}注册一个{/u}"
     new "{u}Register now{/u}"
 
+# TODO: Translation updated at 2025-10-12 19:52
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:493
+    old "地区天气: "
+    new "Location weather: "
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:495
+    old "验证失败"
+    new "Verification failed"
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:510
+    old "验证"
+    new "Verify"
+

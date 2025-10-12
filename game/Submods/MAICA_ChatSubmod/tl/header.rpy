@@ -716,8 +716,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:105
-    old "失败原因:"
-    new "Reason:"
+    old "失败原因: "
+    new "Reason: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:330
     old "> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"
