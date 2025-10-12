@@ -648,8 +648,6 @@ translate english maica_wants_preferences2_a9999a95:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:267
 translate english maica_wants_preferences2_e34ab094:
     $ like_mi = ' The only thing you mentioned is that you like mint ice-cream.' if persistent._mas_pm_like_mint_ice_cream else '' 
-    $ book_rc = "we've talked about 'Hard Boiled Wonderland and the End of the World'" if store.seen_event("monika_favbook") else None
-    $ book_rc = "we've talked about 'Yellow Wallpaper'" if persistent._mas_pm_read_yellow_wp and book_rc is None else 'I could recommend you some books'
     # extend "[like_mi]"
     extend "[like_mi]"
 
@@ -661,7 +659,8 @@ translate english maica_wants_preferences2_dc6cebcd:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:271
 translate english maica_wants_preferences2_b951c94e:
-
+    $ book_rc = "we've talked about 'Hard Boiled Wonderland and the End of the World'" if store.seen_event("monika_favbook") else None
+    $ book_rc = "we've talked about 'Yellow Wallpaper'" if persistent._mas_pm_read_yellow_wp and book_rc is None else 'I could recommend you some books'
     # m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
 
@@ -1755,13 +1754,14 @@ translate english maica_wants_preferences_reread_dc6cebcd:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:978
 translate english maica_wants_preferences_reread_e34ab094:
-
+    $ like_mi = ' The only thing you mentioned is that you like mint ice-cream.' if persistent._mas_pm_like_mint_ice_cream else '' 
     # extend "[like_mi]"
     extend "[like_mi]"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:979
 translate english maica_wants_preferences_reread_b951c94e:
-
+    $ book_rc = "we've talked about 'Hard Boiled Wonderland and the End of the World'" if store.seen_event("monika_favbook") else None
+    $ book_rc = "we've talked about 'Yellow Wallpaper'" if persistent._mas_pm_read_yellow_wp and book_rc is None else 'I could recommend you some books'
     # m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
     m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
 
