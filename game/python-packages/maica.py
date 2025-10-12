@@ -598,6 +598,70 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             logger.error("Emotion analysis request encountered an error: {}".format(error_msg))
             return {"success": False, "exception": "Emotion analysis request failed"}
 
+    def verify_legality(self, verification_object=None, verification_value=None):
+        """
+        进行在线执行验证。
+
+        Args:
+            verification_object (str, optional): 验证项目，目前只支持 "geolocation"。
+            verification_value (str, optional): 待验证内容。
+
+        Returns:
+            dict: 验证结果。如果验证成功，返回包含验证信息的字典；
+                  如果只验证令牌，返回用户名；
+                  如果验证失败，返回包含错误信息的字典。
+
+        Notes:
+            - 如果不提供 content 参数，则只验证令牌合法性
+            - 如果提供 content 参数，则还验证对应内容的合法性
+            - 目前验证项目只支持 "geolocation"，用于查询地理位置是否规范可用
+        """
+        import requests
+        import json
+        import traceback
+
+        if not self.__accessable:
+            logger.error("verify_legality: Maica server not serving.")
+            return {"success": False, "exception": "Maica server not serving"}
+
+        if not self.ciphertext:
+            logger.error("verify_legality: access_token is null")
+            return {"success": False, "exception": "Access token is null"}
+
+        try:
+            # 构建请求参数
+            params = {"access_token": self.ciphertext}
+
+            # 如果提供了验证内容，添加到参数中
+            if verification_object and verification_value:
+                content = {
+                    "object": verification_object,
+                    "value": verification_value
+                }
+                params["content"] = json.dumps(content)
+
+            res = requests.get(
+                self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality",
+                params=params
+            )
+
+            if res.status_code == 200:
+                res_data = res.json()
+                if res_data.get("success", False):
+                    logger.debug("Legality verification successful: {}".format(res_data))
+                    return res_data
+                else:
+                    logger.warning("Legality verification failed: {}".format(res_data))
+                    return res_data
+            else:
+                logger.error("Legality verification request failed: Server returned {} - {}".format(res.status_code, res.text))
+                return {"success": False, "exception": "Legality verification request failed"}
+
+        except Exception as e:
+            error_msg = traceback.format_exc()
+            logger.error("Legality verification request encountered an error: {}".format(error_msg))
+            return {"success": False, "exception": "Legality verification request failed"}
+
 
     def init_connect(self):
         import threading
