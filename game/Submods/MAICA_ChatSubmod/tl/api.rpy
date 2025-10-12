@@ -118,3 +118,39 @@ translate english strings:
     old "在文件里写下信的正文."
     new "write your content in the file in plain text."
 
+# TODO: Translation updated at 2025-10-12 14:34
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "你怎么现在就把信送过来了? "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "好吧, 也不是说你就真的不该送, 但是我想时候还没到. "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "我还没有把信箱完全收拾好, 而且我觉得应该让[m_name]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "去发现, 这样才有惊喜的感觉嘛!"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "我保证我会加把劲让她快点用上信箱的, 但是现在的话, "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "你还是应该耐心一点. "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "我会把你过早送来的信标记为\"early\", 这样你就可以"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/api.rpy:439
+    old "到时候再发给她了."
+    new ""
+

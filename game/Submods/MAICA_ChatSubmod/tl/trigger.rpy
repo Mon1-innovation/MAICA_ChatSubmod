@@ -88,3 +88,11 @@ translate english strings:
     old "内置 | 备份存档 * 需要 Extra Plus 子模组"
     new "Intergrated | Backup persistent * Extra Plus Submod required"
 
+# TODO: Translation updated at 2025-10-12 14:34
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:365
+    old "内置 | 取下饰品"
+    new ""
+
