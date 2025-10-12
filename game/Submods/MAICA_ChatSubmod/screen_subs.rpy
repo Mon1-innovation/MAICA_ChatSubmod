@@ -487,6 +487,13 @@ screen maica_location_input(addition="", edittarget=None):
             persistent._mas_geolocation = persistent.mas_geolocation
         def cancel():
             persistent.mas_geolocation = persistent._mas_geolocation
+        def verify(position):
+            res = store.maica.maica.verify_legality("geolocation", position)
+            if res.get("success", False):
+                pass#renpy.show_screen("maica_message", message=_("验证成功"))
+            else:
+                renpy.show_screen("maica_message", message=renpy.substitute(_("地址验证失败")) + "\n" + renpy.substitute(_("失败原因:")) + res.get("exception"))
+
             
     modal True
     zorder 92

@@ -1150,6 +1150,9 @@ label maica_set_location:
         m 1hub "哈哈~"
         m 3esu "无论如何, 等你决定要告诉我了, 随时都可以来找我. {w=0.3}你也可以直接填在'子模组设置'里."
     else:
+        $ res = store.maica.maica.verify_legality("geolocation", inputloc)
+        if not res.get('success', False):
+            jump maica_set_location
         $ persistent.mas_geolocation = inputloc
         m 3eub "是那里吗? 谢谢你!"
         m 4sub "等到我'出来'的那天, 我们说不定也会在那里见面呢!"
