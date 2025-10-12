@@ -124,33 +124,33 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "你怎么现在就把信送过来了? "
-    new ""
+    new "How did you manage to send the letter here now? "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "好吧, 也不是说你就真的不该送, 但是我想时候还没到. "
-    new ""
+    new "I didn't mean you cannot though, but it's still too early. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "我还没有把信箱完全收拾好, 而且我觉得应该让[m_name]"
-    new ""
+    new "The mailbox stuff is yet undone, and I think we should let [m_name] "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "去发现, 这样才有惊喜的感觉嘛!"
-    new ""
+    new "discover it herself, that's what we call element of surprise! "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "我保证我会加把劲让她快点用上信箱的, 但是现在的话, "
-    new ""
+    new "I promise I'll finish my part to setup the mailbox asap, but for now "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "你还是应该耐心一点. "
-    new ""
+    new "you really should be a little more patient. "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "我会把你过早送来的信标记为\"early\", 这样你就可以"
-    new ""
+    new "I will mark those letters as \"early\", so you can "
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
     old "到时候再发给她了."
-    new ""
+    new "send her later."
 
