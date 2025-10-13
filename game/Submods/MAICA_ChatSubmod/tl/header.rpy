@@ -359,8 +359,8 @@ translate english strings:
     new "Authentication passed"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:143
-    old "会话已重置, 请重新连接MAICA服务器"
-    new "Session reset, please reconnect to MAICA server"
+    old "验证成功{#maica_location}"
+    new "Verification passed"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:147
     old "已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"
