@@ -239,8 +239,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:493
-    old "地区天气: "
-    new "Location weather: "
+    old "地区编码: "
+    new "Location geocode: "
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:495
     old "验证失败"

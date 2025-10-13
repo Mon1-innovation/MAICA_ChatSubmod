@@ -490,7 +490,7 @@ screen maica_location_input(addition="", edittarget=None):
         def verify(position):
             res = store.maica.maica.verify_legality("geolocation", position)
             if res.get("success", False):
-                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功")) + "\n" + renpy.substitute(_("地区天气: ")) + res.get("content").get("weather") + ", " + res.get("content").get("temperature") + "°C")
+                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功")) + "\n" + renpy.substitute(_("地区编码: ")) + res.get("content").get("geocode"))
             else:
                 renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败")) + "\n" + renpy.substitute(_("失败原因: ")) + res.get("exception"))
 
