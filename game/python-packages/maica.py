@@ -907,68 +907,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if data.get("status", "unknown") in ('maica_connection_initiated'):
             if self.target_lang == self.MaicaAiLang.en:
                 data['content'] = "Illuminator: MAICA websocket connection initiated."
-        if data.get("status", "unknown") in ('ws_cookie'):
-            logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-                (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
-                data["status"] if "status" in data else "unknown status",
-                data["type"] if "type" in data else "unknown type",
-                data["code"] if "code" in data else "unknown code",
-                "--content filtered--"
-            ))    
-        else:
-            logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-                (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
-                data["status"] if "status" in data else "unknown status",
-                data["type"] if "type" in data else "unknown type",
-                data["code"] if "code" in data else "unknown code",
-                data["content"] if "content" in data else "unknown content"
-            ))    
-        if data.get("type", False) != "carriage":
-            if data.get("type", "unknown") == "info":
-                self.console_logger.info("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-            elif data.get("type", "unknown") == "warn":
-                self.console_logger.warning("!!MAICA SERVER WARNING: {}".format(data.get("content", "Error: Data frame is received but content is empty")))
-            elif data.get("type", "unknown") == "error":
-                self.console_logger.error("!!MAICA SERVE ERROR: {}".format(data.get("content", "Error: Data frame is received but content is empty")))
-                self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-                self.wss_session.close()
 
-            else:
-                self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-        if 500 <= int(data.get("code", 200)) < 600:
-            self.console_logger.error("!!MAICA SERVER FATAL: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
-            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-            self.wss_session.close()
-        if data["status"] == "maica_history_slice_hint":
-            self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
-        elif data["status"] == "maica_history_sliced":
-            self.history_status = self.MaicaAiStatus.TOKEN_MAX_EXCEEDED 
-        # 错误code处理
-        if data.get("status") == "wrong_input":
-            self.console_logger.error("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
-            self.status = self.MaicaAiStatus.WRONE_INPUT
-            self.wss_session.close()
-        if data.get("status") == "maica_login_denied_rsa":
-            self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
-            self.status = self.MaicaAiStatus.TOKEN_FAILED
-            self.wss_session.close()
-        if data.get("status") == "maica_input_length_exceeded":
-            self.console_logger.error("!!SUBMOD ERROR: {}".format("Content too long!"))
-            self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
-            self.wss_session.close()
-        if data["status"] == "maica_login_user":
-            self.user_acc = data["content"]
-            self.console_logger.info("maica: Login as '{}'".format(self.user_acc))
-        if data['status'] == "maica_mtrigger_trigger":
-            try:
-                mtdata = json.loads(data['content'])
-            except:
-                mtdata = data['content']
-            for item in mtdata:      
-                self.mtrigger_manager.triggered(item, mtdata[item])
-            self.mtrigger_manager.run_trigger(MTriggerAction.instant)
-        if data['status'] == "maica_connection_security_cookie":
-            self.__ws_cookie = data['content']
         if data['status'] == 'maica_session_reset':
             self.console_logger.info("Session {} reseted".format(self.chat_session))
             self.status = self.MaicaAiStatus.MESSAGE_DONE
