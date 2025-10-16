@@ -1,12 +1,19 @@
 import websocket
 
 class MaicaTaskManager():
-    def __init__(self):
+    def __init__(self, ):
         self.task_list = []
-        #self.task_event = []
-        self.ws_client = websocket.WebSocketApp
+        self.ws_client = None
         self.http_client = None
     
+    def __ws_onmessage(self, wsapp, message):
+        event = MaicaTaskEvent(
+            taskowner=self,
+            event_type=MAICATASKEVENT_TYPE_WS,
+            data=message
+        )
+        self._on_event(event)
+
     def _on_event(self, event_object):
         for t in self.task_list:
             t.on_event(event_object)
@@ -16,6 +23,10 @@ class MaicaTaskManager():
     
     def close_ws(self):
         self.ws_client.close()
+    
+    def register_task(self, task):
+        if not task in self.task_list:
+            self.task_list.append(task)
 
 MAICATASKEVENT_TYPE_WS = 0
 MAICATASKEVENT_TYPE_TASK = 1
@@ -23,7 +34,6 @@ MAICATASKEVENT_TYPE_TASK = 1
 class MaicaTaskEvent:
     def __init__(self, taskowner, event_type, data):
         self.taskowner = taskowner
-        self.manager = self
         self.event_type = event_type
         self.data = data
 
@@ -37,25 +47,26 @@ class MaicaTask:
     MAICATASK_STATUS_RUNNING = 1
     MAICATASK_STATUS_ERROR = 2
 
-    def __init__(self, task_type, name):
+    def __init__(self, task_type, name, manager):
         self.task_type = task_type,
         self.name = name
         self.status = MaicaTask.MAICATASK_STATUS_READY
+        self.manager = manager
     
     def on_event(event):
         raise NotImplementedError()
 
-    def start_event(self):
+    def start_event(self, *args, **kwargs):
         if self.status == MaicaTask.MAICATASK_STATUS_READY:
             self.status = MaicaTask.MAICATASK_STATUS_RUNNING
-            self.on_manual_run()
+            self.on_manual_run(self.manager, *args, **kwargs)
             self.status = MaicaTask.MAICATASK_STATUS_READY
         else:
             if self.status == MaicaTask.MAICATASK_STATUS_RUNNING:
                 raise RuntimeError("MaicaTask {} is running".format(self.name))
             elif self.status == MaicaTask.MAICATASK_STATUS_ERROR:
                 raise RuntimeError("MaicaTask {} is broken, check log for details".format(self.name))
-    def on_manual_run(self):
+    def on_manual_run(self, manager, *args, **kwargs):
         raise NotImplementedError()
 class WSResponse():
     def __init__(self, ws_response):
@@ -67,9 +78,10 @@ class WSResponse():
         self.timestamp = ws_response["timestamp"]
         self.ws_response = ws_response
 class MaicaWSTask(MaicaTask):
-    def __init__(self, task_type, name, except_ws_types = []):
-        super().__init__(task_type, name)
+    def __init__(self, task_type, name, manager, except_ws_types = []):
+        super().__init__(task_type, name, manager)
         self.except_ws_types = except_ws_types
+
     
     def on_event(self, event):
         if event.event_type != MAICATASKEVENT_TYPE_WS:

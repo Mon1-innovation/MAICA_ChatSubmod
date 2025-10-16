@@ -86,3 +86,14 @@ class MAICAWSCookiesHandler(MaicaWSTask):
     def on_received(self, ws):
         if ws.type == 'maica_connection_security_cookie':
             self.cookie = ws.content
+import json
+class MAICALoginTasker(MaicaWSTask):
+
+    def on_manual_run(self, manager, token):
+        data = json.dumps({
+            'accesstoken': token
+        })
+        
+    
+    def login(token):
+        super().start_event(token)
