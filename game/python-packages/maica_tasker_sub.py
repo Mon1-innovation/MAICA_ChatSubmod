@@ -93,7 +93,7 @@ class MAICALoginTasker(MaicaWSTask):
         data = json.dumps({
             'accesstoken': token
         })
-        
+        manager.ws_client.send(data)
     
     def login(token):
         super().start_event(token)
