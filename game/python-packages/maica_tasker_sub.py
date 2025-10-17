@@ -84,8 +84,7 @@ class MAICAWSCookiesHandler(MaicaWSTask):
         self.cookie = None
 
     def on_received(self, ws):
-        if ws.type == 'maica_connection_security_cookie':
-            self.cookie = ws.content
+        self.cookie = ws.content
 import json
 class MAICALoginTasker(MaicaWSTask):
 
