@@ -6,7 +6,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
         self.logger = logger
 
     def on_received(self, event):
-        if event.event_type != MAICATASK_TYPE_WS:
+        if event.event_type != MAICATASKEVENT_TYPE_WS:
             return
         else:
             wspack = event.data
@@ -22,7 +22,7 @@ class GeneralWsLogger(MaicaWSTask):
         self.logger = logger
 
     def on_received(self, event):
-        if event.event_type != MAICATASK_TYPE_WS:
+        if event.event_type != MAICATASKEVENT_TYPE_WS:
             return
         else:
             wspack = event.data
@@ -35,6 +35,13 @@ class GeneralWsLogger(MaicaWSTask):
                     self.logger.error("[GeneralWsLogger] " + "<{}> {}".format(wspack.status, wspack.content))
                 else:
                     self.logger.debug("[GeneralWsLogger] " + "<{}> {}".format(wspack.status, wspack.content))
+
+class MAICALoopWarnHandler(GeneralWsErrorHandler):
+    def on_received(self, event):
+        wspack = event.data
+        if self.logger:
+            self.logger.warning("[MAICALoopWarnHandler] " + "<{}> {}".format(wspack.status, wspack.content))
+        event.taskowner.close_ws()
 
 class HistoryStatusHandler(MaicaWSTask):
     TOKEN_24000_EXCEEDED = 1
