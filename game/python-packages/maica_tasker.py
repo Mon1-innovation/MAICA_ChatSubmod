@@ -86,7 +86,7 @@ class MaicaWSTask(MaicaTask):
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             ws = event.data
-            if ws.type in self.except_ws_types:
+            if ws.type in self.except_ws_types or self.except_ws_types == []:
                 self.on_received(ws)
     def on_received(self, ws):
         raise NotImplementedError()
