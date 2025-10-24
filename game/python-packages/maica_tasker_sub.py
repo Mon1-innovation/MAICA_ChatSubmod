@@ -81,10 +81,14 @@ class MTriggerWsHandler(MaicaWSTask):
 class MAICAWSCookiesHandler(MaicaWSTask):
     def __init__(self, task_type, name):
         super().__init__(task_type, name, except_ws_types = ['maica_connection_security_cookie'])
-        self.cookie = None
+        self._cookie = None
 
     def on_received(self, ws):
-        self.cookie = ws.content
+        self._cookie = ws.content
+    
+    @property
+    def cookie(self):
+        return self._cookie
 import json
 class MAICALoginTasker(MaicaWSTask):
 
