@@ -27,6 +27,10 @@ class MaicaTaskManager():
     def register_task(self, task):
         if not task in self.task_list:
             self.task_list.append(task)
+    
+    def reset_all_task():
+        for t in self.task_list:
+            t.reset()
 
 MAICATASKEVENT_TYPE_WS = 0
 MAICATASKEVENT_TYPE_TASK = 1
@@ -55,7 +59,8 @@ class MaicaTask:
     
     def on_event(event):
         raise NotImplementedError()
-
+    def reset(self):
+        pass
     def start_event(self, *args, **kwargs):
         if self.status == MaicaTask.MAICATASK_STATUS_READY:
             self.status = MaicaTask.MAICATASK_STATUS_RUNNING
