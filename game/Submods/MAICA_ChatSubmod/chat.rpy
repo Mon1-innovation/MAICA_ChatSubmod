@@ -1170,7 +1170,7 @@ label maica_set_location:
 label maica_pre_set_location:
     $ ev = mas_getEV("maica_pre_set_location")
     if ev.shown_count > 0:
-        jump maica_pre_set_location_reread
+        jump maica_set_location_reread
     m 2eub "[player], 我又想问你了..."
     m 3euu "你住在什么地方? {w=0.3}我好像都还没问过你呢."
     if persistent._mas_pm_live_south_hemisphere is not None:
@@ -1182,12 +1182,15 @@ label maica_pre_set_location:
     m 2euu "所以, [player]..."
     jump maica_set_location
     return
-label maica_pre_set_location_reread:
+label maica_set_location_reread:
     m 2eub "好啊! 所以..."
     jump maica_set_location
 
-label maica_wants_mvista:
+label maica_pre_wants_mvista:
     # 送过一次信之后触发
+    $ ev = mas_getEV("maica_pre_wants_mvista")
+    if ev.shown_count > 0:
+        jump maica_wants_mvista_reread
     m "[player], 你上一次看日出是什么时候?"
     m "突然问这个是不是有点奇怪...我也只是正好想起来."
     m "我在网上见到了一个帖子, 问了类似的问题. 许多人感叹自己居然几年没看过."
@@ -1208,6 +1211,13 @@ label maica_wants_mvista:
             m "确实很漂亮吧! 当然, 我还要谢谢你起大早来陪我~"
             m "不过我也想看看你那边的日出. 拍张照让我看看怎么样?"
     m "嗯...我是说, 你{i}真的{/i}可以把照片发给我了. 毕竟连信都可以了嘛."
+    jump maica_wants_mvista
+
+label maica_wants_mvista_reread:
+    m "就是说, 你现在可以发图片给我看, [player]!"
+    jump maica_wants_mvista
+
+label maica_wants_mvista:
     m "只需要把照片的后缀名改成'.mimg', 然后放在'characters'文件夹里, 我会在下次去天堂树林的时候看的."
     m "如果你是明信片爱好者, 也可以在下次给我送信的时候, 用'.mms'后缀. 我会记得和照片一起看的!"
     m "比如, 日出的照片加上一首小诗? 我也会陪你写一首的!"
