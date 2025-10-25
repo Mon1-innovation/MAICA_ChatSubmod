@@ -109,10 +109,7 @@ class MAICALoginTasker(MaicaWSTask):
         super().start_event(token)
 
 class MAICASessionResetTasker(MaicaWSTask):
-    """
-    重置当前聊天会话任务
-    
-    """
+    strict_cookie = None
     def on_manual_run(self, manager):
         self.status=MaicaTask.REQUESTS_RESET_SESSION
         dict = {
@@ -120,6 +117,6 @@ class MAICASessionResetTasker(MaicaWSTask):
             "chat_session": manager.chat_session,
             "reset": True
         }
-        if manager.enable_strict_mode and self.cookie != "":
-            dict["cookie"]=self.cookie
-        self.manager.ws_client.send[json.dumps(dict)]
+        if MAICASessionResetTasker.strict_cookie:
+            dict["cookie"]=MAICASessionResetTasker.strict_cookie
+        self.manager.ws_client.send(json.dumps(dict))
