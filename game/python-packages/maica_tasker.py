@@ -1,5 +1,14 @@
 import websocket
-
+class DefaultLogger:
+    def debug(self, msg):
+        print("[DEBUG] {}".format(msg))
+    def info(self, msg):
+        print("[INFO] {}".format(msg))
+    def error(self, msg):
+        print("[ERROR] {}".format(msg))
+    def warning(self, msg):
+        print("[WARNING] {}".format(msg))
+default_logger = DefaultLogger()
 class MaicaTaskManager():
     def __init__(self, ):
         self.task_list = []
@@ -56,6 +65,7 @@ class MaicaTask:
         self.name = name
         self.status = MaicaTask.MAICATASK_STATUS_READY
         self.manager = manager
+        self.logger = default_logger
     
     def on_event(event):
         raise NotImplementedError()

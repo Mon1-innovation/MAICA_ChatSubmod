@@ -19,7 +19,8 @@ class GeneralWsErrorHandler(MaicaWSTask):
 class GeneralWsLogger(MaicaWSTask):
     def __init__(self, task_type, name, except_ws_types=..., logger = None):
         super().__init__(task_type, name, except_ws_types)
-        self.logger = logger
+        if logger:
+            self.logger = logger
 
     def on_received(self, event):
         if event.event_type != MAICATASKEVENT_TYPE_WS:
@@ -110,6 +111,8 @@ class MAICALoginTasker(MaicaWSTask):
 
 class MAICASessionResetTasker(MaicaWSTask):
     strict_cookie = None
+    def __init__(self, task_type, name, manager, except_ws_types=['maica_session_reset']):
+        super().__init__(task_type, name, manager, except_ws_types)
     def on_manual_run(self, manager):
         self.status=MaicaTask.REQUESTS_RESET_SESSION
         dict = {
@@ -120,3 +123,17 @@ class MAICASessionResetTasker(MaicaWSTask):
         if MAICASessionResetTasker.strict_cookie:
             dict["cookie"]=MAICASessionResetTasker.strict_cookie
         self.manager.ws_client.send(json.dumps(dict))
+    
+    def on_received(self, ws):
+        self.logger.debug("[MAICASessionResetTasker] received: {}".format(self.name, ws.content))
+
+class MAICASettingSendTasker(MaicaWSTask):
+    def __init__(self, task_type, name, manager, except_ws_types=['maica_params_accepted']):
+        super().__init__(task_type, name, manager, except_ws_types = except_ws_types)
+
+    def on_manual_run(self, manager, request_body):
+        self.manager.ws_client.send(json.dumps(request_body))
+
+    def on_received(self, ws):
+        self.logger.debug("[MAICASettingSendTasker] received: {}".format(self.name, ws.content))
+

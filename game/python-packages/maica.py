@@ -908,13 +908,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             if self.target_lang == self.MaicaAiLang.en:
                 data['content'] = "Illuminator: MAICA websocket connection initiated."
 
-        if data['status'] == 'maica_session_reset':
-            self.console_logger.info("Session {} reseted".format(self.chat_session))
-            self.status = self.MaicaAiStatus.MESSAGE_DONE
-        if data['status'] == "maica_loop_warn_finished":
-            self.console_logger.error("!!MAICA SERVER ERROR: {}".format(data.get("content")))
-            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-            self.wss_session.close()
         ## data处理：
         ## 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
         ## 直接将data.status改写为streaming_done
@@ -925,9 +918,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         #    self.send_to_outside_func("!!SUBMOD WARN: streaming_done maybe losted")
 
         # 发送令牌，等待回应
-        if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
-            if data['status'] == "maica_connection_established":
-                self.status = self.MaicaAiStatus.SESSION_CREATED            
         elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
             self._gen_time = time.time()
             if data['status'] == "maica_core_streaming_continue":
