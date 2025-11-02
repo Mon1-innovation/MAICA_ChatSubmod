@@ -3,6 +3,7 @@
 from bot_interface import *
 import bot_interface
 import emotion_analyze_v2
+import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender
 
 import websocket
 import maica_mtrigger
@@ -421,8 +422,91 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.flogger.debug(msg)
         maica_mtrigger.logger = logger_both(self.console_logger)
 
+        #task
+        self.task_manager = maica_tasker.MaicaTaskManager()
 
+        maica_tasker_sub.GeneralWsErrorHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_ws_error_handler",
+            manager=self.task_manager,
+            except_ws_types=[],
+            logger=self.console_logger
+        )
+        maica_tasker_sub.GeneralWsLogger(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_ws_logger",
+            manager=self.task_manager,
+            except_ws_types=[],
+            logger=self.console_logger
+        )
 
+        maica_tasker_sub.MAICALoopWarnHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="maicaloop_warn_handler",
+            manager=self.task_manager,
+            except_ws_types=['maica_loop_warn_finished'],
+            logger=self.console_logger
+        )
+
+        maica_tasker_sub.HistoryStatusHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="history_status_handler",
+            manager=self.task_manager
+        )
+        maica_tasker_sub.MAICAUserDataHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="maica_user_data_handler",
+            manager=self.task_manager
+        )
+        maica_tasker_sub.MTriggerWsHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="mtrigger_ws_handler",
+            manager=self.task_manager,
+            mt_manager=self.mtrigger_manager
+        )
+        self.WSCookiesTask = maica_tasker_sub.MAICAWSCookiesHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="maica_ws_cookies_handler",
+            manager=self.task_manager
+        )
+
+        self.Loginer = maica_tasker_sub.MAICALoginTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="login_task",
+            manager=self.task_manager
+        )
+
+        self.SessionReseter = maica_tasker_sub.MAICASessionResetTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="session_reset_task",
+            manager=self.task_manager
+        )
+
+        self.SettingSender = maica_tasker_sub.MAICASettingSendTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="setting_send_task",
+            manager=self.task_manager
+        )
+
+        self.ChatProcessor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_chat_processor",
+            manager=self.task_manager
+        )
+        self.ChatProcessor.on_received = self.general_chat_callback
+        self.MSpireProcessor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="mspire_processor",
+            manager=self.task_manager
+        )
+        self.MSpireProcessor.on_received = self.general_chat_callback
+        self.MPostalProcessor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="mpostal_processor",
+            manager=self.task_manager,
+            except_ws_types=['maica_core_nostream_reply', 'maica_chat_loop_finished']
+        )
+        self.MPostalProcessor.on_received = self.mpostal_callback
 
     
     def reset_stat(self):
@@ -679,12 +763,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
         logger.debug("_init_connect to {}".format(url))
-        self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
+        self.task_manager.ws_client = websocket.WebSocketApp(url, on_message=self.task_manager._ws_onmessage, on_error=self._on_error
                                                   , on_close=self._on_close)
+        self.wss_session = self.task_manager.ws_client
         self.wss_session.ping_payload = "PING"
         self.status = self.MaicaAiStatus.WAIT_AUTH
+        #self.Loginer.login(self.ciphertext)
         try:
-            self.wss_session.run_forever()
+            self.task_manager.ws_client.run_forever()
         except Exception as e:
             import traceback
             self.console_logger.error("wss_session.run_forever() failed: {}".format(e))
@@ -765,7 +851,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 }
             )
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL
-        #self._in_mspire = True
 
 
     def _on_open(self, wsapp):
@@ -895,12 +980,38 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return {}
     def _on_message(self, wsapp, message):
         try:
-            self.__on_message(wsapp, message)
+            self.task_manager._ws_onmessage(wsapp, message)
+            if self.update_screen_func:
+                self.update_screen_func(0)
         except Exception as e:
             import traceback
             self.console_logger.debug("!!SUBMOD ERROR when on_message: {}".format(e))
             logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
             logger.error("when processing context: {}".format(message))
+    def general_chat_callback(self, processor, event):
+        if event.data.status == "maica_core_streaming_continue":
+            self.stat["received_token"] += 1
+            self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
+            self.TalkSpilter.add_part(event.data.content)
+            if len(self.message_list) == 0:
+                res = self.TalkSpilter.split_present_sentence()
+                if res:
+                    res = self.MoodStatus.analyze(res)
+                    emote = self.MoodStatus.get_emote()
+                    self._append_to_message_list(emote,res)
+        elif event.data.status == "maica_chat_loop_finished":
+            self._in_mspire = False
+            talks = self.TalkSpilter.announce_stop()
+            for item in talks:
+                t = self.MoodStatus.analyze(item)
+                emote = self.MoodStatus.get_emote()
+                self._append_to_message_list(emote,t)
+            self.status = self.MaicaAiStatus.MESSAGE_DONE
+            self.MoodStatus.reset()
+    
+    def mpostal_callback(self, processor, event):
+        if event.data.status == "maica_core_nostream_reply":
+            self._append_to_message_list('1eua', self.MoodStatus.analyze(event.data.content))
     def __on_message(self, wsapp, message):
         import json, time
         data = json.loads(message)
@@ -936,18 +1047,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
                 self.console_logger.error("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
                 self.wss_session.close()
-            if data['status'] == "maica_chat_loop_finished":
-                self._in_mspire = False
-                talks = self.TalkSpilter.announce_stop()
-                for item in talks:
-                    t = self.MoodStatus.analyze(item)
-                    emote = self.MoodStatus.get_emote()
-                    self._append_to_message_list(emote,t)
-                self.status = self.MaicaAiStatus.MESSAGE_DONE
-                self.MoodStatus.reset()
+
                 
-        if self.update_screen_func:
-            self.update_screen_func(0)
+
     def _on_error(self, wsapp, error):
         logger.error("MaicaAi::_on_error {}".format(error))
         self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
@@ -962,15 +1064,19 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
         
     def chat(self, message):
+        from maica_mtrigger import MTriggerMethod
         if not self.__accessable:
             return logger.error("Maica is not serving")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
         message = str(message)
-        self.senddata_queue.clear()
-        self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
+        self.ChatProcessor.start_request(
+            query=message,
+            chat_session = self.chat_session,
+            trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
+            taskowner = self.task_manager
+        )
         self.stat['message_count'] += 1
-        self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
     def _append_to_message_list(self, emote, message):
         if len(message) == 0:

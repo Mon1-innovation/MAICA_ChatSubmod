@@ -49,7 +49,7 @@ ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
 #ai.enable_mf = False
 #ai.enable_mt = False
-
+ai.enable_strict_mode = True
 ai._ignore_accessable = True
 ai.accessable()
 ai._gen_token("SirrrrrrP", "qwerty", t)
@@ -65,11 +65,12 @@ data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
 print(ai.get_emotion('add', "你也太可爱了!"))
-raise
 #ai.init_connect()
 try:
     if not ai.is_connected():
         ai.init_connect()
+        time.sleep(1)
+        ai.Loginer.login(ai.ciphertext)
         time.sleep(3)
     if ai.is_failed():
         print("Maica ai 连接失败 {}".format(ai.status))
