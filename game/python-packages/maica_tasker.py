@@ -83,12 +83,12 @@ class MaicaTaskManager:
 
     def create_event(self, event_object):
         """
-        创建并分发一个事件（预留接口，当前实现有误）。
+        创建并分发一个事件。
 
         Args:
             event_object: 事件对象
         """
-        self.on_event(event_object)
+        self._on_event(event_object)
 
     def close_ws(self):
         """关闭WebSocket连接。"""
@@ -347,11 +347,11 @@ class MaicaWSTask(MaicaTask):
 
         如果事件是WebSocket消息类型，且消息类型在except_ws_types中，
         则调用on_received方法处理该消息。
-        如果except_ws_types为空列表，则处理所有WebSocket消息。
+        如果except_ws_types为空列表，则不会处理。
         """
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             ws = event.data
-            if ws.type in self.except_ws_types or self.except_ws_types == []:
+            if ws.type in self.except_ws_types:
                 self.on_received(event)
 
     def on_received(self, event):
