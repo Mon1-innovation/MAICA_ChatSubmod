@@ -8,6 +8,7 @@ MAICA会话发送者和接收者模块
 from maica_tasker import *
 from bot_interface import PY2
 import threading
+import json
 from maica_tasker_sub import MAICAWSCookiesHandler
 
 class ChatLock:
@@ -27,18 +28,26 @@ class ChatLock:
         self._lock = threading.Lock()
         self.running_info = ""
 
-    def acquire(self, blocking=True, timeout=-1):
+    def acquire(self, blocking=True, timeout=None):
         """
         获取锁。
 
         Args:
             blocking (bool): 是否阻塞等待。默认为True
-            timeout (float): 超时时间（秒），-1表示永久等待。默认为-1
+            timeout (float): 超时时间（秒），None表示永久等待。默认为None
 
         Returns:
             bool: 是否成功获取锁
         """
-        return self._lock.acquire(blocking, timeout)
+        if PY2:
+            # Python 2 不支持timeout参数
+            return self._lock.acquire(blocking)
+        else:
+            # Python 3 支持timeout参数
+            if timeout is None:
+                return self._lock.acquire(blocking)
+            else:
+                return self._lock.acquire(blocking, timeout)
 
     def release(self):
         """
@@ -98,17 +107,17 @@ class SessionSenderAndReceiver(MaicaWSTask):
     Instance Attributes:
         processing (bool): 是否正在处理请求
         logger: 日志记录器
+        _external_callback: 外部回调函数，接收(processor, event)参数
     """
 
     # 全局聊天锁，保证同时只有一个聊天会话在处理
     multi_lock = ChatLock()
-    strict_cookie = MAICAWSCookiesHandler.cookie
+    strict_cookie = None  # 将在运行时动态设置为MAICAWSCookiesHandler实例的cookie
 
-    def __init__(self, task_type, name, manager, except_ws_types=[
+    def __init__(self, task_type, name, manager, except_ws_status=[
             'maica_core_streaming_continue',
             'maica_chat_loop_finished'
-        ],
-        logger=None):
+        ]):
         """
         初始化会话发送者和接收者。
 
@@ -116,12 +125,11 @@ class SessionSenderAndReceiver(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_types (list): 监听的消息类型列表
-            logger: 日志记录器
+            except_ws_status (list): 监听的消息类型列表
         """
-        super().__init__(task_type, name, manager=manager, except_ws_types=except_ws_types)
-        self.logger = logger
+        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.processing = False
+        self._external_callback = None
 
     def start_request(self, *args, **kwargs):
         """
@@ -130,6 +138,10 @@ class SessionSenderAndReceiver(MaicaWSTask):
         使用全局ChatLock确保同时只有一个请求在处理。
         如果有其他请求正在处理，会抛出异常。
 
+        锁在以下情况释放：
+        1. 收到 maica_chat_loop_finished 事件
+        2. 调用 reset() 方法
+
         Args:
             *args: 传递给process_request的位置参数
             **kwargs: 传递给process_request的关键字参数
@@ -137,33 +149,55 @@ class SessionSenderAndReceiver(MaicaWSTask):
         Raises:
             RuntimeError: 如果已有其他请求在处理中
         """
-        if SessionSenderAndReceiver.multi_lock.locked():
+        # 尝试非阻塞地获取锁，避免竞态条件
+        if not SessionSenderAndReceiver.multi_lock.acquire(blocking=False):
             raise RuntimeError("SessionSenderAndReceiver is already processing a request.")
-        with SessionSenderAndReceiver.multi_lock:
-            self.processing = True
-            SessionSenderAndReceiver.multi_lock.running_info = self.__str__()
-            try:
-                self.process_request(*args, **kwargs)
-            except Exception as e:
-                if self.logger:
-                    self.logger.error("[SessionSenderAndReceiver] start_request error: " + str(e))
-            finally:
-                self.processing = False
+        self.logger.debug(f"[{self.__class__}] start_request args: {args}, kwargs: {kwargs}")
 
+        self.processing = True
+        SessionSenderAndReceiver.multi_lock.running_info = self.__str__()
+        try:
+            self.process_request(*args, **kwargs)
+        except Exception as e:
+            import traceback
+            if self.logger:
+                self.logger.error("[SessionSenderAndReceiver] start_request error: {}".format(traceback.format_exc()))
+            # 如果发生异常，立即释放锁
+            self.processing = False
+            SessionSenderAndReceiver.multi_lock.release()
+
+    def on_event(self, event):
+        """
+        处理MAICA任务事件，特别是WebSocket类型的事件。
+
+        当接收到指定状态且处理中的WebSocket事件时，会触发on_received回调。
+
+        Args:
+            event: MAICA任务事件对象，包含以下属性:
+                event_type: 事件类型
+                data: 事件数据，包含status字段
+        """
+        if event.event_type == MAICATASKEVENT_TYPE_WS:
+            if event.data.status in self.except_ws_status and self.processing:
+                self.on_received(event)
     def on_received(self, event):
         """
         处理接收到的WebSocket消息。
 
-        此方法必须由子类实现。
+        如果设置了外部回调(_external_callback)，则调用它。
+        否则抛出NotImplementedError。
 
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
 
         Raises:
-            NotImplementedError: 此方法必须由子类实现
+            NotImplementedError: 如果未设置外部回调且未被子类实现
         """
-        wspack = event.data
-        raise NotImplementedError
+        if self._external_callback:
+            self._external_callback(self, event)
+        else:
+            wspack = event.data
+            raise NotImplementedError
 
     def process_request(self, request):
         """
@@ -183,9 +217,12 @@ class SessionSenderAndReceiver(MaicaWSTask):
         """
         重置处理状态。
 
-        将processing标志设置为False。
+        将processing标志设置为False，并释放全局聊天锁。
         """
         self.processing = False
+        # 释放锁
+        if SessionSenderAndReceiver.multi_lock.locked():
+            SessionSenderAndReceiver.multi_lock.release()
 
 
 class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
@@ -215,21 +252,9 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
         }
         if SessionSenderAndReceiver.strict_cookie:
             data['cookie'] = SessionSenderAndReceiver.strict_cookie
-        taskowner.ws_client.send(data)
+        self.logger.debug(f"[{self.__class__}] send data: {data}")
+        taskowner.ws_client.send(json.dumps(data))
 
-    def on_received(self, event):
-        """
-        处理聊天响应。
-
-        此方法需要在外部实现，用于处理服务器返回的聊天响应。
-
-        Args:
-            event (MaicaTaskEvent): WebSocket事件对象
-
-        Raises:
-            NotImplementedError: 此方法需要在外部实现
-        """
-        raise NotImplementedError("该方法在外部实现")
 
 
 class MAICAMSpireProcessor(SessionSenderAndReceiver):
@@ -268,23 +293,11 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
             } if len(category) else True,
             "use_cache": MAICAMSpireProcessor.use_cache,
         }
-        if SessionSenderAndReceiver.strict_cookie:
+        # 只有当strict_cookie是字符串时才添加到data中
+        if isinstance(SessionSenderAndReceiver.strict_cookie, str):
             data['cookie'] = SessionSenderAndReceiver.strict_cookie
-        taskowner.ws_client.send(data)
+        taskowner.ws_client.send(json.dumps(data))
 
-    def on_received(self, event):
-        """
-        处理MSpire响应。
-
-        此方法需要在外部实现，用于处理服务器返回的灵感响应。
-
-        Args:
-            event (MaicaTaskEvent): WebSocket事件对象
-
-        Raises:
-            NotImplementedError: 此方法需要在外部实现
-        """
-        raise NotImplementedError("该方法在外部实现")
 
 
 class MAICAMPostalProcessor(SessionSenderAndReceiver):
@@ -314,20 +327,8 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
             'chat_session': MAICAMPostalProcessor.use_session,
             'query': query,
         }
-        if SessionSenderAndReceiver.strict_cookie:
+        # 只有当strict_cookie是字符串时才添加到data中
+        if isinstance(SessionSenderAndReceiver.strict_cookie, str):
             data['cookie'] = SessionSenderAndReceiver.strict_cookie
-        taskowner.ws_client.send(data)
+        taskowner.ws_client.send(json.dumps(data))
 
-    def on_received(self, event):
-        """
-        处理MPostal响应。
-
-        此方法需要在外部实现，用于处理服务器返回的MPostal响应。
-
-        Args:
-            event (MaicaTaskEvent): WebSocket事件对象
-
-        Raises:
-            NotImplementedError: 此方法需要在外部实现
-        """
-        raise NotImplementedError("该方法在外部实现")

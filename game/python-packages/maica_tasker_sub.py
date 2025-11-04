@@ -18,7 +18,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_types=[], logger=None):
+    def __init__(self, task_type, name, manager, except_ws_status=[], logger=None):
         """
         初始化错误处理器。
 
@@ -26,17 +26,19 @@ class GeneralWsErrorHandler(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_types (list): 监听的消息类型列表
+            except_ws_status (list): 监听的消息状态列表
             logger: 日志记录器
         """
-        super().__init__(task_type, name, manager=manager, except_ws_types=except_ws_types)
+        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.logger = logger
-
+    def on_event(self, event):
+        if event.event_type == MAICATASKEVENT_TYPE_WS:
+            self.on_received(event)
     def on_received(self, event):
         """
         处理接收到的WebSocket消息。
 
-        检查消息类型是否为'error'或状态码是否在5xx范围内，
+        检查消息状态是否为'error'或状态码是否在5xx范围内，
         如果是则关闭WebSocket连接并记录错误。
 
         Args:
@@ -65,7 +67,7 @@ class GeneralWsLogger(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_types=[], logger=None):
+    def __init__(self, task_type, name, manager, except_ws_status=[], logger=None):
         """
         初始化日志记录器。
 
@@ -73,18 +75,21 @@ class GeneralWsLogger(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_types (list): 监听的消息类型列表
+            except_ws_status (list): 监听的消息状态列表
             logger: 日志记录器
         """
-        super().__init__(task_type, name, manager=manager, except_ws_types=except_ws_types)
+        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         if logger:
             self.logger = logger
-
+    def on_event(self, event):
+        if event.event_type == MAICATASKEVENT_TYPE_WS:
+            ws = event.data
+            self.on_received(event)
     def on_received(self, event):
         """
         处理接收到的WebSocket消息并记录日志。
 
-        根据消息类型选择相应的日志级别进行记录。
+        根据消息状态选择相应的日志级别进行记录。
 
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
@@ -119,7 +124,8 @@ class MAICALoopWarnHandler(GeneralWsErrorHandler):
     监听特定的循环警告消息，记录警告日志并关闭WebSocket连接。
     继承自GeneralWsErrorHandler以复用错误处理逻辑。
     """
-
+    def on_event(self, event):
+        return super(GeneralWsErrorHandler, self).on_event(event)
     def on_received(self, event):
         """
         处理循环警告消息。
@@ -164,7 +170,7 @@ class HistoryStatusHandler(MaicaWSTask):
         """
         super().__init__(
             task_type, name, manager=manager,
-            except_ws_types=['maica_history_slice_hint', 'maica_history_sliced']
+            except_ws_status=['maica_history_slice_hint', 'maica_history_sliced']
         )
         self.status = self.TOKEN_NORMAL
 
@@ -172,14 +178,14 @@ class HistoryStatusHandler(MaicaWSTask):
         """
         处理历史记录状态消息。
 
-        根据消息类型更新token状态。
+        根据消息状态更新token状态。
 
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        if event.data.type == 'maica_history_slice_hint':
+        if event.data.status == 'maica_history_slice_hint':
             self.status = self.TOKEN_24000_EXCEEDED
-        elif event.data.type == 'maica_history_sliced':
+        elif event.data.status == 'maica_history_sliced':
             self.status = self.TOKEN_MAX_EXCEEDED
 
 
@@ -206,7 +212,7 @@ class MAICAUserDataHandler(MaicaWSTask):
         """
         super().__init__(
             task_type, name, manager=manager,
-            except_ws_types=['maica_login_user', 'maica_login_id', 'maica_login_nickname']
+            except_ws_status=['maica_login_user', 'maica_login_id', 'maica_login_nickname']
         )
         self.id = None
         self.nickname = None
@@ -216,16 +222,16 @@ class MAICAUserDataHandler(MaicaWSTask):
         """
         处理用户信息消息。
 
-        根据消息类型提取相应的用户信息。
+        根据消息状态提取相应的用户信息。
 
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        if event.data.type == 'maica_login_user':
+        if event.data.status == 'maica_login_user':
             self.account = event.data.content
-        elif event.data.type == 'maica_login_id':
+        elif event.data.status == 'maica_login_id':
             self.id = event.data.content
-        elif event.data.type == 'maica_login_nickname':
+        elif event.data.status == 'maica_login_nickname':
             self.nickname = event.data.content
 
 
@@ -252,7 +258,7 @@ class MTriggerWsHandler(MaicaWSTask):
         """
         super().__init__(
             task_type, name, manager=manager,
-            except_ws_types=['maica_mtrigger_trigger']
+            except_ws_status=['maica_mtrigger_trigger']
         )
         self.manager = mt_manager  # 覆盖为触发器管理器
 
@@ -265,7 +271,7 @@ class MTriggerWsHandler(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        if event.data.type == 'maica_mtrigger_trigger':
+        if event.data.status == 'maica_mtrigger_trigger':
             import json
             from maica_mtrigger import MTriggerAction
 
@@ -283,9 +289,10 @@ class MAICAWSCookiesHandler(MaicaWSTask):
 
     Attributes:
         _cookie (str|None): 存储的Cookie值
+        _enabled (bool): Cookie是否启用，只有启用时才返回实际的cookie值
     """
 
-    def __init__(self, task_type, name, manager):
+    def __init__(self, task_type, name, manager, except_ws_status=[]):
         """
         初始化Cookie处理器。
 
@@ -296,10 +303,10 @@ class MAICAWSCookiesHandler(MaicaWSTask):
         """
         super().__init__(
             task_type, name, manager=manager,
-            except_ws_types=['maica_connection_security_cookie']
+            except_ws_status=except_ws_status
         )
         self._cookie = None
-
+        self._enabled = False
     def on_received(self, event):
         """
         处理Cookie消息。
@@ -309,6 +316,7 @@ class MAICAWSCookiesHandler(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
+        self.logger.info("[MAICAWSCookiesHandler] received cookie")
         self._cookie = event.data.content
 
     @property
@@ -316,10 +324,27 @@ class MAICAWSCookiesHandler(MaicaWSTask):
         """
         获取存储的Cookie值。
 
+        只有当_enabled为True时才返回实际的cookie值，否则返回None。
+
         Returns:
-            str|None: Cookie值
+            str|None: Cookie值，如果_enabled为False则返回None
         """
-        return self._cookie
+        if self._enabled:
+            return self._cookie
+        return None
+
+    def reset(self):
+        """重置Cookie和启用状态。"""
+        self._cookie = None
+        self._enabled = False
+
+    def enable_cookie(self):
+        """启用Cookie返回。"""
+        self._enabled = True
+
+    def disable_cookie(self):
+        """禁用Cookie返回。"""
+        self._enabled = False
 
 
 import json
@@ -332,7 +357,7 @@ class MAICALoginTasker(MaicaWSTask):
     负责发送登录请求，使用访问令牌进行身份验证。
     """
 
-    def __init__(self, task_type, name, manager, except_ws_types=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=[]):
         """
         初始化登录任务处理器。
 
@@ -340,9 +365,10 @@ class MAICALoginTasker(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_types (list): 监听的消息类型列表
+            except_ws_status (list): 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager=manager, except_ws_types=except_ws_types)
+        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        self.success = False
 
     def on_manual_run(self, token):
         """
@@ -357,12 +383,13 @@ class MAICALoginTasker(MaicaWSTask):
             RuntimeError: 如果manager或ws_client为None
         """
         data = json.dumps({
-            'accesstoken': token
+            'access_token': token
         })
         if self.manager is None:
             raise RuntimeError("MAICALoginTasker: manager is None")
         if self.manager.ws_client is None:
             raise RuntimeError("MAICALoginTasker: manager.ws_client is None")
+        self.logger.info("[MAICALoginTasker] login: {}".format(data))
         self.manager.ws_client.send(data)
 
     def login(self, token):
@@ -379,6 +406,12 @@ class MAICALoginTasker(MaicaWSTask):
         """
         super().start_event(token)
 
+    def on_received(self, event):
+        self.success = True
+    
+    def reset(self):
+        self.success = False
+
 
 class MAICASessionResetTasker(MaicaWSTask):
     """
@@ -392,7 +425,7 @@ class MAICASessionResetTasker(MaicaWSTask):
 
     strict_cookie = None
 
-    def __init__(self, task_type, name, manager, except_ws_types=['maica_session_reset']):
+    def __init__(self, task_type, name, manager, except_ws_status=['maica_session_reset']):
         """
         初始化会话重置任务处理器。
 
@@ -400,9 +433,9 @@ class MAICASessionResetTasker(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_types (list): 监听的消息类型列表
+            except_ws_status (list): 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager, except_ws_types)
+        super().__init__(task_type, name, manager, except_ws_status)
 
     def on_manual_run(self):
         """
@@ -439,7 +472,7 @@ class MAICASettingSendTasker(MaicaWSTask):
     负责发送聊天模型配置参数到服务器。
     """
 
-    def __init__(self, task_type, name, manager, except_ws_types=['maica_params_accepted']):
+    def __init__(self, task_type, name, manager, except_ws_status=['maica_params_accepted']):
         """
         初始化设置发送任务处理器。
 
@@ -447,9 +480,9 @@ class MAICASettingSendTasker(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_types (list): 监听的消息类型列表
+            except_ws_status (list): 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager, except_ws_types=except_ws_types)
+        super().__init__(task_type, name, manager, except_ws_status=except_ws_status)
 
     def on_manual_run(self, request_body):
         """

@@ -429,14 +429,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_ws_error_handler",
             manager=self.task_manager,
-            except_ws_types=[],
+            except_ws_status=[],
             logger=self.console_logger
         )
         maica_tasker_sub.GeneralWsLogger(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_ws_logger",
             manager=self.task_manager,
-            except_ws_types=[],
+            except_ws_status=[],
             logger=self.console_logger
         )
 
@@ -444,7 +444,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maicaloop_warn_handler",
             manager=self.task_manager,
-            except_ws_types=['maica_loop_warn_finished'],
+            except_ws_status=['maica_loop_warn_finished'],
             logger=self.console_logger
         )
 
@@ -467,13 +467,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.WSCookiesTask = maica_tasker_sub.MAICAWSCookiesHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maica_ws_cookies_handler",
-            manager=self.task_manager
+            manager=self.task_manager,
+            except_ws_status=['maica_connection_security_cookie']
         )
 
         self.Loginer = maica_tasker_sub.MAICALoginTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="login_task",
-            manager=self.task_manager
+            manager=self.task_manager,
+            except_ws_status=['maica_connection_established']
         )
 
         self.SessionReseter = maica_tasker_sub.MAICASessionResetTasker(
@@ -493,20 +495,20 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             name="general_chat_processor",
             manager=self.task_manager
         )
-        self.ChatProcessor.on_received = self.general_chat_callback
+        self.ChatProcessor._external_callback = self.general_chat_callback
         self.MSpireProcessor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mspire_processor",
             manager=self.task_manager
         )
-        self.MSpireProcessor.on_received = self.general_chat_callback
+        self.MSpireProcessor._external_callback = self.general_chat_callback
         self.MPostalProcessor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mpostal_processor",
             manager=self.task_manager,
-            except_ws_types=['maica_core_nostream_reply', 'maica_chat_loop_finished']
+            except_ws_status=['maica_core_nostream_reply', 'maica_chat_loop_finished']
         )
-        self.MPostalProcessor.on_received = self.mpostal_callback
+        self.MPostalProcessor._external_callback = self.mpostal_callback
 
     
     def reset_stat(self):
@@ -797,11 +799,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             
     def is_responding(self):
         """返回maica是否正在返回消息"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
+        #return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
+        return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
 
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
+        #return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
+        return not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
 
     def is_accessable(self):
         """返回maica是否可用"""
@@ -817,7 +821,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
-        return self.wss_session.keep_running if self.wss_session else False #\
+        return self.task_manager.ws_client.keep_running if self.task_manager.ws_client else False #\
             #or self.wss_thread.is_alive() if self.wss_thread else False
 
     def get_status_description(self):
@@ -1008,10 +1012,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self._append_to_message_list(emote,t)
             self.status = self.MaicaAiStatus.MESSAGE_DONE
             self.MoodStatus.reset()
+            # 释放聊天锁，允许下一个聊天请求
+            processor.reset()
     
     def mpostal_callback(self, processor, event):
         if event.data.status == "maica_core_nostream_reply":
             self._append_to_message_list('1eua', self.MoodStatus.analyze(event.data.content))
+        elif event.data.status == "maica_chat_loop_finished":
+            self.status = self.MaicaAiStatus.MESSAGE_DONE
+            # 释放聊天锁，允许下一个聊天请求
+            processor.reset()
     def __on_message(self, wsapp, message):
         import json, time
         data = json.loads(message)
@@ -1072,7 +1082,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         message = str(message)
         self.ChatProcessor.start_request(
             query=message,
-            chat_session = self.chat_session,
+            session = self.chat_session,
             trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
             taskowner = self.task_manager
         )

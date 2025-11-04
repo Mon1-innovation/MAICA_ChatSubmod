@@ -29,7 +29,8 @@ class NothingEmoSelector(emotion_analyze_v2.EmoSelector):
             
         return message
 
-
+import maica_tasker
+maica_tasker.default_logger = maica.logger
 ai = maica.MaicaAi("SirrrrrrP", "qwerty")
 
 
@@ -78,8 +79,9 @@ try:
     
     if ai.is_ready_to_input():
         ai.chat(input("请输入内容：\n"))
-        time.sleep(0.5)
-
+        time.sleep(2.5)
+    
+    print("[QUEUE] status: {}, queue length: {}" .format(ai.is_responding(), ai.len_message_queue()))
     while ai.is_responding() or ai.len_message_queue() > 0:
         if ai.len_message_queue() == 0:
             time.sleep(0.5)
@@ -90,6 +92,7 @@ try:
 except KeyboardInterrupt:
     print("============KeyboardInterrupt============")
 finally:
+    print("流程结束")
     ai.close_wss_session()
 
 #history = ai.download_history()

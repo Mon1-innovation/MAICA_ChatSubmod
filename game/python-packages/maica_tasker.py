@@ -315,16 +315,16 @@ class MaicaWSTask(MaicaTask):
     WebSocket相关任务的基类。
 
     此类在MaicaTask的基础上添加了WebSocket消息过滤功能，
-    只处理特定类型的WebSocket消息。
+    只处理特定状态的WebSocket消息。
 
     Attributes:
-        except_ws_types (list): 需要处理的WebSocket消息类型列表
+        except_ws_status (list): 需要处理的WebSocket消息状态列表
 
     注意:
-      - 未传入except_ws_types时, 将不会收到on_received方法的调用
+      - 未传入except_ws_status时, 将不会收到on_received方法的调用
     """
 
-    def __init__(self, task_type, name, manager=None, except_ws_types=[]):
+    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
         """
         初始化WebSocket任务。
 
@@ -332,11 +332,11 @@ class MaicaWSTask(MaicaTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager|None): 任务所属的管理器
-            except_ws_types (list): 感兴趣的WebSocket消息类型列表
-                                   空列表表示处理所有类型的消息
+            except_ws_status (list): 感兴趣的WebSocket消息状态列表
+                                   空列表表示不会处理。
         """
         super().__init__(task_type, name, manager)
-        self.except_ws_types = except_ws_types
+        self.except_ws_status = except_ws_status
 
     def on_event(self, event):
         """
@@ -345,13 +345,12 @@ class MaicaWSTask(MaicaTask):
         Args:
             event (MaicaTaskEvent): 要处理的事件
 
-        如果事件是WebSocket消息类型，且消息类型在except_ws_types中，
+        如果事件是WebSocket消息类型，且消息状态在except_ws_status中，
         则调用on_received方法处理该消息。
-        如果except_ws_types为空列表，则不会处理。
+        如果except_ws_status为空列表，则不会处理。
         """
         if event.event_type == MAICATASKEVENT_TYPE_WS:
-            ws = event.data
-            if ws.type in self.except_ws_types:
+            if event.data.status in self.except_ws_status:
                 self.on_received(event)
 
     def on_received(self, event):
