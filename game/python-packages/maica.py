@@ -493,13 +493,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.ChatProcessor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_chat_processor",
-            manager=self.task_manager
+            manager=self.task_manager,
+            except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
         )
         self.ChatProcessor._external_callback = self.general_chat_callback
         self.MSpireProcessor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mspire_processor",
-            manager=self.task_manager
+            manager=self.task_manager,
+            except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
         )
         self.MSpireProcessor._external_callback = self.general_chat_callback
         self.MPostalProcessor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
@@ -1003,7 +1005,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     res = self.MoodStatus.analyze(res)
                     emote = self.MoodStatus.get_emote()
                     self._append_to_message_list(emote,res)
-        elif event.data.status == "maica_chat_loop_finished":
+        elif event.data.status == "maica_core_complete":
             self._in_mspire = False
             talks = self.TalkSpilter.announce_stop()
             for item in talks:
