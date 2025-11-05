@@ -418,12 +418,8 @@ class MAICASessionResetTasker(MaicaWSTask):
     MAICA会话重置任务处理器。
 
     负责发送会话重置请求，用于重置当前的聊天会话。
-
-    Attributes:
-        strict_cookie (str|None): 严格模式下使用的Cookie值
     """
 
-    strict_cookie = None
 
     def __init__(self, task_type, name, manager, except_ws_status=['maica_session_reset']):
         """
@@ -437,7 +433,7 @@ class MAICASessionResetTasker(MaicaWSTask):
         """
         super().__init__(task_type, name, manager, except_ws_status)
 
-    def on_manual_run(self):
+    def on_manual_run(self, chat_session):
         """
         执行会话重置操作。
 
@@ -446,11 +442,11 @@ class MAICASessionResetTasker(MaicaWSTask):
         self.status = MaicaTask.MAICATASK_STATUS_READY
         data = {
             "type": "query",
-            "chat_session": self.manager.chat_session,
+            "chat_session": chat_session,
             "reset": True
         }
-        if MAICASessionResetTasker.strict_cookie:
-            data["cookie"] = MAICASessionResetTasker.strict_cookie
+        if MAICAWSCookiesHandler.cookie:
+            data["cookie"] = MAICAWSCookiesHandler.cookie
         self.manager.ws_client.send(json.dumps(data))
 
     def on_received(self, event):
@@ -490,9 +486,17 @@ class MAICASettingSendTasker(MaicaWSTask):
 
         将配置参数作为JSON发送给服务器。
 
+        Note:
+            你必须在Loginer完成后才能执行发送!
+
         Args:
             request_body (dict): 包含配置参数的请求体字典
         """
+        self.logger.debug(
+            "[MAICASettingSendTasker] sended: {}".format(request_body)
+        )
+        if MAICAWSCookiesHandler.cookie:
+            request_body['cookie'] = MAICAWSCookiesHandler.cookie
         self.manager.ws_client.send(json.dumps(request_body))
 
     def on_received(self, event):

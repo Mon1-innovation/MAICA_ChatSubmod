@@ -130,6 +130,22 @@ class MaicaTaskManager:
         for t in self.task_list:
             if t.name == name:
                 return t
+    
+    def is_task_failed(self):
+        """
+        检查任务列表中所有失败的任务。
+
+        遍历任务列表，筛选出状态为错误状态的任务对象。
+
+        Returns:
+            list[MaicaTask]: 包含所有失败任务对象的列表，如果没有失败任务则返回空列表。
+        """
+        failed = []
+        for t in self.task_list:
+            if t.status == MaicaTask.MAICATASK_STATUS_ERROR:
+                failed.append(t)
+        return failed
+
 
 
 class MaicaTaskEvent:

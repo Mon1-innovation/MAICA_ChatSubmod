@@ -73,9 +73,13 @@ try:
         ai.init_connect()
         time.sleep(1)
         ai.Loginer.login(ai.ciphertext)
+        while not ai.Loginer.success:
+            pass
+        ai.send_settings()
         time.sleep(3)
-    if ai.is_failed():
-        print("Maica ai 连接失败 {}".format(ai.status))
+
+    if ai.is_in_exception():
+        print("Maica ai 连接失败 {}".format(ai.is_in_exception()))
         raise Exception()
     
     if ai.is_ready_to_input():

@@ -24,7 +24,33 @@ logger.info('正在使用logging')
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
+import warnings
+import sys
 
+def deprecated(message=None):
+    """
+    最简单的兼容Python 2的弃用装饰器
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warning_msg = message or "Function '%s' is deprecated" % func.__name__
+            
+            # Python 2/3兼容的警告
+            if PY2:
+                warnings.warn(warning_msg, DeprecationWarning, stacklevel=2)
+            else:
+                warnings.warn(warning_msg, DeprecationWarning, stacklevel=2)
+            logger.warning(warning_msg)
+            return func(*args, **kwargs)
+        
+        # 保持函数属性
+        wrapper.__name__ = func.__name__
+        wrapper.__doc__ = func.__doc__
+        if hasattr(func, '__module__'):
+            wrapper.__module__ = func.__module__
+        
+        return wrapper
+    return decorator
 class Queue(object):
     def __init__(self):
         self.items = []
