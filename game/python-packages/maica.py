@@ -335,7 +335,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.tz = "Asia/Shanghai"
         self.__ws_cookie = ""
-        self.enable_strict_mode = False
+        self._enable_strict_mode = False
         self.default_setting = {
             "amt_aggressive": True,
             "deformation": False,
@@ -513,6 +513,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             except_ws_status=['maica_core_nostream_reply', 'maica_chat_loop_finished']
         )
         self.MPostalProcessor._external_callback = self.mpostal_callback
+
+    @property
+    def enable_strict_mode(self):
+        return self._enable_strict_mode
+
+    @enable_strict_mode.setter
+    def enable_strict_mode(self, value):
+        self._enable_strict_mode = bool(value)
+        if self._enable_strict_mode:
+            self.WSCookiesTask.enable_cookie()
+        else:
+            self.WSCookiesTask.disable_cookie()
 
     
     def reset_stat(self):
@@ -773,7 +785,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                                                   , on_close=self._on_close)
         self.wss_session = self.task_manager.ws_client
         self.wss_session.ping_payload = "PING"
-        self.status = self.MaicaAiStatus.WAIT_AUTH
+        self.task_manager.reset_all_task()
         #self.Loginer.login(self.ciphertext)
         try:
             self.task_manager.ws_client.run_forever()
@@ -1039,6 +1051,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if self.multi_lock.locked():
             self.multi_lock.release()
         self.close_wss_session()
+        self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         
     def chat(self, message):

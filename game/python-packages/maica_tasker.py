@@ -1,10 +1,10 @@
 import websocket
-
+import maica_tasker_events
 # 常量定义：WebSocket事件类型
 MAICATASKEVENT_TYPE_WS = 0
 MAICATASKEVENT_TYPE_TASK = 1
 
-
+MaicaTaskEvent = maica_tasker_events.MaicaTaskEvent
 class DefaultLogger:
     """
     默认日志记录器，用于在没有提供日志记录器的情况下输出日志信息。
@@ -66,6 +66,21 @@ class MaicaTaskManager:
             taskowner=self,
             event_type=MAICATASKEVENT_TYPE_WS,
             data=WSResponse(message)
+        )
+        self._on_event(event)
+    
+    def _ws_onclose(self, wsapp, close_status_code=None, close_msg=None):
+        event = maica_tasker_events.WebSocketClosedEvent(
+            taskowner=self,
+            event_type=MAICATASKEVENT_TYPE_TASK,
+            data=maica_tasker_events.GenericData(
+                name="websocket_closed",
+                content={
+                    "close_status_code": close_status_code,
+                    "close_msg": close_msg,
+                    "wsapp": wsapp
+                }
+            )
         )
         self._on_event(event)
 
@@ -148,28 +163,7 @@ class MaicaTaskManager:
 
 
 
-class MaicaTaskEvent:
-    """
-    MAICA事件对象，用于在任务之间传递事件信息。
 
-    Attributes:
-        taskowner (MaicaTaskManager): 产生该事件的任务管理器
-        event_type (int): 事件类型（MAICATASKEVENT_TYPE_WS或MAICATASKEVENT_TYPE_TASK）
-        data: 事件数据（通常是WSResponse或其他事件数据）
-    """
-
-    def __init__(self, taskowner, event_type, data):
-        """
-        初始化任务事件。
-
-        Args:
-            taskowner (MaicaTaskManager): 事件所有者（任务管理器）
-            event_type (int): 事件类型标识
-            data: 事件携带的数据
-        """
-        self.taskowner = taskowner
-        self.event_type = event_type
-        self.data = data
 
 
 class MaicaTask:
