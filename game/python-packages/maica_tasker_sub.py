@@ -29,7 +29,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
             except_ws_status (list): 监听的消息状态列表
             logger: 日志记录器
         """
-        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        super(GeneralWsErrorHandler, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.logger = logger
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
@@ -78,7 +78,7 @@ class GeneralWsLogger(MaicaWSTask):
             except_ws_status (list): 监听的消息状态列表
             logger: 日志记录器
         """
-        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        super(GeneralWsLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         if logger:
             self.logger = logger
     def on_event(self, event):
@@ -168,7 +168,7 @@ class HistoryStatusHandler(MaicaWSTask):
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
         """
-        super().__init__(
+        super(HistoryStatusHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=['maica_history_slice_hint', 'maica_history_sliced']
         )
@@ -210,7 +210,7 @@ class MAICAUserDataHandler(MaicaWSTask):
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
         """
-        super().__init__(
+        super(MAICAUserDataHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=['maica_login_user', 'maica_login_id', 'maica_login_nickname']
         )
@@ -256,7 +256,7 @@ class MTriggerWsHandler(MaicaWSTask):
             manager (MaicaTaskManager): WebSocket任务管理器实例
             mt_manager: 触发器管理器实例
         """
-        super().__init__(
+        super(MTriggerWsHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=['maica_mtrigger_trigger']
         )
@@ -302,7 +302,7 @@ class MAICAWSCookiesHandler(MaicaWSTask):
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
         """
-        super().__init__(
+        super(MAICAWSCookiesHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=except_ws_status
         )
@@ -367,7 +367,7 @@ class MAICALoginTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        super(MAICALoginTasker, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.success = False
 
     def on_manual_run(self, token):
@@ -404,7 +404,7 @@ class MAICALoginTasker(MaicaWSTask):
         Returns:
             None: 该方法无返回值，通过父类的start_event方法启动登录流程
         """
-        super().start_event(token)
+        super(MAICALoginTasker, self).start_event(token)
 
     def on_received(self, event):
         self.success = True
@@ -431,7 +431,7 @@ class MAICASessionResetTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager, except_ws_status)
+        super(MAICASessionResetTasker, self).__init__(task_type, name, manager, except_ws_status)
 
     def on_manual_run(self, chat_session):
         """
@@ -478,7 +478,7 @@ class MAICASettingSendTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager, except_ws_status=except_ws_status)
+        super(MAICASettingSendTasker, self).__init__(task_type, name, manager, except_ws_status=except_ws_status)
 
     def on_manual_run(self, request_body):
         """

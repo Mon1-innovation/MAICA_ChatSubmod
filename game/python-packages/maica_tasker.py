@@ -5,7 +5,7 @@ MAICATASKEVENT_TYPE_WS = 0
 MAICATASKEVENT_TYPE_TASK = 1
 
 MaicaTaskEvent = maica_tasker_events.MaicaTaskEvent
-class DefaultLogger:
+class DefaultLogger(object):
     """
     默认日志记录器，用于在没有提供日志记录器的情况下输出日志信息。
     """
@@ -29,7 +29,7 @@ class DefaultLogger:
 default_logger = DefaultLogger()
 
 
-class MaicaTaskManager:
+class MaicaTaskManager(object):
     """
     任务管理器，负责管理所有MAICA任务的注册、事件分发和WebSocket客户端管理。
 
@@ -166,7 +166,7 @@ class MaicaTaskManager:
 
 
 
-class MaicaTask:
+class MaicaTask(object):
     """
     MAICA任务基类，所有任务都应继承此类。
 
@@ -279,7 +279,7 @@ class MaicaTask:
         raise NotImplementedError()
 
 
-class WSResponse:
+class WSResponse(object):
     """
     WebSocket响应解析器，用于解析和存储WebSocket消息内容。
 
@@ -345,7 +345,7 @@ class MaicaWSTask(MaicaTask):
             except_ws_status (list): 感兴趣的WebSocket消息状态列表
                                    空列表表示不会处理。
         """
-        super().__init__(task_type, name, manager)
+        super(MaicaWSTask, self).__init__(task_type, name, manager)
         self.except_ws_status = except_ws_status
 
     def on_event(self, event):

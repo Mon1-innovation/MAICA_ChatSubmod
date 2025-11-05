@@ -1,4 +1,4 @@
-class MaicaTaskEvent:
+class MaicaTaskEvent(object):
     """
     MAICA事件对象，用于在任务之间传递事件信息。
 
@@ -20,7 +20,7 @@ class MaicaTaskEvent:
         self.taskowner = taskowner
         self.event_type = event_type
         self.data = data
-class GenericData:
+class GenericData(object):
 
     def __init__(self, name, content):
         self.name = name
@@ -28,4 +28,4 @@ class GenericData:
 
 class WebSocketClosedEvent(MaicaTaskEvent):
     def __init__(self, taskowner, event_type, data):
-        super().__init__(taskowner, taskowner, event_type, data)
+        super(WebSocketClosedEvent, self).__init__(taskowner, taskowner, event_type, data)

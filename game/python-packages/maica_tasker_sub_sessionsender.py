@@ -11,7 +11,7 @@ import threading
 import json
 from maica_tasker_sub import MAICAWSCookiesHandler
 
-class ChatLock:
+class ChatLock(object):
     """
     聊天锁，用于保证同时只有一个聊天会话在处理。
 
@@ -127,7 +127,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息类型列表
         """
-        super().__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        super(SessionSenderAndReceiver, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.processing = False
         self._external_callback = None
 
@@ -152,7 +152,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
         # 尝试非阻塞地获取锁，避免竞态条件
         if not SessionSenderAndReceiver.multi_lock.acquire(blocking=False):
             raise RuntimeError("SessionSenderAndReceiver is already processing a request.")
-        self.logger.debug(f"[{self.__class__}] start_request args: {args}, kwargs: {kwargs}")
+        self.logger.debug("[{}] start_request args: {}, kwargs: {}".format(self.__class__, args, kwargs))
 
         self.processing = True
         SessionSenderAndReceiver.multi_lock.running_info = self.__str__()
@@ -252,7 +252,7 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
         }
         if MAICAWSCookiesHandler.cookie:
             data['cookie'] = MAICAWSCookiesHandler.cookie
-        self.logger.debug(f"[{self.__class__}] send data: {data}")
+        self.logger.debug("[{}] send data: {}".format(self.__class__, data))
         taskowner.ws_client.send(json.dumps(data))
 
 
@@ -327,6 +327,6 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
         }
         if MAICAWSCookiesHandler.cookie:
             data['cookie'] = MAICAWSCookiesHandler.cookie
-        self.logger.debug(f"[{self.__class__}] send data: {data}")
+        self.logger.debug("[{}] send data: {}".format(self.__class__, data))
         self.manager.ws_client.send(json.dumps(data))
 

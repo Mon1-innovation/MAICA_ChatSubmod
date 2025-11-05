@@ -318,7 +318,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.TalkSpilter = bot_interface.TalkSplitV2()
         self._current_topic = ""
         self.status = self.MaicaAiStatus.WAIT_AVAILABILITY
-        self.target_lang = self.MaicaAiLang.zh_cn        self.modelconfig = {}
+        self.target_lang = self.MaicaAiLang.zh_cn        
+        self.modelconfig = {}
         self.reset_stat()
         self.auto_reconnect = False
         self.mspire_category = []
