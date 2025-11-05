@@ -54,6 +54,7 @@ ai.enable_strict_mode = True
 ai._ignore_accessable = True
 ai.accessable()
 ai._gen_token("SirrrrrrP", "qwerty", t)
+ai.WSCookiesTask.enable_cookie()
 print(ai.ciphertext)
 print(f"{ai._verify_token()}")
 print("加密完成")
@@ -78,7 +79,9 @@ try:
         raise Exception()
     
     if ai.is_ready_to_input():
-        ai.chat(input("请输入内容：\n"))
+        #ai.chat(input("请输入内容：\n"))
+        #ai.start_MSpire()
+        ai.start_MPostal("我爱你呀~", ">3<")
         time.sleep(2.5)
     
     print("[QUEUE] status: {}, queue length: {}" .format(ai.is_responding(), ai.len_message_queue()))

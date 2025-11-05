@@ -841,6 +841,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not ready to input")
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
+        self.MSpireProcessor.start_request(
+            category=self.mspire_category,
+            session=self.mspire_session
+        )
         self._in_mspire = True
     
     def start_MPostal(self, content, title=""):
@@ -849,13 +853,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
         self.stat['mpostal_count'] += 1
-        self.senddata_queue.put(
-                {
-                    "header": title,
-                    "content": key_replace(content, chinese_to_english_punctuation),
-                    "bypass_mt": True
-                }
-            )
+        self.MPostalProcessor.start_request(
+            query = {
+                "header": title,
+                "content": key_replace(content, chinese_to_english_punctuation),
+                "bypass_mt": True
+            }
+        )
+
+
+        
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL
 
 

@@ -112,7 +112,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
 
     # 全局聊天锁，保证同时只有一个聊天会话在处理
     multi_lock = ChatLock()
-    strict_cookie = None  # 将在运行时动态设置为MAICAWSCookiesHandler实例的cookie
+    
 
     def __init__(self, task_type, name, manager, except_ws_status=[
             'maica_core_streaming_continue',
@@ -250,8 +250,8 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             'query': query,
             'trigger': trigger
         }
-        if SessionSenderAndReceiver.strict_cookie:
-            data['cookie'] = SessionSenderAndReceiver.strict_cookie
+        if MAICAWSCookiesHandler.cookie:
+            data['cookie'] = MAICAWSCookiesHandler.cookie
         self.logger.debug(f"[{self.__class__}] send data: {data}")
         taskowner.ws_client.send(json.dumps(data))
 
@@ -271,7 +271,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     mspire_type = "in_fuzzy_all"
     use_cache = False
 
-    def process_request(self, category, session, taskowner):
+    def process_request(self, category, session):
         """
         处理MSpire聊天请求。
 
@@ -293,10 +293,9 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
             } if len(category) else True,
             "use_cache": MAICAMSpireProcessor.use_cache,
         }
-        # 只有当strict_cookie是字符串时才添加到data中
-        if isinstance(SessionSenderAndReceiver.strict_cookie, str):
-            data['cookie'] = SessionSenderAndReceiver.strict_cookie
-        taskowner.ws_client.send(json.dumps(data))
+        if MAICAWSCookiesHandler.cookie:
+            data['cookie'] = MAICAWSCookiesHandler.cookie
+        self.manager.ws_client.send(json.dumps(data))
 
 
 
@@ -312,23 +311,22 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
 
     use_session = 0
 
-    def process_request(self, query, taskowner):
+    def process_request(self, query):
         """
         处理MPostal聊天请求。
 
         构建MPostal查询请求JSON并通过WebSocket发送。
 
         Args:
-            query (str): 聊天查询内容
-            taskowner: 任务所有者（通常是MaicaTaskManager）
+            query (str): 聊天内容
         """
         data = {
             'type': 'query',
             'chat_session': MAICAMPostalProcessor.use_session,
-            'query': query,
+            'postmail': query,
         }
-        # 只有当strict_cookie是字符串时才添加到data中
-        if isinstance(SessionSenderAndReceiver.strict_cookie, str):
-            data['cookie'] = SessionSenderAndReceiver.strict_cookie
-        taskowner.ws_client.send(json.dumps(data))
+        if MAICAWSCookiesHandler.cookie:
+            data['cookie'] = MAICAWSCookiesHandler.cookie
+        self.logger.debug(f"[{self.__class__}] send data: {data}")
+        self.manager.ws_client.send(json.dumps(data))
 

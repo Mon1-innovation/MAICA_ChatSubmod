@@ -260,7 +260,7 @@ class MTriggerWsHandler(MaicaWSTask):
             task_type, name, manager=manager,
             except_ws_status=['maica_mtrigger_trigger']
         )
-        self.manager = mt_manager  # 覆盖为触发器管理器
+        self.mt_manager = mt_manager  # 覆盖为触发器管理器
 
     def on_received(self, event):
         """
@@ -277,8 +277,8 @@ class MTriggerWsHandler(MaicaWSTask):
 
             data = json.loads(event.data.content)
             for item in data:
-                self.manager.triggered(item, data[item])
-            self.manager.run_trigger(MTriggerAction.instant)
+                self.mt_manager.triggered(item, data[item])
+            self.mt_manager.run_trigger(MTriggerAction.instant)
 
 
 class MAICAWSCookiesHandler(MaicaWSTask):
@@ -291,7 +291,8 @@ class MAICAWSCookiesHandler(MaicaWSTask):
         _cookie (str|None): 存储的Cookie值
         _enabled (bool): Cookie是否启用，只有启用时才返回实际的cookie值
     """
-
+    _cookie = None
+    _enabled = False
     def __init__(self, task_type, name, manager, except_ws_status=[]):
         """
         初始化Cookie处理器。
@@ -305,8 +306,7 @@ class MAICAWSCookiesHandler(MaicaWSTask):
             task_type, name, manager=manager,
             except_ws_status=except_ws_status
         )
-        self._cookie = None
-        self._enabled = False
+
     def on_received(self, event):
         """
         处理Cookie消息。
@@ -317,8 +317,8 @@ class MAICAWSCookiesHandler(MaicaWSTask):
             event (MaicaTaskEvent): WebSocket事件对象
         """
         self.logger.info("[MAICAWSCookiesHandler] received cookie")
-        self._cookie = event.data.content
-
+        MAICAWSCookiesHandler._cookie = event.data.content
+    @classmethod
     @property
     def cookie(self):
         """
@@ -329,22 +329,22 @@ class MAICAWSCookiesHandler(MaicaWSTask):
         Returns:
             str|None: Cookie值，如果_enabled为False则返回None
         """
-        if self._enabled:
-            return self._cookie
+        if MAICAWSCookiesHandler._enabled:
+            return MAICAWSCookiesHandler._cookie
         return None
 
     def reset(self):
         """重置Cookie和启用状态。"""
-        self._cookie = None
-        self._enabled = False
+        MAICAWSCookiesHandler._cookie = None
+        MAICAWSCookiesHandler._enabled = False
 
     def enable_cookie(self):
         """启用Cookie返回。"""
-        self._enabled = True
+        MAICAWSCookiesHandler._enabled = True
 
     def disable_cookie(self):
         """禁用Cookie返回。"""
-        self._enabled = False
+        MAICAWSCookiesHandler._enabled = False
 
 
 import json
