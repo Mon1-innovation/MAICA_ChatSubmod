@@ -476,7 +476,12 @@ class MAICASettingSendTasker(MaicaWSTask):
     """
     MAICA设置发送任务处理器。
 
-    负责发送聊天模型配置参数到服务器。
+    负责发送聊天模型配置参数到服务器。支持手动发送和自动发送两种模式：
+    - 手动模式：通过 on_manual_run() 直接发送配置
+    - 自动模式：监听 'loginer_ready' 事件，自动调用生成函数并发送配置
+
+    Attributes:
+        _generate_setting_func (callable|None): 生成配置参数的回调函数，返回配置字典
     """
 
     def __init__(self, task_type, name, manager, except_ws_status=['maica_params_accepted']):
@@ -487,9 +492,10 @@ class MAICASettingSendTasker(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): 任务管理器实例
-            except_ws_status (list): 监听的消息状态列表
+            except_ws_status (list): 监听的消息状态列表，默认监听 'maica_params_accepted'
         """
         super(MAICASettingSendTasker, self).__init__(task_type, name, manager, except_ws_status=except_ws_status)
+        self._generate_setting_func = None
 
     def on_manual_run(self, request_body):
         """
@@ -510,9 +516,31 @@ class MAICASettingSendTasker(MaicaWSTask):
             request_body['cookie'] = MAICAWSCookiesHandler.cookie
         self.manager.ws_client.send(json.dumps(request_body))
 
+    def on_event(self, event):
+        """
+        处理任务事件。
+
+        监听 'loginer_ready' 事件，当登录完成后自动调用生成函数并发送配置。
+
+        Args:
+            event (MaicaTaskEvent): 任务事件对象
+
+        Returns:
+            调用父类on_event方法的返回值
+        """
+        if event.event_type == MAICATASKEVENT_TYPE_TASK and \
+           event.data.name == 'loginer_ready':
+            if self._generate_setting_func is not None:
+                settings = self._generate_setting_func()
+                self.logger.debug("[MAICASettingSendTasker] auto-sending settings on loginer_ready")
+                self.on_manual_run(settings)
+        return super(MAICASettingSendTasker, self).on_event(event)
+
     def on_received(self, event):
         """
         处理设置接受响应。
+
+        当服务器接受配置参数后会收到此响应。
 
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
@@ -520,6 +548,40 @@ class MAICASettingSendTasker(MaicaWSTask):
         self.logger.debug(
             "[MAICASettingSendTasker] received: {}".format(self.name, event.data.content)
         )
+
+    def set_generate_setting_func(self, func):
+        """
+        设置生成配置参数的回调函数。
+
+        设置后，当收到 'loginer_ready' 事件时会自动调用该函数生成配置并发送。
+
+        Args:
+            func (callable): 回调函数，无参数，返回包含配置参数的字典。
+                           字典应包含聊天模型的配置参数。
+
+        Example:
+            def generate_my_settings():
+                return {
+                    'type': 'params',
+                    'temperature': 0.7,
+                    'max_tokens': 2000,
+                    # 其他配置参数...
+                }
+
+            tasker.set_generate_setting_func(generate_my_settings)
+        """
+        self._generate_setting_func = func
+        self.logger.debug("[MAICASettingSendTasker] set custom generate_setting_func")
+
+    @property
+    def generate_setting_func(self):
+        """
+        获取当前的配置生成函数。
+
+        Returns:
+            callable|None: 配置生成函数，如果未设置则返回None
+        """
+        return self._generate_setting_func
 
 
 class AutoReconnector(MaicaWSTask):

@@ -492,6 +492,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             manager=self.task_manager,
             except_ws_status=['maica_params_accepted']
         )
+        self.SettingSender.set_generate_setting_func(self.build_setting_config)
 
         self.ChatProcessor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -899,127 +900,26 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "bypass_mt": True
             }
         )
-
-    def _on_open(self, wsapp):
-        import time, threading, random
-
-        def build_setting_config():
-            self._check_modelconfig()
-            return self.send_settings()
-            
-
-        def send_message():
-            try:
-                import json
-                from websocket import WebSocketConnectionClosedException
-                from maica_mtrigger import MTriggerMethod
-                while True:
-                    if not wsapp.keep_running:
-                        logger.info("websocket is closed")
-                        break
-                    time.sleep(1)
-                    # 消息已进入队列，等待发送
-                    if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                        
-                        if PY2:
-                            message = str(self.senddata_queue.get()).decode().strip()
-                        else:
-                            message = str(self.senddata_queue.get()).strip()
-                        self._current_topic = message
-                        dict = {"type": "query","chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-                        message = json.dumps(dict, ensure_ascii=False) 
-                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
-                        self.message_list.clear()
-                        self.MoodStatus.reset()
-                        self.wss_session.send(
-                            message
-                        )   
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-                    elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {
-                            "type": "query",
-                            "chat_session":self.mspire_session, 
-                            "inspire":{
-                                    "type":self.mspire_type,
-                                    "sample":250,
-                                    "title": random.choice(self.mspire_category),
-                                } if len(self.mspire_category) else True,
-                            "use_cache":self.mspire_use_cache,
-                            }
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-
-                        self.wss_session.send(
-                            json.dumps(dict, ensure_ascii=False) 
-                        )
-                    elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL:
-                        #if PY2:
-                        #    message = str(self.senddata_queue.get()).decode().strip()
-                        #else:
-                        #    message = str(self.senddata_queue.get()).strip()
-                        message = self.senddata_queue.get()
-                        dict = {"type": "query", "chat_session":0, "postmail":message}
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-                        message = json.dumps(dict, ensure_ascii=False) 
-                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: {}".format(message))
-                        self.wss_session.send(
-                            message
-                        )   
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-
-                    # 身份验证
-                    elif self.status == self.MaicaAiStatus.WAIT_AUTH:
-                        self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
-                        self.wss_session.send(json.dumps({"access_token": self.ciphertext}, ensure_ascii=False))
-                    # 连接已建立，选择模型
-                    elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                        self.send_settings()
-                        threading.Thread(target=self.send_mtrigger).start()
-                        self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
-                     
-                    # 发送设置, 切记仅在闲置时进行 
-                    elif self.status == self.MaicaAiStatus.SEND_SETTING:
-                        self.wss_session.send(
-                            json.dumps(build_setting_config())
-                        )
-                        self.status = self.MaicaAiStatus.WAIT_SETTING_RESPONSE
-
-            except WebSocketConnectionClosedException as e:
-                import traceback
-                logger.warning("exception is ocurrred (maybe reconnect to fast, will close wss_session): \n{}".format(traceback.format_exc()))
-                self.console_logger.error("!!SUBMOD ERROR when send_message: {}".format(e))
-                self.close_wss_session()
-                self.multi_lock.release()
-            except Exception as e:
-                import traceback
-                logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
-                self.console_logger.error("!!SUBMOD ERROR when send_message: {}".format(e))
-        self.wss_thread = threading.Thread(target=send_message)
-        self.wss_thread.start()
     _pos = 0
+    def build_setting_config(self):
+        self._check_modelconfig()
+        data = {
+            "type": "params",
+            "chat_params": {}
+        }
+        data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz})
+        data['chat_params'].update(self.modelconfig)
+        if self.enable_strict_mode and self.__ws_cookie != "":
+            data['cookie'] = self.__ws_cookie
+        return data
+
     def send_settings(self):
         import json
-        def build_setting_config():
-            self._check_modelconfig()
-            data = {
-                "type": "params",
-                "chat_params": {}
-            }
-            data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz})
-            data['chat_params'].update(self.modelconfig)
-            if self.enable_strict_mode and self.__ws_cookie != "":
-                data['cookie'] = self.__ws_cookie
-            return data
-        data = build_setting_config()
+        data = self.build_setting_config()
         if self.is_connected() and self.Loginer.success:
             logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
             self.SettingSender.start_event(
-                build_setting_config()
+                self.build_setting_config()
             )
             return data
         else:
