@@ -119,9 +119,9 @@ class MaicaAi(ChatBotInterface):
         @classmethod
         def is_1xx(cls, code):
             return 100 <= int(code) - cls.MAIKA_PREFIX <= 199
-        
-        @bot_interface.deprecated
+
         @classmethod
+        @bot_interface.deprecated()
         def is_submod_exception(cls, code):
             return 13400 <= code <= 13499
         
@@ -168,8 +168,8 @@ class MaicaAi(ChatBotInterface):
             IS_SOURCECODE:u"你不应从源码直接安装, 请从Releases界面下载最新发行版."
         }
 
-        @bot_interface.deprecated
         @classmethod
+        @bot_interface.deprecated()
         def get_description(cls, code):
             return cls._descriptions.get(code, u"未知状态码: {}".format(code))
             
@@ -515,6 +515,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         )
         self.MPostalProcessor._external_callback = self.mpostal_callback
 
+        self.AutoReconnector = maica_tasker_sub.AutoReconnector(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="auto_reconnector",
+            manager=self.task_manager
+        )
+        self.AutoReconnector.set_reconnect_func(self.init_connect)
+
+
     @property
     def enable_strict_mode(self):
         return self._enable_strict_mode
@@ -767,12 +775,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
 
     def init_connect(self):
+        if self.auto_reconnect:
+            self.AutoReconnector.enable()
         import threading
         threading.Thread(target=self._init_connect).start()
         
-
-    
-    def _init_connect(self):
+    def _init_ws_client(self):
+        if self.task_manager.ws_client:
+            return
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         if self.multi_lock.locked():
@@ -786,9 +796,12 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                                                   , on_close=self._on_close)
         self.wss_session = self.task_manager.ws_client
         self.wss_session.ping_payload = "PING"
-        self.task_manager.reset_all_task()
-        #self.Loginer.login(self.ciphertext)
+        return True
+
+    def _init_connect(self):
+        self._init_ws_client()
         try:
+            self.task_manager.reset_all_task()
             self.task_manager.ws_client.run_forever()
         except Exception as e:
             import traceback
@@ -842,7 +855,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.task_manager.ws_client.keep_running if self.task_manager.ws_client else False #\
             #or self.wss_thread.is_alive() if self.wss_thread else False
 
-    @bot_interface.deprecated
+    @bot_interface.deprecated()
     def get_status_description(self):
         """返回maica当前状态描述"""
         return self.MaicaAiStatus.get_description(self.status)
@@ -1043,7 +1056,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             processor.reset()
 
     def _on_error(self, wsapp, error):
-        logger.error("MaicaAi::_on_error {}".format(error))
+        self.task_manager._ws_onerror(wsapp, error)
         self.close_wss_session()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):

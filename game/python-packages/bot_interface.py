@@ -29,27 +29,41 @@ import sys
 
 def deprecated(message=None):
     """
-    最简单的兼容Python 2的弃用装饰器
+    装饰器：标记某个方法已被弃用，使用logger.warning记录
+
+    Args:
+        message: 可选的自定义弃用消息
+
+    Usage:
+        @deprecated()
+        def old_method(self):
+            pass
+
+        @deprecated("Use new_method instead")
+        def old_method(self):
+            pass
     """
     def decorator(func):
-        def wrapper(*args, **kwargs):
-            warning_msg = message or "Function '%s' is deprecated" % func.__name__
-            
-            # Python 2/3兼容的警告
-            if PY2:
-                warnings.warn(warning_msg, DeprecationWarning, stacklevel=2)
-            else:
-                warnings.warn(warning_msg, DeprecationWarning, stacklevel=2)
-            logger.warning(warning_msg)
-            return func(*args, **kwargs)
-        
-        # 保持函数属性
-        wrapper.__name__ = func.__name__
-        wrapper.__doc__ = func.__doc__
-        if hasattr(func, '__module__'):
-            wrapper.__module__ = func.__module__
-        
-        return wrapper
+        if PY2:
+            # Python 2 compatible wrapper
+            def wrapper(*args, **kwargs):
+                default_msg = "Call to deprecated function {}.".format(func.__name__)
+                warning_msg = message if message else default_msg
+                logger.warning(warning_msg)
+                return func(*args, **kwargs)
+            wrapper.__name__ = func.__name__
+            wrapper.__doc__ = func.__doc__
+            return wrapper
+        else:
+            # Python 3 compatible wrapper using functools
+            import functools
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                default_msg = "Call to deprecated function {}.".format(func.__name__)
+                warning_msg = message if message else default_msg
+                logger.warning(warning_msg)
+                return func(*args, **kwargs)
+            return wrapper
     return decorator
 class Queue(object):
     def __init__(self):

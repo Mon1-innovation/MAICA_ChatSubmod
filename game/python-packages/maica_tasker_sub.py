@@ -509,3 +509,88 @@ class MAICASettingSendTasker(MaicaWSTask):
         self.logger.debug(
             "[MAICASettingSendTasker] received: {}".format(self.name, event.data.content)
         )
+
+
+class AutoReconnector(MaicaWSTask):
+    """
+    WebSocket自动重连处理器。
+
+    监听WebSocket关闭事件，在连接断开时自动触发重连操作。
+
+    Attributes:
+        _reconnect_func (callable|None): 重连回调函数
+        _enabled (bool): 自动重连是否启用
+    """
+    def __init__(self, task_type, name, manager=None, except_ws_status=...):
+        """
+        初始化自动重连处理器。
+
+        Args:
+            task_type (int): 任务类型
+            name (str): 任务名称
+            manager (MaicaTaskManager): 任务管理器实例
+            except_ws_status: 监听的消息状态列表
+        """
+        super().__init__(task_type, name, manager, except_ws_status)
+        self._reconnect_func = None
+        self._enabled = False
+    def on_event(self, event):
+        """
+        处理任务事件。
+
+        监听websocket_closed事件并触发重连。
+
+        Args:
+            event (MaicaTaskEvent): 任务事件对象
+        """
+        if not self._enabled:
+            return
+        if event.event_type == MAICATASKEVENT_TYPE_TASK:
+            if event.data.name == 'websocket_closed':
+                self.reconnect()
+                self.logger.info("[AutoReconnector] reconnecting...")
+
+
+    def set_reconnect_func(self, func):
+        """
+        设置重连回调函数。
+
+        Args:
+            func (callable): 重连回调函数
+        """
+        self._reconnect_func = func
+
+    def reconnect(self):
+        """
+        执行重连操作。
+
+        调用预设的重连回调函数进行重连。
+
+        Raises:
+            RuntimeError: 如果未设置重连函数
+        """
+        if self._reconnect_func:
+            self._reconnect_func()
+        else:
+            raise RuntimeError("No reconnect function set.")
+
+    def enable(self):
+        """
+        启用自动重连功能。
+
+        启用后，当WebSocket连接关闭时会自动触发重连。
+        """
+        self._enabled = True
+        self.logger.info("[AutoReconnector] auto-reconnect enabled")
+
+    def disable(self):
+        """
+        禁用自动重连功能。
+
+        禁用后，WebSocket连接关闭时不会自动重连。
+        """
+        self._enabled = False
+        self.logger.info("[AutoReconnector] auto-reconnect disabled")
+
+    def reset(self):
+        self._enabled = False

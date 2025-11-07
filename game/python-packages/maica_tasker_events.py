@@ -28,4 +28,4 @@ class GenericData(object):
 
 class WebSocketClosedEvent(MaicaTaskEvent):
     def __init__(self, taskowner, event_type, data):
-        super(WebSocketClosedEvent, self).__init__(taskowner, taskowner, event_type, data)
+        super(WebSocketClosedEvent, self).__init__(taskowner, event_type, data)

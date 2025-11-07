@@ -84,6 +84,9 @@ class MaicaTaskManager(object):
         )
         self._on_event(event)
 
+    def _ws_onerror(self, wsapp, error):
+        default_logger.error("[MaicaTaskManager] WebSocket error: {}".format(error))
+        self.reset_all_task()
     def _on_event(self, event_object):
         """
         将事件分发给任务列表中的所有任务。
