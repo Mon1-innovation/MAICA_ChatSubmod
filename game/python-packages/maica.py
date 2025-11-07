@@ -792,7 +792,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
     def _init_ws_client(self):
         if self.task_manager.ws_client:
-            return
+            if self.task_manager.ws_client.url == self.MaicaProviderManager.get_wssurl_by_id(self.provider_id):
+                return
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         if self.multi_lock.locked():
@@ -917,7 +918,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import json
         data = self.build_setting_config()
         if self.is_connected() and self.Loginer.success:
-            logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
+            logger.debug("send_settings: {}".format(json.dumps(self.build_setting_config())))
             self.SettingSender.start_event(
                 self.build_setting_config()
             )

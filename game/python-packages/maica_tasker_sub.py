@@ -233,6 +233,11 @@ class MAICAUserDataHandler(MaicaWSTask):
             self.id = event.data.content
         elif event.data.status == 'maica_login_nickname':
             self.nickname = event.data.content
+    
+    def reset(self):
+        self.account = None
+        self.id = None
+        self.nickname = None
 
 
 class MTriggerWsHandler(MaicaWSTask):
@@ -413,10 +418,9 @@ class MAICALoginTasker(MaicaWSTask):
                 taskowner=self,
                 event_type=MAICATASKEVENT_TYPE_TASK,
                 data=maica_tasker_events.GenericData(
-                    status='maica_login_successful',
+                    name='maica_login_successful',
                     content={}
-                ),
-                source=self
+                )            
             )
         )
     
@@ -520,7 +524,7 @@ class MAICASettingSendTasker(MaicaWSTask):
         """
         处理任务事件。
 
-        监听 'loginer_ready' 事件，当登录完成后自动调用生成函数并发送配置。
+        监听 'maica_login_successful' 事件，当登录完成后自动调用生成函数并发送配置。
 
         Args:
             event (MaicaTaskEvent): 任务事件对象
@@ -529,10 +533,10 @@ class MAICASettingSendTasker(MaicaWSTask):
             调用父类on_event方法的返回值
         """
         if event.event_type == MAICATASKEVENT_TYPE_TASK and \
-           event.data.name == 'loginer_ready':
+           event.data.name == 'maica_login_successful':
             if self._generate_setting_func is not None:
                 settings = self._generate_setting_func()
-                self.logger.debug("[MAICASettingSendTasker] auto-sending settings on loginer_ready")
+                self.logger.debug("[MAICASettingSendTasker] auto-sending settings on maica_login_successful")
                 self.on_manual_run(settings)
         return super(MAICASettingSendTasker, self).on_event(event)
 
@@ -594,7 +598,7 @@ class AutoReconnector(MaicaWSTask):
         _reconnect_func (callable|None): 重连回调函数
         _enabled (bool): 自动重连是否启用
     """
-    def __init__(self, task_type, name, manager=None, except_ws_status=...):
+    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
         """
         初始化自动重连处理器。
 
@@ -697,7 +701,7 @@ class AutoResumeTasker(MaicaWSTask):
         _enabled (bool): 自动恢复功能是否启用
         _should_resume_func (callable): 判断是否应该恢复会话的回调函数，返回True表示应该恢复
     """
-    def __init__(self, task_type, name, manager=None, except_ws_status=...):
+    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
         """
         初始化自动恢复任务处理器。
 
