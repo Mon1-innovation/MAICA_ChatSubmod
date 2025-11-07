@@ -408,6 +408,17 @@ class MAICALoginTasker(MaicaWSTask):
 
     def on_received(self, event):
         self.success = True
+        self.manager.create_event(
+            MaicaTaskEvent(
+                taskowner=self,
+                event_type=MAICATASKEVENT_TYPE_TASK,
+                data=maica_tasker_events.GenericData(
+                    status='maica_login_successful',
+                    content={}
+                ),
+                source=self
+            )
+        )
     
     def reset(self):
         self.success = False
@@ -548,6 +559,16 @@ class AutoReconnector(MaicaWSTask):
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
             if event.data.name == 'websocket_closed':
                 self.reconnect()
+                self.manager.create_event(
+                    MaicaTaskEvent(
+                        taskowner=self,
+                        event_type=MAICATASKEVENT_TYPE_TASK,
+                        data=maica_tasker_events.GenericData(
+                            name='auto_reconnector_start_reconnect',
+                            content={}
+                        )
+                    )
+                )
                 self.logger.info("[AutoReconnector] reconnecting...")
 
 
@@ -594,3 +615,134 @@ class AutoReconnector(MaicaWSTask):
 
     def reset(self):
         self._enabled = False
+
+
+class AutoResumeTasker(MaicaWSTask):
+    """
+    自动恢复任务处理器。
+
+    监听WebSocket重连事件，在重连成功后自动发送恢复会话请求，
+    用于在连接断开后恢复之前的聊天会话状态。
+
+    工作流程：
+    1. 监听 'auto_reconnector_start_reconnect' 事件，标记进入重连状态
+    2. 监听 'maica_login_successful' 事件，在重连状态下检查是否应该恢复
+    3. 调用 _should_resume_func() 判断是否发送恢复请求
+    4. 监听 'websocket_closed' 事件，重置重连状态
+
+    Attributes:
+        _on_reconnect (bool): 是否处于重连状态
+        _enabled (bool): 自动恢复功能是否启用
+        _should_resume_func (callable): 判断是否应该恢复会话的回调函数，返回True表示应该恢复
+    """
+    def __init__(self, task_type, name, manager=None, except_ws_status=...):
+        """
+        初始化自动恢复任务处理器。
+
+        Args:
+            task_type (int): 任务类型
+            name (str): 任务名称
+            manager (MaicaTaskManager): 任务管理器实例
+            except_ws_status: 监听的消息状态列表
+        """
+        super(AutoResumeTasker, self).__init__(task_type, name, manager, except_ws_status)
+        self._on_reconnect = False
+        self._enabled = False
+        self._should_resume_func = self.nothingbuttrue
+
+    def nothingbuttrue(self):
+        """
+        默认的恢复判断函数。
+
+        始终返回True，表示总是允许恢复会话。
+
+        Returns:
+            bool: 始终返回True
+        """
+        return True
+
+    def on_received(self, event):
+        """
+        处理接收到的任务事件。
+
+        根据不同的事件类型执行相应操作：
+        - maica_login_successful: 登录成功后，如果处于重连状态且功能已启用，
+          调用_should_resume_func()判断后发送恢复会话请求
+        - auto_reconnector_start_reconnect: 标记进入重连状态
+        - websocket_closed: 重置重连状态
+
+        Args:
+            event (MaicaTaskEvent): 任务事件对象
+
+        Returns:
+            调用父类on_received方法的返回值
+        """
+        if not self._enabled:
+            return super(AutoResumeTasker, self).on_received(event)
+
+        if event.data.event_type == MAICATASKEVENT_TYPE_TASK:
+            if event.data.name == 'maica_login_successful':
+                if self._on_reconnect:
+                    if not self._should_resume_func():
+                        self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
+                        return
+                    data = {'type': 'reconn'}
+                    if MAICAWSCookiesHandler.cookie:
+                        data['cookie'] = MAICAWSCookiesHandler.cookie
+                    self.manager.ws_client.send(json.dumps(data))
+                    self.logger.info("[AutoResumeTasker] sent resume request")
+            elif event.data.name == 'auto_reconnector_start_reconnect':
+                self._on_reconnect = True
+                self.logger.debug("[AutoResumeTasker] marked as reconnecting")
+            elif event.data.name == 'websocket_closed':
+                self.reset_on_closed()
+
+        return super(AutoResumeTasker, self).on_received(event)
+
+    def reset_on_closed(self):
+        """
+        在WebSocket连接关闭时重置重连状态。
+
+        将_on_reconnect标志重置为False，准备下一次重连。
+        """
+        self._on_reconnect = False
+        self.logger.debug("[AutoResumeTasker] reset reconnect state")
+
+    def enable(self):
+        """
+        启用自动恢复功能。
+
+        启用后，在WebSocket重连成功时会自动发送恢复会话请求。
+        """
+        self._enabled = True
+        self.logger.info("[AutoResumeTasker] auto-resume enabled")
+
+    def disable(self):
+        """
+        禁用自动恢复功能。
+
+        禁用后，重连成功时不会自动发送恢复会话请求。
+        """
+        self._enabled = False
+        self.logger.info("[AutoResumeTasker] auto-resume disabled")
+
+    def set_should_resume_func(self, func):
+        """
+        设置判断是否应该恢复会话的回调函数。
+
+        该函数会在重连成功后被调用，用于决定是否发送恢复会话请求。
+        如果函数返回False，则跳过本次恢复操作。
+
+        Args:
+            func (callable): 回调函数，无参数，返回bool值。
+                           返回True表示应该恢复会话，False表示跳过恢复。
+
+        Example:
+            def my_resume_check():
+                # 自定义逻辑判断是否应该恢复
+                return some_condition
+
+            tasker.set_should_resume_func(my_resume_check)
+        """
+        self._should_resume_func = func
+        self.logger.debug("[AutoResumeTasker] set custom should_resume_func")

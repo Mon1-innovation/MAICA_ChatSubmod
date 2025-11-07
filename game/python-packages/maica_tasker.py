@@ -67,7 +67,7 @@ class MaicaTaskManager(object):
             event_type=MAICATASKEVENT_TYPE_WS,
             data=WSResponse(message)
         )
-        self._on_event(event)
+        self.create_event(event)
     
     def _ws_onclose(self, wsapp, close_status_code=None, close_msg=None):
         event = maica_tasker_events.WebSocketClosedEvent(
@@ -82,7 +82,7 @@ class MaicaTaskManager(object):
                 }
             )
         )
-        self._on_event(event)
+        self.create_event(event)
 
     def _ws_onerror(self, wsapp, error):
         default_logger.error("[MaicaTaskManager] WebSocket error: {}".format(error))

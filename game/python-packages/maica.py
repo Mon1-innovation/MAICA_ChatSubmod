@@ -522,6 +522,15 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         )
         self.AutoReconnector.set_reconnect_func(self.init_connect)
 
+        self.AutoResumeTasker = maica_tasker_sub.AutoResumeTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="auto_resume_tasker",
+            manager=self.task_manager,
+        )
+        self.AutoResumeTasker.set_should_resume_func(self._should_resume())
+    
+    def _should_resume(self):
+        return len(self.TalkSpilter.sentence_present) > 0
 
     @property
     def enable_strict_mode(self):
