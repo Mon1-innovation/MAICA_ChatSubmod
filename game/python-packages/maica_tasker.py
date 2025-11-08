@@ -214,10 +214,22 @@ class MaicaTask(object):
         self.name = name
         self.status = MaicaTask.MAICATASK_STATUS_READY
         self.manager = manager
-        self.logger = default_logger
         if manager:
             self.manager = manager
             self.manager.register_task(self)
+
+    @property
+    def logger(self):
+        """
+        获取日志记录器。
+
+        Returns:
+            Logger: 当前的默认日志记录器
+
+        每次访问时都会从 default_logger 获取最新的值，
+        确保在 default_logger 更新后所有任务实例都能使用新的 logger。
+        """
+        return default_logger
 
     def on_event(self, event):
         """
@@ -240,7 +252,7 @@ class MaicaTask(object):
         子类可以重写此方法以实现自定义的重置逻辑。
         默认情况下不做任何操作。
         """
-        pass
+        self.status == MaicaTask.MAICATASK_STATUS_READY
 
     def start_event(self, *args, **kwargs):
         """
@@ -321,6 +333,10 @@ class WSResponse(object):
         self.type = ws_response["type"]
         self.timestamp = ws_response["timestamp"]
         self.ws_response = ws_response
+    
+    def __str__(self):
+        return "WSResponse({})".format(self.ws_response)
+
 
 
 class MaicaWSTask(MaicaTask):

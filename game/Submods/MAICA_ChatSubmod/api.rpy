@@ -85,6 +85,9 @@ init 5 python in maica:
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     
     maica.logger = store.mas_submod_utils.submod_log
+    import maica_tasker
+    maica_tasker.default_logger = maica.logger
+
     data = {}
     def change_token(content):
         if store.maica.maica.wss_session is not None and store.maica.maica.is_connected():

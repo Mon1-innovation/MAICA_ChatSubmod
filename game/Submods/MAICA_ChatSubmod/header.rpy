@@ -18,6 +18,7 @@ init -989 python:
 
 default persistent.maica_setting_dict = {
     "auto_reconnect":False,
+    "auto_resume":False,
     "maica_model":None,
     "use_custom_model_config":False,
     "sf_extraction":False,
@@ -36,6 +37,7 @@ init 10 python:
     import logging
     maica_default_dict = {
         "auto_reconnect":False,
+        "auto_resume":False,
         "enable_mf":True,
         "enable_mt":True,
         "use_custom_model_config":False,
@@ -265,8 +267,9 @@ init 10 python:
     def maica_apply_setting(ininit=False):
         import copy
         run_migrations()
-            
+
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
+        store.maica.maica.auto_resume = persistent.maica_setting_dict["auto_resume"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
         else:
@@ -305,7 +308,8 @@ init 10 python:
             renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
             
     def maica_discard_setting():
-        persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica.auto_reconnect 
+        persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica.auto_reconnect
+        persistent.maica_setting_dict["auto_resume"] = store.maica.maica.auto_resume
 
         # 没开42 但是相关设置改变了 证明之前开了42
         if not persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica.modelconfig):
@@ -743,6 +747,12 @@ screen maica_setting():
                 textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
                     action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
                     hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+            hbox:
+                style_prefix "generic_fancy_check"
+                textbutton _("自动恢复会话: [persistent.maica_setting_dict.get('auto_resume')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "auto_resume", True, False)
+                    hovered SetField(_tooltip, "value", _("如果在回复中途被中断, 重连成功后自动恢复之前的聊天会话状态"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"

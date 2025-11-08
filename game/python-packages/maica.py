@@ -8,6 +8,7 @@ import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender
 import websocket
 import maica_mtrigger
 from maica_mtrigger import MTriggerAction
+maica_tasker.default_logger = logger
 websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
 import datetime
@@ -321,12 +322,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.target_lang = self.MaicaAiLang.zh_cn        
         self.modelconfig = {}
         self.reset_stat()
-        self.auto_reconnect = False
+        self._auto_reconnect = False
+        self._auto_resume = False
         self.mspire_category = []
         self.mspire_session = 0
         self.mspire_sample = 250
         self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
-        self._gen_time = 0.0
+        
         self.in_mas = True
         self.provider_id = None
         self.is_outdated = None
@@ -431,23 +433,28 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_ws_error_handler",
             manager=self.task_manager,
-            except_ws_status=[],
-            logger=self.console_logger
+            except_ws_status=[]
         )
         maica_tasker_sub.GeneralWsLogger(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_ws_logger",
             manager=self.task_manager,
+            except_ws_status=[]
+        )
+
+        maica_tasker_sub.GeneralWsConsoleLogger(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_ws_console_logger",
+            manager=self.task_manager,
             except_ws_status=[],
-            logger=self.console_logger
+            console_logger=self.console_logger
         )
 
         maica_tasker_sub.MAICALoopWarnHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maicaloop_warn_handler",
             manager=self.task_manager,
-            except_ws_status=['maica_loop_warn_finished'],
-            logger=self.console_logger
+            except_ws_status=['maica_loop_warn_finished']
         )
 
         self.HistoryStatus = maica_tasker_sub.HistoryStatusHandler(
@@ -477,7 +484,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="login_task",
             manager=self.task_manager,
-            except_ws_status=['maica_connection_established']
+            except_ws_status=['maica_connection_established', 'maica_connection_initiated']
         )
 
         self.SessionReseter = maica_tasker_sub.MAICASessionResetTasker(
@@ -534,6 +541,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return len(self.TalkSpilter.sentence_present) > 0
 
     @property
+    def gen_time(self):
+        return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.occupied_time
+
+    @property
     def enable_strict_mode(self):
         return self._enable_strict_mode
 
@@ -545,7 +556,31 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         else:
             self.WSCookiesTask.disable_cookie()
 
-    
+    @property
+    def auto_reconnect(self):
+        return self._auto_reconnect
+
+    @auto_reconnect.setter
+    def auto_reconnect(self, value):
+        self._auto_reconnect = bool(value)
+        if self._auto_reconnect:
+            self.AutoReconnector.enable()
+        else:
+            self.AutoReconnector.disable()
+
+    @property
+    def auto_resume(self):
+        return self._auto_resume
+
+    @auto_resume.setter
+    def auto_resume(self, value):
+        self._auto_resume = bool(value)
+        if self._auto_resume:
+            self.AutoResumeTasker.enable()
+        else:
+            self.AutoResumeTasker.disable()
+
+
     def reset_stat(self):
         self.stat = {
             "message_count":0,
@@ -785,8 +820,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
 
     def init_connect(self):
-        if self.auto_reconnect:
-            self.AutoReconnector.enable()
         import threading
         threading.Thread(target=self._init_connect).start()
         
@@ -811,8 +844,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _init_connect(self):
         self._init_ws_client()
+        self.Loginer.set_token(self.ciphertext)
+        self.task_manager.reset_all_task()
         try:
-            self.task_manager.reset_all_task()
             self.task_manager.ws_client.run_forever()
         except Exception as e:
             import traceback
@@ -915,6 +949,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return data
 
     def send_settings(self):
+        self.send_mtrigger()
         import json
         data = self.build_setting_config()
         if self.is_connected() and self.Loginer.success:

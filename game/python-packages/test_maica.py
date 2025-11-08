@@ -71,12 +71,8 @@ print(ai.get_emotion('add', "你也太可爱了!"))
 try:
     if not ai.is_connected():
         ai.init_connect()
-        time.sleep(1)
-        ai.Loginer.login(ai.ciphertext)
         while not ai.Loginer.success:
             pass
-        ai.send_settings()
-        time.sleep(3)
 
     if ai.is_in_exception():
         print("Maica ai 连接失败 {}".format(ai.is_in_exception()))

@@ -18,7 +18,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[], logger=None):
+    def __init__(self, task_type, name, manager, except_ws_status=[]):
         """
         初始化错误处理器。
 
@@ -30,7 +30,6 @@ class GeneralWsErrorHandler(MaicaWSTask):
             logger: 日志记录器
         """
         super(GeneralWsErrorHandler, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
-        self.logger = logger
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             self.on_received(event)
@@ -54,6 +53,51 @@ class GeneralWsErrorHandler(MaicaWSTask):
                     self.logger.error(
                         "[GeneralWsErrorHandler] websocket error: " + wspack.content + "\nwebsocket connection closed"
                     )
+class GeneralWsConsoleLogger(MaicaWSTask):
+
+    def __init__(self, task_type, name, manager, except_ws_status=[], console_logger=None):
+        super(GeneralWsConsoleLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        self.console_logger = console_logger
+        self.ovr_welcomemessage = False
+    def on_event(self, event):
+        if event.event_type == MAICATASKEVENT_TYPE_WS:
+            ws = event.data
+            self.on_received(event)
+    def on_received(self, event):
+        """
+        处理接收到的WebSocket消息并记录日志。
+
+        根据消息状态选择相应的日志级别进行记录。
+
+        Args:
+            event (MaicaTaskEvent): WebSocket事件对象
+        """
+        if event.event_type != MAICATASKEVENT_TYPE_WS:
+            return
+        if event.data.status in ['maica_core_streaming_continue']:
+            return
+        if event.data.status == 'maica_connection_initiated' and self.ovr_welcomemessage:
+            event.data.content = 'Websocket connection initiated'
+        else:
+            wspack = event.data
+            if self.console_logger:
+                if wspack.type == 'info':
+                    self.console_logger.info(
+                        "<{}> {}".format(wspack.status, wspack.content)
+                    )
+                elif wspack.type == 'warn':
+                    self.console_logger.warning(
+                        "<{}> {}".format(wspack.status, wspack.content)
+                    )
+                elif wspack.type == 'error':
+                    self.console_logger.error(
+                        "<{}> {}".format(wspack.status, wspack.content)
+                    )
+                else:
+                    self.console_logger.debug(
+                        "<{}> {}".format(wspack.status, wspack.content)
+                    )
+
 
 
 class GeneralWsLogger(MaicaWSTask):
@@ -67,7 +111,7 @@ class GeneralWsLogger(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[], logger=None):
+    def __init__(self, task_type, name, manager, except_ws_status=[]):
         """
         初始化日志记录器。
 
@@ -79,8 +123,6 @@ class GeneralWsLogger(MaicaWSTask):
             logger: 日志记录器
         """
         super(GeneralWsLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
-        if logger:
-            self.logger = logger
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             ws = event.data
@@ -235,6 +277,7 @@ class MAICAUserDataHandler(MaicaWSTask):
             self.nickname = event.data.content
     
     def reset(self):
+        super(MAICAUserDataHandler, self).reset()
         self.account = None
         self.id = None
         self.nickname = None
@@ -340,6 +383,7 @@ class MAICAWSCookiesHandler(MaicaWSTask):
 
     def reset(self):
         """重置Cookie和启用状态。"""
+        super(MAICAWSCookiesHandler, self).reset()
         MAICAWSCookiesHandler._cookie = None
         MAICAWSCookiesHandler._enabled = False
 
@@ -374,6 +418,7 @@ class MAICALoginTasker(MaicaWSTask):
         """
         super(MAICALoginTasker, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.success = False
+        self.__token = ''
 
     def on_manual_run(self, token):
         """
@@ -394,8 +439,12 @@ class MAICALoginTasker(MaicaWSTask):
             raise RuntimeError("MAICALoginTasker: manager is None")
         if self.manager.ws_client is None:
             raise RuntimeError("MAICALoginTasker: manager.ws_client is None")
-        self.logger.info("[MAICALoginTasker] login: {}".format(data))
+        self.logger.info("[MAICALoginTasker] login: {}...".format(data[:15]))
         self.manager.ws_client.send(data)
+
+    def set_token(self, token):
+        self.logger.debug("[MAICALoginTasker] set token: {}...".format(token[:15]))
+        self.__token = token
 
     def login(self, token):
         """
@@ -412,19 +461,23 @@ class MAICALoginTasker(MaicaWSTask):
         super(MAICALoginTasker, self).start_event(token)
 
     def on_received(self, event):
-        self.success = True
-        self.manager.create_event(
-            MaicaTaskEvent(
-                taskowner=self,
-                event_type=MAICATASKEVENT_TYPE_TASK,
-                data=maica_tasker_events.GenericData(
-                    name='maica_login_successful',
-                    content={}
-                )            
+        if event.data.status == 'maica_connection_initiated':
+            self.start_event(self.__token)
+        elif event.data.status == 'maica_connection_established':
+            self.success = True
+            self.manager.create_event(
+                MaicaTaskEvent(
+                    taskowner=self,
+                    event_type=MAICATASKEVENT_TYPE_TASK,
+                    data=maica_tasker_events.GenericData(
+                        name='maica_login_successful',
+                        content={}
+                    )            
+                )
             )
-        )
     
     def reset(self):
+        super(MAICALoginTasker, self).reset()
         self.success = False
 
 
@@ -460,9 +513,9 @@ class MAICASessionResetTasker(MaicaWSTask):
             "chat_session": chat_session,
             "reset": True
         }
-        if MAICAWSCookiesHandler.cookie:
-            data["cookie"] = MAICAWSCookiesHandler.cookie
-        self.manager.ws_client.send(json.dumps(data))
+        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+            data["cookie"] = MAICAWSCookiesHandler._cookie
+        self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
     def on_received(self, event):
         """
@@ -516,9 +569,9 @@ class MAICASettingSendTasker(MaicaWSTask):
         self.logger.debug(
             "[MAICASettingSendTasker] sended: {}".format(request_body)
         )
-        if MAICAWSCookiesHandler.cookie:
-            request_body['cookie'] = MAICAWSCookiesHandler.cookie
-        self.manager.ws_client.send(json.dumps(request_body))
+        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+            request_body['cookie'] = MAICAWSCookiesHandler._cookie
+        self.manager.ws_client.send(json.dumps(request_body, ensure_ascii=False))
 
     def on_event(self, event):
         """
@@ -608,7 +661,7 @@ class AutoReconnector(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status: 监听的消息状态列表
         """
-        super().__init__(task_type, name, manager, except_ws_status)
+        super(AutoReconnector, self).__init__(task_type, name, manager, except_ws_status)
         self._reconnect_func = None
         self._enabled = False
     def on_event(self, event):
@@ -680,6 +733,7 @@ class AutoReconnector(MaicaWSTask):
         self.logger.info("[AutoReconnector] auto-reconnect disabled")
 
     def reset(self):
+        super(AutoReconnector, self).reset()
         self._enabled = False
 
 
@@ -753,9 +807,9 @@ class AutoResumeTasker(MaicaWSTask):
                         self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
                         return
                     data = {'type': 'reconn'}
-                    if MAICAWSCookiesHandler.cookie:
-                        data['cookie'] = MAICAWSCookiesHandler.cookie
-                    self.manager.ws_client.send(json.dumps(data))
+                    if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+                        data['cookie'] = MAICAWSCookiesHandler._cookie
+                    self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
                     self.logger.info("[AutoResumeTasker] sent resume request")
             elif event.data.name == 'auto_reconnector_start_reconnect':
                 self._on_reconnect = True

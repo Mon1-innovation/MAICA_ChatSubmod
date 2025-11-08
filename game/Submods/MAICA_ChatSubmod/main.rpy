@@ -62,16 +62,14 @@ label maica_talking(mspire = False):
             start_time = time.time()
             start_token = ai.stat.get("received_token", 0)
             received_message = ""
-            gentime = 0.0
+            gen_time = 0
             while ai.is_responding() or ai.len_message_queue() > 0 :
-                if ai.is_responding():
-                    gentime = time.time()
-                else:
-                    gentime = ai._gen_time
+                if ai.gen_time > gen_time:
+                    gen_time = ai.gen_time
 
-                store.mas_ptod.write_command("Maica.status:{} | message_queue: {}/{}token | time: {}".format(
-                    ai.status, ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
-                    round(gentime - start_time)
+                store.mas_ptod.write_command("message_queue: {} | token: {} | time: {:.2f}".format(
+                    ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
+                    gen_time
                     ))
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:

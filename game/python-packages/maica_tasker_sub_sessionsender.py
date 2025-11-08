@@ -27,6 +27,7 @@ class ChatLock(object):
         """初始化聊天锁。"""
         self._lock = threading.Lock()
         self.running_info = ""
+        self._acquire_time = None
 
     def acquire(self, blocking=True, timeout=None):
         """
@@ -41,13 +42,17 @@ class ChatLock(object):
         """
         if PY2:
             # Python 2 不支持timeout参数
-            return self._lock.acquire(blocking)
+            result = self._lock.acquire(blocking)
         else:
             # Python 3 支持timeout参数
             if timeout is None:
-                return self._lock.acquire(blocking)
+                result = self._lock.acquire(blocking)
             else:
-                return self._lock.acquire(blocking, timeout)
+                result = self._lock.acquire(blocking, timeout)
+        if result:
+            import time
+            self._acquire_time = time.time()
+        return result
 
     def release(self):
         """
@@ -57,6 +62,7 @@ class ChatLock(object):
         """
         self._lock.release()
         self.running_info = ""
+        self._acquire_time = None
 
     def __enter__(self):
         """
@@ -91,6 +97,19 @@ class ChatLock(object):
             bool: 如果锁被占用返回True，否则返回False
         """
         return self._lock.locked()
+
+    @property
+    def occupied_time(self):
+        """
+        获取锁的占用时间（秒）。
+
+        Returns:
+            float: 如果锁被占用，返回占用时长（秒）；否则返回0
+        """
+        if self._acquire_time is not None:
+            import time
+            return time.time() - self._acquire_time
+        return 0
 
 
 class SessionSenderAndReceiver(MaicaWSTask):
@@ -152,7 +171,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
         # 尝试非阻塞地获取锁，避免竞态条件
         if not SessionSenderAndReceiver.multi_lock.acquire(blocking=False):
             raise RuntimeError("SessionSenderAndReceiver is already processing a request.")
-        self.logger.debug("[{}] start_request args: {}, kwargs: {}".format(self.__class__, args, kwargs))
+        self.logger.debug("[{}] start_request args: {}, kwargs: {}".format(self.__class__.__name__, args, kwargs))
 
         self.processing = True
         SessionSenderAndReceiver.multi_lock.running_info = self.__str__()
@@ -219,6 +238,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
 
         将processing标志设置为False，并释放全局聊天锁。
         """
+        super(SessionSenderAndReceiver, self).reset()
         self.processing = False
         # 释放锁
         if SessionSenderAndReceiver.multi_lock.locked():
@@ -250,10 +270,9 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             'query': query,
             'trigger': trigger
         }
-        if MAICAWSCookiesHandler.cookie:
-            data['cookie'] = MAICAWSCookiesHandler.cookie
-        self.logger.debug("[{}] send data: {}".format(self.__class__, data))
-        taskowner.ws_client.send(json.dumps(data))
+        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+            data['cookie'] = MAICAWSCookiesHandler._cookie
+        taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
 
 
 
@@ -293,9 +312,9 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
             } if len(category) else True,
             "use_cache": MAICAMSpireProcessor.use_cache,
         }
-        if MAICAWSCookiesHandler.cookie:
-            data['cookie'] = MAICAWSCookiesHandler.cookie
-        self.manager.ws_client.send(json.dumps(data))
+        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+            data['cookie'] = MAICAWSCookiesHandler._cookie
+        self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
 
 
@@ -325,8 +344,7 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
             'chat_session': MAICAMPostalProcessor.use_session,
             'postmail': query,
         }
-        if MAICAWSCookiesHandler.cookie:
-            data['cookie'] = MAICAWSCookiesHandler.cookie
-        self.logger.debug("[{}] send data: {}".format(self.__class__, data))
-        self.manager.ws_client.send(json.dumps(data))
+        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+            data['cookie'] = MAICAWSCookiesHandler._cookie
+        self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
