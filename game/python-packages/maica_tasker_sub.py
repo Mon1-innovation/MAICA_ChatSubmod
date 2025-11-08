@@ -866,3 +866,221 @@ class AutoResumeTasker(MaicaWSTask):
         """
         self._should_resume_func = func
         self.logger.debug("[AutoResumeTasker] set custom should_resume_func")
+
+class KeepWsAliveTasker(MaicaWSTask):
+    """
+    WebSocket心跳保活处理器。
+
+    在登录成功后定时发送静默心跳（sping）保持连接活跃。
+    提供显式的ping()方法用于堵塞式获取网络延迟。
+
+    Attributes:
+        _enabled (bool): 心跳是否启用
+        _logged_in (bool): 是否已登录
+        _ping_interval (float): 静默心跳间隔时间（秒）
+        _last_sping_time (float|None): 上次发送静默心跳的时间戳
+        _ping_sent_time (float|None): 显式ping发送的时间戳
+        _latency (float): 最近一次的延迟（毫秒）
+        _timer_thread (threading.Thread|None): 定时器线程
+        _pong_event (threading.Event|None): 用于等待pong响应的事件
+    """
+
+    def __init__(self, task_type, name, manager=None, except_ws_status=['pong'], ping_interval=30.0):
+        """
+        初始化心跳保活处理器。
+
+        Args:
+            task_type (int): 任务类型
+            name (str): 任务名称
+            manager (MaicaTaskManager): 任务管理器实例
+            except_ws_status (list): 监听的消息状态列表，默认监听'pong'
+            ping_interval (float): 静默心跳间隔时间（秒），默认30秒
+        """
+        super(KeepWsAliveTasker, self).__init__(task_type, name, manager, except_ws_status)
+        self._enabled = False
+        self._logged_in = False
+        self._ping_interval = ping_interval
+        self._last_sping_time = None
+        self._ping_sent_time = None
+        self._latency = 0.0
+        self._timer_thread = None
+        self._stop_timer = False
+        import threading
+        self._pong_event = threading.Event()
+
+    def on_event(self, event):
+        """
+        处理任务事件。
+
+        监听登录成功事件和WebSocket关闭事件。
+
+        Args:
+            event (MaicaTaskEvent): 任务事件对象
+        """
+        if event.event_type == MAICATASKEVENT_TYPE_TASK:
+            if event.data.name == 'maica_login_successful':
+                self._logged_in = True
+                if self._enabled:
+                    self._start_timer()
+                    self.logger.info("[KeepWsAliveTasker] started after login")
+            elif event.data.name == 'websocket_closed':
+                self._logged_in = False
+                self._stop_timer_thread()
+                self._pong_event.set()  # 唤醒可能在等待的ping()调用
+                self.logger.debug("[KeepWsAliveTasker] stopped due to websocket closed")
+        elif event.event_type == MAICATASKEVENT_TYPE_WS:
+            if event.data.status == 'pong':
+                self.on_received(event)
+
+    def on_received(self, event):
+        """
+        处理接收到的pong响应。
+
+        计算从发送ping到接收pong的延迟时间，并唤醒等待的线程。
+
+        Args:
+            event (MaicaTaskEvent): WebSocket事件对象
+        """
+        if self._ping_sent_time is not None:
+            import time
+            current_time = time.time()
+            self._latency = (current_time - self._ping_sent_time) * 1000  # 转换为毫秒
+            self.logger.debug("[KeepWsAliveTasker] received pong, latency: {:.2f}ms".format(self._latency))
+            self._ping_sent_time = None
+            self._pong_event.set()  # 唤醒等待pong的线程
+
+    def _start_timer(self):
+        """启动定时器线程，定期发送静默心跳。"""
+        if self._timer_thread is not None and self._timer_thread.is_alive():
+            return
+
+        self._stop_timer = False
+        import threading
+        self._timer_thread = threading.Thread(target=self._timer_loop)
+        self._timer_thread.daemon = True
+        self._timer_thread.start()
+        self.logger.debug("[KeepWsAliveTasker] timer thread started")
+
+    def _stop_timer_thread(self):
+        """停止定时器线程。"""
+        self._stop_timer = True
+        if self._timer_thread is not None:
+            self._timer_thread = None
+        self.logger.debug("[KeepWsAliveTasker] timer thread stopped")
+
+    def _timer_loop(self):
+        """定时器循环，定期发送静默心跳。"""
+        import time
+        while not self._stop_timer and self._enabled and self._logged_in:
+            current_time = time.time()
+
+            # 检查是否需要发送静默心跳
+            if self._last_sping_time is None or (current_time - self._last_sping_time) >= self._ping_interval:
+                self._send_sping()
+                self._last_sping_time = current_time
+
+            # 短暂休眠，避免CPU占用过高
+            time.sleep(1.0)
+
+    def _send_sping(self):
+        """发送静默心跳到服务器（不期望响应）。"""
+        if not self._logged_in or not self.manager or not self.manager.ws_client:
+            return
+
+        try:
+            import json
+            data = {'type': 'sping'}
+            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+                data['cookie'] = MAICAWSCookiesHandler._cookie
+
+            self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
+            self.logger.debug("[KeepWsAliveTasker] sent silent ping (sping)")
+        except Exception as e:
+            self.logger.error("[KeepWsAliveTasker] failed to send sping: {}".format(e))
+
+    def ping(self, timeout=5.0):
+        """
+        显式发送ping请求并堵塞等待pong响应，用于测量网络延迟。
+
+        Args:
+            timeout (float): 等待超时时间（秒），默认5秒
+
+        Returns:
+            float|None: 如果成功接收到pong，返回延迟（毫秒）；否则返回None
+        """
+        if not self._logged_in or not self.manager or not self.manager.ws_client:
+            self.logger.warning("[KeepWsAliveTasker] cannot ping: not logged in or no ws_client")
+            return None
+
+        try:
+            import time
+            import json
+
+            # 重置pong事件
+            self._pong_event.clear()
+
+            # 发送ping
+            data = {'type': 'ping'}
+            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+                data['cookie'] = MAICAWSCookiesHandler._cookie
+
+            self._ping_sent_time = time.time()
+            self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
+            self.logger.debug("[KeepWsAliveTasker] sent explicit ping")
+
+            # 等待pong响应
+            if self._pong_event.wait(timeout):
+                # 成功接收到pong
+                self.logger.debug("[KeepWsAliveTasker] ping successful, latency: {:.2f}ms".format(self._latency))
+                return self._latency
+            else:
+                # 超时
+                self.logger.warning("[KeepWsAliveTasker] ping timeout after {:.1f}s".format(timeout))
+                self._ping_sent_time = None
+                return None
+
+        except Exception as e:
+            self.logger.error("[KeepWsAliveTasker] ping failed: {}".format(e))
+            self._ping_sent_time = None
+            return None
+
+    @property
+    def latency(self):
+        """
+        获取最近一次的延迟（毫秒）。
+
+        Returns:
+            float: 延迟时间（毫秒）
+        """
+        return self._latency
+
+    def enable(self):
+        """
+        启用心跳保活功能。
+
+        如果已登录，则立即启动定时器。
+        """
+        self._enabled = True
+        if self._logged_in:
+            self._start_timer()
+        self.logger.info("[KeepWsAliveTasker] enabled")
+
+    def disable(self):
+        """
+        禁用心跳保活功能。
+
+        停止定时器线程。
+        """
+        self._enabled = False
+        self._stop_timer_thread()
+        self.logger.info("[KeepWsAliveTasker] disabled")
+
+    def reset(self):
+        """重置心跳保活状态。"""
+        super(KeepWsAliveTasker, self).reset()
+        self._logged_in = False
+        self._last_sping_time = None
+        self._ping_sent_time = None
+        self._latency = 0.0
+        self._pong_event.clear()
+        self._stop_timer_thread()

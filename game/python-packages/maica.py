@@ -324,6 +324,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.reset_stat()
         self._auto_reconnect = False
         self._auto_resume = False
+        self._keep_alive = False
         self.mspire_category = []
         self.mspire_session = 0
         self.mspire_sample = 250
@@ -442,7 +443,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             except_ws_status=[]
         )
 
-        maica_tasker_sub.GeneralWsConsoleLogger(
+        self.WSConsoleLogger = maica_tasker_sub.GeneralWsConsoleLogger(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_ws_console_logger",
             manager=self.task_manager,
@@ -536,7 +537,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             manager=self.task_manager,
         )
         self.AutoResumeTasker.set_should_resume_func(self._should_resume())
-    
+
+        self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="keep_ws_alive",
+            manager=self.task_manager,
+            ping_interval=150.0
+        )
+
     def _should_resume(self):
         return len(self.TalkSpilter.sentence_present) > 0
 
@@ -579,6 +587,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.AutoResumeTasker.enable()
         else:
             self.AutoResumeTasker.disable()
+
+    @property
+    def keep_alive(self):
+        return self._keep_alive
+
+    @keep_alive.setter
+    def keep_alive(self, value):
+        self._keep_alive = bool(value)
+        if self._keep_alive:
+            self.KeepAliveTasker.enable()
+        else:
+            self.KeepAliveTasker.disable()
 
 
     def reset_stat(self):
@@ -840,6 +860,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                                                   , on_close=self._on_close)
         self.wss_session = self.task_manager.ws_client
         self.wss_session.ping_payload = "PING"
+        self.WSConsoleLogger.ovr_welcomemessage = self.target_lang == self.MaicaAiLang.en
         return True
 
     def _init_connect(self):

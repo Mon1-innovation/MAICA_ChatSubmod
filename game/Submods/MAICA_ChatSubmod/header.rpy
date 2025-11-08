@@ -19,6 +19,7 @@ init -989 python:
 default persistent.maica_setting_dict = {
     "auto_reconnect":False,
     "auto_resume":False,
+    "keep_alive":True,
     "maica_model":None,
     "use_custom_model_config":False,
     "sf_extraction":False,
@@ -38,6 +39,7 @@ init 10 python:
     maica_default_dict = {
         "auto_reconnect":False,
         "auto_resume":False,
+        "keep_alive":True,
         "enable_mf":True,
         "enable_mt":True,
         "use_custom_model_config":False,
@@ -270,6 +272,7 @@ init 10 python:
 
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         store.maica.maica.auto_resume = persistent.maica_setting_dict["auto_resume"]
+        store.maica.maica.keep_alive = persistent.maica_setting_dict["keep_alive"]
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
         else:
@@ -310,6 +313,7 @@ init 10 python:
     def maica_discard_setting():
         persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica.auto_reconnect
         persistent.maica_setting_dict["auto_resume"] = store.maica.maica.auto_resume
+        persistent.maica_setting_dict["keep_alive"] = store.maica.maica.keep_alive
 
         # 没开42 但是相关设置改变了 证明之前开了42
         if not persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica.modelconfig):
@@ -753,6 +757,12 @@ screen maica_setting():
                 textbutton _("自动恢复会话: [persistent.maica_setting_dict.get('auto_resume')]"):
                     action ToggleDict(persistent.maica_setting_dict, "auto_resume", True, False)
                     hovered SetField(_tooltip, "value", _("如果在回复中途被中断, 重连成功后自动恢复之前的聊天会话状态"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+            hbox:
+                style_prefix "generic_fancy_check"
+                textbutton _("保持连接活跃: [persistent.maica_setting_dict.get('keep_alive')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "keep_alive", True, False)
+                    hovered SetField(_tooltip, "value", _("定期发送心跳包保持WebSocket连接活跃, 并检测网络延迟"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
