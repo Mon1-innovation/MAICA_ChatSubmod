@@ -5,7 +5,16 @@ MAICA任务子模块 - WebSocket任务的具体实现
 """
 
 from maica_tasker import *
+import time
+import threading
+import json
+from maica_mtrigger import MTriggerAction
 
+
+class GeneralTaskEventLogger(MaicaTask):
+    def on_event(self, event):
+        if event.event_type == MAICATASKEVENT_TYPE_TASK:
+            self.logger.debug("[GeneralTaskEventLogger] {}".format(event))
 
 class GeneralWsErrorHandler(MaicaWSTask):
     """
@@ -294,7 +303,7 @@ class MTriggerWsHandler(MaicaWSTask):
         manager: 触发器管理器实例
     """
 
-    def __init__(self, task_type, name, manager, mt_manager):
+    def __init__(self, task_type, name, manager):
         """
         初始化触发器处理器。
 
@@ -302,13 +311,15 @@ class MTriggerWsHandler(MaicaWSTask):
             task_type (int): 任务类型
             name (str): 任务名称
             manager (MaicaTaskManager): WebSocket任务管理器实例
-            mt_manager: 触发器管理器实例
         """
         super(MTriggerWsHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=['maica_mtrigger_trigger']
         )
-        self.mt_manager = mt_manager  # 覆盖为触发器管理器
+        self._trigger_func = self.none_triggered_func
+    
+    def none_triggered_func(self, name, datadict):
+        pass
 
     def on_received(self, event):
         """
@@ -320,16 +331,14 @@ class MTriggerWsHandler(MaicaWSTask):
             event (MaicaTaskEvent): WebSocket事件对象
         """
         self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(event.data.content))
-        if event.data.status == 'maica_mtrigger_trigger':
-            import json
-            from maica_mtrigger import MTriggerAction
+        for item in list(event.data.content.keys()):
+            try:
+                self._trigger_func(item, event.data.content[item])
+            except Exception as e:
+                self.logger.error("[MTriggerWsHandler] Error processing trigger {}: {}".format(item, e))
 
-            data = json.loads(event.data.content)
-            for item in data:
-                self.logger.debug("[MTriggerWsHandler] received trigger: {}".format(item))  
-                self.mt_manager.triggered(item, data[item])
-            self.mt_manager.run_trigger(MTriggerAction.instant)
-
+    def set_trigger_function(self, func):
+        self._trigger_func = func
 
 class MAICAWSCookiesHandler(MaicaWSTask):
     """
@@ -654,6 +663,7 @@ class AutoReconnector(MaicaWSTask):
     Attributes:
         _reconnect_func (callable|None): 重连回调函数
         _enabled (bool): 自动重连是否启用
+        _reconnect_delay (float): 重连延迟时间（秒）
     """
     def __init__(self, task_type, name, manager=None, except_ws_status=[]):
         """
@@ -668,6 +678,7 @@ class AutoReconnector(MaicaWSTask):
         super(AutoReconnector, self).__init__(task_type, name, manager, except_ws_status)
         self._reconnect_func = None
         self._enabled = False
+        self._reconnect_delay = 2.0
     def on_event(self, event):
         """
         处理任务事件。
@@ -714,7 +725,10 @@ class AutoReconnector(MaicaWSTask):
             RuntimeError: 如果未设置重连函数
         """
         if self._reconnect_func:
-            self._reconnect_func()
+            def _delayed_reconnect():
+                time.sleep(self._reconnect_delay)
+                self._reconnect_func()
+            threading.Thread(target=_delayed_reconnect).start()
         else:
             raise RuntimeError("No reconnect function set.")
 
@@ -738,7 +752,6 @@ class AutoReconnector(MaicaWSTask):
 
     def reset(self):
         super(AutoReconnector, self).reset()
-        self._enabled = False
 
 
 class AutoResumeTasker(MaicaWSTask):

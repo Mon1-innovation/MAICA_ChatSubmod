@@ -149,6 +149,7 @@ init 5 python in maica:
     @store.mas_submod_utils.functionplugin("_quit", )
     def clear_maica():
         maica.auto_reconnect = False
+        maica.AutoReconnector.disable()
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()

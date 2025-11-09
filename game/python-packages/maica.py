@@ -430,6 +430,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         #task
         self.task_manager = maica_tasker.MaicaTaskManager()
 
+
+        maica_tasker_sub.GeneralTaskEventLogger(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_NORMAL,
+            name="general_task_event_logger",
+            manager=self.task_manager
+        )
+
         maica_tasker_sub.GeneralWsErrorHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_ws_error_handler",
@@ -468,12 +475,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             name="maica_user_data_handler",
             manager=self.task_manager
         )
-        maica_tasker_sub.MTriggerWsHandler(
+
+        self.MTriggerTasker = maica_tasker_sub.MTriggerWsHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mtrigger_ws_handler",
             manager=self.task_manager,
-            mt_manager=self.mtrigger_manager
         )
+        self.MTriggerTasker.set_trigger_function(self.mtrigger_manager.triggered)
+
         self.WSCookiesTask = maica_tasker_sub.MAICAWSCookiesHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maica_ws_cookies_handler",
@@ -506,14 +515,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_chat_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
         )
         self.ChatProcessor._external_callback = self.general_chat_callback
         self.MSpireProcessor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mspire_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
         )
         self.MSpireProcessor._external_callback = self.general_chat_callback
         self.MPostalProcessor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
@@ -530,6 +539,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             manager=self.task_manager
         )
         self.AutoReconnector.set_reconnect_func(self.init_connect)
+        self.AutoReconnector._reconnect_delay = 0.5
 
         self.AutoResumeTasker = maica_tasker_sub.AutoResumeTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -570,10 +580,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     @auto_reconnect.setter
     def auto_reconnect(self, value):
-        if value:
-            self.AutoReconnector.enable()
-        else:
-            self.AutoReconnector.disable()
+    #    if value:
+    #        self.AutoReconnector.enable()
+    #    else:
+    #        self.AutoReconnector.disable()
         self._auto_reconnect = value
 
     @property
@@ -582,10 +592,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     @auto_resume.setter
     def auto_resume(self, value):
-        if self._auto_resume:
-            self.AutoResumeTasker.enable()
-        else:
-            self.AutoResumeTasker.disable()
+    #    if self._auto_resume:
+    #        self.AutoResumeTasker.enable()
+    #    else:
+    #        self.AutoResumeTasker.disable()
         self._auto_resume = value
 
     @property
@@ -595,10 +605,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     @keep_alive.setter
     def keep_alive(self, value):
         self._keep_alive = bool(value)
-        if self._keep_alive:
-            self.KeepAliveTasker.enable()
-        else:
-            self.KeepAliveTasker.disable()
+    #    if self._keep_alive:
+    #        self.KeepAliveTasker.enable()
+    #    else:
+    #        self.KeepAliveTasker.disable()
 
 
     def reset_stat(self):
@@ -867,6 +877,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self._init_ws_client()
         self.Loginer.set_token(self.ciphertext)
         self.task_manager.reset_all_task()
+        if self.auto_reconnect:
+            self.AutoReconnector.enable()
         try:
             self.task_manager.ws_client.run_forever()
         except Exception as e:
@@ -1003,7 +1015,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                     res = self.MoodStatus.analyze(res)
                     emote = self.MoodStatus.get_emote()
                     self._append_to_message_list(emote,res)
-        elif event.data.status == "maica_core_complete":
+        elif event.data.status == "maica_chat_loop_finished":
             self._in_mspire = False
             talks = self.TalkSpilter.announce_stop()
             for item in talks:
@@ -1023,14 +1035,14 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _on_error(self, wsapp, error):
         self.task_manager._ws_onerror(wsapp, error)
-        self.close_wss_session()
+        self.task_manager.ws_client.close()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
         self.__ws_cookie = ""
         if self.multi_lock.locked():
             self.multi_lock.release()
-        self.close_wss_session()
+        self.task_manager.ws_client.close()
         self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         
@@ -1294,16 +1306,16 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def close_wss_session(self):
         """
-        关闭WebSocket会话。
-        
+        关闭WebSocket会话。这会自动关闭自动重连。
+
         Args:
             无参数。
-        
+
         Returns:
             无返回值。
-        
-        """
 
+        """
+        self.AutoReconnector.disable()
         if self.task_manager.ws_client:
             self.task_manager.close_ws()
     def del_mtrigger(self):

@@ -39,6 +39,9 @@ class GenericData(object):
     def __init__(self, name, content):
         self.name = name
         self.content = content
+    
+    def __str__(self):
+        return "GenericData(name='{}', content='{}')".format(self.name, self.content)
 
 class WebSocketClosedEvent(MaicaTaskEvent):
     def __init__(self, taskowner, event_type, data):

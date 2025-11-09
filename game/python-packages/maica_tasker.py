@@ -1,5 +1,6 @@
 import websocket
 import maica_tasker_events
+import traceback
 # 常量定义：WebSocket事件类型
 MAICATASKEVENT_TYPE_WS = 0
 MAICATASKEVENT_TYPE_TASK = 1
@@ -86,6 +87,8 @@ class MaicaTaskManager(object):
 
     def _ws_onerror(self, wsapp, error):
         default_logger.error("[MaicaTaskManager] WebSocket error: {}".format(error))
+        if hasattr(error, '__traceback__'):
+            default_logger.error(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
         self.reset_all_task()
     def _on_event(self, event_object):
         """
