@@ -558,11 +558,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     @enable_strict_mode.setter
     def enable_strict_mode(self, value):
-        self._enable_strict_mode = bool(value)
-        if self._enable_strict_mode:
+        if value:
             self.WSCookiesTask.enable_cookie()
         else:
             self.WSCookiesTask.disable_cookie()
+        self._enable_strict_mode = value
 
     @property
     def auto_reconnect(self):
@@ -570,11 +570,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     @auto_reconnect.setter
     def auto_reconnect(self, value):
-        self._auto_reconnect = bool(value)
-        if self._auto_reconnect:
+        if value:
             self.AutoReconnector.enable()
         else:
             self.AutoReconnector.disable()
+        self._auto_reconnect = value
 
     @property
     def auto_resume(self):
@@ -582,11 +582,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     @auto_resume.setter
     def auto_resume(self, value):
-        self._auto_resume = bool(value)
         if self._auto_resume:
             self.AutoResumeTasker.enable()
         else:
             self.AutoResumeTasker.disable()
+        self._auto_resume = value
 
     @property
     def keep_alive(self):
@@ -1328,7 +1328,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "content": self.mtrigger_manager.build_data(MTriggerMethod.table)
             }
             #requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
-            time.sleep(0.5)
             res = requests.post(
                 self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "trigger",
                 json = content,

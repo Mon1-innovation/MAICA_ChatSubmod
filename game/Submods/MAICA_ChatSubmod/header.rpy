@@ -271,8 +271,20 @@ init 10 python:
         run_migrations()
 
         store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
+        if store.maica.maica.auto_reconnect:
+            store.maica.maica.AutoReconnector.enable()
+        else:
+            store.maica.maica.AutoReconnector.disable()
         store.maica.maica.auto_resume = persistent.maica_setting_dict["auto_resume"]
+        if store.maica.maica.auto_resume:
+            store.maica.maica.AutoResumeTasker.enable()
+        else:
+            store.maica.maica.AutoResumeTasker.disable()
         store.maica.maica.keep_alive = persistent.maica_setting_dict["keep_alive"]
+        if store.maica.maica.keep_alive:
+            store.maica.maica.KeepAliveTasker.enable()
+        else:
+            store.maica.maica.KeepAliveTasker.disable()
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
         else:
@@ -297,6 +309,10 @@ init 10 python:
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
+        if store.maica.maica.enable_strict_mode:
+            store.maica.maica.WSCookiesTask.enable_cookie()
+        else:
+            store.maica.maica.WSCookiesTask.disable_cookie()
         store.maica.maica.tz = persistent.maica_setting_dict["tz"]
         store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica.mtrigger_manager.output_settings())
         store.mas_submod_utils.getAndRunFunctions()

@@ -291,7 +291,7 @@ class MTriggerWsHandler(MaicaWSTask):
     将其传递给触发器管理器进行处理。
 
     Attributes:
-        manager: 触发器管理器实例（注意：此处覆盖了父类的task_manager）
+        manager: 触发器管理器实例
     """
 
     def __init__(self, task_type, name, manager, mt_manager):
@@ -319,12 +319,14 @@ class MTriggerWsHandler(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
+        self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(event.data.content))
         if event.data.status == 'maica_mtrigger_trigger':
             import json
             from maica_mtrigger import MTriggerAction
 
             data = json.loads(event.data.content)
             for item in data:
+                self.logger.debug("[MTriggerWsHandler] received trigger: {}".format(item))  
                 self.mt_manager.triggered(item, data[item])
             self.mt_manager.run_trigger(MTriggerAction.instant)
 
@@ -389,10 +391,12 @@ class MAICAWSCookiesHandler(MaicaWSTask):
 
     def enable_cookie(self):
         """启用Cookie返回。"""
+        self.logger.debug("[MAICAWSCookiesHandler] enable cookie")
         MAICAWSCookiesHandler._enabled = True
 
     def disable_cookie(self):
         """禁用Cookie返回。"""
+        self.logger.debug("[MAICAWSCookiesHandler] disable cookie")
         MAICAWSCookiesHandler._enabled = False
 
 

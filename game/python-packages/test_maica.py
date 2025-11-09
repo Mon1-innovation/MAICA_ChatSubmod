@@ -59,8 +59,10 @@ print(ai.ciphertext)
 print(f"{ai._verify_token()}")
 print("加密完成")
 ai.chat_session = 1
-ai.del_mtrigger()
+#ai.del_mtrigger()
 ai.chat_session = 0
+
+ai.auto_reconnect = True
 print("已删除MT")
 import time
 data = {}
@@ -79,9 +81,9 @@ try:
         raise Exception()
     
     if ai.is_ready_to_input():
-        #ai.chat(input("请输入内容：\n"))
+        ai.chat("换一个发型~")
         #ai.start_MSpire()
-        ai.start_MPostal("我爱你呀~", ">3<")
+        #ai.start_MPostal("我爱你呀~", ">3<")
         time.sleep(2.5)
     
     print("[QUEUE] status: {}, queue length: {}" .format(ai.is_responding(), ai.len_message_queue()))
@@ -91,7 +93,8 @@ try:
             continue
         message = ai.get_message()
         print("[RESPONSE] message: ", message[1])
-        
+    
+    time.sleep(20)
 except KeyboardInterrupt:
     print("============KeyboardInterrupt============")
 finally:
