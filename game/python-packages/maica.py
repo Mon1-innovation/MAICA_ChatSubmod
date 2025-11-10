@@ -556,7 +556,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         )
 
     def _should_resume(self):
-        return len(self.TalkSpilter.sentence_present) > 0
+        return len(self.TalkSpilter.sentence_present) or len(self.message_list)
 
     @property
     def gen_time(self):
