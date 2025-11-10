@@ -29,7 +29,8 @@ class NothingEmoSelector(emotion_analyze_v2.EmoSelector):
             
         return message
 
-
+import maica_tasker
+maica_tasker.default_logger = maica.logger
 ai = maica.MaicaAi("SirrrrrrP", "qwerty")
 
 
@@ -49,46 +50,55 @@ ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
 #ai.enable_mf = False
 #ai.enable_mt = False
-
+ai.enable_strict_mode = True
 ai._ignore_accessable = True
 ai.accessable()
 ai._gen_token("SirrrrrrP", "qwerty", t)
+ai.WSCookiesTask.enable_cookie()
 print(ai.ciphertext)
 print(f"{ai._verify_token()}")
 print("加密完成")
 ai.chat_session = 1
-ai.del_mtrigger()
+#ai.del_mtrigger()
 ai.chat_session = 0
+
+ai.auto_reconnect = True
 print("已删除MT")
 import time
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
 print(ai.get_emotion('add', "你也太可爱了!"))
-raise
 #ai.init_connect()
 try:
     if not ai.is_connected():
         ai.init_connect()
-        time.sleep(3)
-    if ai.is_failed():
-        print("Maica ai 连接失败 {}".format(ai.status))
+        while not ai.Loginer.success:
+            pass
+
+    if ai.is_in_exception():
+        print("Maica ai 连接失败 {}".format(ai.is_in_exception()))
         raise Exception()
     
     if ai.is_ready_to_input():
-        ai.chat(input("请输入内容：\n"))
-        time.sleep(0.5)
-
+        ai.chat("换一个发型~")
+        #ai.start_MSpire()
+        #ai.start_MPostal("我爱你呀~", ">3<")
+        time.sleep(2.5)
+    
+    print("[QUEUE] status: {}, queue length: {}" .format(ai.is_responding(), ai.len_message_queue()))
     while ai.is_responding() or ai.len_message_queue() > 0:
         if ai.len_message_queue() == 0:
             time.sleep(0.5)
             continue
         message = ai.get_message()
         print("[RESPONSE] message: ", message[1])
-        
+    
+    time.sleep(20)
 except KeyboardInterrupt:
     print("============KeyboardInterrupt============")
 finally:
+    print("流程结束")
     ai.close_wss_session()
 
 #history = ai.download_history()

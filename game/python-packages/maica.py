@@ -3,10 +3,12 @@
 from bot_interface import *
 import bot_interface
 import emotion_analyze_v2
+import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender
 
 import websocket
 import maica_mtrigger
 from maica_mtrigger import MTriggerAction
+maica_tasker.default_logger = logger
 websocket._logging._logger = logger
 websocket._logging.enableTrace(False)
 import datetime
@@ -118,8 +120,9 @@ class MaicaAi(ChatBotInterface):
         @classmethod
         def is_1xx(cls, code):
             return 100 <= int(code) - cls.MAIKA_PREFIX <= 199
-        
+
         @classmethod
+        @bot_interface.deprecated()
         def is_submod_exception(cls, code):
             return 13400 <= code <= 13499
         
@@ -165,7 +168,9 @@ class MaicaAi(ChatBotInterface):
             NO_INTERTENT:u"子模组未能联网, 根据 Readme 说明检查安装和网络连接",
             IS_SOURCECODE:u"你不应从源码直接安装, 请从Releases界面下载最新发行版."
         }
+
         @classmethod
+        @bot_interface.deprecated()
         def get_description(cls, code):
             return cls._descriptions.get(code, u"未知状态码: {}".format(code))
             
@@ -314,16 +319,17 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.TalkSpilter = bot_interface.TalkSplitV2()
         self._current_topic = ""
         self.status = self.MaicaAiStatus.WAIT_AVAILABILITY
-        self.target_lang = self.MaicaAiLang.zh_cn
-        self.history_status = None
+        self.target_lang = self.MaicaAiLang.zh_cn        
         self.modelconfig = {}
         self.reset_stat()
-        self.auto_reconnect = False
+        self._auto_reconnect = False
+        self._auto_resume = False
+        self._keep_alive = False
         self.mspire_category = []
         self.mspire_session = 0
         self.mspire_sample = 250
         self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
-        self._gen_time = 0.0
+        
         self.in_mas = True
         self.provider_id = None
         self.is_outdated = None
@@ -333,7 +339,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.tz = "Asia/Shanghai"
         self.__ws_cookie = ""
-        self.enable_strict_mode = False
+        self._enable_strict_mode = False
         self.default_setting = {
             "amt_aggressive": True,
             "deformation": False,
@@ -421,10 +427,190 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 self.flogger.debug(msg)
         maica_mtrigger.logger = logger_both(self.console_logger)
 
+        #task
+        self.task_manager = maica_tasker.MaicaTaskManager()
 
 
+        maica_tasker_sub.GeneralTaskEventLogger(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_NORMAL,
+            name="general_task_event_logger",
+            manager=self.task_manager
+        )
 
-    
+        maica_tasker_sub.GeneralWsErrorHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_ws_error_handler",
+            manager=self.task_manager,
+            except_ws_status=[]
+        )
+        maica_tasker_sub.GeneralWsLogger(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_ws_logger",
+            manager=self.task_manager,
+            except_ws_status=[]
+        )
+
+        self.WSConsoleLogger = maica_tasker_sub.GeneralWsConsoleLogger(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_ws_console_logger",
+            manager=self.task_manager,
+            except_ws_status=[],
+            console_logger=self.console_logger
+        )
+
+        maica_tasker_sub.MAICALoopWarnHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="maicaloop_warn_handler",
+            manager=self.task_manager,
+            except_ws_status=['maica_loop_warn_finished']
+        )
+
+        self.HistoryStatus = maica_tasker_sub.HistoryStatusHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="history_status_handler",
+            manager=self.task_manager
+        )
+        maica_tasker_sub.MAICAUserDataHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="maica_user_data_handler",
+            manager=self.task_manager
+        )
+
+        self.MTriggerTasker = maica_tasker_sub.MTriggerWsHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="mtrigger_ws_handler",
+            manager=self.task_manager,
+        )
+        self.MTriggerTasker.set_trigger_function(self.mtrigger_manager.triggered)
+
+        self.WSCookiesTask = maica_tasker_sub.MAICAWSCookiesHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="maica_ws_cookies_handler",
+            manager=self.task_manager,
+            except_ws_status=['maica_connection_security_cookie']
+        )
+
+        self.Loginer = maica_tasker_sub.MAICALoginTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="login_task",
+            manager=self.task_manager,
+            except_ws_status=['maica_connection_established', 'maica_connection_initiated']
+        )
+
+        self.SessionReseter = maica_tasker_sub.MAICASessionResetTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="session_reset_task",
+            manager=self.task_manager
+        )
+
+        self.SettingSender = maica_tasker_sub.MAICASettingSendTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="setting_send_task",
+            manager=self.task_manager,
+            except_ws_status=['maica_params_accepted']
+        )
+        self.SettingSender.set_generate_setting_func(self.build_setting_config)
+
+        self.ChatProcessor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="general_chat_processor",
+            manager=self.task_manager,
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+        )
+        self.ChatProcessor._external_callback = self.general_chat_callback
+        self.MSpireProcessor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="mspire_processor",
+            manager=self.task_manager,
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+        )
+        self.MSpireProcessor._external_callback = self.general_chat_callback
+        self.MPostalProcessor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="mpostal_processor",
+            manager=self.task_manager,
+            except_ws_status=['maica_core_nostream_reply', 'maica_chat_loop_finished']
+        )
+        self.MPostalProcessor._external_callback = self.mpostal_callback
+
+        self.AutoReconnector = maica_tasker_sub.AutoReconnector(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="auto_reconnector",
+            manager=self.task_manager
+        )
+        self.AutoReconnector.set_reconnect_func(self.init_connect)
+        self.AutoReconnector._reconnect_delay = 0.5
+
+        self.AutoResumeTasker = maica_tasker_sub.AutoResumeTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="auto_resume_tasker",
+            manager=self.task_manager,
+        )
+        self.AutoResumeTasker.set_should_resume_func(self._should_resume())
+
+        self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="keep_ws_alive",
+            manager=self.task_manager,
+            ping_interval=150.0
+        )
+
+    def _should_resume(self):
+        return len(self.TalkSpilter.sentence_present) or len(self.message_list)
+
+    @property
+    def gen_time(self):
+        return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.occupied_time
+
+    @property
+    def enable_strict_mode(self):
+        return self._enable_strict_mode
+
+    @enable_strict_mode.setter
+    def enable_strict_mode(self, value):
+        if value:
+            self.WSCookiesTask.enable_cookie()
+        else:
+            self.WSCookiesTask.disable_cookie()
+        self._enable_strict_mode = value
+
+    @property
+    def auto_reconnect(self):
+        return self._auto_reconnect
+
+    @auto_reconnect.setter
+    def auto_reconnect(self, value):
+    #    if value:
+    #        self.AutoReconnector.enable()
+    #    else:
+    #        self.AutoReconnector.disable()
+        self._auto_reconnect = value
+
+    @property
+    def auto_resume(self):
+        return self._auto_resume
+
+    @auto_resume.setter
+    def auto_resume(self, value):
+    #    if self._auto_resume:
+    #        self.AutoResumeTasker.enable()
+    #    else:
+    #        self.AutoResumeTasker.disable()
+        self._auto_resume = value
+
+    @property
+    def keep_alive(self):
+        return self._keep_alive
+
+    @keep_alive.setter
+    def keep_alive(self, value):
+        self._keep_alive = bool(value)
+    #    if self._keep_alive:
+    #        self.KeepAliveTasker.enable()
+    #    else:
+    #        self.KeepAliveTasker.disable()
+
+
     def reset_stat(self):
         self.stat = {
             "message_count":0,
@@ -667,9 +853,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import threading
         threading.Thread(target=self._init_connect).start()
         
-
-    
-    def _init_connect(self):
+    def _init_ws_client(self):
+        if self.task_manager.ws_client:
+            if self.task_manager.ws_client.url == self.MaicaProviderManager.get_wssurl_by_id(self.provider_id):
+                return
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         if self.multi_lock.locked():
@@ -679,12 +866,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
         logger.debug("_init_connect to {}".format(url))
-        self.wss_session = websocket.WebSocketApp(url, on_open=self._on_open, on_message=self._on_message, on_error=self._on_error
+        self.task_manager.ws_client = websocket.WebSocketApp(url, on_message=self.task_manager._ws_onmessage, on_error=self._on_error
                                                   , on_close=self._on_close)
+        self.wss_session = self.task_manager.ws_client
         self.wss_session.ping_payload = "PING"
-        self.status = self.MaicaAiStatus.WAIT_AUTH
+        self.WSConsoleLogger.ovr_welcomemessage = self.target_lang == self.MaicaAiLang.en
+        return True
+
+    def _init_connect(self):
+        self._init_ws_client()
+        self.Loginer.set_token(self.ciphertext)
+        self.task_manager.reset_all_task()
+        if self.auto_reconnect:
+            self.AutoReconnector.enable()
         try:
-            self.wss_session.run_forever()
+            self.task_manager.ws_client.run_forever()
         except Exception as e:
             import traceback
             self.console_logger.error("wss_session.run_forever() failed: {}".format(e))
@@ -711,29 +907,33 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             
     def is_responding(self):
         """返回maica是否正在返回消息"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
+        #return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
+        return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
 
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
-        return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
+        #return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
+        return not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
 
     def is_accessable(self):
         """返回maica是否可用"""
         return self.__accessable
 
+    
     def is_failed(self):
         """返回maica是否处于异常状态"""
-        return self.MaicaAiStatus.is_submod_exception(self.status)\
+        return self.task_manager.is_task_failed()\
             or not self.is_connected()
 
     def is_in_exception(self):
-        return self.MaicaAiStatus.is_submod_exception(self.status)
+        return self.task_manager.is_task_failed()
 
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
-        return self.wss_session.keep_running if self.wss_session else False #\
+        return self.task_manager.ws_client.keep_running if self.task_manager.ws_client else False #\
             #or self.wss_thread.is_alive() if self.wss_thread else False
 
+    @bot_interface.deprecated()
     def get_status_description(self):
         """返回maica当前状态描述"""
         return self.MaicaAiStatus.get_description(self.status)
@@ -749,6 +949,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not ready to input")
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
+        self.MSpireProcessor.start_request(
+            category=self.mspire_category,
+            session=self.mspire_session
+        )
         self._in_mspire = True
     
     def start_MPostal(self, content, title=""):
@@ -757,137 +961,34 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
         self.stat['mpostal_count'] += 1
-        self.senddata_queue.put(
-                {
-                    "header": title,
-                    "content": key_replace(content, chinese_to_english_punctuation),
-                    "bypass_mt": True
-                }
-            )
-        self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL
-        #self._in_mspire = True
-
-
-    def _on_open(self, wsapp):
-        import time, threading, random
-
-        def build_setting_config():
-            self._check_modelconfig()
-            return self.send_settings()
-            
-
-        def send_message():
-            try:
-                import json
-                from websocket import WebSocketConnectionClosedException
-                from maica_mtrigger import MTriggerMethod
-                while True:
-                    if not wsapp.keep_running:
-                        logger.info("websocket is closed")
-                        break
-                    time.sleep(1)
-                    # 消息已进入队列，等待发送
-                    if self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND:
-                        
-                        if PY2:
-                            message = str(self.senddata_queue.get()).decode().strip()
-                        else:
-                            message = str(self.senddata_queue.get()).strip()
-                        self._current_topic = message
-                        dict = {"type": "query","chat_session":self.chat_session, "query":message, "trigger":self.mtrigger_manager.build_data(MTriggerMethod.request)}
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-                        message = json.dumps(dict, ensure_ascii=False) 
-                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND: {}".format(message))
-                        self.message_list.clear()
-                        self.MoodStatus.reset()
-                        self.wss_session.send(
-                            message
-                        )   
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-                    elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE:
-                        dict = {
-                            "type": "query",
-                            "chat_session":self.mspire_session, 
-                            "inspire":{
-                                    "type":self.mspire_type,
-                                    "sample":250,
-                                    "title": random.choice(self.mspire_category),
-                                } if len(self.mspire_category) else True,
-                            "use_cache":self.mspire_use_cache,
-                            }
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: {}".format(dict))
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-
-                        self.wss_session.send(
-                            json.dumps(dict, ensure_ascii=False) 
-                        )
-                    elif self.status == self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL:
-                        #if PY2:
-                        #    message = str(self.senddata_queue.get()).decode().strip()
-                        #else:
-                        #    message = str(self.senddata_queue.get()).strip()
-                        message = self.senddata_queue.get()
-                        dict = {"type": "query", "chat_session":0, "postmail":message}
-                        if self.enable_strict_mode and self.__ws_cookie != "":
-                            dict["cookie"] = self.__ws_cookie
-                        message = json.dumps(dict, ensure_ascii=False) 
-                        logger.debug("_on_open::self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: {}".format(message))
-                        self.wss_session.send(
-                            message
-                        )   
-                        self.status = self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE
-
-                    # 身份验证
-                    elif self.status == self.MaicaAiStatus.WAIT_AUTH:
-                        self.status = self.MaicaAiStatus.WAIT_SERVER_TOKEN
-                        self.wss_session.send(json.dumps({"access_token": self.ciphertext}, ensure_ascii=False))
-                    # 连接已建立，选择模型
-                    elif self.status == self.MaicaAiStatus.SESSION_CREATED:
-                        self.send_settings()
-                        threading.Thread(target=self.send_mtrigger).start()
-                        self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
-                     
-                    # 发送设置, 切记仅在闲置时进行 
-                    elif self.status == self.MaicaAiStatus.SEND_SETTING:
-                        self.wss_session.send(
-                            json.dumps(build_setting_config())
-                        )
-                        self.status = self.MaicaAiStatus.WAIT_SETTING_RESPONSE
-
-            except WebSocketConnectionClosedException as e:
-                import traceback
-                logger.warning("exception is ocurrred (maybe reconnect to fast, will close wss_session): \n{}".format(traceback.format_exc()))
-                self.console_logger.error("!!SUBMOD ERROR when send_message: {}".format(e))
-                self.close_wss_session()
-                self.multi_lock.release()
-            except Exception as e:
-                import traceback
-                logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
-                self.console_logger.error("!!SUBMOD ERROR when send_message: {}".format(e))
-        self.wss_thread = threading.Thread(target=send_message)
-        self.wss_thread.start()
-    _pos = 0
-    def send_settings(self):
-        import json
-        def build_setting_config():
-            self._check_modelconfig()
-            data = {
-                "type": "params",
-                "chat_params": {}
+        self.MPostalProcessor.start_request(
+            query = {
+                "header": title,
+                "content": key_replace(content, chinese_to_english_punctuation),
+                "bypass_mt": True
             }
-            data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz})
-            data['chat_params'].update(self.modelconfig)
-            if self.enable_strict_mode and self.__ws_cookie != "":
-                data['cookie'] = self.__ws_cookie
-            return data
-        data = build_setting_config()
-        if self.is_connected():
-            logger.debug("send_settings: {}".format(json.dumps(build_setting_config())))
-            self.wss_session.send(
-                json.dumps(build_setting_config())
+        )
+    _pos = 0
+    def build_setting_config(self):
+        self._check_modelconfig()
+        data = {
+            "type": "params",
+            "chat_params": {}
+        }
+        data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz})
+        data['chat_params'].update(self.modelconfig)
+        if self.enable_strict_mode and self.__ws_cookie != "":
+            data['cookie'] = self.__ws_cookie
+        return data
+
+    def send_settings(self):
+        self.send_mtrigger()
+        import json
+        data = self.build_setting_config()
+        if self.is_connected() and self.Loginer.success:
+            logger.debug("send_settings: {}".format(json.dumps(self.build_setting_config())))
+            self.SettingSender.start_event(
+                self.build_setting_config()
             )
             return data
         else:
@@ -895,153 +996,70 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return {}
     def _on_message(self, wsapp, message):
         try:
-            self.__on_message(wsapp, message)
+            self.task_manager._ws_onmessage(wsapp, message)
+            if self.update_screen_func:
+                self.update_screen_func(0)
         except Exception as e:
             import traceback
             self.console_logger.debug("!!SUBMOD ERROR when on_message: {}".format(e))
             logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
             logger.error("when processing context: {}".format(message))
-    def __on_message(self, wsapp, message):
-        import json, time
-        data = json.loads(message)
-        if data.get("status", "unknown") in ('maica_connection_initiated'):
-            if self.target_lang == self.MaicaAiLang.en:
-                data['content'] = "Illuminator: MAICA websocket connection initiated."
-        if data.get("status", "unknown") in ('ws_cookie'):
-            logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-                (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
-                data["status"] if "status" in data else "unknown status",
-                data["type"] if "type" in data else "unknown type",
-                data["code"] if "code" in data else "unknown code",
-                "--content filtered--"
-            ))    
-        else:
-            logger.debug("_on_message: S{} received '{}'/'{}'[{}]: {}".format(
-                (seconds_to_hms(data["timestamp"])) if "timestamp" in data else "unknown server timestamp",
-                data["status"] if "status" in data else "unknown status",
-                data["type"] if "type" in data else "unknown type",
-                data["code"] if "code" in data else "unknown code",
-                data["content"] if "content" in data else "unknown content"
-            ))    
-        if data.get("type", False) != "carriage":
-            if data.get("type", "unknown") == "info":
-                self.console_logger.info("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-            elif data.get("type", "unknown") == "warn":
-                self.console_logger.warning("!!MAICA SERVER WARNING: {}".format(data.get("content", "Error: Data frame is received but content is empty")))
-            elif data.get("type", "unknown") == "error":
-                self.console_logger.error("!!MAICA SERVE ERROR: {}".format(data.get("content", "Error: Data frame is received but content is empty")))
-                self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-                self.wss_session.close()
-
-            else:
-                self.console_logger.debug("<{}> {}".format(data.get("status", "Status"), data.get("content", "Error: Data frame is received but content is empty")))
-        if 500 <= int(data.get("code", 200)) < 600:
-            self.console_logger.error("!!MAICA SERVER FATAL: {}-{}".format(data.get("status", "5xxStatus"), data.get("content", "Error: Code 5xx is received but content is empty")))
-            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-            self.wss_session.close()
-        if data["status"] == "maica_history_slice_hint":
-            self.history_status = self.MaicaAiStatus.TOKEN_24000_EXCEEDED
-        elif data["status"] == "maica_history_sliced":
-            self.history_status = self.MaicaAiStatus.TOKEN_MAX_EXCEEDED 
-        # 错误code处理
-        if data.get("status") == "wrong_input":
-            self.console_logger.error("!!SUBMOD ERROR: {}".format("Wrong input, maybe you should check your setting"))
-            self.status = self.MaicaAiStatus.WRONE_INPUT
-            self.wss_session.close()
-        if data.get("status") == "maica_login_denied_rsa":
-            self.console_logger.error("!!SUBMOD ERROR: {}".format("May be wrong password"))
-            self.status = self.MaicaAiStatus.TOKEN_FAILED
-            self.wss_session.close()
-        if data.get("status") == "maica_input_length_exceeded":
-            self.console_logger.error("!!SUBMOD ERROR: {}".format("Content too long!"))
-            self.status = self.MaicaAiStatus.TOOLONG_CONTENT_LENGTH
-            self.wss_session.close()
-        if data["status"] == "maica_login_user":
-            self.user_acc = data["content"]
-            self.console_logger.info("maica: Login as '{}'".format(self.user_acc))
-        if data['status'] == "maica_mtrigger_trigger":
-            try:
-                mtdata = json.loads(data['content'])
-            except:
-                mtdata = data['content']
-            for item in mtdata:      
-                self.mtrigger_manager.triggered(item, mtdata[item])
-            self.mtrigger_manager.run_trigger(MTriggerAction.instant)
-        if data['status'] == "maica_connection_security_cookie":
-            self.__ws_cookie = data['content']
-        if data['status'] == 'maica_session_reset':
-            self.console_logger.info("Session {} reseted".format(self.chat_session))
-            self.status = self.MaicaAiStatus.MESSAGE_DONE
-        if data['status'] == "maica_loop_warn_finished":
-            self.console_logger.error("!!MAICA SERVER ERROR: {}".format(data.get("content")))
-            self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-            self.wss_session.close()
-        ## data处理：
-        ## 当MESSAGE_WAITING_RESPONSE时, 如果收到ping, 证明服务端已发送streaming_done但是我们没收到
-        ## 直接将data.status改写为streaming_done
-        #if self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE and data['status'] == "ping_reaction":
-        #    data['status'] = "streaming_done"
-        #    data['content'] = "streaming_done losted!"
-        #    logger.warning("streaming_done likely losted")
-        #    self.send_to_outside_func("!!SUBMOD WARN: streaming_done maybe losted")
-
-        # 发送令牌，等待回应
-        if self.status == self.MaicaAiStatus.WAIT_SERVER_TOKEN:
-            if data['status'] == "maica_connection_established":
-                self.status = self.MaicaAiStatus.SESSION_CREATED            
-        elif self.status == self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE:
-            self._gen_time = time.time()
-            if data['status'] == "maica_core_streaming_continue":
-                self.stat["received_token"] += 1
-                self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
-                self.TalkSpilter.add_part(data['content'])
-                if len(self.message_list) == 0:
-                    res = self.TalkSpilter.split_present_sentence()
-                    if res:
-                        res = self.MoodStatus.analyze(res)
-                        emote = self.MoodStatus.get_emote()
-                        self._append_to_message_list(emote,res)
-            if data['status'] == "maica_core_nostream_reply": # MPostal
-                 self._append_to_message_list('1eua', self.MoodStatus.analyze(data['content']))
-            if data['status'] == "savefile_notfound":
-                self.status = self.MaicaAiStatus.SAVEFILE_NOTFOUND
-                self.console_logger.error("!!SUBMOD ERROR:savefile not found, please check your savefile is uploaded")
-                self.wss_session.close()
-            if data['status'] == "maica_chat_loop_finished":
-                self._in_mspire = False
-                talks = self.TalkSpilter.announce_stop()
-                for item in talks:
-                    t = self.MoodStatus.analyze(item)
+    def general_chat_callback(self, processor, event):
+        if event.data.status == "maica_core_streaming_continue":
+            self.stat["received_token"] += 1
+            self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
+            self.TalkSpilter.add_part(event.data.content)
+            if len(self.message_list) == 0:
+                res = self.TalkSpilter.split_present_sentence()
+                if res:
+                    res = self.MoodStatus.analyze(res)
                     emote = self.MoodStatus.get_emote()
-                    self._append_to_message_list(emote,t)
-                self.status = self.MaicaAiStatus.MESSAGE_DONE
-                self.MoodStatus.reset()
-                
-        if self.update_screen_func:
-            self.update_screen_func(0)
+                    self._append_to_message_list(emote,res)
+        elif event.data.status == "maica_chat_loop_finished":
+            self._in_mspire = False
+            talks = self.TalkSpilter.announce_stop()
+            for item in talks:
+                t = self.MoodStatus.analyze(item)
+                emote = self.MoodStatus.get_emote()
+                self._append_to_message_list(emote,t)
+            self.status = self.MaicaAiStatus.MESSAGE_DONE
+            self.MoodStatus.reset()
+            # 释放聊天锁，允许下一个聊天请求
+            processor.reset()
+    
+    def mpostal_callback(self, processor, event):
+        if event.data.status == "maica_core_nostream_reply":
+            self._append_to_message_list('1eua', self.MoodStatus.analyze(event.data.content))
+        elif event.data.status == "maica_chat_loop_finished":
+            processor.reset()
+
     def _on_error(self, wsapp, error):
-        logger.error("MaicaAi::_on_error {}".format(error))
-        self.status = self.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED
-        self.close_wss_session()
+        self.task_manager._ws_onerror(wsapp, error)
+        self.task_manager.ws_client.close()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
         self.__ws_cookie = ""
         if self.multi_lock.locked():
             self.multi_lock.release()
-        self.close_wss_session()
+        self.task_manager.ws_client.close()
+        self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         
     def chat(self, message):
+        from maica_mtrigger import MTriggerMethod
         if not self.__accessable:
             return logger.error("Maica is not serving")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
         message = str(message)
-        self.senddata_queue.clear()
-        self.senddata_queue.put(key_replace(message, chinese_to_english_punctuation))
+        self.ChatProcessor.start_request(
+            query=message,
+            session = self.chat_session,
+            trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
+            taskowner = self.task_manager
+        )
         self.stat['message_count'] += 1
-        self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND
 
     def _append_to_message_list(self, emote, message):
         if len(message) == 0:
@@ -1179,14 +1197,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             return logger.error("Maica is not serving")
         import json
         self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
-        dict = {"type": "query", "chat_session":self.chat_session, "reset":True}
-        if self.enable_strict_mode and self.__ws_cookie != "":
-            dict["cookie"] = self.__ws_cookie
-        self.wss_session.send(
-            json.dumps(dict)
-        )
+        self.SessionReseter.start_event(chat_session = self.chat_session)
         self.stat["received_token_by_session"][self.chat_session] = 0
-        self.history_status = None
+        self.HistoryStatus.reset()
 
     def update_workload(self):
         """
@@ -1293,18 +1306,18 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def close_wss_session(self):
         """
-        关闭WebSocket会话。
-        
+        关闭WebSocket会话。这会自动关闭自动重连。
+
         Args:
             无参数。
-        
+
         Returns:
             无返回值。
-        
-        """
 
-        if self.wss_session:
-            self.wss_session.close()
+        """
+        self.AutoReconnector.disable()
+        if self.task_manager.ws_client:
+            self.task_manager.close_ws()
     def del_mtrigger(self):
         import requests
         requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'})
@@ -1327,7 +1340,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 "content": self.mtrigger_manager.build_data(MTriggerMethod.table)
             }
             #requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
-            time.sleep(0.5)
             res = requests.post(
                 self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "trigger",
                 json = content,
@@ -1445,8 +1457,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         
 
 
-    def disable(self, status_code = MaicaAiStatus.CONNECT_PROBLEM):
-        self.status = status_code
+    def disable(self):
         self.__accessable = False
 
 

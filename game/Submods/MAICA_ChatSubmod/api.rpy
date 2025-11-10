@@ -85,6 +85,9 @@ init 5 python in maica:
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     
     maica.logger = store.mas_submod_utils.submod_log
+    import maica_tasker
+    maica_tasker.default_logger = maica.logger
+
     data = {}
     def change_token(content):
         if store.maica.maica.wss_session is not None and store.maica.maica.is_connected():
@@ -146,6 +149,7 @@ init 5 python in maica:
     @store.mas_submod_utils.functionplugin("_quit", )
     def clear_maica():
         maica.auto_reconnect = False
+        maica.AutoReconnector.disable()
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
