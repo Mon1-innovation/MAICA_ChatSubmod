@@ -85,8 +85,8 @@ init 5 python in maica:
     import store
     import maica, os, json
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
-    
     maica.logger = store.mas_submod_utils.submod_log
+
     import maica_tasker
     maica_tasker.default_logger = maica.logger
 
@@ -184,6 +184,7 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        store.maica.maica.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
         import time
         failed = False
         store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))

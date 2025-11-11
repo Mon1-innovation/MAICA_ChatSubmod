@@ -49,7 +49,14 @@ label maica_talking(mspire = False):
                     to_history.who = persistent.playername
                     to_history.what = question
                     _history_list.append(to_history)
-                    ai.chat(question)
+                    if store._maica_selected_visuals:
+                        images = []
+                        for item in store._maica_selected_visuals:
+                            images.append(item['uuid'])
+                        ai.chat(question, images)
+                        store._maica_selected_visuals = []
+                    else:
+                        ai.chat(question)
                     is_retry_before_sendmessage = False
                 else:
                     ai.start_MSpire()
