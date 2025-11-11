@@ -18,7 +18,7 @@ screen maica_vista_filelist(selecting=False):
             return time.time() - item['upload_time'] > 28800
 
         def selected_is_full():
-            ...
+            pass
 
     modal True
     zorder 92
@@ -40,32 +40,36 @@ screen maica_vista_filelist(selecting=False):
                 if store.maica.maica.is_connected():
                     if selecting:
                         if selected_is_full():
-                            textbutton _("每次最多可选择三张图片")
+                            textbutton _("选中这张图片 (数量已满)"):
+                                style "generic_fancy_check_button_disabled"
                         else:
                             textbutton _("选中这张图片")
                     else:
-                        textbutton _("选中这张图片 [[图片已经过期, 请重新上传]")
+                        textbutton _("选中这张图片 (已过期)")
+                            style "generic_fancy_check_button_disabled"
 
-                    if not is_expired(item):
-                        
-                        textbutton _("在服务器上删除这张图片"):
-                            action Function(store.maica.maica.vista_manager.delete, item['uuid'],)
-                    else:
-                        textbutton _("删除这张图片 [[仅删除本地记录]"):
-                            action Function(store.maica.maica.vista_manager.remove, item['uuid'],)
-                        textbutton _("重新上传这张图片"):
-                            action Function(store.maica.maica.vista_manager.reupload, item['uuid'],)
+                    hbox:
+                        style_prefix "maica_check"
+                        if not is_expired(item):
+                            
+                            textbutton _("删除这张图片 (本地和远程)"):
+                                action Function(store.maica.maica.vista_manager.delete, item['uuid'],)
+                        else:
+                            textbutton _("删除这张图片 (仅本地)"):
+                                action Function(store.maica.maica.vista_manager.remove, item['uuid'],)
+                            textbutton _("重新上传这张图片"):
+                                action Function(store.maica.maica.vista_manager.reupload, item['uuid'],)
 
-            hbox:
-                xpos 10
-                style_prefix "confirm"
-                if store.maica.maica.is_connected():
-                    textbutton _("上传新图片"):
-                        action Function(maica_upload_new_image)
-                else:
-                    textbutton _("上传新图片 [[请先登录]")
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            if store.maica.maica.is_connected():
+                textbutton _("上传新图片"):
+                    action Function(maica_upload_new_image)
+            else:
+                textbutton _("上传新图片 (请先登录)")
 
 
-                textbutton _("关闭"):
-                    action Hide("maica_vista_filelist")
+            textbutton _("关闭"):
+                action Hide("maica_vista_filelist")
 
