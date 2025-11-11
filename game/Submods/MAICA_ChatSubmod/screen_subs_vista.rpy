@@ -17,6 +17,9 @@ screen maica_vista_filelist(selecting=False):
                 return True
             return time.time() - item['upload_time'] > 28800
 
+        def selected_is_full():
+            ...
+
     modal True
     zorder 92
 
@@ -35,17 +38,23 @@ screen maica_vista_filelist(selecting=False):
                     text "该文件尚未过期"
                 add item['path']
                 if store.maica.maica.is_connected():
-                    if True:
-                        if not is_expired(item):
-                            textbutton _("选中这张图片")
-                            textbutton _("在服务器上删除这张图片"):
-                                action Function(store.maica.maica.vista_manager.delete, item['uuid'],)
+                    if selecting:
+                        if selected_is_full():
+                            textbutton _("每次最多可选择三张图片")
                         else:
-                            textbutton _("选中这张图片 [[图片已经过期, 请重新上传]")
-                            textbutton _("删除这张图片 [[仅删除本地记录]"):
-                                action Function(store.maica.maica.vista_manager.remove, item['uuid'],)
-                            textbutton _("重新上传这张图片"):
-                                action Function(store.maica.maica.vista_manager.reupload, item['uuid'],)
+                            textbutton _("选中这张图片")
+                    else:
+                        textbutton _("选中这张图片 [[图片已经过期, 请重新上传]")
+
+                    if not is_expired(item):
+                        
+                        textbutton _("在服务器上删除这张图片"):
+                            action Function(store.maica.maica.vista_manager.delete, item['uuid'],)
+                    else:
+                        textbutton _("删除这张图片 [[仅删除本地记录]"):
+                            action Function(store.maica.maica.vista_manager.remove, item['uuid'],)
+                        textbutton _("重新上传这张图片"):
+                            action Function(store.maica.maica.vista_manager.reupload, item['uuid'],)
 
             hbox:
                 xpos 10
