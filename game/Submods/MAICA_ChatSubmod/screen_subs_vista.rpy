@@ -6,6 +6,11 @@ init python:
             store.maica.maica.vista_manager.upload(image)
         else:
             renpy.notify("未选择图片")
+    
+    def remove_if_selected(item):
+        if item in store._maica_selected_visuals:
+            store._maica_selected_visuals.remove(item)
+
 screen maica_vista_filelist(selecting=False):
     python:
         import time
@@ -26,9 +31,6 @@ screen maica_vista_filelist(selecting=False):
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
-
-
-        
             for item in files:
                 text "time: {}".format(item['upload_time'])
                 text "uuid: {}".format(item['uuid'])
@@ -37,9 +39,7 @@ screen maica_vista_filelist(selecting=False):
                 else:
                     text "该文件尚未过期"
                 hbox:
-                    ymaximum 150
-                    xmaximum 200
-                    add item['path']
+                    add Transform(item['path'], size=(200, 200))
                 if store.maica.maica.is_connected():
                     if selecting:
                         if not is_expired(item):
@@ -62,12 +62,13 @@ screen maica_vista_filelist(selecting=False):
                         style_prefix "maica_check"
                         if not is_expired(item):
                             textbutton _("删除这张图片 (本地和远程)"):
-                                action Function(store.maica.maica.vista_manager.delete, item['uuid'],)
+                                action [Function(remove_if_selected, item),
+                                    Function(store.maica.maica.vista_manager.delete, item['uuid'])]
                         else:
                             textbutton _("删除这张图片 (仅本地)"):
-                                action Function(store.maica.maica.vista_manager.remove, item['uuid'],)
+                                action Function(store.maica.maica.vista_manager.remove, item['uuid'])
                             textbutton _("重新上传这张图片"):
-                                action Function(store.maica.maica.vista_manager.reupload, item['uuid'],)
+                                action Function(store.maica.maica.vista_manager.reupload, item['uuid'])
         hbox:
             xpos 10
             style_prefix "confirm"

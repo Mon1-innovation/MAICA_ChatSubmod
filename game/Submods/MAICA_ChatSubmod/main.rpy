@@ -52,7 +52,7 @@ label maica_talking(mspire = False):
                     if store._maica_selected_visuals:
                         images = []
                         for item in store._maica_selected_visuals:
-                            images.append(item['uuid'])
+                            images.append(ai.generate_vista_url(item['uuid']))
                         ai.chat(question, images)
                         store._maica_selected_visuals = []
                     else:

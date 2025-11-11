@@ -957,7 +957,7 @@ screen maica_workload_stat_lite():
         def check_and_update():
             store.maica.maica.update_workload()
     
-    zorder 100
+    zorder 90
     fixed:
         frame:
             xsize 619

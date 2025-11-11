@@ -252,7 +252,7 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
     用于处理常规的聊天请求，支持触发器和自定义会话。
     """
 
-    def process_request(self, query, session, trigger, taskowner, vision=None):
+    def process_request(self, query, session, trigger, taskowner, visions=None):
         """
         处理通用聊天请求。
 
@@ -270,8 +270,8 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             'query': query,
             'trigger': trigger
         }
-        if vision:
-            data['vision'] = vision
+        if visions:
+            data['vision'] = visions
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
         taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))

@@ -680,6 +680,9 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def update_stat(self, new):
         self.stat.update(new)
+    def generate_vista_url(self, uuid):
+        return self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "vista?content={}".format(uuid)
+
     def get_message(self, add_pause = True):
         res = self.message_list.get()
         if len(self.message_list) < 1:
