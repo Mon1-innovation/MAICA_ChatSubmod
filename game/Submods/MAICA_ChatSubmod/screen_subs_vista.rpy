@@ -18,7 +18,7 @@ screen maica_vista_filelist(selecting=False):
             return time.time() - item['upload_time'] > 28800
 
         def selected_is_full():
-            ...
+            return len(store._maica_selected_visuals) >= 3
 
     modal True
     zorder 92
@@ -42,7 +42,12 @@ screen maica_vista_filelist(selecting=False):
                         if selected_is_full():
                             textbutton _("每次最多可选择三张图片")
                         else:
-                            textbutton _("选中这张图片")
+                            if item in store._maica_selected_visuals:
+                                textbutton _("取消选中这张图片"):
+                                    action Function(store._maica_selected_visuals.remove, item)
+                            else:
+                                textbutton _("选中这张图片"):
+                                    action Function(store._maica_selected_visuals.append, item)
                     else:
                         textbutton _("选中这张图片 [[图片已经过期, 请重新上传]")
 

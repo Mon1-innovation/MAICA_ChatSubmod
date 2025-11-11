@@ -20,6 +20,7 @@ default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
 default persistent._maica_send_or_received_mpostals = []
 default persistent._maica_visuals = []
+define _maica_selected_visuals = []
 #{
 #    "raw_title":"",
 #    "raw_content":"",
