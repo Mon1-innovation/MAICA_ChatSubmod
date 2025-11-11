@@ -958,9 +958,9 @@ screen maica_setting():
             
             hbox:
                 style_prefix "maica_check"
-                textbutton _("已上传图片列表"):
+                textbutton _("MVista图片"):
                     action Show("maica_vista_filelist")
-                    hovered SetField(_tooltip, "value", _("查看已上传/过期的图片"))
+                    hovered SetField(_tooltip, "value", _("查看和管理用于MVista的图片"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
