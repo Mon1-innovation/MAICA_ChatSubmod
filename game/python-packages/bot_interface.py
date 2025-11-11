@@ -27,6 +27,9 @@ PY3 = sys.version_info[0] == 3
 import warnings
 import sys
 
+
+
+
 def deprecated(message=None):
     """
     装饰器：标记某个方法已被弃用，使用logger.warning记录

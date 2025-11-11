@@ -3,7 +3,7 @@
 from bot_interface import *
 import bot_interface
 import emotion_analyze_v2
-import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender
+import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender, maica_vista_files_manager
 
 import websocket
 import maica_mtrigger
@@ -426,6 +426,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 logger.debug(msg)
                 self.flogger.debug(msg)
         maica_mtrigger.logger = logger_both(self.console_logger)
+
+        self.vista_manager = maica_vista_files_manager.MAICAVistaFilesManager(
+            base_url=self.MaicaProviderManager.get_api_url_by_id(self.provider_id),
+            access_token=self.ciphertext,
+        )
 
         #task
         self.task_manager = maica_tasker.MaicaTaskManager()
@@ -865,6 +870,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.multi_lock.acquire()
         import websocket
         url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
+        self.vista_manager.base_url = self.MaicaProviderManager.get_api_url_by_id(self.provider_id)
+        self.vista_manager.access_token = self.ciphertext
         logger.debug("_init_connect to {}".format(url))
         self.task_manager.ws_client = websocket.WebSocketApp(url, on_message=self.task_manager._ws_onmessage, on_error=self._on_error
                                                   , on_close=self._on_close)
@@ -1046,7 +1053,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         
-    def chat(self, message):
+    def chat(self, message, visions = None):
         from maica_mtrigger import MTriggerMethod
         if not self.__accessable:
             return logger.error("Maica is not serving")
@@ -1057,7 +1064,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             query=message,
             session = self.chat_session,
             trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
-            taskowner = self.task_manager
+            taskowner = self.task_manager,
+            visions = visions
         )
         self.stat['message_count'] += 1
 

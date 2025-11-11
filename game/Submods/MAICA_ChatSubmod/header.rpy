@@ -885,35 +885,13 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                        #hbox:
-                        #    style_prefix "maica_check"
-                        #    textbutton _("添加MFocus信息"):
-                        #        action [
-                        #                        Hide("maica_setting"),
-                        #                        Function(store.maica_apply_setting),
-                        #                        Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
-                        #                        ]
-                        #        hovered SetField(_tooltip, "value", tooltip_mf_info)
-                        #        unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         style_prefix "maica_check"
                         textbutton _("编辑MFocus信息"):
-                            #action [
-                            #                Hide("maica_setting"),
-                            #                Function(store.maica_apply_setting),
-                            #                Function(renpy.call_in_new_context, "maica_call_from_setting", "maica_mods_preferences")
-                            #                ]
                             action Show("maica_addition_setting")
                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                             unhovered SetField(_tooltip, "value", _tooltip.default)
-
-                        #hbox:
-                        #    style_prefix "maica_check"
-                        #    textbutton _("清除MFocus信息"):
-                        #        action Function(reset_player_information)
-                        #        hovered SetField(_tooltip, "value", tooltip_mf_info)
-                        #        unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         style_prefix "maica_check"
@@ -977,7 +955,13 @@ screen maica_setting():
                     action Show("maica_triggers")
                     hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-
+            
+            hbox:
+                style_prefix "maica_check"
+                textbutton _("已上传图片列表"):
+                    action Show("maica_vista_filelist")
+                    hovered SetField(_tooltip, "value", _("查看已上传/过期的图片"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 frame:
@@ -1131,6 +1115,9 @@ screen maica_input_screen(prompt):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
             
+            textbutton _("选择图片 [[当前已选择x张]"):
+                selected False
+                action Show("maica_vista_imageselect")
             #extbutton _("清空"):
             #   selected False
             #   action Function(maica_input.set_text, "")

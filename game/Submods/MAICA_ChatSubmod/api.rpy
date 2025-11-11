@@ -19,6 +19,7 @@ init -1500 python:
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
 default persistent._maica_send_or_received_mpostals = []
+default persistent._maica_visuals = []
 #{
 #    "raw_title":"",
 #    "raw_content":"",
@@ -121,6 +122,11 @@ init 5 python in maica:
     else:
         maica.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
 
+    if store.persistent._maica_visuals is None:
+        store.persistent._maica_visuals = maica.vista_manager.export_list()
+    else:
+        maica.vista_manager.import_list(store.persistent._maica_visuals)
+
 
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
@@ -153,6 +159,7 @@ init 5 python in maica:
         maica.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
+        store.persistent._maica_visuals = maica.vista_manager.export_list()
         mas_rmEVL("mas_corrupted_persistent")
 
     def check_is_outdated(version_local):
