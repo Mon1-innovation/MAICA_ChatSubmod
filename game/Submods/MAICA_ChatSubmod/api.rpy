@@ -507,7 +507,8 @@ init -700 python:
                 image_path = os.path.join(basedir, file_name_without_extension + '.mms')
                 image_file = None
                 if os.path.exists(image_path):
-                    image_file = image_path
+                    # 将反斜杠转换为正斜杠，以兼容Ren'Py
+                    image_file = image_path.replace('\\', '/')
 
                 # 添加到邮件列表，使用dict格式
                 mail_files.append({

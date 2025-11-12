@@ -219,22 +219,21 @@ label maica_mpostal_read:
             if cur_postal["responsed_status"] != "notupload":
                 continue
             start_time = time.time()
-            ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"])
+            if cur_postal["raw_image"]:  
+                uuid = ai.vista_manager.upload(cur_postal["raw_image"])
+            ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if cur_postal["raw_image"] else None)
             not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
             current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
             ai.console_logger.info("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
-            cur_postal["responsed_status"] = "failed"            
+            cur_postal["responsed_status"] = "failed"        
+            gen_time = 0
             while ai.is_responding() or ai.len_message_queue() > 0 :
-                if ai.is_responding():
-                    gentime = time.time()
-                else:
-                    gentime = ai._gen_time
+                if ai.gen_time > gen_time:
+                    gen_time = ai.gen_time
 
-
-                store.mas_ptod.write_command("Maica.status:{} | time: {}".format(
-                    ai.status, ai.len_message_queue(),
-                    round(gentime - start_time)
+                store.mas_ptod.write_command("time: {:.2f}".format(
+                    gen_time
                     ))
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
@@ -254,15 +253,16 @@ label maica_mpostal_read:
                 cur_postal["responsed_status"] = "received"
                 _return = "success"   
 
-            if cur_postal.get("failed_count", 0) >= 3:
-                cur_postal["responsed_status"] = "fatal"
-                cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 因失败次数过多, 该信件将不会再回复")) + "\n" +cur_postal["responsed_content"]
-                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
-                break
-            else:
-                if "failed_count" not in cur_postal:
-                    cur_postal["failed_count"] = 0
-                cur_postal["failed_count"] += 1
+            if _return != 'success':
+                if cur_postal.get("failed_count", 0) >= 3:
+                    cur_postal["responsed_status"] = "fatal"
+                    cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 因失败次数过多, 该信件将不会再回复")) + "\n" +cur_postal["responsed_content"]
+                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
+                    break
+                else:
+                    if "failed_count" not in cur_postal:
+                        cur_postal["failed_count"] = 0
+                    cur_postal["failed_count"] += 1
 
 
 label maica_mpostal_read.failed:

@@ -965,7 +965,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         )
         self._in_mspire = True
     
-    def start_MPostal(self, content, title=""):
+    def start_MPostal(self, content, title="", visions=None):
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         if not self.is_ready_to_input():
@@ -975,8 +975,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             query = {
                 "header": title,
                 "content": key_replace(content, chinese_to_english_punctuation),
-                "bypass_mt": True
-            }
+                "bypass_mt": True,
+                "bypass_mf": False
+            },
+            visions=visions
         )
     _pos = 0
     def build_setting_config(self):
@@ -1039,7 +1041,11 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     
     def mpostal_callback(self, processor, event):
         if event.data.status == "maica_core_nostream_reply":
-            self._append_to_message_list('1eua', self.MoodStatus.analyze(event.data.content))
+            message = self.MoodStatus.analyze(event.data.content)
+            if len(message) > 0 and message[0] == " ":
+                message = message[1:]
+            message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
+            self.message_list.put(('1eua', message_step1))
         elif event.data.status == "maica_chat_loop_finished":
             processor.reset()
 

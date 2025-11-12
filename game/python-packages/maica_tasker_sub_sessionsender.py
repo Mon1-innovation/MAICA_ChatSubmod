@@ -332,7 +332,7 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
 
     use_session = 0
 
-    def process_request(self, query):
+    def process_request(self, query, visions=None):
         """
         处理MPostal聊天请求。
 
@@ -346,6 +346,8 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
             'chat_session': MAICAMPostalProcessor.use_session,
             'postmail': query,
         }
+        if visions:
+            data['vision'] = visions
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))

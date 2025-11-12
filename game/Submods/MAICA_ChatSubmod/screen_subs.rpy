@@ -846,7 +846,7 @@ screen maica_triggers():
 
 screen maica_mpostals():
     python:
-        import time
+        import time, os
         maica_triggers = store.maica.maica.mtrigger_manager
         preview_len = 200
 
@@ -884,6 +884,9 @@ screen maica_mpostals():
                         text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
                             xalign 0.0
                             style "small_expl_hw"
+                    if postal['raw_image']:
+                        if os.path.exists(postal['raw_image']):
+                            add postal['raw_image']
                     hbox:
                         textbutton _("阅读[player]写的信"):
                             action [

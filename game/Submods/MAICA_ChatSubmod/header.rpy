@@ -572,10 +572,10 @@ screen maica_setting_pane():
                     text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"):
                         style "main_menu_version_l"
 
-            hbox:
-
-                text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
-                    style "main_menu_version_l"
+            if 13400 <= maica.maica.status <= 13499:
+                hbox:
+                    text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
+                        style "main_menu_version_l"
 
             hbox:
 
