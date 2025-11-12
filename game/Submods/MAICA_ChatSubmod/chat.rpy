@@ -1195,7 +1195,7 @@ init 5 python:
             prompt="关于'MVista'",
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_mpostal_replyed')",
+            conditional="renpy.seen_label('maica_mpostal_replyed') or store.maica.maica.stat.get('message_count') >= 5",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
