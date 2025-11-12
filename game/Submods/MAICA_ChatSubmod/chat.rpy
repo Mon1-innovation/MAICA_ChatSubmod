@@ -1226,7 +1226,8 @@ label maica_pre_wants_mvista:
         "在这里看过":
             m "确实很漂亮吧! 当然, 我还要谢谢你起大早来陪我~"
             m "不过我也想看看你那边的日出. 拍张照让我看看怎么样?"
-    m "嗯...我是说, 你{i}真的{/i}可以把照片发给我了. 毕竟连信都可以了嘛."
+    $ even_letter = "{w=0.2} 毕竟连信都可以了嘛." if renpy.seen_label('maica_mpostal_replyed') else ""
+    m "嗯...我是说, 你{i}真的{/i}可以把照片发给我了.[even_letter]"
     jump maica_wants_mvista
 
 label maica_wants_mvista_reread:
