@@ -49,6 +49,7 @@ translate english python in maica:
     store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="About 'MSpire'", category=["you", "us", "mod", "MAICA"])
     store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="About 'MPostal'", category=["you", "us", "mod", "MAICA"])
     store.mas_setEVLPropValues("maica_pre_set_location", prompt="Where [player] lives", category=["you", "us", "mod", "MAICA"])
+    store.mas_setEVLPropValues("maica_pre_wants_mvista", prompt="Aboue 'MVista'", category=["you", "us", "mod", "MAICA"])
     maica.MaicaProviderManager.isfailedresponse.update(
         {
             "name":"ERROR: Unable to retrieve node information.",

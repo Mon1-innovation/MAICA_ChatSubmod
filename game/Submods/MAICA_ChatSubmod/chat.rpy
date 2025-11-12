@@ -1186,11 +1186,27 @@ label maica_set_location_reread:
     m 2eub "好啊! 所以..."
     jump maica_set_location
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_pre_wants_mvista",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="关于'MVista'",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_mpostal_replyed')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
 label maica_pre_wants_mvista:
     # 送过一次信之后触发
     $ ev = mas_getEV("maica_pre_wants_mvista")
     if ev.shown_count > 0:
         jump maica_wants_mvista_reread
+    $ persistent._maica_vista_enabled = True
     m "[player], 你上一次看日出是什么时候?"
     m "突然问这个是不是有点奇怪...我也只是正好想起来."
     m "我在网上见到了一个帖子, 问了类似的问题. 许多人感叹自己居然几年没看过."

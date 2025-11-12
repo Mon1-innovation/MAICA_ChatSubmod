@@ -142,14 +142,15 @@ label maica_reconnect:
 
 label maica_mpostal_load:
     python:
-        if mail_exist(): 
+        if mail_exist():
             import time
             _postals = find_mail_files()
             for item in _postals:
                 persistent._maica_send_or_received_mpostals.append(
                     {
-                        "raw_title": item[0],
-                        "raw_content":item[1],
+                        "raw_title": item["title"],
+                        "raw_content": item["content"],
+                        "raw_image": item["image"],
                         "time": str(time.time()),
                         "responsed_content": "",
                         "responsed_status":"delaying",

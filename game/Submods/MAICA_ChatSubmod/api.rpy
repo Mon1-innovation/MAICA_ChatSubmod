@@ -18,6 +18,7 @@ init -1500 python:
 
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
+default persistent._maica_vista_enabled = False
 default persistent._maica_send_or_received_mpostals = []
 default persistent._maica_visuals = []
 define _maica_selected_visuals = []
@@ -356,7 +357,7 @@ init -700 python:
         """
         查找邮件文件。
 
-        :return: 邮件文件列表，(title, content)
+        :return: 邮件文件列表，dict格式 {"title": str, "content": str, "image": str or None}
         """
 
         basedir = os.path.join(renpy.config.basedir if not renpy.android else ANDROID_MASBASE , "characters")
@@ -409,7 +410,7 @@ init -700 python:
                             os.remove(letter_path)
                         with open(letter_path, "w") as mp_failure_file:
                             mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
-                    
+
                     # 如果chardet未能检测到编码，则使用默认编码（如utf-8）
                     elif encoding is None:
                         #encoding = 'utf-8'
@@ -498,13 +499,29 @@ init -700 python:
                     os.rename(file_path, file_path+"_early")
                     continue
 
-                
+
                 # 去掉后缀添加到结果列表
                 file_name_without_extension = os.path.splitext(filename)[0]
-                mail_files.append((file_name_without_extension, content))
-                
-                # 删除文件
+
+                # 检查是否存在同名的.mms图片文件
+                image_path = os.path.join(basedir, file_name_without_extension + '.mms')
+                image_file = None
+                if os.path.exists(image_path):
+                    image_file = image_path
+
+                # 添加到邮件列表，使用dict格式
+                mail_files.append({
+                    "title": file_name_without_extension,
+                    "content": content,
+                    "image": image_file
+                })
+
+                # 删除邮件文件
                 os.remove(file_path)
+
+                ## 如果存在图片文件，也删除它
+                #if image_file and os.path.exists(image_file):
+                #    os.remove(image_file)
 
         return mail_files
     def has_mail_waitsend():

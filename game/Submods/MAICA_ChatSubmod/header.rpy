@@ -1114,10 +1114,10 @@ screen maica_input_screen(prompt):
             textbutton _("粘贴"):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
-            
-            textbutton _("选择图片 | 当前已选择[len(store._maica_selected_visuals)]张"):
-                selected False
-                action Show("maica_vista_filelist", selecting=True)
+            if persistent._maica_vista_enabled:
+                textbutton _("选择图片 | 当前已选择[len(store._maica_selected_visuals)]张"):
+                    selected False
+                    action Show("maica_vista_filelist", selecting=True)
             #extbutton _("清空"):
             #   selected False
             #   action Function(maica_input.set_text, "")
