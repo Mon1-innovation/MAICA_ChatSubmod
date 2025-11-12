@@ -24,6 +24,43 @@ screen maica_vista_filelist(selecting=False):
 
         def selected_is_full():
             return len(store._maica_selected_visuals) >= 3
+            
+        def get_scaled_size(xy, max_width=600, max_height=300):
+            """等比例缩放图片尺寸（过大则缩小，过小则拉伸）
+
+            Args:
+                xy: 原始尺寸元组 (width, height)
+                max_width: 目标最大宽度
+                max_height: 目标最大高度
+
+            Returns:
+                缩放后的尺寸元组 (width, height)
+            """
+            width, height = xy
+
+            # 计算宽度和高度的缩放比例
+            width_ratio = float(max_width) / float(width)
+            height_ratio = float(max_height) / float(height)
+
+            # 选择较小的比例以确保等比例缩放后两个维度都不超过最大值
+            scale_ratio = min(width_ratio, height_ratio)
+
+            # 计算缩放后的尺寸
+            new_width = int(width * scale_ratio)
+            new_height = int(height * scale_ratio)
+
+            return (new_width, new_height)
+
+        def format_timestamp(timestamp):
+            """将时间戳转换为可读的时间格式
+
+            Args:
+                timestamp: Unix时间戳
+
+            Returns:
+                格式化的时间字符串 (YYYY-MM-DD HH:MM:SS)
+            """
+            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
 
     modal True
     zorder 92
@@ -32,14 +69,14 @@ screen maica_vista_filelist(selecting=False):
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
             for item in files:
-                text "time: {}".format(item['upload_time'])
-                text "uuid: {}".format(item['uuid'])
+                text renpy.substitute(_("上传时间: ")) + "{}".format(format_timestamp(item['upload_time']))
+                text "UUID: {}".format(item['uuid'])
                 if is_expired(item):
                     text "该文件已过期"
                 else:
                     text "该文件尚未过期"
                 hbox:
-                    add Transform(item['path'], size=(200, 200))
+                    add Transform(item['path'], size=get_scaled_size((item['width'], item['height'])))
                 if store.maica.maica.is_connected():
                     if selecting:
                         if not is_expired(item):

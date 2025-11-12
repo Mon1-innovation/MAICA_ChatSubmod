@@ -3,6 +3,7 @@ import time
 import os
 import shutil
 import requests
+import struct
 
 class MAICAVistaFilesManager(object):
     """MVista图片管理器，用于上传、删除、下载图片并管理本地UUID记录"""
@@ -21,6 +22,74 @@ class MAICAVistaFilesManager(object):
         self.cache_path = cache_path
         self.files = []
 
+    @staticmethod
+    def _get_image_size(file_path):
+        """获取图片尺寸（不使用第三方库）
+
+        Args:
+            file_path: 图片文件路径
+
+        Returns:
+            (width, height) 元组，失败时返回 (200, 200)
+        """
+        try:
+            with open(file_path, 'rb') as f:
+                head = f.read(24)
+                if len(head) < 24:
+                    return (200, 200)
+
+                # PNG
+                if head[:8] == b'\x89PNG\r\n\x1a\n':
+                    f.seek(16)
+                    return struct.unpack('>II', f.read(8))
+
+                # JPEG
+                elif head[:2] == b'\xff\xd8':
+                    f.seek(0)
+                    size = 2
+                    ftype = 0
+                    while not 0xc0 <= ftype <= 0xcf or ftype in (0xc4, 0xc8, 0xcc):
+                        f.seek(size, 1)
+                        byte = f.read(1)
+                        while ord(byte) == 0xff:
+                            byte = f.read(1)
+                        ftype = ord(byte)
+                        size = struct.unpack('>H', f.read(2))[0] - 2
+                    f.seek(1, 1)
+                    height, width = struct.unpack('>HH', f.read(4))
+                    return (width, height)
+
+                # GIF
+                elif head[:6] in (b'GIF87a', b'GIF89a'):
+                    return struct.unpack('<HH', head[6:10])
+
+                # BMP
+                elif head[:2] == b'BM':
+                    return struct.unpack('<II', head[18:26])
+
+                # WebP
+                elif head[:4] == b'RIFF' and head[8:12] == b'WEBP':
+                    if head[12:16] == b'VP8 ':
+                        f.seek(26)
+                        width, height = struct.unpack('<HH', f.read(4))
+                        return (width & 0x3fff, height & 0x3fff)
+                    elif head[12:16] == b'VP8L':
+                        f.seek(21)
+                        data = struct.unpack('<I', f.read(4))[0]
+                        width = (data & 0x3fff) + 1
+                        height = ((data >> 14) & 0x3fff) + 1
+                        return (width, height)
+                    elif head[12:16] == b'VP8X':
+                        f.seek(24)
+                        width = struct.unpack('<I', b'\x00' + f.read(3))[0] + 1
+                        height = struct.unpack('<I', b'\x00' + f.read(3))[0] + 1
+                        return (width, height)
+
+        except Exception:
+            pass
+
+        return (200, 200)
+
     @property
     def cache_path(self):
         return self._cache_path
@@ -31,11 +100,20 @@ class MAICAVistaFilesManager(object):
         if value and not os.path.exists(value):
             os.makedirs(value)
 
-    def add(self, uuid, file_path=None, upload_time=None):
+    def add(self, uuid, file_path=None, upload_time=None, width=None, height=None):
         """添加UUID到本地记录（最新的在前）"""
         entry = {"uuid": uuid, "upload_time": upload_time or time.time()}
         if file_path:
             entry["path"] = file_path.replace('\\', '/')
+            # 如果没有提供宽高，尝试从文件读取
+            if width is None or height is None:
+                if os.path.exists(file_path):
+                    width, height = self._get_image_size(file_path)
+                else:
+                    width, height = 200, 200
+        # 如果仍然没有宽高，使用默认值
+        entry["width"] = width if width is not None else 200
+        entry["height"] = height if height is not None else 200
         self.files.insert(0, entry)
 
     def remove(self, identifier):
@@ -68,6 +146,15 @@ class MAICAVistaFilesManager(object):
         for entry in data:
             if "path" in entry:
                 entry["path"] = entry["path"].replace('\\', '/')
+            # 如果没有宽高信息，尝试从文件读取或使用默认值
+            if "width" not in entry or "height" not in entry:
+                if "path" in entry and os.path.exists(entry["path"]):
+                    width, height = self._get_image_size(entry["path"])
+                    entry["width"] = width
+                    entry["height"] = height
+                else:
+                    entry["width"] = entry.get("width", 200)
+                    entry["height"] = entry.get("height", 200)
             self.files.append(entry)
 
     def upload(self, file_path):
