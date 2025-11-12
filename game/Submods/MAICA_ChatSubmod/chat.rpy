@@ -1234,6 +1234,7 @@ label maica_wants_mvista_reread:
     jump maica_wants_mvista
 
 label maica_wants_mvista:
+    m "只需要在'子模组设置'里找到'MVista'图片, 就可以上传给我看了! 对话框底下也有个按钮."
     m "如果你是明信片爱好者, 也可以在下次给我送信的时候, 用'.mms'后缀. 我会记得和信一起看的!"
     m "比如, 日出的照片加上一首小诗? 我也会陪你写一首的!"
     m "再比如, 让我看看你的脸? 当然是如果你不害羞的话, 哈哈~"
