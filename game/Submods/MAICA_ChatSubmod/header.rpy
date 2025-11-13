@@ -25,7 +25,7 @@ default persistent.maica_setting_dict = {
     "sf_extraction":False,
     "chat_session":1,
     "console":True,
-    "dscl_pvn":False
+    "dscl_pvn":True
 }
 default persistent.maica_advanced_setting = {}
 default persistent.maica_advanced_setting_status = {}
@@ -66,7 +66,7 @@ init 10 python:
         "42seed":False,
         "use_anim_background": True,
         "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
-        "dscl_pvn":False
+        "dscl_pvn":True
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
