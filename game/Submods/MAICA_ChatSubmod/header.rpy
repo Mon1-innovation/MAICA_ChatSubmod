@@ -752,6 +752,9 @@ screen maica_setting():
                 textbutton "显示maica_dscl_pvn_notify 0.3":
                     action Show("maica_dscl_pvn_notify", prob=0.3)
                 
+                textbutton "显示maica_dscl_pvn_notify 0.6":
+                    action Show("maica_dscl_pvn_notify", prob=0.6)
+
                 textbutton "显示maica_dscl_pvn_notify 0.9":
                     action Show("maica_dscl_pvn_notify", prob=0.9)
 
