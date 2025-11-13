@@ -1213,8 +1213,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if not self.__accessable:
             return logger.error("Maica is not serving")
         import json
-        self.status = self.MaicaAiStatus.REQUEST_RESET_SESSION
         self.SessionReseter.start_event(chat_session = self.chat_session)
+        self.message_list.clear()
         self.stat["received_token_by_session"][self.chat_session] = 0
         self.HistoryStatus.reset()
 
