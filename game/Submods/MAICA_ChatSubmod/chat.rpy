@@ -1130,8 +1130,8 @@ init 5 python:
             eventlabel="maica_pre_set_location",
             category=["你", "我们", "模组", "MAICA"],
             prompt="[player]的住址",
-            random=False,
-            pool=True,
+            random=True,
+            pool=False,
             conditional="renpy.seen_label('maica_greeting')",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
@@ -1193,8 +1193,8 @@ init 5 python:
             eventlabel="maica_pre_wants_mvista",
             category=["你", "我们", "模组", "MAICA"],
             prompt="关于'MVista'",
-            random=False,
-            pool=True,
+            random=True,
+            pool=False,
             conditional="renpy.seen_label('maica_mpostal_replyed') or mas_getEV('maica_main').shown_count >= 3",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
