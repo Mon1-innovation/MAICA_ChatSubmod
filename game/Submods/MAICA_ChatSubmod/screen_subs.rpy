@@ -1,4 +1,59 @@
 
+screen maica_dscl_pvn_notify(prob = 1.0):
+    modal False
+    zorder 100
+
+    frame:
+        xalign 1.0
+        yalign 0.0
+        xoffset -20
+        yoffset 20
+        xmaximum 400
+        background "#000000cc"
+        padding (15, 15)
+
+        vbox:
+            spacing 10
+            xfill True
+
+            text _("会话质量警告"):
+                style "confirm_prompt"
+                color "#ff6666"
+                size 22
+                xalign 0.5
+
+            text _("看起来似乎当前对话出现了明显的质量下降..."):
+                size 16
+                color "#ffffff"
+                xalign 0.0
+
+            text _("继续聊天通常不能扭转情况...建议清除session后再继续..."):
+                size 16
+                color "#ffffff"
+                xalign 0.0
+
+            text _("劣化概率: {color=#ff6666}[prob:.2%]{/color}"):
+                size 14
+                xalign 0.0
+
+
+            hbox:
+                xalign 0.5
+                spacing 10
+                style_prefix "confirm"
+
+                textbutton _("清除session"):
+                    action [Function(reset_session), Hide("maica_dscl_pvn_notify")]
+
+                textbutton _("忽略"):
+                    action Hide("maica_dscl_pvn_notify")
+
+            text _("{size=-10}此消息将在10秒后自动隐藏..."):
+                color "#aaaaaa"
+                xalign 0.5
+
+    timer 10.0 action Hide("maica_dscl_pvn_notify")
+
 screen maica_log():
     python:
         submods_screen = store.renpy.get_screen("submods", "screens")
@@ -279,6 +334,31 @@ screen maica_advance_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("post_additive", False):
                     use num_bar("post_additive", 200, _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"), "post_additive", 0, 5, sdict=sdict)
+
+            hbox:
+                spacing 5
+                textbutton "dscl_pvn:[persistent.maica_advanced_setting.get('dscl_pvn', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "dscl_pvn"),
+                        ToggleDict(persistent.maica_advanced_setting, "dscl_pvn")]
+                    hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销\n- 我觉得智力正常的人都用不上这种功能才对"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('dscl_pvn')
+            hbox:
+                spacing 5
+                textbutton "pre_astp:[persistent.maica_advanced_setting.get('pre_astp', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "pre_astp"),
+                        ToggleDict(persistent.maica_advanced_setting, "pre_astp")]
+                    hovered SetField(_tooltip, "value", _("禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_aggressive"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('pre_astp')
+            hbox:
+                spacing 5
+                textbutton "post_astp:[persistent.maica_advanced_setting.get('post_astp', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "post_astp"),
+                        ToggleDict(persistent.maica_advanced_setting, "post_astp")]
+                    hovered SetField(_tooltip, "value", _("禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('post_astp')
 
 
         hbox:

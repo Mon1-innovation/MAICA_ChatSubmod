@@ -437,7 +437,14 @@ init 999 python in maica:
                     
 #################################################################################
 
+    def mtrigger_dscl_condition():
+        return False
 
+    def mtrigger_dscl_callback(arg):
+        if not arg[0]:
+            store.renpy.show_screen("maica_dscl_pvn_notify", prob = arg[1])
 
-
-
+    dscl_trigger = MTriggerBase(common_meter_template, "dscl", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
+        description = _("内置 | 聊天劣化提示 (无法禁用)"), method=MTriggerMethod.table,
+        exprop=MTriggerExprop(item_name_zh="sth", item_name_en=""))
+    maica.mtrigger_manager.add_trigger(dscl_trigger)

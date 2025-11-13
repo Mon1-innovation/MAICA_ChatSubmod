@@ -83,6 +83,9 @@ init 10 python:
         "pre_additive":0,
         "post_additive":1,
         "amt_aggressive":True,
+        "dscl_pvn":False,
+        "pre_astp":True,
+        "post_astp":False,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -703,7 +706,7 @@ screen maica_setting():
 
                 text "maica_chr_changed: [maica_chr_changed]"
 
-                text "len(mas_rev_unseen): [len(mas_rev_unseen)] | [mas_rev_unseen]"
+                text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
 
                 text "push_mpostal_read: [has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label('maica_wants_mspire') and renpy.seen_label('maica_wants_mpostal') and not mas_inEVL('maica_mpostal_received') and not mas_inEVL('maica_mpostal_read')]"
 
@@ -745,6 +748,12 @@ screen maica_setting():
                                     Function(store.maica_apply_setting),
                                     Function(store.MASEventList.push, "maica_mpostal_load")
                                 ]
+                
+                textbutton "显示maica_dscl_pvn_notify 0.3":
+                    action Show("maica_dscl_pvn_notify", prob=0.3)
+                
+                textbutton "显示maica_dscl_pvn_notify 0.9":
+                    action Show("maica_dscl_pvn_notify", prob=0.9)
 
             hbox:
                 use divider(_("连接与安全"))

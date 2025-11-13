@@ -330,6 +330,9 @@ class MTriggerWsHandler(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
+        if event.data.status == 'maica_dscl_status':
+            self.logger.debug('[MTriggerWsHandler] received maica_dscl_status')
+            self._trigger_func('dscl', event.data.content)
         self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(event.data.content))
         for item in list(event.data.content.keys()):
             try:
