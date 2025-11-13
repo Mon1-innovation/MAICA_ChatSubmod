@@ -21,6 +21,9 @@ class MAICAVistaFilesManager(object):
         self._cache_path = None
         self.cache_path = cache_path
         self.files = []
+        self.cloud_files = []
+        self._cloud_files_cache_time = 0
+        self._cloud_files_cache_ttl = 240
 
     @staticmethod
     def _get_image_size(file_path):
@@ -100,7 +103,7 @@ class MAICAVistaFilesManager(object):
         if value and not os.path.exists(value):
             os.makedirs(value)
 
-    def add(self, uuid, file_path=None, upload_time=None, width=None, height=None):
+    def add(self, uuid, file_path=None, upload_time=None, width=None, height=None, thumb_path=None):
         """添加UUID到本地记录（最新的在前）"""
         entry = {"uuid": uuid, "upload_time": upload_time or time.time()}
         if file_path:
@@ -114,6 +117,8 @@ class MAICAVistaFilesManager(object):
         # 如果仍然没有宽高，使用默认值
         entry["width"] = width if width is not None else 200
         entry["height"] = height if height is not None else 200
+        if thumb_path:
+            entry["thumb_path"] = thumb_path.replace('\\', '/')
         self.files.insert(0, entry)
 
     def remove(self, identifier):
@@ -135,6 +140,12 @@ class MAICAVistaFilesManager(object):
     def get_uuids(self):
         """获取所有本地存储的UUID"""
         return [f.get("uuid") for f in self.files]
+
+    def get_info(self, uuid):
+        """获取指定UUID的详细信息"""
+        for f in self.files:
+            if f.get("uuid") == uuid:
+                return f
 
     def export_list(self):
         """导出为列表"""
@@ -174,10 +185,22 @@ class MAICAVistaFilesManager(object):
             if result.get('success'):
                 uuid = result.get('content')
                 cached_path = file_path
+                thumb_path = None
                 if self.cache_path:
                     cached_path = os.path.join(self.cache_path, os.path.basename(file_path))
                     shutil.copy2(file_path, cached_path)
-                self.add(uuid, file_path=cached_path)
+                    # 生成缩略图（复制原图）
+                    try:
+                        width, height = self._get_image_size(file_path)
+                        max_side = max(width, height)
+                        if max_side > 500:
+                            thumb_path = os.path.join(self.cache_path, 'thumb_' + os.path.basename(file_path))
+                            shutil.copy2(file_path, thumb_path)
+                    except Exception:
+                        pass
+                self.add(uuid, file_path=cached_path, thumb_path=thumb_path)
+                if self.cloud_files and uuid not in self.cloud_files:
+                    self.cloud_files.append(uuid)
                 return uuid
             raise Exception(result.get('exception'))
 
@@ -221,8 +244,11 @@ class MAICAVistaFilesManager(object):
         if result.get('success'):
             if identifier is None:
                 self.clear()
+                self.cloud_files = []
             else:
                 self.remove(identifier)
+                if self.cloud_files and identifier in self.cloud_files:
+                    self.cloud_files.remove(identifier)
         else:
             raise Exception(result.get('exception'))
 
@@ -243,14 +269,23 @@ class MAICAVistaFilesManager(object):
             raise Exception(result.get('exception'))
         return result.get('content')
 
-    def list_remote(self):
+    def list_remote(self, force_refresh=False):
         """获取服务器上可用的图片UUID列表（GET /vista）
+
+        Args:
+            force_refresh: 强制刷新缓存
 
         Returns:
             UUID列表
         """
+        current_time = time.time()
+        if not force_refresh and self.cloud_files and (current_time - self._cloud_files_cache_time) < self._cloud_files_cache_ttl:
+            return self.cloud_files
+
         resp = requests.get(self.base_url + '/vista', params={'access_token': self.access_token})
         result = resp.json()
         if result.get('success'):
-            return result.get('content')
+            self.cloud_files = result.get('content')
+            self._cloud_files_cache_time = current_time
+            return self.cloud_files
         raise Exception(result.get('exception'))

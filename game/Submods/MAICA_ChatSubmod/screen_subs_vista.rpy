@@ -15,12 +15,13 @@ screen maica_vista_filelist(selecting=False):
     python:
         import time
         files = store.maica.maica.vista_manager.export_list()
+        #store.maica.maica.vista_manager.list_remote()
         def is_expired(item):
             global files
             index = files.index(item)
             if index >= 3:
                 return True
-            return time.time() - item['upload_time'] > 28800
+            return time.time() - item['upload_time'] > 28800# or item['uuid'] in store.maica.maica.vista_manager.cloud_files
 
         def selected_is_full():
             return len(store._maica_selected_visuals) >= 3
@@ -62,6 +63,24 @@ screen maica_vista_filelist(selecting=False):
             """
             return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
 
+        def get_display_image(item):
+            """获取要显示的图片路径（优先缩略图）
+
+            Args:
+                item: 文件项字典
+
+            Returns:
+                (image_path, exists) 元组
+            """
+            import os
+            thumb = item.get('thumb_path')
+            if thumb and os.path.exists(thumb):
+                return (thumb, True)
+            path = item.get('path')
+            if path and os.path.exists(path):
+                return (path, True)
+            return (None, False)
+
     modal True
     zorder 92
 
@@ -72,11 +91,16 @@ screen maica_vista_filelist(selecting=False):
                 text renpy.substitute(_("上传时间: ")) + "{}".format(format_timestamp(item['upload_time']))
                 text "UUID: {}".format(item['uuid'])
                 if is_expired(item):
-                    text "该文件已过期"
+                    text _("该文件已过期")
                 else:
-                    text "该文件尚未过期"
+                    text _("该文件尚未过期")
                 hbox:
-                    add Transform(item['path'], size=get_scaled_size((item['width'], item['height'])))
+                    python:
+                        img_path, img_exists = get_display_image(item)
+                    if img_exists:
+                        add Transform(img_path, size=get_scaled_size((item['width'], item['height'])))
+                    else:
+                        text _("图片文件不存在: [img_path]")
                 if store.maica.maica.is_connected():
                     if selecting:
                         if not is_expired(item):
