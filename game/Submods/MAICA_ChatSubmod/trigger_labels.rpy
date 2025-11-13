@@ -389,8 +389,13 @@ label mtrigger_backup:
     return
 
 label mtrigger_dscl(prob):
-    show screen maica_dscl_pvn_notify(prob)
-    show chibika 3 zorder 12 at mas_chriseup(y=600,travel_time=0.5)
-    pause 0.5
-    hide chibika
-    return
+    if prob < 0.5:
+        return
+    elif prob < 0.8:
+        $ renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
+    else:
+        show screen maica_dscl_pvn_notify(prob)
+        show chibika 3 zorder 12 at mas_chriseup(y=600,travel_time=0.5)
+        pause 0.5
+        hide chibika
+        return
