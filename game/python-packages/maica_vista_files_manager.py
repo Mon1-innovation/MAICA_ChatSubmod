@@ -241,12 +241,12 @@ class MAICAVistaFilesManager(object):
             data['content'] = identifier
         resp = requests.delete(self.base_url + '/vista', json=data)
         result = resp.json()
+        if identifier:
+            self.remove(identifier)
         if result.get('success'):
             if identifier is None:
                 self.clear()
                 self.cloud_files = []
-            else:
-                self.remove(identifier)
                 if self.cloud_files and identifier in self.cloud_files:
                     self.cloud_files.remove(identifier)
         else:
