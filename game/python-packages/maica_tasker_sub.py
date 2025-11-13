@@ -332,7 +332,7 @@ class MTriggerWsHandler(MaicaWSTask):
         """
         if event.data.status == 'maica_dscl_status':
             self.logger.debug('[MTriggerWsHandler] received maica_dscl_status')
-            self._trigger_func('dscl', event.data.content)
+            self._trigger_func('dscl', {'value':event.data.content})
         self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(event.data.content))
         for item in list(event.data.content.keys()):
             try:
