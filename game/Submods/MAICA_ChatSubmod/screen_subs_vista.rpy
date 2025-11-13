@@ -80,12 +80,15 @@ screen maica_vista_filelist(selecting=False):
                 if store.maica.maica.is_connected():
                     if selecting:
                         if not is_expired(item):
-                            if selected_is_full():
+                            if not persistent._maica_vista_enabled:
+                                textbutton _("! MVista尚未解锁"):
+                                    style "generic_fancy_check_button_disabled"
+                            elif selected_is_full():
                                 textbutton _("选中这张图片 (数量已满)"):
                                     style "generic_fancy_check_button_disabled"
                             else:
                                 if item in store._maica_selected_visuals:
-                                    textbutton _("取消选中这张图片"):
+                                    textbutton _("选中这张图片"):
                                         action Function(store._maica_selected_visuals.remove, item)
                                         selected True
                                 else:

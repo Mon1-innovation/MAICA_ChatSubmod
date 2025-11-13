@@ -964,13 +964,22 @@ screen maica_setting():
                     action Show("maica_triggers")
                     hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
+
+            if persistent._maica_vista_enabled:
+                hbox:
+                    style_prefix "maica_check"
+                    textbutton _("MVista图片"):
+                        action Show("maica_vista_filelist")
+                        hovered SetField(_tooltip, "value", _("查看和管理用于MVista的图片"))
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
             
-            hbox:
-                style_prefix "maica_check"
-                textbutton _("MVista图片"):
-                    action Show("maica_vista_filelist")
-                    hovered SetField(_tooltip, "value", _("查看和管理用于MVista的图片"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
+            else:
+                hbox:
+                    textbutton _("MVista图片"):
+                        style "maica_check_button_disabled"
+                        action Show("maica_vista_filelist")
+                        hovered SetField(_tooltip, "value", _("查看和管理用于MVista的图片.\n! MVista尚未解锁, 请继续和莫妮卡交互或送信, 并耐心等待"))
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 frame:
