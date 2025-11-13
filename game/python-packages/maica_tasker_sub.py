@@ -303,7 +303,7 @@ class MTriggerWsHandler(MaicaWSTask):
         manager: 触发器管理器实例
     """
 
-    def __init__(self, task_type, name, manager):
+    def __init__(self, task_type, name, manager, except_ws_status=[]):
         """
         初始化触发器处理器。
 
@@ -314,7 +314,7 @@ class MTriggerWsHandler(MaicaWSTask):
         """
         super(MTriggerWsHandler, self).__init__(
             task_type, name, manager=manager,
-            except_ws_status=['maica_mtrigger_trigger']
+            except_ws_status=except_ws_status
         )
         self._trigger_func = self.none_triggered_func
     

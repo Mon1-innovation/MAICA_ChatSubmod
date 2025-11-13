@@ -118,7 +118,7 @@ label maica_talking(mspire = False):
 
 label maica_talking.end:
     call maica_hide_console
-    if persistent.maica_setting_dict['console']:    
+    if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":    
         $ store.mas_ptod.clear_console()
     return return_code
 
@@ -165,8 +165,8 @@ label maica_init_connect(use_pause_instand_wait = False):
         return_code = None
         ai = store.maica.maica
         ai.content_func = store.mas_ptod._update_console_history
-        ai.console_logger.critical("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" + ai.ascii_icon)
         if not ai.is_connected():
+            ai.console_logger.critical("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" + ai.ascii_icon)
             ai.init_connect()
         while True:
             if not ai.is_connected():
