@@ -3,6 +3,8 @@ screen maica_dscl_pvn_notify(prob = 1.0):
     modal False
     zorder 100
 
+    default countdown = 10
+
     frame:
         xalign 1.0
         yalign 0.0
@@ -48,11 +50,11 @@ screen maica_dscl_pvn_notify(prob = 1.0):
                 textbutton _("忽略"):
                     action Hide("maica_dscl_pvn_notify")
 
-            text _("{size=-10}此消息将在10秒后自动隐藏..."):
+            text _("{size=-10}此消息将在 [countdown] 秒后自动隐藏..."):
                 color "#aaaaaa"
                 xalign 0.5
 
-    timer 10.0 action Hide("maica_dscl_pvn_notify")
+    timer 1.0 repeat True action If(countdown > 0, SetScreenVariable("countdown", countdown - 1), Hide("maica_dscl_pvn_notify"))
 
 screen maica_log():
     python:
