@@ -65,7 +65,8 @@ screen maica_dscl_pvn_notify(prob = 1.0):
                 textbutton _("忽略"):
                     action Hide("maica_dscl_pvn_notify")
 
-            text _("{size=-10}此消息将在 [countdown] 秒后自动隐藏..."):
+            text _("此消息将在 [countdown] 秒后自动隐藏..."):
+                size 10
                 color "#aaaaaa"
                 xalign 0.5
 
