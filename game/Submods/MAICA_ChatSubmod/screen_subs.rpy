@@ -355,14 +355,6 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "dscl_pvn:[persistent.maica_advanced_setting.get('dscl_pvn', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "dscl_pvn"),
-                        ToggleDict(persistent.maica_advanced_setting, "dscl_pvn")]
-                    hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销\n- 我觉得智力正常的人都用不上这种功能才对"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('dscl_pvn')
-            hbox:
-                spacing 5
                 textbutton "pre_astp:[persistent.maica_advanced_setting.get('pre_astp', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "pre_astp"),
                         ToggleDict(persistent.maica_advanced_setting, "pre_astp")]

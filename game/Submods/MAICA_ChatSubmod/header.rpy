@@ -24,7 +24,8 @@ default persistent.maica_setting_dict = {
     "use_custom_model_config":False,
     "sf_extraction":False,
     "chat_session":1,
-    "console":True
+    "console":True,
+    "dscl_pvn":False
 }
 default persistent.maica_advanced_setting = {}
 default persistent.maica_advanced_setting_status = {}
@@ -64,7 +65,8 @@ init 10 python:
         "mpostal_default_reply_time": 360,
         "42seed":False,
         "use_anim_background": True,
-        "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes'
+        "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
+        "dscl_pvn":False
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -83,7 +85,6 @@ init 10 python:
         "pre_additive":0,
         "post_additive":1,
         "amt_aggressive":True,
-        "dscl_pvn":False,
         "pre_astp":True,
         "post_astp":False,
     }
@@ -317,6 +318,7 @@ init 10 python:
         else:
             store.maica.maica.WSCookiesTask.disable_cookie()
         store.maica.maica.tz = persistent.maica_setting_dict["tz"]
+        store.maica.maica.dscl_pvn = persistent.maica_setting_dict["dscl_pvn"]
         store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica.mtrigger_manager.output_settings())
         store.mas_submod_utils.getAndRunFunctions()
         if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
@@ -359,6 +361,7 @@ init 10 python:
         persistent.maica_setting_dict["max_history_token"] = store.maica.maica.max_history_token
         persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
         persistent.maica_setting_dict["tz"] = store.maica.maica.tz
+        persistent.maica_setting_dict["dscl_pvn"] = store.maica.maica.dscl_pvn
         store.maica.maica.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
         renpy.notify(_("MAICA: 已放弃设置修改"))
@@ -963,6 +966,13 @@ screen maica_setting():
                 textbutton _("MTrigger列表"):
                     action Show("maica_triggers")
                     hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+            hbox:
+                style_prefix "generic_fancy_check"
+                textbutton _("会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "dscl_pvn", True, False)
+                    hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if persistent._maica_vista_enabled:
