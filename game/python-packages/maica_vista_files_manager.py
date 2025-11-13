@@ -188,14 +188,18 @@ class MAICAVistaFilesManager(object):
                 thumb_path = None
                 if self.cache_path:
                     cached_path = os.path.join(self.cache_path, os.path.basename(file_path))
-                    shutil.copy2(file_path, cached_path)
+                    # 只有当源文件不在缓存目录中时才复制
+                    if os.path.abspath(file_path) != os.path.abspath(cached_path):
+                        shutil.copy2(file_path, cached_path)
                     # 生成缩略图（复制原图）
                     try:
                         width, height = self._get_image_size(file_path)
                         max_side = max(width, height)
                         if max_side > 500:
                             thumb_path = os.path.join(self.cache_path, 'thumb_' + os.path.basename(file_path))
-                            shutil.copy2(file_path, thumb_path)
+                            # 只有当源文件不是缩略图本身时才复制
+                            if os.path.abspath(file_path) != os.path.abspath(thumb_path):
+                                shutil.copy2(file_path, thumb_path)
                     except Exception:
                         pass
                 self.add(uuid, file_path=cached_path, thumb_path=thumb_path)
