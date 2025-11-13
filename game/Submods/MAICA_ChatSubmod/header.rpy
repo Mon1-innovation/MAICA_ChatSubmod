@@ -25,7 +25,7 @@ default persistent.maica_setting_dict = {
     "sf_extraction":False,
     "chat_session":1,
     "console":True,
-    "dscl_pvn":False
+    "dscl_pvn":True
 }
 default persistent.maica_advanced_setting = {}
 default persistent.maica_advanced_setting_status = {}
@@ -66,7 +66,7 @@ init 10 python:
         "42seed":False,
         "use_anim_background": True,
         "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
-        "dscl_pvn":False
+        "dscl_pvn":True
     }
     import copy
     mdef_setting = copy.deepcopy(maica_default_dict)
@@ -835,6 +835,14 @@ screen maica_setting():
                 style_prefix "maica_check"
                 textbutton _("地理位置: [persistent.mas_geolocation]"):
                     action Show("maica_location_input", addition = persistent.mas_geolocation)
+
+            hbox:
+                style_prefix "generic_fancy_check"
+                textbutton _("会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "dscl_pvn", True, False)
+                    hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
             hbox:
                 frame:
                     xmaximum 950
@@ -969,13 +977,6 @@ screen maica_setting():
                 textbutton _("MTrigger列表"):
                     action Show("maica_triggers")
                     hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
-
-            hbox:
-                style_prefix "generic_fancy_check"
-                textbutton _("会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "dscl_pvn", True, False)
-                    hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if persistent._maica_vista_enabled:
