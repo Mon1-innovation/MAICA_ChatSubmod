@@ -485,6 +485,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mtrigger_ws_handler",
             manager=self.task_manager,
+            except_ws_status=[
+                'maica_mtrigger_trigger',
+                'maica_dscl_status'
+            ]
         )
         self.MTriggerTasker.set_trigger_function(self.mtrigger_manager.triggered)
 

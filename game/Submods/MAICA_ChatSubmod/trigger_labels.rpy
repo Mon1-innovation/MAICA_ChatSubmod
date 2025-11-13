@@ -387,3 +387,10 @@ label mtrigger_backup:
         m "好像出了点问题...你还是手动备份一下吧?"
         call maica_show_console
     return
+
+label mtrigger_dscl(prob):
+    show screen maica_dscl_pvn_notify(prob)
+    show chibika 3 zorder 12 at mas_chriseup(y=600,travel_time=0.5)
+    pause 0.5
+    hide chibika
+    return
