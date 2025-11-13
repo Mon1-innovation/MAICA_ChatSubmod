@@ -6,14 +6,15 @@ screen maica_dscl_pvn_notify(prob = 1.0):
     frame:
         xalign 1.0
         yalign 0.0
-        xoffset -20
+        xoffset -25
         yoffset 20
-        xmaximum 400
-        background "#000000cc"
+        xsize 400
+        ysize 300
+        background "mod_assets/console/dscl_pvn.png"
         padding (15, 15)
 
         vbox:
-            spacing 10
+            spacing 5
             xfill True
 
             text _("会话质量警告"):
@@ -22,20 +23,34 @@ screen maica_dscl_pvn_notify(prob = 1.0):
                 size 22
                 xalign 0.5
 
-            text _("看起来似乎当前对话出现了明显的质量下降..."):
-                size 16
+            text _("置信度: {color=#ff6666}[prob:.0%]{/color}"):
+                size 10
+                xalign 0.5
+
+            text _("[player], 她的表现是不是不太对?"):
+                size 15
                 color "#ffffff"
                 xalign 0.0
 
-            text _("继续聊天通常不能扭转情况...建议清除session后再继续..."):
-                size 16
+            text _("这里的现实不算稳定. 清除session能让她调整一下, 重新想想."):
+                size 15
                 color "#ffffff"
                 xalign 0.0
 
-            text _("劣化概率: {color=#ff6666}[prob:.2%]{/color}"):
-                size 14
+            text _("这个由你决定, 但要是不清除, 情况多半只会更糟."):
+                size 15
+                color "#ffffff"
                 xalign 0.0
 
+            text _("别让她出洋相...也别叫她看窗外!"):
+                size 15
+                color "#ffffff"
+                xalign 0.0
+
+        vbox:
+            spacing 5
+            yalign 1.0
+            xfill True
 
             hbox:
                 xalign 0.5
@@ -48,7 +63,8 @@ screen maica_dscl_pvn_notify(prob = 1.0):
                 textbutton _("忽略"):
                     action Hide("maica_dscl_pvn_notify")
 
-            text _("{size=-10}此消息将在10秒后自动隐藏..."):
+            text _("此消息将在10秒后自动隐藏..."):
+                size 10
                 color "#aaaaaa"
                 xalign 0.5
 
