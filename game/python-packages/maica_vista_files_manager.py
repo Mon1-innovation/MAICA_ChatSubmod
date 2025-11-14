@@ -4,9 +4,12 @@ import os
 import shutil
 import requests
 import struct
+import subprocess
+from bot_interface import logger
 
 class MAICAVistaFilesManager(object):
     """MVista图片管理器，用于上传、删除、下载图片并管理本地UUID记录"""
+
 
     def __init__(self, base_url, access_token, cache_path=None):
         """初始化管理器
@@ -25,6 +28,7 @@ class MAICAVistaFilesManager(object):
         self._cloud_files_cache_time = 0
         self._cloud_files_cache_ttl = 240
         self.android = False
+        self.magick_path = None
 
     @staticmethod
     def _get_image_size(file_path):
@@ -196,17 +200,20 @@ class MAICAVistaFilesManager(object):
                     # 只有当源文件不在缓存目录中时才复制
                     if os.path.abspath(file_path) != os.path.abspath(cached_path):
                         shutil.copy2(file_path, cached_path)
-                    # 生成缩略图（复制原图）
+                    # 生成缩略图
                     try:
                         width, height = self._get_image_size(file_path)
                         max_side = max(width, height)
                         if max_side > 500:
                             thumb_path = os.path.join(self.cache_path, 'thumb_' + uuid + ext)
-                            # 只有当源文件不是缩略图本身时才复制
-                            if os.path.abspath(file_path) != os.path.abspath(thumb_path):
-                                shutil.copy2(file_path, thumb_path)
-                    except Exception:
-                        pass
+                            if self.magick_path:
+                                subprocess.call([self.magick_path, file_path, '-resize', '500x500', thumb_path])
+                            else:
+                                if os.path.abspath(file_path) != os.path.abspath(thumb_path):
+                                    shutil.copy2(file_path, thumb_path)
+                    except Exception as e:
+                        raise
+                        logger.error("fail to generate thumbnail: {}".format(str(e)))
                 self.add(uuid, file_path=cached_path, thumb_path=thumb_path)
                 if self.cloud_files and uuid not in self.cloud_files:
                     self.cloud_files.append(uuid)

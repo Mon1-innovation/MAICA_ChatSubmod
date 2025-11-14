@@ -122,7 +122,6 @@ class MaicaAi(ChatBotInterface):
             return 100 <= int(code) - cls.MAIKA_PREFIX <= 199
 
         @classmethod
-        @bot_interface.deprecated()
         def is_submod_exception(cls, code):
             return 13400 <= code <= 13499
         
@@ -170,7 +169,6 @@ class MaicaAi(ChatBotInterface):
         }
 
         @classmethod
-        @bot_interface.deprecated()
         def get_description(cls, code):
             return cls._descriptions.get(code, u"未知状态码: {}".format(code))
             
@@ -948,7 +946,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         return self.task_manager.ws_client.keep_running if self.task_manager.ws_client else False #\
             #or self.wss_thread.is_alive() if self.wss_thread else False
 
-    @bot_interface.deprecated()
     def get_status_description(self):
         """返回maica当前状态描述"""
         return self.MaicaAiStatus.get_description(self.status)

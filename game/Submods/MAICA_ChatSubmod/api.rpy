@@ -129,7 +129,12 @@ init 5 python in maica:
     else:
         maica.vista_manager.import_list(store.persistent._maica_visuals)
     maica.vista_manager.android = store.renpy.android
+    import maica_vista_files_manager
+    if renpy.windows:
+        maica.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
 
+    import bot_interface
+    bot_interface.logger = store.mas_submod_utils.submod_log
 
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
