@@ -6,11 +6,48 @@ init python:
             store.maica.maica.vista_manager.upload(image)
         else:
             renpy.notify("未选择图片")
-    
+
+    def maica_reupload_image(uuid):
+        try:
+            store.maica.maica.vista_manager.reupload(uuid)
+            renpy.notify("重新上传成功")
+        except Exception as e:
+            renpy.notify("重新上传失败")
+
+    def maica_upload_image_android_submit(image_path):
+        try:
+            store.maica.maica.vista_manager.upload(image_path)
+            renpy.notify("上传成功")
+        except Exception as e:
+            renpy.notify("上传失败")
+        renpy.hide_screen("maica_upload_image_android")
+
     def remove_if_selected(item):
         if item in store._maica_selected_visuals:
             store._maica_selected_visuals.remove(item)
+screen maica_upload_image_android():
+    default imageselector = select_image()
+    modal True
+    zorder 100
 
+    use maica_common_outer_frame():
+        use maica_common_inner_frame():
+            if imageselector.is_selecting:
+                text "正在选择图片..."
+            else:
+                if imageselector.image_path:
+                    text "已选择: [imageselector.image_path]"
+                else:
+                    text "未选择图片"
+        hbox:
+            xpos 10
+            style_prefix "confirm"
+            if imageselector.image_path:
+                textbutton _("上传"):
+                    action Function(maica_upload_image_android_submit, imageselector.image_path)
+            textbutton _("关闭"):
+                action [Hide("maica_upload_image_android"), NullAction()]
+    
 screen maica_vista_filelist(selecting=False):
     python:
         import time
@@ -74,7 +111,7 @@ screen maica_vista_filelist(selecting=False):
             """
             import os
             thumb = item.get('thumb_path')
-            if thumb and os.path.exists(thumb):
+            if thumb and (os.path.exists(thumb) or renpy.android):
                 return (thumb, True)
             path = item.get('path')
             if path and os.path.exists(path):
@@ -87,6 +124,8 @@ screen maica_vista_filelist(selecting=False):
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
+            if renpy.android:
+                text _("因Android文件管理机制不同, 上传后可能无法立刻在本地正常显示. 但该图片可正常使用.")
             for item in files:
                 text renpy.substitute(_("上传时间: ")) + "{}".format(format_timestamp(item['upload_time']))
                 text "UUID: {}".format(item['uuid'])
@@ -132,13 +171,16 @@ screen maica_vista_filelist(selecting=False):
                             textbutton _("删除这张图片 (仅本地)"):
                                 action Function(store.maica.maica.vista_manager.remove, item['uuid'])
                             textbutton _("重新上传这张图片"):
-                                action Function(store.maica.maica.vista_manager.reupload, item['uuid'])
+                                action [Function(maica_reupload_image, item['uuid'])]
         hbox:
             xpos 10
             style_prefix "confirm"
             if store.maica.maica.is_connected():
                 textbutton _("上传新图片"):
-                    action Function(maica_upload_new_image)
+                    if renpy.android:
+                        action Show("maica_upload_image_android")
+                    else:
+                        action Function(maica_upload_new_image)
             else:
                 textbutton _("上传新图片 (请先登录)")
 

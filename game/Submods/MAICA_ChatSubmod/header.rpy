@@ -1147,9 +1147,9 @@ screen maica_input_screen(prompt):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
             if persistent._maica_vista_enabled:
-                textbutton _("选择图片 | 当前已选择[len(store._maica_selected_visuals)]张"):
+                textbutton renpy.substitute(_("选择图片 | 当前已选择 ")) + str(len(store._maica_selected_visuals)) + renpy.substitute(_(" 张")):
                     selected False
-                    action Show("maica_vista_filelist", selecting=True)
+                    action [Show("maica_vista_filelist", selecting=True), NullAction()]
             #extbutton _("清空"):
             #   selected False
             #   action Function(maica_input.set_text, "")

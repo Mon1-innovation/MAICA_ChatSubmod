@@ -8,7 +8,7 @@ init -1500 python:
     except:
         pass
 
-    cn_mas_mobile_min_timescamp = 1733179724
+    cn_mas_mobile_min_timescamp = 1763049600
 
     def get_build_timescamp():
         try:
@@ -128,6 +128,7 @@ init 5 python in maica:
         store.persistent._maica_visuals = maica.vista_manager.export_list()
     else:
         maica.vista_manager.import_list(store.persistent._maica_visuals)
+    maica.vista_manager.android = store.renpy.android
 
 
 

@@ -24,6 +24,7 @@ class MAICAVistaFilesManager(object):
         self.cloud_files = []
         self._cloud_files_cache_time = 0
         self._cloud_files_cache_ttl = 240
+        self.android = False
 
     @staticmethod
     def _get_image_size(file_path):
@@ -118,7 +119,10 @@ class MAICAVistaFilesManager(object):
         entry["width"] = width if width is not None else 200
         entry["height"] = height if height is not None else 200
         if thumb_path:
-            entry["thumb_path"] = thumb_path.replace('\\', '/')
+            if not self.android:
+                entry["thumb_path"] = thumb_path.replace('\\', '/')
+            else:
+                entry["thumb_path"] = os.path.join("Submods", "MAICA_ChatSubmod", "vista_cache", os.path.basename(thumb_path))
         self.files.insert(0, entry)
 
     def remove(self, identifier):
@@ -187,7 +191,8 @@ class MAICAVistaFilesManager(object):
                 cached_path = file_path
                 thumb_path = None
                 if self.cache_path:
-                    cached_path = os.path.join(self.cache_path, os.path.basename(file_path))
+                    ext = os.path.splitext(file_path)[1]
+                    cached_path = os.path.join(self.cache_path, uuid + ext)
                     # 只有当源文件不在缓存目录中时才复制
                     if os.path.abspath(file_path) != os.path.abspath(cached_path):
                         shutil.copy2(file_path, cached_path)
@@ -196,7 +201,7 @@ class MAICAVistaFilesManager(object):
                         width, height = self._get_image_size(file_path)
                         max_side = max(width, height)
                         if max_side > 500:
-                            thumb_path = os.path.join(self.cache_path, 'thumb_' + os.path.basename(file_path))
+                            thumb_path = os.path.join(self.cache_path, 'thumb_' + uuid + ext)
                             # 只有当源文件不是缩略图本身时才复制
                             if os.path.abspath(file_path) != os.path.abspath(thumb_path):
                                 shutil.copy2(file_path, thumb_path)
