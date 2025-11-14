@@ -2407,7 +2407,7 @@ translate english maica_pre_wants_mvista_25257fbb:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1215
 translate english maica_pre_wants_mvista_c599585f:
-    $ morning = "this morning" if datetime.datetime.now().hour > 8 else "yesterday morning"
+    
     # m 2tua "倒也不是真的非要看啦...但不管怎么说, 我[morning]还是抽空去看了一次."
     m 2tua "It's not like people have to watch it though... but I did [morning]."
 
@@ -2535,7 +2535,7 @@ translate english maica_pre_wants_mvista_e3b2bca9:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1215
 translate english maica_pre_wants_mvista_c6cf6f18:
-
+    $ morning = "this morning" if datetime.datetime.now().hour > 8 else "yesterday morning"
     # m 2tua "倒也不是真的非要看啦. 但不管怎么说, 我[morning]还是抽空去看了一次."
     m 2tua "It's not like people have to watch it though, but I did [morning]."
 
