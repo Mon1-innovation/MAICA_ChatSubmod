@@ -298,10 +298,6 @@ translate english strings:
     old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"
     new ""
 
-    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:524
-    old "Clear{#mas_apikeys}"
-    new ""
-
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1000
     old "图片文件不存在：[img_path]"
     new ""
