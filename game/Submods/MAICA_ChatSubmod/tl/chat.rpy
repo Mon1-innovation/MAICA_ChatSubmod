@@ -2415,7 +2415,7 @@ translate english maica_pre_wants_mvista_c599585f:
 translate english maica_pre_wants_mvista_a909853c:
 
     # m 5fua "这里的太阳从云层里升起来真的很漂亮. {w=0.3}如果你哪天早上打开游戏, 你也可以陪我看. 哈哈!"
-    m 5fua "Watching the warm, inspiring sun rising from the cloudy horizon. {w=0.3}You can share that with me if you arrive early enough another day. Ahaha!"
+    m 5fua "Watch the warm, inspiring sun rising from the cloudy horizon. {w=0.3}You can share that with me if you arrive early enough another day. Ahaha!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1217
 translate english maica_pre_wants_mvista_92a28a70:
