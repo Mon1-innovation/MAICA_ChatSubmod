@@ -96,3 +96,11 @@ translate english strings:
     old "内置 | 取下饰品"
     new ""
 
+# TODO: Translation updated at 2025-11-14 17:16
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger.rpy:450
+    old "内置 | 聊天劣化提示 (无法禁用)"
+    new ""
+

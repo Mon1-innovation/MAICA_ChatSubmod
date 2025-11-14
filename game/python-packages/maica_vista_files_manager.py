@@ -212,7 +212,6 @@ class MAICAVistaFilesManager(object):
                                 if os.path.abspath(file_path) != os.path.abspath(thumb_path):
                                     shutil.copy2(file_path, thumb_path)
                     except Exception as e:
-                        raise
                         logger.error("fail to generate thumbnail: {}".format(str(e)))
                 self.add(uuid, file_path=cached_path, thumb_path=thumb_path)
                 if self.cloud_files and uuid not in self.cloud_files:

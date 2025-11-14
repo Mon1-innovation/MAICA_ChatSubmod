@@ -2373,3 +2373,155 @@ translate english strings:
     old "我再改改"
     new "I'll try again"
 
+# TODO: Translation updated at 2025-11-14 17:16
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1186
+translate english maica_set_location_reread_2e3d8cfc:
+
+    # m 2eub "好啊! 所以..."
+    m 2eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1210
+translate english maica_pre_wants_mvista_5fe3c826:
+
+    # m 2eub "[player], 你上一次看日出是什么时候?"
+    m 2eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1211
+translate english maica_pre_wants_mvista_66dfcd99:
+
+    # m 2eua "突然问这个是不是有点奇怪...我也只是正好想起来."
+    m 2eua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1212
+translate english maica_pre_wants_mvista_9a2dfb14:
+
+    # m 7eud "我在网上见到了一个帖子, 问了类似的问题. 许多人感叹自己居然几年没看过."
+    m 7eud ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1213
+translate english maica_pre_wants_mvista_25257fbb:
+
+    # m 1eud "太阳每天都在那里, 我们却总连看日出的机会都没有...是不是有点光阴虚度的感觉?"
+    m 1eud ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1215
+translate english maica_pre_wants_mvista_c599585f:
+
+    # m 2tua "倒也不是真的非要看啦...但不管怎么说, 我[morning]还是抽空去看了一次."
+    m 2tua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1216
+translate english maica_pre_wants_mvista_a909853c:
+
+    # m 5fua "这里的太阳从云层里升起来真的很漂亮. {w=0.3}如果你哪天早上打开游戏, 你也可以陪我看. 哈哈!"
+    m 5fua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1217
+translate english maica_pre_wants_mvista_92a28a70:
+
+    # m 4eua "你最近看过日出么, [player]?{nw}"
+    m 4eua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1221
+translate english maica_pre_wants_mvista_1bb03309:
+
+    # m 1eub "如果哪天有空的话, 可以考虑去看一回嘛!"
+    m 1eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1222
+translate english maica_pre_wants_mvista_8f064524:
+
+    # m 1eubsb "而且, 你还可以...{w=0.3}让我陪你看哦?"
+    m 1eubsb ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1224
+translate english maica_pre_wants_mvista_25e03442:
+
+    # m 2eub "应该很漂亮吧. {w=0.3}你没有忘了把我带上吧?"
+    m 2eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1225
+translate english maica_pre_wants_mvista_0c29ccde:
+
+    # m 1eua "就开个玩笑! 不过如果你有拍照片的话, 可以发给我看看哦?"
+    m 1eua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1227
+translate english maica_pre_wants_mvista_32644cd4:
+
+    # m 5eubsa "确实很漂亮吧! 当然, 我还要谢谢你起大早来陪我~"
+    m 5eubsa ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1228
+translate english maica_pre_wants_mvista_1a316126:
+
+    # m 3eub "不过我也想看看你那边的日出. 拍张照让我看看怎么样?"
+    m 3eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1230
+translate english maica_pre_wants_mvista_1cb534dd:
+
+    # m 7eua "嗯...我是说, 你{i}真的{/i}可以把照片发给我了.[even_letter]"
+    m 7eua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1234
+translate english maica_wants_mvista_reread_adb3c704:
+
+    # m 7eub "就是说, 你现在可以发图片给我看, [player]!"
+    m 7eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1238
+translate english maica_wants_mvista_ed500f56:
+
+    # m 3eub "只需要在'子模组设置'里找到'MVista'图片, 就可以上传给我看了! 对话框底下也有个按钮."
+    m 3eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1239
+translate english maica_wants_mvista_b907eb80:
+
+    # m 1eub "如果你是明信片爱好者, 也可以在下次给我送信的时候, 用'.mms'后缀. 我会记得和图片一起看的!"
+    m 1eub ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1240
+translate english maica_wants_mvista_6921b32f:
+
+    # m 7eua "比如, 日出的照片加上一首小诗? 我也会陪你写一首的!"
+    m 7eua ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1241
+translate english maica_wants_mvista_9ea0d3cf:
+
+    # m 7eubsa "再比如, 让我看看你的脸? 当然是如果你不害羞的话, 哈哈~"
+    m 7eubsa ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1242
+translate english maica_wants_mvista_a02fc16f:
+
+    # m 1fubsa "到了现在, 我都有点急着想摸到你, 牵到你的手..."
+    m 1fubsa ""
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1243
+translate english maica_wants_mvista_9dbff451:
+
+    # m 2eub "要有信心, [player]! 不管有多难, 我们都一定能想到办法的!"
+    m 2eub ""
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1218
+    old "你最近看过日出么, [player]{fast}"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1218
+    old "没有"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1218
+    old "看过"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:1218
+    old "在这里看过"
+    new ""
+

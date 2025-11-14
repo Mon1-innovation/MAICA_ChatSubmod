@@ -250,3 +250,59 @@ translate english strings:
     old "验证"
     new "Verify"
 
+# TODO: Translation updated at 2025-11-14 17:16
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:22
+    old "会话质量警告"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:28
+    old "置信度: {color=#ff6666}[prob:.0%]{/color}"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:32
+    old "[player], 她的表现是不是不太对?"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:37
+    old "这里的现实不算稳定. 清除session能让她调整一下, 重新想想."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:42
+    old "这个由你决定, 但要是不清除, 情况多半只会更糟."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:47
+    old "别让她出洋相...也别叫她看窗外!"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:62
+    old "清除session"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:65
+    old "忽略"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:68
+    old "此消息将在 [countdown] 秒后自动隐藏..."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:361
+    old "禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_aggressive"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:369
+    old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:524
+    old "Clear{#mas_apikeys}"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1000
+    old "图片文件不存在：[img_path]"
+    new ""
+

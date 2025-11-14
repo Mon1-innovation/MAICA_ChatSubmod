@@ -470,3 +470,9 @@ translate english strings:
     old "那...来抱一个?{fast}"
     new "Then...want a hug?{fast}"
 
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:395
+    old "MAICA: 若会话质量下降, 请重置session"
+    new ""
+

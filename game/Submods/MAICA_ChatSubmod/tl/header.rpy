@@ -1262,3 +1262,51 @@ translate english strings:
     old "> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"
     new "> Warning: MAICA Libs v[libv] mismatch with UI v[uiv]. Please fully update from Release"
 
+# TODO: Translation updated at 2025-11-14 17:16
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:788
+    old "自动恢复会话: [persistent.maica_setting_dict.get('auto_resume')]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:790
+    old "如果在回复中途被中断, 重连成功后自动恢复之前的聊天会话状态"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:794
+    old "保持连接活跃: [persistent.maica_setting_dict.get('keep_alive')]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:796
+    old "定期发送心跳包保持WebSocket连接活跃, 并检测网络延迟"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:841
+    old "会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:843
+    old "对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:985
+    old "MVista图片"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:987
+    old "查看和管理用于MVista的图片.\n* 请仔细阅读TOS, 对你自己的隐私负责"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:995
+    old "查看和管理用于MVista的图片.\n! MVista尚未解锁, 请继续和莫妮卡交互或送信, 并耐心等待"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1150
+    old "选择图片 | 当前已选择 "
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1150
+    old " 张"
+    new ""
+
