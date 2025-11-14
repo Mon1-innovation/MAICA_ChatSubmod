@@ -132,7 +132,8 @@ init 5 python in maica:
     import maica_vista_files_manager
     if renpy.windows:
         maica.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
-
+    elif renpy.android:
+        maica.vista_manager.magick_path = ANDROID_MAGICK_BINPATH
     import bot_interface
     bot_interface.logger = store.mas_submod_utils.submod_log
 
