@@ -785,15 +785,15 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("自动恢复会话: [persistent.maica_setting_dict.get('auto_resume')]"):
+                textbutton _("断点续传: [persistent.maica_setting_dict.get('auto_resume')]"):
                     action ToggleDict(persistent.maica_setting_dict, "auto_resume", True, False)
-                    hovered SetField(_tooltip, "value", _("如果在回复中途被中断, 重连成功后自动恢复之前的聊天会话状态"))
+                    hovered SetField(_tooltip, "value", _("若生成回复时网络中断, 重连后续传丢失的部分"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
                 textbutton _("保持连接活跃: [persistent.maica_setting_dict.get('keep_alive')]"):
                     action ToggleDict(persistent.maica_setting_dict, "keep_alive", True, False)
-                    hovered SetField(_tooltip, "value", _("定期发送心跳包保持WebSocket连接活跃, 并检测网络延迟"))
+                    hovered SetField(_tooltip, "value", _("定期发送心跳包保持长连接活跃, 并检测网络延迟"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"

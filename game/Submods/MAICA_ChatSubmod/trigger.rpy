@@ -448,6 +448,6 @@ init 999 python in maica:
             store.renpy.call("mtrigger_dscl", prob = float(arg[1]))
 
     dscl_trigger = MTriggerBase(common_meter_template, "dscl", condition=mtrigger_dscl_condition, callback=mtrigger_dscl_callback,
-        description = _("内置 | 聊天劣化提示 (无法禁用)"), method=MTriggerMethod.table,
+        description = _("内置 | 聊天劣化提示 (接收器)"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="sth", item_name_en=""))
     maica.mtrigger_manager.add_trigger(dscl_trigger)

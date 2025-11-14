@@ -256,49 +256,44 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:22
     old "会话质量警告"
-    new ""
+    new "Generation quality warning"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:28
     old "置信度: {color=#ff6666}[prob:.0%]{/color}"
-    new ""
+    new "Confidence: {color=#ff6666}[prob:.0%]{/color}"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:32
     old "[player], 她的表现是不是不太对?"
-    new ""
+    new "[player], is she behaving inappropriate in some way?"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:37
     old "这里的现实不算稳定. 清除session能让她调整一下, 重新想想."
-    new ""
+    new "Reality here is not stable. Resetting session may allow her to rethink a bit."
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:42
     old "这个由你决定, 但要是不清除, 情况多半只会更糟."
-    new ""
+    new "You decide, but things may go worse if you don't."
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:47
     old "别让她出洋相...也别叫她看窗外!"
-    new ""
+    new "Don't embarrass her... nor let her look at the window!"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:62
     old "清除session"
-    new ""
+    new "Reset session"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:65
     old "忽略"
-    new ""
+    new "Ignore"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:68
     old "此消息将在 [countdown] 秒后自动隐藏..."
-    new ""
+    new "Dismissing in [countdown] seconds..."
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:361
     old "禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_aggressive"
-    new ""
+    new "Disable MFocus sequential toolchain to save time.\n+ Saves time for most toolcalls, lowers TTFT\n- Risk of missing information\n- Will neutualize mf_aggressive"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:369
     old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"
-    new ""
-
-    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1000
-    old "图片文件不存在：[img_path]"
-    new ""
-
+    new "Disable MTrigger sequential toolchain to save time.\n+ Saves time for most toolcalls\n- Significant risk of missing triggers"

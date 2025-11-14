@@ -997,7 +997,7 @@ screen maica_mpostals():
                         if img_exists:
                             add Transform(img_path, size=get_scaled_size((vista_info['width'], vista_info['height'])))
                         else:
-                            text _("图片文件不存在：[img_path]")
+                            text _("图片文件不存在: [img_path]")
                     elif postal['raw_image']:
                         if os.path.exists(postal['raw_image']):
                             add Transform(postal['raw_image'], size=get_scaled_size((480, 360)))

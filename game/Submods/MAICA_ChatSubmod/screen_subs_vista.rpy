@@ -125,7 +125,7 @@ screen maica_vista_filelist(selecting=False):
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
             if renpy.android:
-                text _("因Android文件管理机制不同, 上传后可能无法立刻在本地正常显示. 但该图片可正常使用.")
+                text _("Android设备上传图片可能有短暂的显示异常.")
             for item in files:
                 text renpy.substitute(_("上传时间: ")) + "{}".format(format_timestamp(item['upload_time']))
                 text "UUID: {}".format(item['uuid'])

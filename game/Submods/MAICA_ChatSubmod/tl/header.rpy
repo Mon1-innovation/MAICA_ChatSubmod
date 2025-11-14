@@ -1267,46 +1267,46 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:788
-    old "自动恢复会话: [persistent.maica_setting_dict.get('auto_resume')]"
-    new ""
+    old "断点续传: [persistent.maica_setting_dict.get('auto_resume')]"
+    new "Generation resume: [persistent.maica_setting_dict.get('auto_resume')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:790
-    old "如果在回复中途被中断, 重连成功后自动恢复之前的聊天会话状态"
-    new ""
+    old "若生成回复时网络中断, 重连后续传丢失的部分"
+    new "Resume streaming on reconnection to recover lost chunks"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:794
     old "保持连接活跃: [persistent.maica_setting_dict.get('keep_alive')]"
-    new ""
+    new "Keep connection active: [persistent.maica_setting_dict.get('keep_alive')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:796
-    old "定期发送心跳包保持WebSocket连接活跃, 并检测网络延迟"
-    new ""
+    old "定期发送心跳包保持长连接活跃, 并检测网络延迟"
+    new "Send ping packets timely to keep connection alive and calculate lag"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:841
     old "会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"
-    new ""
+    new "Session quality review: [persistent.maica_setting_dict.get('dscl_pvn')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:843
     old "对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"
-    new ""
+    new "Require MNerve to check generation quality after session exceeds 3 rounds.\n+ Quantitatively evaluate generation quality\n- Extra consumation of MNerve"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:985
     old "MVista图片"
-    new ""
+    new "MVista images"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:987
     old "查看和管理用于MVista的图片.\n* 请仔细阅读TOS, 对你自己的隐私负责"
-    new ""
+    new "View and manage MVista images.\n* Please read TOS carefully and be responsible for your own privacy"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:995
     old "查看和管理用于MVista的图片.\n! MVista尚未解锁, 请继续和莫妮卡交互或送信, 并耐心等待"
-    new ""
+    new "View and manage MVista images.\n! MVista not unlocked, please continue chatting with Monika patiently or send her letters"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1150
     old "选择图片 | 当前已选择 "
-    new ""
+    new "Choose images | "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1150
     old " 张"
-    new ""
+    new " chosen"
 

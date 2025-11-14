@@ -94,13 +94,13 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:365
     old "内置 | 取下饰品"
-    new ""
+    new "Integrated | Hide accessories"
 
 # TODO: Translation updated at 2025-11-14 17:16
 
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:450
-    old "内置 | 聊天劣化提示 (无法禁用)"
-    new ""
+    old "内置 | 聊天劣化提示 (接收器)"
+    new "Integrated | Quality review (reciever)"
 

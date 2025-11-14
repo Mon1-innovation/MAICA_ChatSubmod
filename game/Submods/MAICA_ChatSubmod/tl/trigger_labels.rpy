@@ -474,5 +474,5 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:395
     old "MAICA: 若会话质量下降, 请重置session"
-    new ""
+    new "MAICA: Please reset session if quality decreases notably"
 
