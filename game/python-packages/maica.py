@@ -305,7 +305,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.chat_session = 1
         self.wss_session = None
         self.wss_thread = None
-        self.user_acc = ""
         self.enable_mf = True
         self.enable_mt = True
         self.sf_extraction = False
@@ -409,6 +408,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         h = self.ExternalLoggingHandler(self.send_to_outside_func)
         h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
         self.console_logger.addHandler(h)
+
+
         class logger_both:
             def __init__(self, flogger):
                 self.flogger = flogger
@@ -474,7 +475,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             name="history_status_handler",
             manager=self.task_manager
         )
-        maica_tasker_sub.MAICAUserDataHandler(
+        self.UserData = maica_tasker_sub.MAICAUserDataHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maica_user_data_handler",
             manager=self.task_manager
@@ -565,6 +566,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
 
     def _should_resume(self):
         return len(self.TalkSpilter.sentence_present) or len(self.message_list)
+
+    @property
+    def user_acc(self):
+        return self.UserData.nickname
 
     @property
     def gen_time(self):
