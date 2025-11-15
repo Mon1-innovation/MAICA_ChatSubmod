@@ -68,21 +68,21 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:8
     old "未选择图片"
-    new ""
+    new "No image selected"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:13
     old "重新上传成功"
-    new ""
+    new "Re-upload succeeded"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:15
     old "重新上传失败"
-    new ""
+    new "Re-upload failed"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:36
     old "正在选择图片..."
-    new ""
+    new "Selecting images..."
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:39
     old "已选择: [imageselector.image_path]"
-    new ""
+    new "Image chosen: [imageselector.image_path]"
 
