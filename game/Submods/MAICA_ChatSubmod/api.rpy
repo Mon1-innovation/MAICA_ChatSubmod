@@ -134,7 +134,7 @@ init 5 python in maica:
         maica.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
     elif renpy.android:
         try:
-            maica.vista_manager.magick_path = ANDROID_MAGICK_BINPATH
+            maica.vista_manager.magick_path = store.ANDROID_MAGICK_BINPATH
         except:
             pass
     import bot_interface
