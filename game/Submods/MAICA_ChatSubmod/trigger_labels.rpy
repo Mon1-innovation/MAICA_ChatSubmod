@@ -389,9 +389,9 @@ label mtrigger_backup:
     return
 
 label mtrigger_dscl(prob):
-    if prob < 0.4:
+    if prob < 0.5:
         return
-    elif prob < 0.6:
+    elif prob < 0.8:
         $ renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
     else:
         show screen maica_dscl_pvn_notify(prob)
