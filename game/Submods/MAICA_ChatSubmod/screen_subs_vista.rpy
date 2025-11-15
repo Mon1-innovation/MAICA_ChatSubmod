@@ -5,21 +5,21 @@ init python:
         if image:
             store.maica.maica.vista_manager.upload(image)
         else:
-            renpy.notify(_("未选择图片"))
+            renpy.notify(_("MAICA: 未选择图片"))
 
     def maica_reupload_image(uuid):
         try:
             store.maica.maica.vista_manager.reupload(uuid)
-            renpy.notify(_("重新上传成功"))
+            renpy.notify(_("MAICA: 重新上传成功"))
         except Exception as e:
-            renpy.notify(_("重新上传失败"))
+            renpy.notify(_("MAICA: 重新上传失败"))
 
     def maica_upload_image_android_submit(image_path):
         try:
             store.maica.maica.vista_manager.upload(image_path)
-            renpy.notify(_("上传成功"))
+            renpy.notify(_("MAICA: 上传成功"))
         except Exception as e:
-            renpy.notify(_("上传失败"))
+            renpy.notify(_("MAICA: 上传失败"))
         renpy.hide_screen("maica_upload_image_android")
 
     def remove_if_selected(item):

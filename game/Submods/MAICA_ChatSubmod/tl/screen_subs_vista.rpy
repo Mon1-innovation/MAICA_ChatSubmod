@@ -67,22 +67,38 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:8
-    old "未选择图片"
-    new ""
+    old "MAICA: 未选择图片"
+    new "MAICA: No image chosen"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:13
-    old "重新上传成功"
-    new ""
+    old "MAICA: 重新上传成功"
+    new "MAICA: Re-upload success"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:15
-    old "重新上传失败"
-    new ""
+    old "MAICA: 重新上传失败"
+    new "MAICA: Re-upload failed"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:36
     old "正在选择图片..."
-    new ""
+    new "Selecting images..."
 
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:39
     old "已选择: [imageselector.image_path]"
-    new ""
+    new "Image chosen: [imageselector.image_path]"
+
+# TODO: Translation updated at 2025-11-15 17:17
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:20
+    old "MAICA: 上传成功"
+    new "MAICA: Upload success"
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:22
+    old "MAICA: 上传失败"
+    new "MAICA: Upload failed"
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:41
+    old "未选择图片"
+    new "No image chosen"
 
