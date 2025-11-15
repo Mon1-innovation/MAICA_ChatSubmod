@@ -1133,7 +1133,7 @@ init 5 python:
             random=True,
             pool=False,
             conditional="renpy.seen_label('maica_greeting')",
-            action=EV_ACT_UNLOCK,
+            action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -1196,7 +1196,7 @@ init 5 python:
             random=True,
             pool=False,
             conditional="renpy.seen_label('maica_mpostal_replyed') or mas_getEV('maica_main').shown_count >= 3",
-            action=EV_ACT_UNLOCK,
+            action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
