@@ -5,21 +5,21 @@ init python:
         if image:
             store.maica.maica.vista_manager.upload(image)
         else:
-            renpy.notify("未选择图片")
+            renpy.notify(_("未选择图片"))
 
     def maica_reupload_image(uuid):
         try:
             store.maica.maica.vista_manager.reupload(uuid)
-            renpy.notify("重新上传成功")
+            renpy.notify(_("重新上传成功"))
         except Exception as e:
-            renpy.notify("重新上传失败")
+            renpy.notify(_("重新上传失败"))
 
     def maica_upload_image_android_submit(image_path):
         try:
             store.maica.maica.vista_manager.upload(image_path)
-            renpy.notify("上传成功")
+            renpy.notify(_("上传成功"))
         except Exception as e:
-            renpy.notify("上传失败")
+            renpy.notify(_("上传失败"))
         renpy.hide_screen("maica_upload_image_android")
 
     def remove_if_selected(item):
@@ -33,12 +33,12 @@ screen maica_upload_image_android():
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             if imageselector.is_selecting:
-                text "正在选择图片..."
+                text _("正在选择图片...")
             else:
                 if imageselector.image_path:
-                    text "已选择: [imageselector.image_path]"
+                    text _("已选择: [imageselector.image_path]")
                 else:
-                    text "未选择图片"
+                    text _("未选择图片")
         hbox:
             xpos 10
             style_prefix "confirm"
