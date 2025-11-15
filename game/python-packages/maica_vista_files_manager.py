@@ -207,7 +207,9 @@ class MAICAVistaFilesManager(object):
                         if max_side > 500:
                             thumb_path = os.path.join(self.cache_path, 'thumb_' + uuid + ext)
                             if self.magick_path:
-                                subprocess.call([self.magick_path, file_path, '-resize', '500x500', thumb_path])
+                                startupinfo = subprocess.STARTUPINFO()
+                                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                                subprocess.call([self.magick_path, file_path, '-resize', '500x500', thumb_path], startupinfo=startupinfo)
                             else:
                                 if os.path.abspath(file_path) != os.path.abspath(thumb_path):
                                     shutil.copy2(file_path, thumb_path)
