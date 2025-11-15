@@ -62,3 +62,27 @@ translate english strings:
     old "上传新图片 (请先登录)"
     new "Upload new image (login required)"
 
+# TODO: Translation updated at 2025-11-15 12:49
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:8
+    old "未选择图片"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:13
+    old "重新上传成功"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:15
+    old "重新上传失败"
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:36
+    old "正在选择图片..."
+    new ""
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:39
+    old "已选择: [imageselector.image_path]"
+    new ""
+
