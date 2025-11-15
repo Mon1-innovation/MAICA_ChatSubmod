@@ -1039,10 +1039,10 @@ init 5 python:
             eventlabel="maica_wants_mspire_reread",
             category=["你", "我们", "模组", "MAICA"],
             prompt="关于'MSpire'",
-            random=False,
-            pool=True,
+            random=True,
+            pool=False,
             conditional="renpy.seen_label('maica_wants_mspire')",
-            action=EV_ACT_UNLOCK,
+            action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
