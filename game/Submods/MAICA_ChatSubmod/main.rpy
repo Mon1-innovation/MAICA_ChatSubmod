@@ -220,7 +220,7 @@ label maica_mpostal_read:
             if cur_postal["responsed_status"] != "notupload":
                 continue
             start_time = time.time()
-            if cur_postal["raw_image"]:  
+            if cur_postal.get("raw_image"):  
                 uuid = ai.vista_manager.upload(cur_postal["raw_image"])
                 cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
 
