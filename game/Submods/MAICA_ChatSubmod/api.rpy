@@ -174,16 +174,6 @@ init 5 python in maica:
         store.persistent._maica_visuals = maica.vista_manager.export_list()
         mas_rmEVL("mas_corrupted_persistent")
 
-    def check_is_outdated(version_local):
-        url = "http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/version_data.json"
-        import requests, store
-        try:
-            r = requests.get(url)
-            version_remote = r.json().get("min_version")
-            return store.mas_utils._is_downgrade(version_remote, version_local)
-        except:
-            store.mas_submod_utils.submod_log.warning("MAICA: Check Version Failed")
-            return None
     import time
     last_workload_update = time.time()
     @store.mas_submod_utils.functionplugin("ch30_minute", priority=-100)
@@ -253,7 +243,6 @@ init 5 python in maica:
         if failed:
             persistent.maica_setting_dict['provider_id'] = 2
         store.maica.maica.accessable()
-        store.maica.maica.is_outdated = check_is_outdated(store.maica_ver)
         if store.maica.maica.is_outdated:
             store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
 

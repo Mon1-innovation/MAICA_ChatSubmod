@@ -21,7 +21,7 @@ def seconds_to_hms(timestamp_ms):
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
-    SUPPORT_BACKEND = 1.1
+    SUPPORT_BACKEND = "1.2.000.rc10"
     ascii_icon = """                                                             
 
     __  ___ ___     ____ ______ ___ 
@@ -768,6 +768,28 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
             return {"success":False, "exception": "Maica::_verify_token failed"}
 
+    def get_version(self):
+        import requests
+        import traceback
+
+        try:
+            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "version")
+            if res.status_code == 200:
+                res_data = res.json()
+                if res_data.get("success", False):
+                    return res_data
+                else:
+                    logger.warning("Get version failed: {}".format(res_data))
+                    return res_data
+            else:
+                logger.error("Get version request failed: Server returned {} - {}".format(res.status_code, res.text))
+                return {"success": False, "exception": "Get version request failed"}
+
+        except Exception as e:
+            error_msg = traceback.format_exc()
+            logger.error("Get version request encountered an error: {}".format(error_msg))
+            return {"success": False, "exception": "Get version request failed"}
+
     def get_emotion(self, type, text):
         import requests
         import json
@@ -1471,7 +1493,21 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             self.__accessable = False
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
         
+        # 写下版本检测
+        # 后端返回示例：{"content":{"curr_version":"1.2.000.post3","fe_blessland_version":"1.5.0","legc_version":"1.2.000.rc10"},"exception":null,"success":true}
         if self.__accessable:
+            version_info = self.get_version()
+            if version_info.get("success", False):
+                legc_version = version_info.get("content", {}).get("legc_version", "")
+                try:
+                    from packaging import version
+                    if version.parse(legc_version) > version.parse(self.SUPPORT_BACKEND):
+                        self.status = self.MaicaAiStatus.VERSION_OLD
+                        self.__accessable = False
+                        logger.error("accessable(): Backend version {} is newer than supported version {}".format(legc_version, self.SUPPORT_BACKEND))
+                        return
+                except:
+                    pass
             try:
                 res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "defaults").json()["content"]
                 if type(res) == dict:

@@ -536,12 +536,6 @@ screen maica_setting_pane():
                     text _("> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"):
                         style "main_menu_version_l"
 
-            if store.maica.maica.is_outdated is None:
-                hbox:
-
-                    text _("> 未能联网验证版本信息, 如果出现问题请尝试更新"):
-                        style "main_menu_version_l"
-
             elif store.maica.maica.is_outdated is True:
                 hbox:
             
