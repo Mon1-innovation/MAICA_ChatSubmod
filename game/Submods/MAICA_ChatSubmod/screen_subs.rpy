@@ -990,7 +990,7 @@ screen maica_mpostals():
                         text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
                             xalign 0.0
                             style "small_expl_hw"
-                    if postal['vista_image_info']:
+                    if postal.get('vista_image_info'):
                         python:
                             vista_info = postal['vista_image_info']
                             img_path, img_exists = get_display_image(vista_info)
@@ -998,7 +998,7 @@ screen maica_mpostals():
                             add Transform(img_path, size=get_scaled_size((vista_info['width'], vista_info['height'])))
                         else:
                             text _("图片文件不存在: [img_path]")
-                    elif postal['raw_image']:
+                    elif postal.get('raw_image'):
                         if os.path.exists(postal['raw_image']):
                             add Transform(postal['raw_image'], size=get_scaled_size((480, 360)))
                     hbox:

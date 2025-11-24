@@ -150,7 +150,7 @@ label maica_mpostal_load:
                     {
                         "raw_title": item["title"],
                         "raw_content": item["content"],
-                        "raw_image": item["image"],
+                        "raw_image": item.get("image"),
                         "vista_image_info":None,
                         "time": str(time.time()),
                         "responsed_content": "",
@@ -224,7 +224,7 @@ label maica_mpostal_read:
                 uuid = ai.vista_manager.upload(cur_postal["raw_image"])
                 cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
 
-            ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if cur_postal["raw_image"] else None)
+            ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if cur_postal.get("raw_image") else None)
             not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
             current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
