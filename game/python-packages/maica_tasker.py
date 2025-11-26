@@ -253,7 +253,7 @@ class MaicaTask(object):
         重置任务状态。
 
         子类可以重写此方法以实现自定义的重置逻辑。
-        默认情况下不做任何操作。
+        必须要执行父类reset方法以重置self.status
         """
         self.status == MaicaTask.MAICATASK_STATUS_READY
 

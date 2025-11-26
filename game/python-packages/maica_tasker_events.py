@@ -8,7 +8,7 @@ class MaicaTaskEvent(object):
         data: 事件数据（通常是WSResponse或其他事件数据）
     """
 
-    def __init__(self, taskowner, event_type, data):
+    def __init__(self, taskowner, event_type, data, type='info'):
         """
         初始化任务事件。
 
@@ -20,6 +20,7 @@ class MaicaTaskEvent(object):
         self.taskowner = taskowner
         self.event_type = event_type
         self.data = data
+        self.type = type
 
     def __str__(self):
         """

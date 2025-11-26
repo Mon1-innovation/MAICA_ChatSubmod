@@ -15,6 +15,11 @@ class GeneralTaskEventLogger(MaicaTask):
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
             self.logger.debug("[GeneralTaskEventLogger] {}".format(event))
+class GeneralTaskErrorHandler(MaicaTask):
+    def on_event(self, event):
+        if event.event_type == MAICATASKEVENT_TYPE_TASK and event.type == 'error':
+            self.logger.debug("[GeneralTaskErrorHandler] {}".format(event))
+            self.manager.close_ws()
 
 class GeneralWsErrorHandler(MaicaWSTask):
     """
@@ -435,6 +440,7 @@ class MAICALoginTasker(MaicaWSTask):
         """
         super(MAICALoginTasker, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.success = False
+        self.wrong_pwd = False
         self.__token = ''
 
     def on_manual_run(self, token):
@@ -492,10 +498,23 @@ class MAICALoginTasker(MaicaWSTask):
                     )            
                 )
             )
+        elif event.data.status == 'maica_unidentified_warning':
+            self.worn_pwd = True
+            self.manager.create_event(
+                MaicaTaskEvent(
+                    taskowner=self,
+                    event_type=MAICATASKEVENT_TYPE_TASK,
+                    data=maica_tasker_events.GenericData(
+                        name='maica_login_failed',
+                        content={}
+                    )            
+                )
+            )
     
     def reset(self):
         super(MAICALoginTasker, self).reset()
         self.success = False
+        self.wrong_pwd = False
 
 
 class MAICASessionResetTasker(MaicaWSTask):

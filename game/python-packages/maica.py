@@ -503,7 +503,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="login_task",
             manager=self.task_manager,
-            except_ws_status=['maica_connection_established', 'maica_connection_initiated']
+            except_ws_status=['maica_connection_established', 'maica_connection_initiated', 'maica_unidentified_warning']
         )
 
         self.SessionReseter = maica_tasker_sub.MAICASessionResetTasker(
