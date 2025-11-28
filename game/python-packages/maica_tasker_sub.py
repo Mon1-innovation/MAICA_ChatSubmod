@@ -499,7 +499,7 @@ class MAICALoginTasker(MaicaWSTask):
                 )
             )
         elif event.data.status == 'maica_unidentified_warning':
-            self.worn_pwd = True
+            self.wrong_pwd = True
             self.manager.create_event(
                 MaicaTaskEvent(
                     taskowner=self,
