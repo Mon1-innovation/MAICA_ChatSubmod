@@ -533,7 +533,7 @@ screen maica_setting_pane():
             if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
                 hbox:
 
-                    text _("> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"):
+                    text _("> 你当前的MAS构建版本过旧, 可能影响正常运行, 请升级至最新版本"):
                         style "main_menu_version_l"
 
             elif store.maica.maica.is_outdated is True:
