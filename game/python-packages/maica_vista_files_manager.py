@@ -188,7 +188,7 @@ class MAICAVistaFilesManager(object):
         with open(file_path, 'rb') as f:
             files = {'content': f}
             data = {'access_token': self.access_token}
-            resp = requests.post(self.base_url + '/vista', data=data, files=files)
+            resp = requests.post(self.base_url + '/vista', data=data, files=files, timeout = 10)
             result = resp.json()
             if result.get('success'):
                 uuid = result.get('content')
