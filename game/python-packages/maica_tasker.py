@@ -324,11 +324,26 @@ class WSResponse(object):
         初始化WebSocket响应对象。
 
         Args:
-            ws_response (str): JSON格式的WebSocket消息字符串
+            ws_response (str|bytes): JSON格式的WebSocket消息字符串或字节
 
-        解析JSON并提取各个字段。
+        解析JSON并提取各个字段。处理字符编码问题，避免解码为??。
         """
         import json
+        import chardet
+
+        # 如果是字节类型，先检测编码
+        if isinstance(ws_response, bytes):
+            detected = chardet.detect(ws_response)
+            encoding = detected.get('encoding', 'utf-8') or 'utf-8'
+            try:
+                ws_response = ws_response.decode(encoding)
+            except (UnicodeDecodeError, LookupError):
+                # 如果检测到的编码失败，尝试utf-8，然后latin-1
+                try:
+                    ws_response = ws_response.decode('utf-8')
+                except UnicodeDecodeError:
+                    ws_response = ws_response.decode('latin-1', errors='replace')
+
         ws_response = json.loads(ws_response)
         self.code = int(ws_response["code"])
         self.status = ws_response["status"]
