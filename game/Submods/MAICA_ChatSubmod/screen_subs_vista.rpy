@@ -3,7 +3,11 @@ init python:
         import file_selector
         image = file_selector.select_file()
         if image:
-            store.maica.maica.vista_manager.upload(image)
+            try:
+                store.maica.maica.vista_manager.upload(image)
+            except Exception as e:
+                renpy.notify(_("MAICA: 上传失败"))
+            
         else:
             renpy.notify(_("MAICA: 未选择图片"))
 
