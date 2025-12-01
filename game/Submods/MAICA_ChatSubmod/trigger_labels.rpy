@@ -397,6 +397,7 @@ label mtrigger_dscl(prob=1.0):
         show screen maica_dscl_pvn_notify(prob)
         $ behind_bg = MAS_BACKGROUND_Z - 1
         show chibika 3:
+            zorder behind_bg
             subpixel True
             rotate_pad True
             zoom 0.5
