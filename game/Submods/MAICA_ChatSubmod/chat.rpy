@@ -494,8 +494,8 @@ label change_to_heaven_forest():
 
     #show expression _background as sp_mas_backbed zorder behind_bg
     $ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
-    $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
-    call spaceroom(start_bg=_background, scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=False, show_emptydesk=False)
+    $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
+    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
     $ behind_bg = MAS_BACKGROUND_Z - 2
     #show expression _background as sp_mas_backbed zorder behind_bg
     $ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
