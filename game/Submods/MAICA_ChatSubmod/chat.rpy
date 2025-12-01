@@ -484,13 +484,21 @@ label maica_delete_information:
             
 
 
-label change_to_heaven_forest(bg_type="heaven_forest_day"):
+label change_to_heaven_forest():
     $ behind_bg = MAS_BACKGROUND_Z - 2
-    show heaven_forest_day as sp_mas_backbed zorder behind_bg
+    python:
+        if mas_isDayNow():
+            _background = "heaven_forest_day"
+        else:
+            _background = "heaven_forest_night"
+
+    #show expression _background as sp_mas_backbed zorder behind_bg
+    $ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
     $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
-    call spaceroom(start_bg=bg_type, scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=False, show_emptydesk=False)
+    call spaceroom(start_bg=_background, scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=False, show_emptydesk=False)
     $ behind_bg = MAS_BACKGROUND_Z - 2
-    show heaven_forest_day as sp_mas_backbed zorder behind_bg
+    #show expression _background as sp_mas_backbed zorder behind_bg
+    $ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
     return
 
 label change_to_heaven_forest_corrupted():
