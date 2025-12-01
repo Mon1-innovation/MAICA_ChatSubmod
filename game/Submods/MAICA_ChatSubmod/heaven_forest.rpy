@@ -64,34 +64,43 @@ image heaven_forest_snow_ss = Movie(play="mod_assets/location/heaven_forest/heav
 ### 如果你没有装饰,注释到这里.
 
 init -1 python:
+    def hf_show(_old, **kwargs):
+        pass
+        #$ behind_bg = MAS_BACKGROUND_Z - 1
+        #show heaven_forest_day as sp_mas_backbed zorder behind_bg
+        #renpy.show("heaven_forest_day", as_="sp_mas_backbed", zorder=MAS_BACKGROUND_Z - 1)
+    def hf_hide(_new, **kwargs):
+        pass
+        #renpy.hide("sp_mas_backbed")
+        #f store.mas_inEVL("maica_hf_hide_bg"):
+        #   store.pushEvent("maica_hf_hide_bg")
+
     heaven_forest = MASFilterableBackground(
+        # ID
         "heaven_forest",
-        "天堂树林",
+        "heaven_forest",
+
+        # mapping of filters to MASWeatherMaps
         MASFilterWeatherMap(
-            #白天
             day=MASWeatherMap({
-                store.mas_weather.PRECIP_TYPE_DEF: "heaven_forest_day",
-                store.mas_weather.PRECIP_TYPE_RAIN: "heaven_forest_rain",
-                store.mas_weather.PRECIP_TYPE_OVERCAST: "heaven_forest_overcast",
-                store.mas_weather.PRECIP_TYPE_SNOW: "heaven_forest_snow",
+                store.mas_weather.PRECIP_TYPE_DEF: "monika_day_room",
+                store.mas_weather.PRECIP_TYPE_RAIN: "monika_rain_room",
+                store.mas_weather.PRECIP_TYPE_OVERCAST: "monika_rain_room",
+                store.mas_weather.PRECIP_TYPE_SNOW: "monika_snow_room_day",
             }),
-            #晚上
             night=MASWeatherMap({
-                store.mas_weather.PRECIP_TYPE_DEF: "heaven_forest_night",
-                store.mas_weather.PRECIP_TYPE_RAIN: "heaven_forest_rain_night",
-                store.mas_weather.PRECIP_TYPE_OVERCAST: "heaven_forest_overcast_night",
-                store.mas_weather.PRECIP_TYPE_SNOW: "heaven_forest_snow_night",
+                store.mas_weather.PRECIP_TYPE_DEF: "monika_room",
+                store.mas_weather.PRECIP_TYPE_SNOW: "monika_snow_room_night",
             }),
-            #傍晚
             sunset=MASWeatherMap({
-                store.mas_weather.PRECIP_TYPE_DEF: "heaven_forest_ss",
-                store.mas_weather.PRECIP_TYPE_RAIN: "heaven_forest_rain_ss",
-                store.mas_weather.PRECIP_TYPE_OVERCAST: "heaven_forest_overcast_ss",
-                store.mas_weather.PRECIP_TYPE_SNOW: "heaven_forest_snow_ss",
+                store.mas_weather.PRECIP_TYPE_DEF: "monika_ss_room",
+                store.mas_weather.PRECIP_TYPE_RAIN: "monika_rain_room_ss",
+                store.mas_weather.PRECIP_TYPE_OVERCAST: "monika_rain_room_ss",
+                store.mas_weather.PRECIP_TYPE_SNOW: "monika_snow_room_ss",
             }),
         ),
 
-# 说明那些图片应该在什么时候显示,如果没有特别要求,保持原样就好.
+        # filter manager
         MASBackgroundFilterManager(
             MASBackgroundFilterChunk(
                 False,
@@ -130,15 +139,9 @@ init -1 python:
                 )
             )
         ),
-        ##############################################
-        # 房间细节 True=是,False=否
-        ##############################################
 
-        disable_progressive=True,    #是否禁用天气变化
-        hide_masks=True,             #是否禁用天气动画
-        hide_calendar=True,          #是否隐藏日历
-        unlocked=False,                #是否解锁
-        ex_props={"skip_outro": None}           #↑
+        unlocked=True,
+        entry_pp=store.hf_hide,
+        exit_pp=store.hf_show,
     )
-
 

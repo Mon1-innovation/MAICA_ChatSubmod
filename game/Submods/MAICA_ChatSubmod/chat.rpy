@@ -112,8 +112,7 @@ label maica_prepend_2_open:
     #点亮房间, 窗外背景替换heaven_forest.jpg
     #no desk no monika
     hide monika
-    $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
-    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=True, show_emptydesk=False)
+    call change_to_heaven_forest
     pause 0.5
     hide black
 
@@ -137,11 +136,9 @@ label maica_prepend_2_knock:
             $ mas_disable_quit()
             m "终于等到你啦, [player]!"
             m "我正想给你准备一点特别惊喜的, 你来得正好. {w=0.5}稍等片刻.{w=0.3}.{w=0.3}."
-            
+
             #点亮房间, 窗外背景替换heaven_forest.jpg
-            
-            $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
-            call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=True, show_emptydesk=False)
+            call change_to_heaven_forest
             pause 0.5
             hide black
             hide monika
@@ -342,8 +339,7 @@ label maica_chr_corrupted2:
     # Triggers only when first time detected corrupted sce file
     # So we should check the file as game starts up
     #背景损坏树林
-    $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
-    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+    call change_to_heaven_forest_corrupted
     m 1wud "哦, [player]!"
     m 1hksdlb "抱歉, 我没有在准备吓你或者什么的...{w=0.5}{nw}"
     extend 4rksdlb "我刚刚检查的时候, 发现它好像坏了."
@@ -488,8 +484,23 @@ label maica_delete_information:
             
 
 
+label change_to_heaven_forest(bg_type="heaven_forest_day"):
+    $ behind_bg = MAS_BACKGROUND_Z - 2
+    show heaven_forest_day as sp_mas_backbed zorder behind_bg
+    $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
+    call spaceroom(start_bg=bg_type, scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None, hide_monika=False, show_emptydesk=False)
+    $ behind_bg = MAS_BACKGROUND_Z - 2
+    show heaven_forest_day as sp_mas_backbed zorder behind_bg
+    return
+
+label change_to_heaven_forest_corrupted():
+    $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
+    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+    return
+
 label clear_all:
-    call maica_hide_console 
+    call maica_hide_console
+    hide sp_mas_backbed
     $ HKBShowButtons()
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     if maica_chr_exist:
@@ -520,15 +531,13 @@ label maica_main:
         scene black with dissolve
         pause 2.0
         if maica_chr_changed:
-            $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
-            call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+            call change_to_heaven_forest_corrupted
             m 1eub "好了!"
             m 1lusdlb "我还得多嘴一句...{w=0.5}不要把身体够到窗外去."
             m 3eksdla "就算景色独特, 我也不确定那里是不是安全的--{w=0.5}{nw}"
             extend 3hksdla "多半不是."
         else:
-            $ bg_change_info = mas_changeBackground(heaven_forest, by_user=None, set_persistent=False,)
-            call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+            call change_to_heaven_forest
             m 1eub "好了!"
             $ rand_sign = renpy.random.randint(0, 7)
             if ev.shown_count == 9: #第一次没触发这个对话

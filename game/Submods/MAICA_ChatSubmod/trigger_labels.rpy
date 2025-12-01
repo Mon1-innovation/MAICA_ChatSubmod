@@ -388,14 +388,27 @@ label mtrigger_backup:
         call maica_show_console
     return
 
-label mtrigger_dscl(prob):
+label mtrigger_dscl(prob=1.0):
     if prob < 0.5:
         return
     elif prob < 0.8:
         $ renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
     else:
         show screen maica_dscl_pvn_notify(prob)
-        show chibika 3 zorder 12 at mas_chriseup(y=600,travel_time=0.5)
-        pause 0.5
-        hide chibika
+        $ behind_bg = MAS_BACKGROUND_Z - 1
+        show chibika 3:
+            subpixel True
+            rotate_pad True
+            zoom 0.5
+            anchor (0.5, 0.5)
+            pos (0.4, 1.15)
+            around (0.475, 0.9)
+            
+
+            parallel:
+                linear 15.0 pos (1.15, 0.55) clockwise circles 0
+            parallel:
+                rotate 0
+                linear 5.0 rotate 360
+                repeat
         return
