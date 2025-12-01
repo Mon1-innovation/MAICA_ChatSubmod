@@ -395,7 +395,8 @@ label mtrigger_dscl(prob=1.0):
         $ renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
     else:
         show screen maica_dscl_pvn_notify(prob)
-        show chibi_peek with moveinleft
+        $ behind_bg = MAS_BACKGROUND_Z - 1
+        show chibi_peek zorder behind_bg with moveinleft
         pause 5.0
-        hide chibi_peek with moveoutright
+        hide chibi_peek with moveoutleft
         return
