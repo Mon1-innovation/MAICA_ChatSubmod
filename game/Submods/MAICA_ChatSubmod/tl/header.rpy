@@ -720,7 +720,7 @@ translate english strings:
     new "Reason: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:330
-    old "> 你当前的MAS生成版本过旧, 可能影响正常运行, 请升级至最新生成版本"
+    old "> 你当前的MAS构建版本过旧, 可能影响正常运行, 请升级至最新版本"
     new "> Your current MAS version is below the lowest compatible version, please update"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:513
