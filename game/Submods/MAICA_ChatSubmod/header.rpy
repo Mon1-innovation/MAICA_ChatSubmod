@@ -517,6 +517,9 @@ screen maica_setting_pane():
         store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
 
+        import nonunicode_detect
+        is_zhcn = nonunicode_detect.is_zhcn()
+
     vbox:
         # background None
         # has vbox:
@@ -570,6 +573,12 @@ screen maica_setting_pane():
                 hbox:
 
                     text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"):
+                        style "main_menu_version_l"
+
+            if renpy.windows and not is_zhcn:
+                hbox:
+
+                    text _("> 警告: 检测到当前系统非Unicode语言不是简体中文, *SW: 后面的我不知道怎么写了, 总之是设置中文输出时, 或者目标语言英文时串语言了, 这些场合会出问题*"):
                         style "main_menu_version_l"
 
             if 13400 <= maica.maica.status <= 13499:
