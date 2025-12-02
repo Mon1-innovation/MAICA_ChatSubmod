@@ -485,20 +485,23 @@ label maica_delete_information:
 
 
 label change_to_heaven_forest():
-    $ behind_bg = MAS_BACKGROUND_Z - 2
-    python:
-        if mas_isDayNow():
-            _background = "heaven_forest_day"
-        else:
-            _background = "heaven_forest_night"
+    #$ behind_bg = MAS_BACKGROUND_Z - 2
+    #python:
+    #    if mas_isDayNow():
+    #        _background = "heaven_forest_day"
+    #    else:
+    #        _background = "heaven_forest_night"
 
     #show expression _background as sp_mas_backbed zorder behind_bg
-    $ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
+    #$ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
+    $ mas_changeWeather(hf_weather, True)
     $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
     call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
-    $ behind_bg = MAS_BACKGROUND_Z - 2
+    #$ behind_bg = MAS_BACKGROUND_Z - 2
     #show expression _background as sp_mas_backbed zorder behind_bg
-    $ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
+    #$ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
+
+    
     return
 
 label change_to_heaven_forest_corrupted():
@@ -510,6 +513,7 @@ label clear_all:
     call maica_hide_console
     hide sp_mas_backbed
     $ HKBShowButtons()
+    $ mas_changeWeather(mas_weather_def)
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     if maica_chr_exist:
         call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)

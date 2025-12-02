@@ -6,9 +6,36 @@ image heaven_forest_day = Movie(play="mod_assets/location/heaven_forest/day.webm
 # 晚上
 image heaven_forest_night = Movie(play="mod_assets/location/heaven_forest/night.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/night.png"
 
-
-
+image hf_weather = MASFallbackFilterDisplayable(
+    day=Movie(
+        channel="window_1",
+        play="mod_assets/location/heaven_forest/day.mp4",
+        side_mask=True
+    ),
+    sunset=Movie(
+        play="mod_assets/location/heaven_forest/ss.mp4",
+        side_mask=True
+    ),
+    night=Movie(
+        channel="window_2",
+        play="mod_assets/location/heaven_forest/night.mp4",
+        side_mask=True
+    )
+)
+image hf_weather_fb = MASFallbackFilterDisplayable(
+    day="mod_assets/location/heaven_forest/day.png",
+    sunset="mod_assets/location/heaven_forest/ss.png",
+    night="mod_assets/location/heaven_forest/night.png",
+)
 init -1 python:
+    hf_weather = MASFilterableWeather(
+        "hf_weather",
+        "hf_weather",
+        "hf_weather",
+        "hf_weather_fb",
+        precip_type=store.mas_weather.PRECIP_TYPE_DEF,
+        unlocked=False
+    )
     heaven_forest = MASFilterableBackground(
         # ID
         "heaven_forest",
