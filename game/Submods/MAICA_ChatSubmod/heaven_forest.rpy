@@ -45,19 +45,19 @@ init -1 python:
         MASFilterWeatherMap(
             day=MASWeatherMap({
                 store.mas_weather.PRECIP_TYPE_DEF: "monika_day_room",
-                store.mas_weather.PRECIP_TYPE_RAIN: "monika_rain_room",
-                store.mas_weather.PRECIP_TYPE_OVERCAST: "monika_rain_room",
-                store.mas_weather.PRECIP_TYPE_SNOW: "monika_snow_room_day",
+                store.mas_weather.PRECIP_TYPE_RAIN: "monika_day_room",
+                store.mas_weather.PRECIP_TYPE_OVERCAST: "monika_day_room",
+                store.mas_weather.PRECIP_TYPE_SNOW: "monika_day_room",
             }),
             night=MASWeatherMap({
                 store.mas_weather.PRECIP_TYPE_DEF: "monika_room",
-                store.mas_weather.PRECIP_TYPE_SNOW: "monika_snow_room_night",
+                store.mas_weather.PRECIP_TYPE_SNOW: "monika_room",
             }),
             sunset=MASWeatherMap({
                 store.mas_weather.PRECIP_TYPE_DEF: "monika_ss_room",
-                store.mas_weather.PRECIP_TYPE_RAIN: "monika_rain_room_ss",
-                store.mas_weather.PRECIP_TYPE_OVERCAST: "monika_rain_room_ss",
-                store.mas_weather.PRECIP_TYPE_SNOW: "monika_snow_room_ss",
+                store.mas_weather.PRECIP_TYPE_RAIN: "monika_ss_room",
+                store.mas_weather.PRECIP_TYPE_OVERCAST: "monika_ss_room",
+                store.mas_weather.PRECIP_TYPE_SNOW: "monika_ss_room",
             }),
         ),
 
