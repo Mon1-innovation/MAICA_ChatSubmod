@@ -9,16 +9,16 @@ image heaven_forest_night = Movie(play="mod_assets/location/heaven_forest/night.
 image hf_weather = MASFallbackFilterDisplayable(
     day=Movie(
         channel="window_1",
-        play="mod_assets/location/heaven_forest/day.mp4",
+        play="mod_assets/location/heaven_forest/day.webm",
         side_mask=True
     ),
     sunset=Movie(
-        play="mod_assets/location/heaven_forest/ss.mp4",
+        play="mod_assets/location/heaven_forest/ss.webm",
         side_mask=True
     ),
     night=Movie(
         channel="window_2",
-        play="mod_assets/location/heaven_forest/night.mp4",
+        play="mod_assets/location/heaven_forest/night.webm",
         side_mask=True
     )
 )
@@ -29,10 +29,10 @@ image hf_weather_fb = MASFallbackFilterDisplayable(
 )
 init -1 python:
     hf_weather = MASFilterableWeather(
-        "hf_weather",
-        "hf_weather",
-        "hf_weather",
-        "hf_weather_fb",
+        "hf_weather_id",
+        "hf_weather_label",
+        ani_img_tag = "hf_weather",
+        img_tag = "hf_weather_fb",
         precip_type=store.mas_weather.PRECIP_TYPE_DEF,
         unlocked=False
     )
