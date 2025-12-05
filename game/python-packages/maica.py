@@ -953,7 +953,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
         #return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
-        return not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
+        return not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked() and self.Loginer.success
 
     def is_accessable(self):
         """返回maica是否可用"""
