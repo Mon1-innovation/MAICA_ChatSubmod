@@ -1,11 +1,4 @@
 
-define use_amim_background = persistent.maica_setting_dict.get("use_anim_background", True) if persistent.maica_setting_dict else True
-# 白天
-image heaven_forest_day = Movie(play="mod_assets/location/heaven_forest/day.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/day.png"
-
-# 晚上
-image heaven_forest_night = Movie(play="mod_assets/location/heaven_forest/night.webm", side_mask=True) if use_amim_background else "mod_assets/location/heaven_forest/night.png"
-
 image hf_weather = MASFallbackFilterDisplayable(
     day=Movie(
         channel="window_1",
