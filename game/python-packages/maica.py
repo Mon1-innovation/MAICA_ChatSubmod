@@ -261,23 +261,6 @@ class MaicaAi(ChatBotInterface):
                 return cls.isfailedresponse["httpInterface"] + "/"
             return cls.get_server_by_id(id)["httpInterface"] + "/"
 
-            
-    public_key_pem = """\
------BEGIN RSA PUBLIC KEY-----
-MIIBCgKCAQEA2IHJQAPwWuynuivzvu/97/EbN+ttYoNmJyvu9RC/M9CHXCi1Emgc
-/KIluhzfJesBU/E/TX/xeuwURuGcyhIBk0qmba8GOADVjedt1OHcP6DJQJwu6+Bp
-kGd8BIqYFHjbsNwkBZiq7s0nRiHig0asd+Hhl/pwplXH/SIjASMlDPijF24OUSfP
-+D7eRohyO4sWuj6WTExDq7VoCGz4DBGM3we9wN1YpWMikcb9RdDg+f610MUrzQVf
-l3tCkUjgHS+RhNtksuynpwm84Mg1MlbgU5s5alXKmAqQTTJ2IG61PHtrrCTVQA9M
-t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
------END RSA PUBLIC KEY-----
-"""
-    def_modelconfig = {
-        "top_p":[0.1, 1.0, 0.7],
-        "temperature":[0.0, 1.0, 0.4],
-        "frequency_penalty":[0.0, 1.0, 0.3],
-        "presence_penalty":[0.0, 1.0, 0.0],
-    }
     
     MAX_CHATSESSION = 9
 
@@ -309,12 +292,10 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.enable_mt = True
         self.sf_extraction = False
         self.stream_output = True
-        self.update_screen_func = None
         self.content_func = None
         # 待发送消息队列
         self.senddata_queue = Queue() if not PY3 else bot_interface.Queue()
         self.TalkSpilter = bot_interface.TalkSplitV2()
-        self._current_topic = ""
         self.status = self.MaicaAiStatus.WAIT_AVAILABILITY
         self.target_lang = self.MaicaAiLang.zh_cn        
         self.modelconfig = {}
@@ -938,20 +919,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
                 logger.info("Maica::_init_connect released lock because wss closed")
         
         
-    # 检查参数合法性
-    def _check_modelconfig(self):    
-        for i in self.def_modelconfig:
-            if i in self.modelconfig:
-                if not self.def_modelconfig[i][0] <= self.modelconfig[i] <= self.def_modelconfig[i][1]:
-                    if self.def_modelconfig[i][2] == None:
-                        logger.warning("modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
-                        self.console_logger.warning("<submod> modelconfig {} is invaild: reset {} -> deleted".format(i, self.modelconfig[i]))
-                        del self.modelconfig[i]
-                    else:
-                        logger.warning("modelconfig {} is invaild: reset  {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
-                        self.console_logger.warning("<submod> modelconfig {} is invaild: reset {} -> {}".format(i, self.modelconfig[i], self.def_modelconfig[i][2]))
-                        self.modelconfig[i] = self.def_modelconfig[i][2]
-            
     def is_responding(self):
         """返回maica是否正在返回消息"""
         #return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
@@ -1019,7 +986,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         )
     _pos = 0
     def build_setting_config(self):
-        self._check_modelconfig()
         data = {
             "type": "params",
             "chat_params": {}
@@ -1046,8 +1012,6 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
     def _on_message(self, wsapp, message):
         try:
             self.task_manager._ws_onmessage(wsapp, message)
-            if self.update_screen_func:
-                self.update_screen_func(0)
         except Exception as e:
             import traceback
             self.console_logger.debug("!!SUBMOD ERROR when on_message: {}".format(e))

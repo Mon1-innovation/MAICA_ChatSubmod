@@ -113,7 +113,6 @@ init 5 python in maica:
 
 """.format(store.maica_ver)
 
-    #maica.update_screen_func = renpy.pause
     if store.persistent.maica_stat is None:
         store.persistent.maica_stat = maica.stat.copy()
     else:    
