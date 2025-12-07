@@ -252,7 +252,7 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
     用于处理常规的聊天请求，支持触发器和自定义会话。
     """
 
-    def process_request(self, query, session, trigger, taskowner, visions=None):
+    def process_request(self, query, session, trigger, taskowner, visions=None, pprt=False):
         """
         处理通用聊天请求。
 
@@ -263,12 +263,15 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             session (int): 聊天会话ID
             trigger: 触发器信息
             taskowner: 任务所有者（通常是MaicaTaskManager）
+            visions (list|None): 视觉列表，可选
+            pprt (bool): 是否启用自动断句和实时后处理
         """
         data = {
             'type': 'query',
             'chat_session': session,
             'query': query,
-            'trigger': trigger
+            'trigger': trigger,
+            "pprt": pprt
         }
         if visions:
             data['vision'] = visions
@@ -292,7 +295,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     mspire_type = "in_fuzzy_all"
     use_cache = False
 
-    def process_request(self, category, session):
+    def process_request(self, category, session, pprt=False):
         """
         处理MSpire聊天请求。
 
@@ -313,6 +316,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "title": random.choice(category),
             } if len(category) else True,
             "use_cache": MAICAMSpireProcessor.use_cache,
+            "pprt": pprt
         }
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie

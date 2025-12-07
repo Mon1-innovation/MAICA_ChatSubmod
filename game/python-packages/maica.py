@@ -326,7 +326,7 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.mspire_session = 0
         self.mspire_sample = 250
         self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
-        
+        self.pprt=False
         self.in_mas = True
         self.provider_id = None
         self.is_outdated = None
@@ -990,7 +990,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
         self.MSpireProcessor.start_request(
             category=self.mspire_category,
-            session=self.mspire_session
+            session=self.mspire_session,
+            pprt=self.pprt
         )
         self._in_mspire = True
     
@@ -1103,7 +1104,8 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             session = self.chat_session,
             trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
             taskowner = self.task_manager,
-            visions = visions
+            visions = visions,
+            pprt = self.pprt
         )
         self.stat['message_count'] += 1
 
