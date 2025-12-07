@@ -1124,3 +1124,190 @@ class KeepWsAliveTasker(MaicaWSTask):
         self._latency = 0.0
         self._pong_event.clear()
         self._stop_timer_thread()
+
+
+class StreamingPacketValidator(MaicaWSTask):
+    """
+    Streaming数据包验证器。
+
+    监听 maica_core_streaming_continue 和 maica_core_complete 消息，
+    验证接收到的streaming continue数据包数量是否与服务器报告的数量匹配。
+    如果不匹配则断开WebSocket连接。
+
+    工作流程：
+    1. 监听 maica_core_streaming_continue 消息，计数每个接收到的数据包
+    2. 监听 maica_core_complete 消息，解析其content中的packet数量
+    3. 比较计数与报告的packet数量
+    4. 如果不匹配，记录错误并断开WebSocket连接
+    5. 在完成消息后重置计数器
+
+    Attributes:
+        _packet_count (int): 当前接收到的streaming continue数据包计数
+        _enabled (bool): 验证功能是否启用，默认为True
+        _validation_passed (bool): 上一次验证是否成功
+    """
+
+    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
+        """
+        初始化Streaming数据包验证器。
+
+        Args:
+            task_type (int): 任务类型
+            name (str): 任务名称
+            manager (MaicaTaskManager): 任务管理器实例
+            except_ws_status (list): 监听的消息状态列表
+        """
+        super(StreamingPacketValidator, self).__init__(
+            task_type, name, manager=manager,
+            except_ws_status=except_ws_status
+        )
+        self._packet_count = 0
+        self._enabled = True
+        self._validation_passed = True
+
+    def on_received(self, event):
+        """
+        处理接收到的WebSocket消息。
+
+        根据消息状态进行相应的处理：
+        - maica_core_streaming_continue: 增加数据包计数
+        - maica_core_complete: 验证数据包数量并进行处理
+
+        Args:
+            event (MaicaTaskEvent): WebSocket事件对象
+        """
+        if not self._enabled:
+            return
+
+        wspack = event.data
+
+        if wspack.status == 'maica_core_streaming_continue':
+            self._packet_count += 1
+            self.logger.debug(
+                "[StreamingPacketValidator] received packet, count: {}".format(self._packet_count)
+            )
+
+        elif wspack.status == 'maica_core_complete':
+            self._validate_and_process_complete(wspack)
+
+    def _validate_and_process_complete(self, wspack):
+        """
+        验证和处理完成消息。
+
+        解析 maica_core_complete 消息，提取packet数量，
+        与已接收的数据包计数进行比较。
+
+        Args:
+            wspack (WSResponse): WebSocket响应对象
+        """
+        import re
+
+        content = wspack.content
+        self.logger.debug(
+            "[StreamingPacketValidator] received complete message: {}".format(content)
+        )
+
+        # 解析格式: "Streaming finished with seed None for {nickname}, {number} packets sent -- your traceray ID is {id}"
+        pattern = r'Streaming finished with seed None for ([^,]+), (\d+) packets sent -- your traceray ID is ([^\s]+)'
+        match = re.search(pattern, content)
+
+        if not match:
+            self.logger.error(
+                "[StreamingPacketValidator] failed to parse complete message: {}".format(content)
+            )
+            self._validation_passed = False
+            return
+
+        nickname = match.group(1)
+        reported_packets = int(match.group(2))
+        traceray_id = match.group(3)
+
+        self.logger.info(
+            "[StreamingPacketValidator] validated: received {} packets, reported {} packets".format(
+                self._packet_count, reported_packets
+            )
+        )
+
+        # 检查数据包数量是否匹配
+        if self._packet_count != reported_packets:
+            self._validation_passed = False
+            self.logger.error(
+                "[StreamingPacketValidator] packet count mismatch! "
+                "Received: {}, Reported: {} (traceray ID: {}) - disconnecting WebSocket".format(
+                    self._packet_count, reported_packets, traceray_id
+                )
+            )
+            # 创建错误事件用于通知
+            self.manager.create_event(
+                MaicaTaskEvent(
+                    taskowner=self,
+                    event_type=MAICATASKEVENT_TYPE_TASK,
+                    data=maica_tasker_events.GenericData(
+                        name='streaming_packet_mismatch',
+                        content={
+                            'received_count': self._packet_count,
+                            'reported_count': reported_packets,
+                            'traceray_id': traceray_id
+                        }
+                    )
+                )
+            )
+            # 断开WebSocket连接
+            if self.manager and self.manager.ws_client:
+                self.manager.close_ws()
+        else:
+            self._validation_passed = True
+            self.logger.info(
+                "[StreamingPacketValidator] packet count verified successfully (traceray ID: {})".format(traceray_id)
+            )
+
+        # 重置计数器，准备下一次聊天
+        self._reset_count()
+
+    def _reset_count(self):
+        """重置数据包计数器。"""
+        self._packet_count = 0
+        self.logger.debug("[StreamingPacketValidator] packet count reset")
+
+    def enable(self):
+        """
+        启用验证功能。
+
+        启用后，会对streaming数据包进行验证。
+        """
+        self._enabled = True
+        self.logger.info("[StreamingPacketValidator] enabled")
+
+    def disable(self):
+        """
+        禁用验证功能。
+
+        禁用后，不会对streaming数据包进行验证。
+        """
+        self._enabled = False
+        self.logger.info("[StreamingPacketValidator] disabled")
+
+    def reset(self):
+        """重置验证器状态。"""
+        super(StreamingPacketValidator, self).reset()
+        self._reset_count()
+
+    @property
+    def packet_count(self):
+        """
+        获取当前的数据包计数。
+
+        Returns:
+            int: 当前接收到的streaming continue数据包数量
+        """
+        return self._packet_count
+
+    @property
+    def validation_passed(self):
+        """
+        获取上一次验证是否成功。
+
+        Returns:
+            bool: 如果上一次验证成功返回True，否则返回False
+        """
+        return self._validation_passed

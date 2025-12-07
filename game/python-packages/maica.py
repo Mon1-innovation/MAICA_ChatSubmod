@@ -564,6 +564,13 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
             ping_interval=150.0
         )
 
+        self.StreamingPacketValidator = maica_tasker_sub.StreamingPacketValidator(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="streaming_packet_validator",
+            manager=self.task_manager,
+            except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
+        )
+
     def _should_resume(self):
         return len(self.TalkSpilter.sentence_present) or len(self.message_list)
 
