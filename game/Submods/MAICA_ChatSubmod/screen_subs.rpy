@@ -375,7 +375,7 @@ screen maica_advance_setting():
                 textbutton "enforce_lang:[persistent.maica_advanced_setting.get('enforce_lang', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "enforce_lang"),
                         ToggleDict(persistent.maica_advanced_setting, "enforce_lang")]
-                    hovered SetField(_tooltip, "value", _("实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答.\n* 引导式解码不属于OpenAI规范的一部分, 要求部署实例提供支持, 如使用vllm.\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题."))
+                    hovered SetField(_tooltip, "value", _("实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答\n* 引导式解码不属于OpenAI规范的一部分, 要求部署实例提供支持, 如使用vllm\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('enforce_lang')
 
