@@ -1310,3 +1310,11 @@ translate english strings:
     old " 张"
     new " chosen"
 
+# TODO: Translation updated at 2025-12-05 19:39
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:581
+    old "> 警告: 当前系统非Unicode语言不是简体中文, 可能导致包含中文的响应出现问题"
+    new "> Warning: Current system 'non-unicode language' is not Chinese, expect encoding corruption"
+
