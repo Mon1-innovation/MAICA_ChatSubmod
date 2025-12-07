@@ -1050,16 +1050,24 @@ t9vozy56WuHPfv3KZTwrvZaIVSAExEL17wIDAQAB
         if event.data.status == "maica_core_streaming_continue":
             self.stat["received_token"] += 1
             self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
-            self.TalkSpilter.add_part(event.data.content)
-            if len(self.message_list) == 0:
-                res = self.TalkSpilter.split_present_sentence()
-                if res:
-                    res = self.MoodStatus.analyze(res)
-                    emote = self.MoodStatus.get_emote()
-                    self._append_to_message_list(emote,res)
+            if self.pprt:
+                res = self.MoodStatus.analyze(event.data.content)
+                emote = self.MoodStatus.get_emote()
+                self._append_to_message_list(emote,res)
+            else:
+                self.TalkSpilter.add_part(event.data.content)
+                if len(self.message_list) == 0:
+                    res = self.TalkSpilter.split_present_sentence()
+                    if res:
+                        res = self.MoodStatus.analyze(res)
+                        emote = self.MoodStatus.get_emote()
+                        self._append_to_message_list(emote,res)
         elif event.data.status == "maica_chat_loop_finished":
             self._in_mspire = False
-            talks = self.TalkSpilter.announce_stop()
+            if self.pprt:
+                talks = []
+            else:
+                talks = self.TalkSpilter.announce_stop()
             for item in talks:
                 t = self.MoodStatus.analyze(item)
                 emote = self.MoodStatus.get_emote()
