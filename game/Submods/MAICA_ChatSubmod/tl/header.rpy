@@ -1327,6 +1327,6 @@ translate english strings:
     new "Realtime post proceeding: [persistent.maica_setting_dict.get('pprt')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:858
-    old "启用自动断句和实时后处理功能.\n* 非特殊情况不建议关闭"
+    old "启用后端自动断句和实时后处理功能.\n* 非特殊情况不建议关闭"
     new "Enable backend sentence breaking and realtime post proceeding.\n* Suggested to enable in normal cases"
 
