@@ -855,7 +855,7 @@ screen maica_setting():
                 style_prefix "generic_fancy_check"
                 textbutton _("实时后处理: [persistent.maica_setting_dict.get('pprt')]"):
                     action ToggleDict(persistent.maica_setting_dict, "pprt", True, False)
-                    hovered SetField(_tooltip, "value", _("启用自动断句和实时后处理功能.\n+ 提高响应流畅度和可读性\n- 可能增加响应延迟"))
+                    hovered SetField(_tooltip, "value", _("启用自动断句和实时后处理功能.\n* 非特殊情况不建议关闭"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:

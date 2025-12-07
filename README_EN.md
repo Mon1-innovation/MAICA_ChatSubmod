@@ -37,6 +37,7 @@ This repository introduction is very brief. If this is your first contact with M
 * Continuous and fluent chatting experience with automatic sentence breaks
 * Expression parsing based on emotion and strength analyzation
 * Topic generation(MSpire) and mail reading & writing(MPostal) functions offered
+* Supports sending images or MMS(MVista)
 * Highly customizable options and parameters
 * Open sourced, developers and users friendly
 * Some easter eggs if you're interested in
@@ -46,6 +47,7 @@ This repository introduction is very brief. If this is your first contact with M
 
 1. Use the latest version of MAS.
 2. Download latest verion of Blessland at [Release](https://github.com/Mon1-innovation/MAICA_ChatSubmod/releases).
+  > This submod depends on online service to function. Keep up to date since older versions can be deprecated.
 3. Quit the game, unzip and copy-paste the folders into `DDLC`/`MAS_CN001***/Monika After Story` folder, which is where `DDLC.exe`/`MAS.exe` lies in.
   > Do not unzip directly into Submods! You must merge it into the game's base path.
 4. Optionally install [Paste](https://github.com/Legendkiller21/MAS-Submods-Paste) to allow in-game copy-pasting and [Submod Updater Plugin](https://github.com/Booplicate/MAS-Submods-SubmodUpdaterPlugin) to update submods in game, to improve using experience.
