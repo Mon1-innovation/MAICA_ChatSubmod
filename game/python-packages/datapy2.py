@@ -22,3 +22,7 @@ bad_pattern = ur'(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\
 pr1 = ur'\s*\.\.\.'
 pr2 = ur'\s*[；;:︰]'
 pr3 = ur'\s*[.。?？]'
+
+
+pattern_content_zh = re.compile(ur'[一-龥]')
+pattern_content_en = re.compile(ur'[A-Za-z]')

@@ -299,6 +299,28 @@ def is_precisely_a_talk(strin, debug_printfunc=fuckprint):
         else:
             return len(strin)-1
 
+def is_correct_lang(input, target_lang='zh'):
+    # If the input is of correct lang
+    if PY2:
+        import datapy2
+        pattern_content_zh = datapy2.pattern_content_zh
+        # pattern_content_en = datapy2.pattern_content_en
+    else:
+        pattern_content_zh = re.compile(r'[一-龥]')
+        # pattern_content_en = re.compile(r'[A-Za-z]')
+
+    input_len = len(input)
+    zh_search = pattern_content_zh.search(input)
+    # zh_len = len(pattern_content_zh.findall(input))
+    if target_lang == 'zh':
+        # zh_rate = zh_len / input_len
+        if input_len >= 10 and not zh_search:
+            return False
+    else:
+        if zh_search:
+            return False
+        
+    return True
 
 class AiException(Exception):
     def __init__(self, *args):
