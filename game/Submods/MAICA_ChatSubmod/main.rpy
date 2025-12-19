@@ -8,6 +8,7 @@ label maica_talking(mspire = False):
         import time
         import copy
         from store.maica import maica as ai
+        import bot_interface
         from maica_mtrigger import MTriggerAction 
         import traceback
         ai.content_func = store.mas_ptod._update_console_history
@@ -39,6 +40,9 @@ label maica_talking(mspire = False):
                                 screen="maica_input_screen"
                                 #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
                             ).strip(' \t\n\r') #mas_input
+
+                    if bot_interface.is_correct_lang(question, target_lang=store.maica.maica.target_lang):
+                        renpy.show_screen("maica_input_lang_warning")
                     if question == "":
                         continue
                     if question == "nevermind":
