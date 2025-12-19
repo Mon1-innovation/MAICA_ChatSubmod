@@ -1050,7 +1050,7 @@ screen maica_support():
             text _("首先很感谢你有心捐赠.\n我们收到的捐赠基本上不可能回本, 但你不必有任何压力."):
                 size 20
         hbox:
-            style_prefix "maica_check"
+            style_prefix "maica_check_nohover"
             text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."):
                 size 15
         hbox:
@@ -1243,3 +1243,17 @@ screen maica_statics():
                 style_prefix "confirm"
                 textbutton _("重置统计数据"):
                     action Function(store.maica.maica.reset_stat)
+
+screen maica_input_lang_warning():
+
+    modal True
+    zorder 99
+
+    use maica_setter_small_frame(title=_("输入语言警告"), ok_action=Hide("maica_input_lang_warning")):
+        hbox:
+            text _("你的输入语言似乎与MAICA目标语言不符."):
+                size 20
+        hbox:
+            style_prefix "maica_check_nohover"
+            text _("这可能导致模型表现下降或意料之外的问题, 请避免输入非目标语言或在会话中途改变语言.\n如果你仍然要这样做, 请在设置中禁用'输入语言检测'."):
+                size 15
