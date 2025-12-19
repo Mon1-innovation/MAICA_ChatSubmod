@@ -1330,3 +1330,15 @@ translate english strings:
     old "启用后端自动断句和实时后处理功能.\n* 非特殊情况不建议关闭"
     new "Enable backend sentence breaking and realtime post proceeding.\n* Suggested to enable in normal cases"
 
+# TODO: Translation updated at 2025-12-19 17:00
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:860
+    old "输入语言检测: [persistent.maica_setting_dict.get('input_lang_detect')]"
+    new "Input language detection: [persistent.maica_setting_dict.get('input_lang_detect')]"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:862
+    old "检测输入语言与目标生成语言是否相符.\n* 非特殊情况不建议关闭"
+    new "Raise a warning if input language is not target language.\n* Suggested to enable in normal cases"
+
