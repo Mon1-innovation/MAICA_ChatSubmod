@@ -43,6 +43,7 @@ label maica_talking(mspire = False):
 
                     if not bot_interface.is_correct_lang(question, target_lang=store.maica.maica.target_lang):
                         renpy.show_screen("maica_input_lang_warning")
+                        continue
                     if question == "":
                         continue
                     if question == "nevermind":
