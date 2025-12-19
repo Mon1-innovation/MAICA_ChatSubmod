@@ -742,7 +742,7 @@ label mspire_delete_information:
 
 # MPostal is first introduced by a greeting!
 init 5 python:
-    if not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100:
+    if not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100 and renpy.seen_label("maica_greeting"):
         @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
         def greeting_select():
             store.selected_greeting = "maica_wants_mpostal"
