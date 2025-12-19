@@ -1250,10 +1250,14 @@ screen maica_input_lang_warning():
     zorder 99
 
     use maica_setter_small_frame(title=_("输入语言警告"), ok_action=Hide("maica_input_lang_warning")):
+        $ current_lang = store.maica.maica.target_lang
         hbox:
             text _("你的输入语言似乎与MAICA目标语言不符."):
                 size 20
         hbox:
+            text _("你当前的MAICA目标语言设置为'[current_lang]'. 如果你需要使用另一种语言输入, 请调整设置."):
+                size 20
+        hbox:
             style_prefix "maica_check_nohover"
-            text _("这可能导致模型表现下降或意料之外的问题, 请避免输入非目标语言或在会话中途改变语言.\n如果你仍然要这样做, 请在设置中禁用'输入语言检测'."):
+            text _("语言不正确可能导致模型表现下降或意料之外的问题, 请避免输入非目标语言或在会话中途改变语言.\n如果你仍然要这样做, 请在设置中禁用'输入语言检测'."):
                 size 15

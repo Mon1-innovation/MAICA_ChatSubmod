@@ -26,6 +26,7 @@ default persistent.maica_setting_dict = {
     "chat_session":1,
     "console":True,
     "dscl_pvn":True,
+    "input_lang_detect":True,
     "pprt":True
 }
 default persistent.maica_advanced_setting = {}
@@ -68,6 +69,7 @@ init 10 python:
         "use_anim_background": True,
         "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
         "dscl_pvn":True,
+        "input_lang_detect":True,
         "pprt":True
     }
     import copy
@@ -322,6 +324,7 @@ init 10 python:
             store.maica.maica.WSCookiesTask.disable_cookie()
         store.maica.maica.tz = persistent.maica_setting_dict["tz"]
         store.maica.maica.dscl_pvn = persistent.maica_setting_dict["dscl_pvn"]
+        store.maica.maica.input_lang_detect = persistent.maica_setting_dict["input_lang_detect"]
         store.maica.maica.pprt = persistent.maica_setting_dict["pprt"]
         store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica.mtrigger_manager.output_settings())
         store.mas_submod_utils.getAndRunFunctions()
@@ -366,6 +369,7 @@ init 10 python:
         persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
         persistent.maica_setting_dict["tz"] = store.maica.maica.tz
         persistent.maica_setting_dict["dscl_pvn"] = store.maica.maica.dscl_pvn
+        persistent.maica_setting_dict["input_lang_detect"] = store.maica.maica.input_lang_detect
         persistent.maica_setting_dict["pprt"] = store.maica.maica.pprt
         store.maica.maica.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
@@ -851,6 +855,12 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
+            hbox:
+                style_prefix "generic_fancy_check"
+                textbutton _("输入语言检测: [persistent.maica_setting_dict.get('input_lang_detect')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "input_lang_detect", True, False)
+                    hovered SetField(_tooltip, "value", _("检测输入语言与目标生成语言是否相符.\n* 非特殊情况不建议关闭"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
                 textbutton _("实时后处理: [persistent.maica_setting_dict.get('pprt')]"):
