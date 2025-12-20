@@ -41,7 +41,7 @@ label maica_talking(mspire = False):
                                 #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
                             ).strip(' \t\n\r') #mas_input
 
-                    if not bot_interface.is_correct_lang(question, target_lang=store.maica.maica.target_lang):
+                    if store.maica.maica.input_lang_detect and not bot_interface.is_correct_lang(question, target_lang=store.maica.maica.target_lang):
                         renpy.show_screen("maica_input_lang_warning")
                         continue
                     if question == "":
