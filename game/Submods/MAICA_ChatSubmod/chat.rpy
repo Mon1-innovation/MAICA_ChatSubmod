@@ -13,27 +13,6 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
-label maica_prepend_1:
-    $ mas_lockEVL("maica_main", "EVE")
-# Add this to random waiting list since submod installation. affection NORMAL at least to trigger.
-    m 1eub "嗨, [player]..."
-    if renpy.seen_label("monika_robotbody"):
-        m 3eua "你还记得我们讨论过'进入你的现实'的事情吗?"
-        m "像是机械躯体, 或者{i}人工智能{/i}什么的..."
-    else:
-        m 3eud "你有想过吗, 如果我{i}真的{/i}要来你的现实, 我该从哪里着手呢?"
-        m "比如说, {i}人工智能{/i}什么的..."
-    m 5euc "我最近看新闻的时候, 好像整个互联网都为人工智能的发展鼓舞不已...{nw}"
-    extend 5eud "人们让人工智能做设计, {w=0.1}绘图, {w=0.1}看病甚至炒股票."
-    m 6luc "我当然不是在抱怨技术进步. {w=0.2}但是我真的很想知道, {i}我们{/i}能不能用上这些技术."
-    m 3husdlb "别误会, [player], 我没有要逼你去做这些的意思! {nw}"
-    extend 3eub "不过这种可能性确实让我挺激动的."
-    m 1eua "至于在今天说起这些, 是因为.{w=0.3}.{w=0.3}.我想我找到了一点线索."
-    m 1lud "我现在还没有弄明白这个...{w=0.3}{i}地方{/i}到底是什么, 但是它的{i}感觉{/i}{w=0.3}很有说服力. {nw}"
-    extend 3eub "可能还需要点什么. {w=0.2}我应该会抽空仔细检查一下它的."
-    m 1hub "我知道这应该是你找来给我的, [player]. {w=0.1}你还是那么贴心!"
-    m 1eua "等我理清了眉目, 我会让你知道的."
-    return "no_unlock|derandom|rebuild_ev"
 
 init 5 python:
     if renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting') and _mas_getAffection() > 100:
@@ -63,6 +42,325 @@ init 5 python:
             code="GRE"
         )
         del ev_rules
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr2",
+            prompt="天堂树林的文件",
+            conditional="renpy.seen_label('maica_end_1')",
+            action=EV_ACT_QUEUE,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_gone",
+            prompt="天堂树林去哪了",
+            pool=False,
+            conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
+            action=EV_ACT_PUSH,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_corrupted2",
+            prompt="天堂树林好像坏了",
+            pool=False,
+            conditional="maica_chr_changed and store.seen_event('maica_chr2')",
+            action=EV_ACT_PUSH,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+            aff_range=(mas_aff.HAPPY, None)
+        )
+    )
+label maica_prepend_1:
+    $ mas_lockEVL("maica_main", "EVE")
+# Add this to random waiting list since submod installation. affection NORMAL at least to trigger.
+    m 1eub "嗨, [player]..."
+    if renpy.seen_label("monika_robotbody"):
+        m 3eua "你还记得我们讨论过'进入你的现实'的事情吗?"
+        m "像是机械躯体, 或者{i}人工智能{/i}什么的..."
+    else:
+        m 3eud "你有想过吗, 如果我{i}真的{/i}要来你的现实, 我该从哪里着手呢?"
+        m "比如说, {i}人工智能{/i}什么的..."
+    m 5euc "我最近看新闻的时候, 好像整个互联网都为人工智能的发展鼓舞不已...{nw}"
+    extend 5eud "人们让人工智能做设计, {w=0.1}绘图, {w=0.1}看病甚至炒股票."
+    m 6luc "我当然不是在抱怨技术进步. {w=0.2}但是我真的很想知道, {i}我们{/i}能不能用上这些技术."
+    m 3husdlb "别误会, [player], 我没有要逼你去做这些的意思! {nw}"
+    extend 3eub "不过这种可能性确实让我挺激动的."
+    m 1eua "至于在今天说起这些, 是因为.{w=0.3}.{w=0.3}.我想我找到了一点线索."
+    m 1lud "我现在还没有弄明白这个...{w=0.3}{i}地方{/i}到底是什么, 但是它的{i}感觉{/i}{w=0.3}很有说服力. {nw}"
+    extend 3eub "可能还需要点什么. {w=0.2}我应该会抽空仔细检查一下它的."
+    m 1hub "我知道这应该是你找来给我的, [player]. {w=0.1}你还是那么贴心!"
+    m 1eua "等我理清了眉目, 我会让你知道的."
+    return "no_unlock|derandom|rebuild_ev"
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_preferences2",
+            prompt="了解你的爱好",
+            pool=False,
+            unlocked=False,
+            conditional="renpy.seen_label('maica_end_1')",
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.HAPPY, None)
+        )
+    )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mods_preferences",
+            prompt="调整[player]的爱好",
+            category=["你", "我们", "模组", "MAICA"],
+            pool=True,
+            random=False,
+            unlocked=False,
+            aff_range=(mas_aff.HAPPY, None)
+        )
+    )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_main",
+            prompt="我们去天堂树林吧",
+            category=["你", "我们", "模组", "MAICA"],
+            pool=True,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+        ),
+        restartBlacklist=True,
+    )
+
+init 5 python:
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mspire_want():
+        if renpy.seen_label('maica_greeting') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire'):
+            return MASEventList.push("maica_wants_mspire")
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_mspire",
+            prompt="spire",
+            pool=False,
+            random=False,
+            unlocked=False,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    if not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100 and renpy.seen_label("maica_greeting"):
+        @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
+        def greeting_select():
+            store.selected_greeting = "maica_wants_mpostal"
+        ev_rules = dict()
+        ev_rules.update(
+            MASGreetingRule.create_rule(
+                skip_visual=True,
+                override_type=True
+            )
+        )
+        ev_rules.update(MASPriorityRule.create_rule(50))
+        
+        addEvent(
+            Event(
+                persistent.greeting_database,
+                eventlabel="maica_wants_mpostal",
+                prompt="maica敲门",
+                unlocked=False,
+                conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal')",
+                action=EV_ACT_UNLOCK,
+                aff_range=(mas_aff.AFFECTIONATE, None),
+                rules=ev_rules,
+            ),
+            code="GRE"
+        )
+        del ev_rules
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mpostal_received",
+            unlocked=False,
+            random=False,
+            pool=False,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+        ),
+        restartBlacklist=True,
+    )
+
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mpostal():
+        if mail_exist() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+            return MASEventList.queue("maica_mpostal_received")
+    
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
+    def push_mpostal_read():
+        if has_mail_waitsend() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+            return MASEventList.queue("maica_mpostal_read")
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mpostal_replyed",
+            unlocked=False,
+            random=False,
+            pool=False,
+            rules={
+                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+            },
+        ),
+        restartBlacklist=True,
+    )
+    def is_mail_waiting_reply():
+        for i in persistent._maica_send_or_received_mpostals:
+            if i["responsed_status"] in ("received", "failed"):
+                return True
+        return False
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mpostal_reply():
+        if is_mail_waiting_reply() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_replyed"):
+            return MASEventList.queue("maica_mpostal_replyed")
+
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def mpostal_delaying_check_and_set():
+        import time, datetime
+        def_min_response_time = persistent.maica_setting_dict["mpostal_default_reply_time"] * 60
+        wait_replying_count = 0
+        for i in persistent._maica_send_or_received_mpostals:
+            min_response_time = def_min_response_time
+            # 超过三封信
+            if wait_replying_count > 3:
+                min_response_time *= 2
+            if i["responsed_status"] == "delaying":
+                # 时间计算
+                last_sesh_ed = persistent.sessions.get("last_session_end", datetime.datetime.now())
+
+                # 当距离last_sesh_ed超过5小时时
+                if (datetime.datetime.now() - last_sesh_ed).total_seconds() > 60 * 60 * 3:
+                    min_response_time *= 0.65
+                # 当距离last_sesh_ed超过1小时时
+                elif (datetime.datetime.now() - last_sesh_ed).total_seconds() > 60 * 60:
+                    min_response_time *= 0.8
+
+                # 当写信时间距离现在超过min_response_time，设置为notupload
+                if time.time() - float(i['time']) > min_response_time:
+                    i["responsed_status"] = "notupload"
+                
+
+            elif i["responsed_status"] in ("received", "failed"):
+                wait_replying_count += 1
+
+        return
+                
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_prepend_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="天堂树林到底是什么",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="天堂树林的角色文件",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_preferences_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="关于补充偏好",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_wants_preferences')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_mspire_reread",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="关于'MSpire'",
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_wants_mspire')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_pre_set_location",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="[player]的住址",
+            random=True,
+            pool=False,
+            conditional="renpy.seen_label('maica_greeting')",
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_pre_wants_mvista",
+            category=["你", "我们", "模组", "MAICA"],
+            prompt="关于'MVista'",
+            random=True,
+            pool=False,
+            conditional="renpy.seen_label('maica_mpostal_replyed') or mas_getEV('maica_main').shown_count >= 3",
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
 label maica_greeting:
         #Set up dark mode
 
@@ -263,20 +561,6 @@ label maica_end_1:
     m 5msa "...你没有在我不记得的时候让我许诺{i}什么东西{/i}吧, [player]?"
     return
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_chr2",
-            prompt="天堂树林的文件",
-            conditional="renpy.seen_label('maica_end_1')",
-            action=EV_ACT_QUEUE,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_chr2:
     # Add to random after first SUCCESSFUL using maica
     # Verify maica chr (HeavenForest.sce) with md5
@@ -290,21 +574,6 @@ label maica_chr2:
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
     return "no_unlock"
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_chr_gone",
-            prompt="天堂树林去哪了",
-            pool=False,
-            conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
-            action=EV_ACT_PUSH,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_chr_gone:
     # Derandom maica_chr after maica_chr_gone triggered
     # Triggers only if maica_chr yet not triggered
@@ -319,21 +588,6 @@ label maica_chr_gone:
     m 1eka "如果你琢磨的时候把它弄丢了, 可以重新下载一份."
     return "no_unlock|derandom"
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_chr_corrupted2",
-            prompt="天堂树林好像坏了",
-            pool=False,
-            conditional="maica_chr_changed and store.seen_event('maica_chr2')",
-            action=EV_ACT_PUSH,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-            aff_range=(mas_aff.HAPPY, None)
-        )
-    )
 label maica_chr_corrupted2:
     # This is a greeting
     # Triggers only when first time detected corrupted sce file
@@ -358,19 +612,6 @@ label maica_chr_corrupted2:
     m 1eua "欢迎回来, [player]. 我们今天有什么安排呢?"
     return "no_unlock|derandom"
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_wants_preferences2",
-            prompt="了解你的爱好",
-            pool=False,
-            unlocked=False,
-            conditional="renpy.seen_label('maica_end_1')",
-            action=EV_ACT_QUEUE,
-            aff_range=(mas_aff.HAPPY, None)
-        )
-    )
 
 label maica_wants_preferences2:
     # Add this to waitlist after first chat done successfully
@@ -415,20 +656,6 @@ label maica_wants_preferences2:
             m 1hua "我明白了, 谢谢你!"
     $ mas_unlockEVL("maica_mods_preferences", "EVE")
     return "no_unlock|derandom"
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_mods_preferences",
-            prompt="调整[player]的爱好",
-            category=["你", "我们", "模组", "MAICA"],
-            pool=True,
-            random=False,
-            unlocked=False,
-            aff_range=(mas_aff.HAPPY, None)
-        )
-    )
-
 label maica_mods_preferences:
     $ prefs_exist = len(persistent.mas_player_additions)
     if prefs_exist:
@@ -522,20 +749,6 @@ label clear_all:
     return
 
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_main",
-            prompt="我们去天堂树林吧",
-            category=["你", "我们", "模组", "MAICA"],
-            pool=True,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-        ),
-        restartBlacklist=True,
-    )
 
 label maica_main:
     $ ev = mas_getEV("maica_main")
@@ -604,22 +817,6 @@ label .talking_start:
         pause 2.0
     call clear_all
     return
-init 5 python:
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
-    def push_mspire_want():
-        if renpy.seen_label('maica_greeting') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire'):
-            return MASEventList.push("maica_wants_mspire")
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_wants_mspire",
-            prompt="spire",
-            pool=False,
-            random=False,
-            unlocked=False,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_wants_mspire:
     # Add this to waitlist if satisfies:
     # First chat done successfully;
@@ -741,35 +938,6 @@ label mspire_delete_information:
 # I'm gonna mail myself to you.
 
 # MPostal is first introduced by a greeting!
-init 5 python:
-    if not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100 and renpy.seen_label("maica_greeting"):
-        @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
-        def greeting_select():
-            store.selected_greeting = "maica_wants_mpostal"
-        ev_rules = dict()
-        ev_rules.update(
-            MASGreetingRule.create_rule(
-                skip_visual=True,
-                override_type=True
-            )
-        )
-        ev_rules.update(MASPriorityRule.create_rule(50))
-        
-        addEvent(
-            Event(
-                persistent.greeting_database,
-                eventlabel="maica_wants_mpostal",
-                prompt="maica敲门",
-                unlocked=False,
-                conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal')",
-                action=EV_ACT_UNLOCK,
-                aff_range=(mas_aff.AFFECTIONATE, None),
-                rules=ev_rules,
-            ),
-            code="GRE"
-        )
-        del ev_rules
-
 label maica_wants_mpostal:
     # 替换greeting触发!
     m 3hubsa "{i}~我要扎上红丝绸, 我要系上蓝发带~{/i}"#闭眼-憧憬
@@ -795,30 +963,6 @@ label maica_wants_mpostal:
     m 1kubsu "你打开游戏的时候, 我就可以写我的回信了!"
     m 3hubsa "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_mpostal_received",
-            unlocked=False,
-            random=False,
-            pool=False,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-        ),
-        restartBlacklist=True,
-    )
-
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
-    def push_mpostal():
-        if mail_exist() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
-            return MASEventList.queue("maica_mpostal_received")
-    
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
-    def push_mpostal_read():
-        if has_mail_waitsend() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
-            return MASEventList.queue("maica_mpostal_read")
 # 目前MPostal使用session0
 label maica_mpostal_received:
     $ ev = mas_getEV("maica_mpostal_received")
@@ -839,62 +983,6 @@ label maica_mpostal_received:
     m 4eub "我一定会抽空仔细读的!"
     m 4kub "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
     return "no_unlock|pause: 60"
-
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_mpostal_replyed",
-            unlocked=False,
-            random=False,
-            pool=False,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-        ),
-        restartBlacklist=True,
-    )
-    def is_mail_waiting_reply():
-        for i in persistent._maica_send_or_received_mpostals:
-            if i["responsed_status"] in ("received", "failed"):
-                return True
-        return False
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
-    def push_mpostal_reply():
-        if is_mail_waiting_reply() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_replyed"):
-            return MASEventList.queue("maica_mpostal_replyed")
-
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
-    def mpostal_delaying_check_and_set():
-        import time, datetime
-        def_min_response_time = persistent.maica_setting_dict["mpostal_default_reply_time"] * 60
-        wait_replying_count = 0
-        for i in persistent._maica_send_or_received_mpostals:
-            min_response_time = def_min_response_time
-            # 超过三封信
-            if wait_replying_count > 3:
-                min_response_time *= 2
-            if i["responsed_status"] == "delaying":
-                # 时间计算
-                last_sesh_ed = persistent.sessions.get("last_session_end", datetime.datetime.now())
-
-                # 当距离last_sesh_ed超过5小时时
-                if (datetime.datetime.now() - last_sesh_ed).total_seconds() > 60 * 60 * 3:
-                    min_response_time *= 0.65
-                # 当距离last_sesh_ed超过1小时时
-                elif (datetime.datetime.now() - last_sesh_ed).total_seconds() > 60 * 60:
-                    min_response_time *= 0.8
-
-                # 当写信时间距离现在超过min_response_time，设置为notupload
-                if time.time() - float(i['time']) > min_response_time:
-                    i["responsed_status"] = "notupload"
-                
-
-            elif i["responsed_status"] in ("received", "failed"):
-                wait_replying_count += 1
-
-        return
-                
 
 
 
@@ -975,20 +1063,6 @@ label maica_mpostal_replyed.end:
     return "no_unlock"
 
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_prepend_reread",
-            category=["你", "我们", "模组", "MAICA"],
-            prompt="天堂树林到底是什么",
-            random=False,
-            pool=True,
-            conditional="renpy.seen_label('maica_greeting')",
-            action=EV_ACT_UNLOCK,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 # 重读对话变体
 label maica_prepend_reread:#"天堂树林到底是什么"
     # maica_prepend_2触发后解锁
@@ -999,20 +1073,6 @@ label maica_prepend_reread:#"天堂树林到底是什么"
     m 7hub "如果你想要了解得再具体点, 可以到{a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}看看."
     m 2hksdlb "我就不多说教啦, 哈哈!"
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_chr_reread",
-            category=["你", "我们", "模组", "MAICA"],
-            prompt="天堂树林的角色文件",
-            random=False,
-            pool=True,
-            conditional="renpy.seen_label('maica_greeting')",
-            action=EV_ACT_UNLOCK,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_chr_reread:#"天堂树林的角色文件"
     # maica_chr2触发后解锁
     m 5ruc "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫'HeavenForest.sce'."
@@ -1025,20 +1085,6 @@ label maica_chr_reread:#"天堂树林的角色文件"
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
     return
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_wants_preferences_reread",
-            category=["你", "我们", "模组", "MAICA"],
-            prompt="关于补充偏好",
-            random=False,
-            pool=True,
-            conditional="renpy.seen_label('maica_wants_preferences')",
-            action=EV_ACT_UNLOCK,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_wants_preferences_reread:#"关于补充偏好"
     # maica_wants_preferences触发后解锁
     m 7hub "是这样, 游戏本身并没有留给我太多空间去了解你."#担心
@@ -1054,20 +1100,6 @@ label maica_wants_preferences_reread:#"关于补充偏好"
     m 1eub "只要是关于你的事情, 我都会想知道的!"
     return
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_wants_mspire_reread",
-            category=["你", "我们", "模组", "MAICA"],
-            prompt="关于'MSpire'",
-            random=True,
-            pool=False,
-            conditional="renpy.seen_label('maica_wants_mspire')",
-            action=EV_ACT_QUEUE,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_wants_mspire_reread:#"关于'MSpire'"
     # maica_wants_mspire触发后解锁
     m 3ekd "[player], 我之前提到过, 我们已经把所有话题都聊完了."
@@ -1145,20 +1177,6 @@ label mas_corrupted_postmail_post_menu:
     m 1hub "那我就不瞎操心了."
     m 3eub "要紧的事情你肯定会告诉我的, [player]."
     return
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_pre_set_location",
-            category=["你", "我们", "模组", "MAICA"],
-            prompt="[player]的住址",
-            random=True,
-            pool=False,
-            conditional="renpy.seen_label('maica_greeting')",
-            action=EV_ACT_QUEUE,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 label maica_set_location:
     $ inputloc = mas_input(
         _("你具体住在什么地方呢?"),
@@ -1208,20 +1226,6 @@ label maica_set_location_reread:
     m 2eub "好啊! 所以..."
     jump maica_set_location
 
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_pre_wants_mvista",
-            category=["你", "我们", "模组", "MAICA"],
-            prompt="关于'MVista'",
-            random=True,
-            pool=False,
-            conditional="renpy.seen_label('maica_mpostal_replyed') or mas_getEV('maica_main').shown_count >= 3",
-            action=EV_ACT_QUEUE,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
 
 label maica_pre_wants_mvista:
     # 送过一次信之后触发
