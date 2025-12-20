@@ -297,3 +297,28 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:369
     old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"
     new "Disable MTrigger sequential toolchain to save time.\n+ Saves time for most toolcalls\n- Significant risk of missing triggers"
+
+# TODO: Translation updated at 2025-12-19 17:00
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:378
+    old "实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答\n* 引导式解码不属于OpenAI规范的一部分, 要求部署实例提供支持, 如使用vllm\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"
+    new "Experimental, enforce output language through LLM guided decoding(guided_regex).\n* Only effectively applies to target language 'en'\n* Guided decoding is not part of standard OpenAI protocol, only functionable with supporting deployments like vllm\n* This could possibly impact performance or lead to unexpected issues"
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1252
+    old "输入语言警告"
+    new "Input language warning"
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1255
+    old "你的输入语言似乎与MAICA目标语言不符."
+    new "Your input language seemingly differs from target language."
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1258
+    old "你当前的MAICA目标语言设置为'[current_lang]'. 如果你需要使用另一种语言输入, 请调整设置."
+    new "Your current MAICA target language is '[current_lang]'. Please adjust your setting to chat in another language."
+
+    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1262
+    old "语言不正确可能导致模型表现下降或意料之外的问题, 请避免输入非目标语言或在会话中途改变语言.\n如果你仍然要这样做, 请在设置中禁用'输入语言检测'."
+    new "Language mismatch could impact performance or lead to unexpected issues, please avoid mismatched input or session context.\nIf you want to force proceed, please disable 'Input language detection' in settings."
+
