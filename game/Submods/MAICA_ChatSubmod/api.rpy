@@ -242,6 +242,11 @@ init 5 python in maica:
         if failed:
             persistent.maica_setting_dict['provider_id'] = 2
         store.maica.maica.accessable()
+        submod_ver_limit = store.maica.maica.version_info
+        if submod_ver_limit.get("success"):
+            minver = submod_ver_limit.get("content", {}).get("fe_blessland_version", "0.0.0")
+            if store.mas_utils.compareVersionLists(minver.strip().split('.'), store.maica_ver.strip().split('.')) == -1:
+                store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
         if store.maica.maica.is_outdated:
             store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
 
