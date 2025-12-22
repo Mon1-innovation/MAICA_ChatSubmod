@@ -54,8 +54,8 @@ This repository introduction is very brief. If this is your first contact with M
 
 # Tips
 1. Full functions will only be avaliable after affection reaches 100.
-2. Unlocking events adds them to a waiting list, which means they won't be immediately triggered. Keep the game running and wait.
-3. For troubleshooting, turning off 'Auto reconnect' and turning on 'Console' may help. Reconnect on options' change.
-4. English/Chinese are fully supported. But the basic logics and trainings are based on Chinese, so expect performance reduction and higher possibility of functional issues by using English.
+2. Unlocking events adds them to a waiting list, which means they won't be immediately triggered. Just play and wait.
+3. For troubleshooting, turning off 'Auto reconnect' and turning on 'Console' may help. Reconnect on options' change to take effect.
+4. English/Chinese are fully supported, but expect performance reduction and higher possibility of functional issues using English.
 5. Does not support system http(s)/socks proxy. Turn it off.
 6. You can delete `game\Submods\MAICA_ChatSubmod\donation` to hide donation link.

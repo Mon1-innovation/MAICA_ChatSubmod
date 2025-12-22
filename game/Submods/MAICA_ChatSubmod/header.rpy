@@ -1164,7 +1164,7 @@ screen maica_input_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("就这样吧"):
+            textbutton _("退出"):
                 selected False
                 action Return("nevermind")
 
@@ -1212,7 +1212,7 @@ screen maica_input_information_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("就这样吧"):
+            textbutton _("退出"):
                 selected False
                 action Return("nevermind")
 
