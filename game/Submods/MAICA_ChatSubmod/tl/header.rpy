@@ -1342,3 +1342,11 @@ translate english strings:
     old "检测输入语言与目标生成语言是否相符.\n* 非特殊情况不建议关闭"
     new "Raise a warning if input language is not target language.\n* Suggested to enable in normal cases"
 
+# TODO: Translation updated at 2025-12-22 18:12
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1167
+    old "退出"
+    new "Quit"
+

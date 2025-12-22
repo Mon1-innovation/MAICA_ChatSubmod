@@ -2545,3 +2545,11 @@ translate english maica_wants_mvista_8ac57262:
     # m 3eub "只需要在'子模组设置'里找到'MVista图片', 就可以上传给我看了! 对话框底下也有个按钮."
     m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
 
+# TODO: Translation updated at 2025-12-22 18:12
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/chat.rpy:696
+    old "MAICA: 已保存输入"
+    new "MAICA: Input saved"
+
