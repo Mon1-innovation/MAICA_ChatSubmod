@@ -1478,6 +1478,7 @@ class MaicaAi(ChatBotInterface):
         # 后端返回示例：{"content":{"curr_version":"1.2.000.post3","fe_blessland_version":"1.5.0","legc_version":"1.2.000.rc10"},"exception":null,"success":true}
         if self.__accessable:
             version_info = self.get_version()
+            self.version_info = version_info
             if version_info.get("success", False):
                 legc_version = version_info.get("content", {}).get("legc_version", "")
                 try:
