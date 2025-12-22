@@ -686,9 +686,11 @@ label maica_input_information:
                     _("喜欢.../常去.../有.../..."),
                     default="",
                     length=50,
-                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
+                    #screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
+                    screen="maica_input_information_screen"
                 ).strip(' \t\n\r') #mas_input
-            if i == "end":
+            # if i == "end":
+            if i == "nevermind":
                 break
             else:
                 renpy.notify(_("MAICA: 已保存输入"))
@@ -909,9 +911,11 @@ label mspire_input_information:
                     _("请输入搜索关键词:"),
                     default="",
                     length=50,
-                    screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
+                    #screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
+                    screen="maica_input_information_screen"
                 ).strip(' \t\n\r') #mas_input
-            if i == "end":
+            # if i == "end":
+            if i == "nevermind":
                 break
             else:
                 renpy.notify(_("MAICA: 已保存输入"))
@@ -1185,7 +1189,8 @@ label maica_set_location:
     $ inputloc = mas_input(
         _("你具体住在什么地方呢?"),
         length=30,
-        screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
+        #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
+        screen="maica_input_information_screen"
     )
     if inputloc.lower() == "nevermind":
         m 2eud "不太确定吗...{w=0.5}{nw}"
