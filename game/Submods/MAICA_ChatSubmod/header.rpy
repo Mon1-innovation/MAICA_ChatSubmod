@@ -1199,3 +1199,33 @@ screen maica_input_screen(prompt):
             input:
                 id "input"
                 value maica_input
+
+screen maica_input_information_screen(prompt):
+    default maica_input_information = store.maica.MaicaInputValue()
+    style_prefix "input"
+
+    window:
+        hbox:
+            style_prefix "quick"
+            #xfill True
+            #xmaximum 0#(None if not has_history else 232)
+            xalign 0.5
+            yalign 0.995
+
+            textbutton _("就这样吧"):
+                selected False
+                action Return("nevermind")
+
+            textbutton _("粘贴"):
+                selected False
+                action [Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
+
+
+        vbox:
+            align (0.5, 0.5)
+            spacing 30
+
+            text prompt style "input_prompt"
+            input:
+                id "input"
+                value maica_input_information
