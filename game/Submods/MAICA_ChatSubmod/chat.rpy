@@ -690,6 +690,8 @@ label maica_input_information:
                 ).strip(' \t\n\r') #mas_input
             if i == "end":
                 break
+            else:
+                renpy.notify(_("MAICA: 已保存输入"))
             persistent.mas_player_additions.append("[player]{}".format(i))
     return
 label maica_delete_information:
@@ -911,6 +913,8 @@ label mspire_input_information:
                 ).strip(' \t\n\r') #mas_input
             if i == "end":
                 break
+            else:
+                renpy.notify(_("MAICA: 已保存输入"))
             persistent.maica_setting_dict['mspire_category'].append("{}".format(i))
     return
 label mspire_delete_information:
