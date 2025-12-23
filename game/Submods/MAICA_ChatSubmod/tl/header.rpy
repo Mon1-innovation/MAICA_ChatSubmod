@@ -1044,7 +1044,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:541
     old "> 使用账号生成令牌"
-    new "> Generate token with an account"
+    new "> Generate token from account"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:561
     old "> 手动上传设置 [[请先等待连接建立]"
@@ -1316,7 +1316,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:581
     old "> 警告: 当前系统非Unicode语言不是简体中文, 可能导致包含中文的响应出现问题"
-    new "> Warning: Current system 'non-unicode language' is not Chinese, expect encoding corruption"
+    new "> Warning: Current system 'non-unicode language' is not Chinese, expect possible encoding issues"
 
 # TODO: Translation updated at 2025-12-07 15:44
 
