@@ -265,7 +265,13 @@ init 10 python:
             renpy.notify(_("MAICA: 未找到历史game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
-            history = json.load(f)
+            #history = json.load(f)
+            try:
+                history = json.load(f)
+            except Exception as e:
+                store.mas_submod_utils.submod_log.error("upload_chat_history failed in json.load: {}".format(e))
+                renpy.notify(_("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
+                return
         res = store.maica.maica.upload_history(history)
         if not res.get("success", False):
             store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(res))
