@@ -268,14 +268,14 @@ init 10 python:
             #history = json.load(f)
             try:
                 history = json.load(f)
+                res = store.maica.maica.upload_history(history)
+                if not res.get("success", False):
+                    raise Exception(res)
             except Exception as e:
-                store.mas_submod_utils.submod_log.error("upload_chat_history failed in json.load: {}".format(e))
+                store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(e))
                 renpy.notify(_("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
                 return
-        res = store.maica.maica.upload_history(history)
-        if not res.get("success", False):
-            store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(res))
-        renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
+        renpy.notify(_("MAICA: 历史上传成功"))
 
     def run_migrations():
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
