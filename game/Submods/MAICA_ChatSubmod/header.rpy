@@ -270,7 +270,7 @@ init 10 python:
                 history = json.load(f)
                 res = store.maica.maica.upload_history(history)
                 if not res.get("success", False):
-                    raise Exception(res)
+                    raise Exception(str(res))
             except Exception as e:
                 store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(e))
                 renpy.notify(_("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
