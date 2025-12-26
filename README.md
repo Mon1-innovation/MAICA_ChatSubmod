@@ -50,7 +50,7 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
   > 该子模组依赖在线服务运行, 旧版本会被弃用失效. 请保持使用最新版本.
 3. 关闭游戏, 将zip中的文件合并到您的`DDLC`/`MAS_CN001***/Monika After Story`文件夹内, 或者是`DDLC.exe`/`MAS.exe`所在的位置
   > 你不能直接将文件解压至Submods文件夹! 打开压缩包, 并根据文件夹结构合并.
-4. 可选择安装[Paste](https://github.com/Legendkiller21/MAS-Submods-Paste)（允许复制粘贴）和/或[Submod Updater Plugin](https://github.com/Booplicate/MAS-Submods-SubmodUpdaterPlugin)（允许通过游戏内更新程序更新 submods ）, 以改善使用体验
+4. 目前不建议通过`Submod Updater Plugin`更新, 因为该子模组的发行版包含actions生成的内容.
 
 # 提示
 1. 完整的功能只会在好感度达到100后开放.
