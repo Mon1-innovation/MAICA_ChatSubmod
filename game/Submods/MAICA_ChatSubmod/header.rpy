@@ -265,11 +265,17 @@ init 10 python:
             renpy.notify(_("MAICA: 未找到历史game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
-            history = json.load(f)
-        res = store.maica.maica.upload_history(history)
-        if not res.get("success", False):
-            store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(res))
-        renpy.notify(_("MAICA: 历史上传成功") if res.get("success", False) else _("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
+            #history = json.load(f)
+            try:
+                history = json.load(f)
+                res = store.maica.maica.upload_history(history)
+                if not res.get("success", False):
+                    raise Exception(str(res))
+            except Exception as e:
+                store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(e))
+                renpy.notify(_("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
+                return
+        renpy.notify(_("MAICA: 历史上传成功"))
 
     def run_migrations():
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
@@ -1164,7 +1170,7 @@ screen maica_input_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("就这样吧"):
+            textbutton _("退出"):
                 selected False
                 action Return("nevermind")
 
@@ -1199,3 +1205,33 @@ screen maica_input_screen(prompt):
             input:
                 id "input"
                 value maica_input
+
+screen maica_input_information_screen(prompt):
+    default maica_input_information = store.maica.MaicaInputValue()
+    style_prefix "input"
+
+    window:
+        hbox:
+            style_prefix "quick"
+            #xfill True
+            #xmaximum 0#(None if not has_history else 232)
+            xalign 0.5
+            yalign 0.995
+
+            textbutton _("退出"):
+                selected False
+                action Return("nevermind")
+
+            textbutton _("粘贴"):
+                selected False
+                action [Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
+
+
+        vbox:
+            align (0.5, 0.5)
+            spacing 30
+
+            text prompt style "input_prompt"
+            input:
+                id "input"
+                value maica_input_information

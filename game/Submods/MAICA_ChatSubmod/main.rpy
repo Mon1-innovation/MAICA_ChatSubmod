@@ -264,7 +264,7 @@ label maica_mpostal_read:
             if _return != 'success':
                 if cur_postal.get("failed_count", 0) >= 3:
                     cur_postal["responsed_status"] = "fatal"
-                    cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 因失败次数过多, 该信件将不会再回复")) + "\n" +cur_postal["responsed_content"]
+                    cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 尝试失败次数已达上限")) + "\n" +cur_postal["responsed_content"]
                     store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
                     break
                 else:

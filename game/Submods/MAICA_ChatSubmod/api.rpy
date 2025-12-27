@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.5.7'
+    maica_ver = '1.5.8'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -376,7 +376,7 @@ init -700 python:
                 with open(file_path, 'rb') as file:
                     raw_data = file.read()
                     encoding, confidence = chardet.detect(raw_data)['encoding'], chardet.detect(raw_data)['confidence']
-                    if not isinstance(encoding, str) or (not encoding.lower() in ['ascii', 'utf-8', 'gbk'] and not confidence >= 0.95):
+                    if not isinstance(encoding, str) or (not encoding.lower() in ['ascii', 'utf-8', 'gbk'] or not confidence >= 0.9):
                         # The detection might be wrong!
                         try:
                             raw_data.decode('utf-8')
