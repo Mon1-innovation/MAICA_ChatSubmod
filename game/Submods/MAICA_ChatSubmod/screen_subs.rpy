@@ -996,7 +996,12 @@ screen maica_mpostals():
                         xalign 0.0
                         style "small_expl_hw"
                     if postal["responsed_content"] != "":
-                        text renpy.substitute(_("[m_name]: \n")) + postal["responsed_content"][:preview_len].replace("\n", "")  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
+                        python:
+                            preview_text = postal["responsed_content"][:preview_len].replace("\n", "")
+                            for pair in [(r'[', r']'), (r'{', r'}')]:
+                                while preview_text.count(pair[0]) > preview_text.count(pair[1]):
+                                    preview_text = preview_text[:preview_text.rfind(pair[0])]
+                        text renpy.substitute(_("[m_name]: \n")) + preview_text  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
                             xalign 0.0
                             style "small_expl_hw"
                     if postal.get('vista_image_info'):
