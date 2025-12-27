@@ -154,7 +154,7 @@ init 5 python:
 init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire_want():
-        if renpy.seen_label('maica_greeting') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire'):
+        if renpy.seen_label('maica_greeting') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire') and not mas_inEVL('maica_wants_mspire'):
             return MASEventList.push("maica_wants_mspire")
     addEvent(
         Event(
