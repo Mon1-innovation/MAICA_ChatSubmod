@@ -254,7 +254,7 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
         else:
-            store.mas_unlockEVL("maica_greeting", "GRE")
+            store.mas_unlockEVL("maica_main", "EVE")
         check_workload()
 
     def validate_version():
