@@ -557,7 +557,7 @@ class MaicaAi(ChatBotInterface):
 
     @property
     def user_acc(self):
-        return self.UserData.nickname
+        return self.UserData.account
 
     @property
     def gen_time(self):
