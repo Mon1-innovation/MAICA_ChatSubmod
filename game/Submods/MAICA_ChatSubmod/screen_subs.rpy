@@ -1094,7 +1094,8 @@ screen maica_workload_stat_lite():
             xsize 619
             xoffset 5 yoffset 450
             background "mod_assets/console/cn_frame_stats.png"
-            has vbox
+            has vbox:
+                xoffset 5
             hbox:
                 text renpy.substitute(_("当前总连接数: ")) + str(onliners):
                     size 15
