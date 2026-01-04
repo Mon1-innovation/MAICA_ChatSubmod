@@ -1237,7 +1237,6 @@ label maica_set_location_reread:
 
 
 label maica_pre_wants_mvista:
-    # 送过一次信之后触发
     $ ev = mas_getEV("maica_pre_wants_mvista")
     if ev.shown_count > 0:
         jump maica_wants_mvista_reread
