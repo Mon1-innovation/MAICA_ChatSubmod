@@ -1111,11 +1111,11 @@ screen maica_workload_stat_lite():
 
             hbox:
                 text "VRAM " + (maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB", bar_length = 30) if data["total_vmem"] != 0 else "No memory information"):
-                    size 15
+                    size 14
                     font maica_confont
             hbox:
                 text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops", bar_length = 30):
-                    size 15
+                    size 14
                     font maica_confont
 
 
