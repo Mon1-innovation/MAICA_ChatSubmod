@@ -1110,11 +1110,11 @@ screen maica_workload_stat_lite():
                     timer 1.0 repeat True action Function(check_and_update)
 
             hbox:
-                text "VRAM " + (maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB", bar_length = 30) if data["total_vmem"] != 0 else "No memory information"):
+                text "VRAM " + (maica.progress_bar(data["total_inuse_vmem"]  * 100 / data["total_vmem"], total=int(data["total_vmem"]), unit="MiB", bar_length = 35) if data["total_vmem"] != 0 else "No memory information"):
                     size 14
                     font maica_confont
             hbox:
-                text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops", bar_length = 30):
+                text "UTIL " + maica.progress_bar(data["avg_usage"], total=int(data["max_tflops"]), unit="TFlops", bar_length = 35):
                     size 14
                     font maica_confont
 
