@@ -754,7 +754,7 @@ screen maica_node_setting():
     use maica_common_outer_frame():
         use maica_common_inner_frame():
 
-            for provider in MaicaProviderManager.servers:
+            for provider in store.maica.maica.provider_manager._servers:
                 use maica_l2_subframe():
                     text str(provider.get('id')) + ' | ' + provider.get('name')
                     
@@ -788,7 +788,7 @@ screen maica_node_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("刷新节点列表"):
-                action Function(store.maica.maica.MaicaProviderManager.get_provider)
+                action Function(store.maica.maica.provider_manager.get_provider)
 
             textbutton _("关闭"):
                 action Hide("maica_node_setting")

@@ -101,7 +101,6 @@ init 10 python:
     persistent.maica_setting_dict = maica_default_dict.copy()
     persistent.maica_advanced_setting = maica_advanced_setting.copy()
     persistent.maica_advanced_setting_status = maica_advanced_setting_status.copy()
-    MaicaProviderManager = store.maica.maica.MaicaProviderManager
 
     _maica_LoginAcc = ""
     _maica_LoginPw = ""
@@ -784,7 +783,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"):
+                textbutton _("服务提供节点: [store.maica.maica.provider_manager.get_server_info().get('name', 'Unknown')]"):
                     action Show("maica_node_setting")
                     hovered SetField(_tooltip, "value", _("设置服务器节点"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)

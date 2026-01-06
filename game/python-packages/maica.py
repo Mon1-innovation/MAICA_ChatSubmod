@@ -4,6 +4,7 @@ from bot_interface import *
 import bot_interface
 import emotion_analyze_v2
 import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender, maica_vista_files_manager
+import maica_provider_manager
 
 import websocket
 import maica_mtrigger
@@ -189,79 +190,6 @@ class MaicaAi(ChatBotInterface):
             log_message = self.leveling_filter.sub('', log_message, re.I)
             self.maica_console_log_func(log_message)
 
-    class MaicaProviderManager:
-        isMaicaNameServer = None
-        isfailedresponse = {
-            "id": 0,
-            "name":u"ERROR: 无法获取节点信息",
-            "deviceName": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
-            "isOfficial": False,
-            "portalPage": "https://forum.monika.love/d/3954",
-            "servingModel": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
-            "modelLink": "",
-            "wsInterface": "wss://maicadev.monika.love/websocket",
-            "httpInterface": "https://maicadev.monika.love/api"
-        }
-        fakelocalprovider = {
-            "id": 9999,
-            "name":u"本地部署",
-            "deviceName": u"当你有可用的本地部署时, 选择此节点",
-            "isOfficial": False,
-            "portalPage": "https://github.com/PencilMario/MAICA",
-            "servingModel": "None",
-            "modelLink": "",
-            "wsInterface": "ws://127.0.0.1:5000",
-            "httpInterface": "http://127.0.0.1:6000",
-        }
-        servers = [fakelocalprovider]
-        provider_list = "https://maicadev.monika.love/api/servers"
-        @classmethod
-        def get_provider(cls):
-            cls.servers = []
-            import requests
-            res = requests.get(cls.provider_list, json={})
-            if res.status_code != 200:
-                logger.error("Cannot get providers because server return non 200: {}".format(res.content))
-                cls.isfailedresponse["deviceName"] = "Cannot get providers because server {}".format(res.status_code)
-                cls.servers.append(cls.isfailedresponse)
-                cls.servers.append(cls.fakelocalprovider)
-                #raise Exception("Cannot get providers because server error")
-                return False
-            res = res.json()
-            
-            if res["success"]:
-                cls.isMaicaNameServer = res["content"].get("isMaicaNameServer")
-                cls.servers = res["content"].get("servers")
-                cls.servers.append(cls.fakelocalprovider)
-                return True
-            else:
-                cls.isfailedresponse["deviceName"] = res["exception"]
-                cls.servers.append(cls.isfailedresponse)
-                cls.servers.append(cls.fakelocalprovider)
-                logger.error("Cannot get providers because server return: {}".format(res))
-                return False
-        @classmethod
-        def get_server_by_id(cls, id):
-            for server in cls.servers:
-                if int(server["id"]) == id:
-                    return server
-            logger.error("Cannot find server by id: {}, returning default failed response".format(id))
-            return cls.isfailedresponse
-        @classmethod
-        def get_wssurl_by_id(cls, id):
-            if not id:
-                logger.warning("Cannot find server by id: {}, returning default failed response".format(id))
-                return cls.isfailedresponse["wsInterface"] + "/"
-            return cls.get_server_by_id(id)["wsInterface"] + "/"
-
-        @classmethod
-        def get_api_url_by_id(cls, id):
-            if not id:
-                logger.warning("Cannot find server by id: {}, returning default failed response".format(id))
-                return cls.isfailedresponse["httpInterface"] + "/"
-            return cls.get_server_by_id(id)["httpInterface"] + "/"
-
-    
     MAX_CHATSESSION = 9
 
     def __init__(self, account, pwd, token = ""):
@@ -310,6 +238,7 @@ class MaicaAi(ChatBotInterface):
         self.pprt=False
         self.in_mas = True
         self.provider_id = None
+        self.provider_manager = maica_provider_manager.MaicaProviderManager(self.provider_id)
         self.is_outdated = None
         self.max_history_token = 28672
         self._in_mspire = False
@@ -409,7 +338,7 @@ class MaicaAi(ChatBotInterface):
         maica_mtrigger.logger = logger_both(self.console_logger)
 
         self.vista_manager = maica_vista_files_manager.MAICAVistaFilesManager(
-            base_url=self.MaicaProviderManager.get_api_url_by_id(self.provider_id),
+            base_url=self.provider_manager.get_api_url(),
             access_token=self.ciphertext,
         )
 
@@ -677,7 +606,7 @@ class MaicaAi(ChatBotInterface):
     def update_stat(self, new):
         self.stat.update(new)
     def generate_vista_url(self, uuid):
-        return self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "vista?content={}".format(uuid)
+        return self.provider_manager.get_api_url() + "vista?content={}".format(uuid)
 
     def get_message(self, add_pause = True):
         res = self.message_list.get()
@@ -706,7 +635,7 @@ class MaicaAi(ChatBotInterface):
         }
         try:
             import json
-            response = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "register", params={"content":json.dumps(data)}, timeout=5)
+            response = requests.get(self.provider_manager.get_api_url() + "register", params={"content":json.dumps(data)}, timeout=5)
             if (response.status_code != 200): 
                 raise Exception("Maica::_gen_token response process failed because server return {}".format(response.status_code))
         except Exception as e:
@@ -739,7 +668,7 @@ class MaicaAi(ChatBotInterface):
         """
         import requests
         try:
-            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality", params={"access_token": self.ciphertext})
+            res = requests.get(self.provider_manager.get_api_url() + "legality", params={"access_token": self.ciphertext})
             if res.status_code == 200:
                 res = res.json()
                 if res.get("success", False):
@@ -761,7 +690,7 @@ class MaicaAi(ChatBotInterface):
         import traceback
 
         try:
-            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "version")
+            res = requests.get(self.provider_manager.get_api_url() + "version")
             if res.status_code == 200:
                 res_data = res.json()
                 if res_data.get("success", False):
@@ -784,7 +713,7 @@ class MaicaAi(ChatBotInterface):
         import traceback
 
         try:
-            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "emotion",
+            res = requests.get(self.provider_manager.get_api_url() + "emotion",
                                params={
                                    "access_token": self.ciphertext,
                                    "content": json.dumps({
@@ -853,7 +782,7 @@ class MaicaAi(ChatBotInterface):
                 params["content"] = json.dumps(content)
 
             res = requests.get(
-                self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "legality",
+                self.provider_manager.get_api_url() + "legality",
                 params=params
             )
 
@@ -881,7 +810,7 @@ class MaicaAi(ChatBotInterface):
         
     def _init_ws_client(self):
         if self.task_manager.ws_client:
-            if self.task_manager.ws_client.url == self.MaicaProviderManager.get_wssurl_by_id(self.provider_id):
+            if self.task_manager.ws_client.url == self.provider_manager.get_wssurl():
                 return
         if not self.__accessable:
             return logger.error("Maica server not serving.")
@@ -890,8 +819,8 @@ class MaicaAi(ChatBotInterface):
         self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
         self.multi_lock.acquire()
         import websocket
-        url = self.MaicaProviderManager.get_wssurl_by_id(self.provider_id)
-        self.vista_manager.base_url = self.MaicaProviderManager.get_api_url_by_id(self.provider_id)
+        url = self.provider_manager.get_wssurl()
+        self.vista_manager.base_url = self.provider_manager.get_api_url()
         self.vista_manager.access_token = self.ciphertext
         logger.debug("_init_connect to {}".format(url))
         self.task_manager.ws_client = websocket.WebSocketApp(url, on_message=self.task_manager._ws_onmessage, on_error=self._on_error
@@ -1121,7 +1050,7 @@ class MaicaAi(ChatBotInterface):
                     "content": dict
                 }
         res = requests.post(
-            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "savefile",
+            self.provider_manager.get_api_url() + "savefile",
             json = content,
             headers = {"Content-Type": "application/json"}
         )
@@ -1153,8 +1082,8 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.get(
-            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
-            params = 
+            self.provider_manager.get_api_url() + "history",
+            params =
                 {
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
@@ -1195,7 +1124,7 @@ class MaicaAi(ChatBotInterface):
             "content": history
         }
         res = requests.put(
-            self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "history",
+            self.provider_manager.get_api_url() + "history",
             json = content,
             headers = {"Content-Type": "application/json"}
         )
@@ -1245,7 +1174,7 @@ class MaicaAi(ChatBotInterface):
             return None
 
         def task():
-            res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "workload")
+            res = requests.get(self.provider_manager.get_api_url() + "workload")
             if res.status_code == 200:
                 data = res.json()
                 if data["success"]:
@@ -1347,7 +1276,7 @@ class MaicaAi(ChatBotInterface):
             self.task_manager.close_ws()
     def del_mtrigger(self):
         import requests
-        requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'})
+        requests.delete(self.provider_manager.get_api_url()+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'})
 
     def send_mtrigger(self):
         try:
@@ -1366,9 +1295,9 @@ class MaicaAi(ChatBotInterface):
                 "chat_session": self.chat_session,
                 "content": self.mtrigger_manager.build_data(MTriggerMethod.table)
             }
-            #requests.delete(self.MaicaProviderManager.get_api_url_by_id(self.provider_id)+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
+            #requests.delete(self.provider_manager.get_api_url()+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
             res = requests.post(
-                self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "trigger",
+                self.provider_manager.get_api_url() + "trigger",
                 json = content,
                 headers = {"Content-Type": "application/json"}
             )
@@ -1433,7 +1362,7 @@ class MaicaAi(ChatBotInterface):
             self.__accessable = False
             return
         try:
-            if not self.MaicaProviderManager.get_provider():
+            if not self.provider_manager.get_provider():
                 if self.provider_id != 9999:
                     self.status = self.MaicaAiStatus.FAILED_GET_NODE
                     self.__accessable = False
@@ -1457,8 +1386,8 @@ class MaicaAi(ChatBotInterface):
                 return
                 
         import requests, json
-        res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "accessibility")
-        logger.debug("accessable(): try get accessibility from {}".format(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "accessibility"))
+        res = requests.get(self.provider_manager.get_api_url() + "accessibility")
+        logger.debug("accessable(): try get accessibility from {}".format(self.provider_manager.get_api_url() + "accessibility"))
         d = res.json()
         if d.get(u"success", False):
             self._serving_status = d["content"]
@@ -1491,7 +1420,7 @@ class MaicaAi(ChatBotInterface):
                 except:
                     pass
             try:
-                res = requests.get(self.MaicaProviderManager.get_api_url_by_id(self.provider_id) + "defaults").json()["content"]
+                res = requests.get(self.provider_manager.get_api_url() + "defaults").json()["content"]
                 if type(res) == dict:
                     self.default_setting.update(res)
             except Exception as e:

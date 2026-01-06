@@ -427,8 +427,8 @@ translate english strings:
     new "Enabling may improve performance in particular occasion.\nBut also may result in overall performance decrease."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:605
-    old "服务提供节点: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"
-    new "Current provider: [MaicaProviderManager.get_server_by_id(persistent.maica_setting_dict.get('provider_id')).get('name', 'Unknown')]"
+    old "服务提供节点: [store.maica.maica.provider_manager.get_server_info().get('name', 'Unknown')]"
+    new "Current provider: [store.maica.maica.provider_manager.get_server_info().get('name', 'Unknown')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:607
     old "设置服务器节点"
