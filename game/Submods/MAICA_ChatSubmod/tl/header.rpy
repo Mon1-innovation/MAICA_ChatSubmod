@@ -408,7 +408,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:361
     old "当前模型: "
-    new "Mode: "
+    new "Model: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:365
     old "> 使用该节点"
