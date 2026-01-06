@@ -399,8 +399,8 @@ translate english strings:
     new "> Logout"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:356
-    old " √ MAICA 官方服务器"
-    new " √ Official MAICA provider"
+    old " <官方服务>"
+    new " <Official>"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:359
     old "设备: "

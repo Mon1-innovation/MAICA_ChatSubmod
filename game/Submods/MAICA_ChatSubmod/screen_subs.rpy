@@ -782,7 +782,7 @@ screen maica_node_setting():
                     if provider.get("isOfficial", False):
                         hbox:
                             style_prefix "maica_check_nohover"
-                            textbutton _(" √ MAICA 官方服务器")
+                            textbutton _(" <官方服务>")
                         
         hbox:
             xpos 10
