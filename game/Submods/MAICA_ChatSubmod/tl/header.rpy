@@ -404,7 +404,7 @@ translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:359
     old "说明: "
-    new "Cluster: "
+    new "Intro: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:361
     old "当前模型: "
