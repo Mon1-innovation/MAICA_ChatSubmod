@@ -770,7 +770,8 @@ screen maica_node_setting():
                         style_prefix "generic_fancy_check"
                         textbutton _("使用该节点"):
                             action [
-                                Function(set_provider, provider.get('id')),
+                                # Function(set_provider, provider.get('id')),
+                                Function(sync_provider_id, provider.get('id')),
                                 Hide("maica_node_setting")
                             ]
                             selected persistent.maica_setting_dict["provider_id"] == provider.get('id')

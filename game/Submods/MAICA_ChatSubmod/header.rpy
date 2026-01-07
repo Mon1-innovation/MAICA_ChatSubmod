@@ -321,6 +321,7 @@ init 10 python:
         store.maica.maica.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
         store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
         store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
+        store.maica.maica.provider_manager.set_provider_id(store.maica.maica.provider_id)
         store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
         if store.maica.maica.enable_strict_mode:
@@ -397,6 +398,66 @@ init 10 python:
                 persistent.maica_advanced_setting[k] = store.maica.maica.modelconfig[k]
             elif k in store.maica.maica.default_setting:
                 persistent.maica_advanced_setting[k] = store.maica.maica.default_setting[k]
+
+
+    def sync_provider_id(pid, reconnect=True):
+        """
+        切换服务提供节点并, 立刻生效.
+        - 写入 persistent.maica_setting_dict["provider_id"]
+        - 更新 provider_manager.provider_id
+        - 断开当前已连接的 websocket (如有), 重新 accessable() 并重连
+        """
+        import threading, time
+        ai = store.maica.maica
+        try:
+            pid = int(pid)
+        except Exception:
+            pid = 0
+        persistent.maica_setting_dict["provider_id"] = pid
+        ai.provider_id = pid 
+        ai.provider_manager.set_provider_id(pid)
+
+        # 刷新 vista_manager 缓存的 base_url
+        ai.vista_manager.base_url = ai.provider_manager.get_api_url()
+
+        # 如果已连接 websocket：先断开旧连接
+        if reconnect:
+            if ai.is_connected():
+                ai.close_wss_session()
+            
+
+        # 后台处理的东西 (刷新节点列表、重新 accessable()、再重连) 走threading (避免卡住 UI)
+        def _bg():
+            try:
+                ai.provider_manager.get_provider()
+                ai.disable()
+                ai.status = ai.MaicaAiStatus.WAIT_AVAILABILITY
+                ai.accessable()
+
+                if reconnect and ai.has_token():
+                    # 等待旧 ws loop 释放 multi_lock，再启动新连接（一次性短轮询，不是永久时钟循环）
+                    for _ in range(60):  # ~6s
+                        try:
+                            if not ai.multi_lock.locked():
+                                break
+                        except Exception:
+                            break
+                        time.sleep(0.1)
+
+                    ai.init_connect()
+
+            except Exception as e:
+                store.mas_submod_utils.submod_log.error("Failed to sync provider id: {}".format(e))
+
+        try:
+            threading.Thread(target=_bg).start()
+        except Exception:
+            pass
+
+        
+        renpy.notify(_("MAICA: 已切换节点, 正在重新连接"))
+        renpy.restart_interaction()
+        
 
     def common_can_add(var, min, max, sdict):
         if isinstance(max, float):
