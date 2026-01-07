@@ -403,7 +403,7 @@ translate english strings:
     new " <Official>"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:359
-    old "设备: "
+    old "说明: "
     new "Cluster: "
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:361

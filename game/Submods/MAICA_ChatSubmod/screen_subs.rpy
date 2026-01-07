@@ -760,7 +760,7 @@ screen maica_node_setting():
                     
 
                     hbox:
-                        text renpy.substitute(_("设备: ")) + provider.get('deviceName', 'Device not provided')
+                        text renpy.substitute(_("说明: ")) + provider.get('description', 'Device not provided')
                     hbox:
                         text renpy.substitute(_("当前模型: ")) + provider.get('servingModel', 'No model provided')
 

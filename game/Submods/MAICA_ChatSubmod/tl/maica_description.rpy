@@ -53,7 +53,7 @@ translate english python in maica:
     maica.maica_provider_manager.MaicaProviderManager._isfailedresponse.update(
         {
             "name":"ERROR: Unable to retrieve node information.",
-            "deviceName": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
+            "description": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
             "isOfficial": False,
             "portalPage": "https://forum.monika.love/d/3954",
             "servingModel": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
@@ -65,7 +65,7 @@ translate english python in maica:
     maica.maica_provider_manager.MaicaProviderManager._fakelocalprovider.update(
         {
             "name":"Local Deployment",
-            "deviceName": "When you have an available local deployment, select this node.",
+            "description": "When you have an available local deployment, select this node.",
             "isOfficial": False,
             "portalPage": "https://github.com/PencilMario/MAICA",
             "servingModel": "None",

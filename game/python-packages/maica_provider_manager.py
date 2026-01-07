@@ -10,7 +10,7 @@ class MaicaProviderManager:
     _isfailedresponse = {
         "id": 0,
         "name": u"ERROR: 无法获取节点信息",
-        "deviceName": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
+        "description": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
         "isOfficial": False,
         "portalPage": "https://forum.monika.love/d/3954",
         "servingModel": u"查看更新日志来获取当前的服务状态, 或者查看submod_log.log获取失败原因",
@@ -22,7 +22,7 @@ class MaicaProviderManager:
     _fakelocalprovider = {
         "id": 9999,
         "name": u"本地部署",
-        "deviceName": u"当你有可用的本地部署时, 选择此节点",
+        "description": u"当你有可用的本地部署时, 选择此节点",
         "isOfficial": False,
         "portalPage": "https://github.com/PencilMario/MAICA",
         "servingModel": "None",
@@ -53,7 +53,7 @@ class MaicaProviderManager:
             res = requests.get(cls._provider_list, json={})
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
-                cls._isfailedresponse["deviceName"] = "Cannot get providers because server {}".format(res.status_code)
+                cls._isfailedresponse["description"] = "Cannot get providers because server {}".format(res.status_code)
                 cls._servers.append(cls._isfailedresponse)
                 cls._servers.append(cls._fakelocalprovider)
                 return False
@@ -65,7 +65,7 @@ class MaicaProviderManager:
                 cls._servers.append(cls._fakelocalprovider)
                 return True
             else:
-                cls._isfailedresponse["deviceName"] = res["exception"]
+                cls._isfailedresponse["description"] = res["exception"]
                 cls._servers.append(cls._isfailedresponse)
                 cls._servers.append(cls._fakelocalprovider)
                 logger.error("Cannot get providers because server return: {}".format(res))
