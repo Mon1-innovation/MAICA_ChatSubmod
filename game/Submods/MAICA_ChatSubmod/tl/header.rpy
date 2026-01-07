@@ -1350,3 +1350,11 @@ translate english strings:
     old "退出"
     new "Quit"
 
+# TODO: Translation updated at 2026-01-08 02:22
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:458
+    old "MAICA: 已切换节点, 正在重新连接"
+    new "MAICA: Provider applied, reconnecting"
+
