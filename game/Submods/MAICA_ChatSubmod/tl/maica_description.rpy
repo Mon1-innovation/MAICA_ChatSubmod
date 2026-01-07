@@ -50,7 +50,8 @@ translate english python in maica:
     store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="About 'MPostal'", category=["you", "us", "mod", "MAICA"])
     store.mas_setEVLPropValues("maica_pre_set_location", prompt="Where [player] lives", category=["you", "us", "mod", "MAICA"])
     store.mas_setEVLPropValues("maica_pre_wants_mvista", prompt="Aboue 'MVista'", category=["you", "us", "mod", "MAICA"])
-    maica.maica_provider_manager.MaicaProviderManager._isfailedresponse.update(
+
+    maica.provider_manager._isfailedresponse.update(
         {
             "name":"ERROR: Unable to retrieve node information.",
             "description": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
@@ -62,7 +63,7 @@ translate english python in maica:
             "httpInterface": "https://maicadev.monika.love/api"
         }
     )
-    maica.maica_provider_manager.MaicaProviderManager._fakelocalprovider.update(
+    maica.provider_manager._fakelocalprovider.update(
         {
             "name":"Local Deployment",
             "description": "When you have an available local deployment, select this node.",
