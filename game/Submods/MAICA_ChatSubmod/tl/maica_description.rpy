@@ -53,9 +53,9 @@ translate english python in maica:
 
 translate english python:
 
-    import maica_provider_manager as _mpm
+    import maica_provider_manager as mpm
 
-    _mpm.MaicaProviderManager._isfailedresponse.update(
+    mpm.MaicaProviderManager._isfailedresponse.update(
         {
             "name":"ERROR: Unable to retrieve node information.",
             "description": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
@@ -67,7 +67,7 @@ translate english python:
             "httpInterface": "https://maicadev.monika.love/api"
         }
     )
-    _mpm.MaicaProviderManager._fakelocalprovider.update(
+    mpm.MaicaProviderManager._fakelocalprovider.update(
         {
             "name":"Local Deployment",
             "description": "When you have an available local deployment, select this node.",
