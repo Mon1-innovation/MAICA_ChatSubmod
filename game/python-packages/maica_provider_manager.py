@@ -43,6 +43,7 @@ class MaicaProviderManager:
             provider_id: 服务提供商ID，如果为None则使用默认值
         """
         self.provider_id = provider_id
+        self._last_provider_id = provider_id
 
     @classmethod
     def get_provider(cls):
@@ -63,6 +64,10 @@ class MaicaProviderManager:
                 cls._isMaicaNameServer = res["content"].get("isMaicaNameServer")
                 cls._servers = res["content"].get("servers")
                 cls._servers.append(cls._fakelocalprovider)
+
+                if not cls.provider_id:
+                    cls.provider_id = cls._last_provider_id
+
                 return True
             else:
                 cls._isfailedresponse["description"] = res["exception"]
@@ -109,6 +114,7 @@ class MaicaProviderManager:
     def set_provider_id(self, provider_id):
         """设置provider_id"""
         self.provider_id = provider_id
+        self._last_provider_id = provider_id
 
     def get_provider_id(self):
         """获取provider_id"""
