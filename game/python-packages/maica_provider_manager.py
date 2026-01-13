@@ -53,8 +53,6 @@ class MaicaProviderManager:
     }
 
     _provider_list = "https://maicadev.monika.love/api/servers"
-    _servers = [_fakelocalprovider]
-    _isMaicaNameServer = None
 
     def __init__(self, provider_id=None):
         """
@@ -65,51 +63,51 @@ class MaicaProviderManager:
         """
         self.provider_id = provider_id
         self._last_provider_id = provider_id
+        self._servers = [self._fakelocalprovider]
+        self._isMaicaNameServer = None
 
-    @classmethod
-    def get_provider(cls):
+    def get_provider(self):
         """获取服务提供商列表"""
-        cls._servers = []
+        self._servers = []
         import requests
         try:
-            res = requests.get(cls._provider_list, json={})
+            res = requests.get(self._provider_list, json={})
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
-                cls._isfailedresponse["description"] = "Cannot get providers because server {}".format(res.status_code)
-                cls._servers.append(cls._isfailedresponse)
-                cls._servers.append(cls._fakelocalprovider)
+                self._isfailedresponse["description"] = "Cannot get providers because server {}".format(res.status_code)
+                self._servers.append(self._isfailedresponse)
+                self._servers.append(self._fakelocalprovider)
                 return False
             res = res.json()
 
             if res["success"]:
-                cls._isMaicaNameServer = res["content"].get("isMaicaNameServer")
-                cls._servers = res["content"].get("servers")
-                cls._servers.append(cls._fakelocalprovider)
+                self._isMaicaNameServer = res["content"].get("isMaicaNameServer")
+                self._servers = res["content"].get("servers")
+                self._servers.append(self._fakelocalprovider)
 
-                if not cls.provider_id:
-                    cls.provider_id = cls._last_provider_id
+                if not self.provider_id:
+                    self.provider_id = self._last_provider_id
 
                 return True
             else:
-                cls._isfailedresponse["description"] = res["exception"]
-                cls._servers.append(cls._isfailedresponse)
-                cls._servers.append(cls._fakelocalprovider)
+                self._isfailedresponse["description"] = res["exception"]
+                self._servers.append(self._isfailedresponse)
+                self._servers.append(self._fakelocalprovider)
                 logger.error("Cannot get providers because server return: {}".format(res))
                 return False
         except Exception as e:
             logger.error("Error getting providers: {}".format(e))
-            cls._servers.append(cls._isfailedresponse)
-            cls._servers.append(cls._fakelocalprovider)
+            self._servers.append(self._isfailedresponse)
+            self._servers.append(self._fakelocalprovider)
             return False
 
-    @classmethod
-    def _get_server_by_id(cls, server_id):
+    def _get_server_by_id(self, server_id):
         """根据ID获取服务器信息"""
-        for server in cls._servers:
+        for server in self._servers:
             if int(server["id"]) == server_id:
                 return server
         logger.error("Cannot find server by id: {}, returning default failed response".format(server_id))
-        return cls._isfailedresponse
+        return self._isfailedresponse
 
     def get_wssurl(self):
         """获取WebSocket URL"""
