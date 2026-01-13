@@ -1,6 +1,27 @@
 # -*- coding: utf-8 -*-
 
-from bot_interface import logger
+class DefaultLogger(object):
+    """
+    默认日志记录器，用于在没有提供日志记录器的情况下输出日志信息。
+    """
+    def debug(self, msg):
+        """输出调试级别的日志"""
+        print("[DEBUG] {}".format(msg))
+
+    def info(self, msg):
+        """输出信息级别的日志"""
+        print("[INFO] {}".format(msg))
+
+    def error(self, msg):
+        """输出错误级别的日志"""
+        print("[ERROR] {}".format(msg))
+
+    def warning(self, msg):
+        """输出警告级别的日志"""
+        print("[WARNING] {}".format(msg))
+
+
+logger = DefaultLogger()
 
 
 class MaicaProviderManager:

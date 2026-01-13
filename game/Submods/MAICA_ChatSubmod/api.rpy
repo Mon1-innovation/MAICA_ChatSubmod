@@ -87,7 +87,11 @@ init 5 python in maica:
     import maica, os, json
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     maica.logger = store.mas_submod_utils.submod_log
+    import bot_interface
+    bot_interface.logger = store.mas_submod_utils.submod_log
 
+    import maica_provider_manager
+    maica_provider_manager.logger = maica.logger
     import maica_tasker
     maica_tasker.default_logger = maica.logger
 
@@ -136,8 +140,6 @@ init 5 python in maica:
             maica.vista_manager.magick_path = store.ANDROID_MAGICK_BINPATH
         except:
             pass
-    import bot_interface
-    bot_interface.logger = store.mas_submod_utils.submod_log
 
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
