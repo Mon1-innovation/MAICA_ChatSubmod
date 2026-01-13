@@ -1185,7 +1185,7 @@ screen maica_select_console_font():
             textbutton _("SarasaMonoTC | 思源黑体等宽"):
                 action SetDict(persistent.maica_setting_dict, "console_font", store.maica_confont)
         hbox:
-            textbutton _("mplus-1mn | 默认等宽字体"):
+            textbutton _("mplus-1mn | 默认等宽字体 {size=-10}*对中文兼容性不佳{/size}"):
                 action SetDict(persistent.maica_setting_dict, "console_font", store.mas_ui.MONO_FONT)
 
 screen maica_select_log_level(log = "log_level"):

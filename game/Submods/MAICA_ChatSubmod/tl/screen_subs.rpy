@@ -179,8 +179,8 @@ translate english strings:
     new "SarasaMonoTC | monospaced"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1022
-    old "mplus-1mn | 默认等宽字体"
-    new "mplus-1mn | monospaced"
+    old "mplus-1mn | 默认等宽字体 {size=-10}*对中文兼容性不佳{/size}"
+    new "mplus-1mn | monospaced {size=-10}*Has issue with Chinese characters{/size}"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1030
     old "NOTSET"
