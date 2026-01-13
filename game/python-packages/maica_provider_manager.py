@@ -114,7 +114,8 @@ class MaicaProviderManager:
     def set_provider_id(self, provider_id):
         """设置provider_id"""
         self.provider_id = provider_id
-        self._last_provider_id = provider_id
+        if provider_id:
+            self._last_provider_id = provider_id
 
     def get_provider_id(self):
         """获取provider_id"""
