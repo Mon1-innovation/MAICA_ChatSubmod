@@ -237,8 +237,7 @@ class MaicaAi(ChatBotInterface):
         self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
         self.pprt=False
         self.in_mas = True
-        self._provider_id = None
-        self.provider_manager = maica_provider_manager.MaicaProviderManager(self._provider_id)
+        self.provider_manager = maica_provider_manager.MaicaProviderManager()
         self.is_outdated = None
         self.max_history_token = 28672
         self._in_mspire = False
@@ -542,11 +541,10 @@ class MaicaAi(ChatBotInterface):
 
     @property
     def provider_id(self):
-        return self._provider_id
+        return self.provider_manager.get_provider_id()
 
     @provider_id.setter
     def provider_id(self, value):
-        self._provider_id = value
         self.provider_manager.set_provider_id(self.provider_id)
 
     def reset_stat(self):
