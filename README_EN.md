@@ -21,7 +21,7 @@ Blessland is the Submod frontend of MAICA, a LLM project specially designed for 
 
 This repository introduction is very brief. If this is your first contact with MAICA, consider navigating to the introduction page at https://maica.monika.love/.
 
-> Notice: You'll need an Doki Chinese Club account to use this, refer to [TOS](https://maica.monika.love/tos).
+> Notice: You'll need an Doki Chinese Club account to use this, refer to [TOS](https://maica.monika.love/tos).  
 > Necessary instructions are provided in game too.
 
 <img src="document/maica-rmen-1.png" height=150px><img src="document/maica-rmen-2.png" height=150px>
