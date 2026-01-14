@@ -123,7 +123,7 @@ init -1:
             else:
                 disp_v = str(int(s_dict[var] / 60)) + "m" + str(int(s_dict[var] % 60)) + "s"
         hbox:
-            if sdict == "maica_setting_dict":
+            if not "advanced" in sdict:
                 hbox:
                     style_prefix "maica_check"
                     textbutton "{}: ".format(expl):
