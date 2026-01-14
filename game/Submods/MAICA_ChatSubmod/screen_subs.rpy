@@ -1059,6 +1059,8 @@ screen maica_support():
             style_prefix "maica_check_nohover"
             text _("请注意, 向MAICA捐赠不会提供任何特权, 除了论坛捐赠页名单和捐赠徽章."):
                 size 15
+            text "\n":
+                size 15
         hbox:
             xalign 0.5
             if config.language == 'chinese':
