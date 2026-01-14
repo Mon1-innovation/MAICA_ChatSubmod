@@ -649,14 +649,14 @@ class MaicaAi(ChatBotInterface):
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
             logger.error("Maica::_gen_token requests.post failed because can't connect to server: {}".format(e))
             return
-        if response.status_code == 200:
+        try:
             response_data = response.json()
             if response_data.get("success"):
                 self.ciphertext = response_data.get("content")
             else:
                 self.status = self.MaicaAiStatus.CONNECT_PROBLEM,
                 logger.error("Maica::_gen_token response process failed because server response failed: {}".format(response_data))
-        else:
+        except Exception:
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
             logger.error("Maica::_gen_token response process failed because server return {}".format(response.status_code))
         return
@@ -675,14 +675,14 @@ class MaicaAi(ChatBotInterface):
         import requests
         try:
             res = requests.get(self.provider_manager.get_api_url() + "legality", params={"access_token": self.ciphertext})
-            if res.status_code == 200:
+            try:
                 res = res.json()
                 if res.get("success", False):
                     return res
                 else:
                     logger.warning("Maica::_verify_token not passed: {}".format(res))
                     return res
-            else:
+            except Exception:
                 logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
                 return {"success":False, "exception": "Maica::_verify_token requests.post failed"}
 
@@ -697,14 +697,14 @@ class MaicaAi(ChatBotInterface):
 
         try:
             res = requests.get(self.provider_manager.get_api_url() + "version")
-            if res.status_code == 200:
+            try:
                 res_data = res.json()
                 if res_data.get("success", False):
                     return res_data
                 else:
                     logger.warning("Get version failed: {}".format(res_data))
                     return res_data
-            else:
+            except Exception:
                 logger.error("Get version request failed: Server returned {} - {}".format(res.status_code, res.text))
                 return {"success": False, "exception": "Get version request failed"}
 
@@ -729,14 +729,14 @@ class MaicaAi(ChatBotInterface):
                                    })
                                 }
                                )
-            if res.status_code == 200:
+            try:
                 res_data = res.json()
                 if res_data.get("success", False):
                     return res_data
                 else:
                     logger.warning("Emotion analysis failed: {}".format(res_data))
                     return res_data
-            else:
+            except Exception:
                 logger.error("Emotion analysis request failed: Server returned {} - {}".format(res.status_code, res.text))
                 return {"success": False, "exception": "Emotion analysis request failed"}
 
@@ -792,7 +792,7 @@ class MaicaAi(ChatBotInterface):
                 params=params
             )
 
-            if res.status_code == 200:
+            try:
                 res_data = res.json()
                 if res_data.get("success", False):
                     logger.debug("Legality verification successful: {}".format(res_data))
@@ -800,7 +800,7 @@ class MaicaAi(ChatBotInterface):
                 else:
                     logger.warning("Legality verification failed: {}".format(res_data))
                     return res_data
-            else:
+            except Exception:
                 logger.error("Legality verification request failed: Server returned {} - {}".format(res.status_code, res.text))
                 return {"success": False, "exception": "Legality verification request failed"}
 
@@ -1060,10 +1060,10 @@ class MaicaAi(ChatBotInterface):
             json = content,
             headers = {"Content-Type": "application/json"}
         )
-        if res.status_code == 200:
+        try:
             return res.json()
-        else:
-            logger.error("upload_save:: return non http 200:: {}".format(res.text))
+        except Exception:
+            logger.error("upload_save:: return non json:: {}".format(res.text))
             return {}
 
     def get_history(self, lines = 0):
@@ -1096,15 +1096,13 @@ class MaicaAi(ChatBotInterface):
                     "content": lines
                 }
         )
-        if res.status_code == 200:
-            try:
-                return res.json()
-            except Exception as e:
-                logger.error("get_history:: {}".format(e))
-                return []
-        else:
-            logger.error("get_history:: return non http 200:: {}".format(res.text))
+
+        try:
+            return res.json()
+        except Exception as e:
+            logger.error("get_history:: {}".format(e))
             return []
+
     def upload_history(self, history):
         """
         将历史记录上传到Maica服务器
@@ -1134,10 +1132,10 @@ class MaicaAi(ChatBotInterface):
             json = content,
             headers = {"Content-Type": "application/json"}
         )
-        if res.status_code == 200:
+        try:
             return res.json()
-        else:
-            logger.error("upload_history:: return non http 200:: {}".format(res.text))
+        except Exception:
+            logger.error("upload_history:: return non json:: {}".format(res.text))
             return {}
         
     def reset_chat_session(self):
@@ -1181,14 +1179,14 @@ class MaicaAi(ChatBotInterface):
 
         def task():
             res = requests.get(self.provider_manager.get_api_url() + "workload")
-            if res.status_code == 200:
+            try:
                 data = res.json()
                 if data["success"]:
                     self.workload_raw = data["content"]
                     #logger.debug("Workload updated successfully.")
                 else:
                     logger.error("Failed to update workload: {}".format(data))
-            else:
+            except Exception:
                 logger.error("Failed to update workload.")
 
         thread = threading.Thread(target=task)
@@ -1308,14 +1306,14 @@ class MaicaAi(ChatBotInterface):
                 headers = {"Content-Type": "application/json"}
             )
             
-            if res.status_code == 200:
+            try:
                 response_data = res.json()
                 if response_data.get('success', False):
                     logger.debug("send_mtrigger success")
                 else:
                     logger.error("send_mtrigger failed: {}".format(response_data))
-            else:
-                logger.error("send_mtrigger:: return non http 200:: {}".format(res.text))
+            except Exception:
+                logger.error("send_mtrigger:: return non json:: {}".format(res.text))
 
         except Exception as e:
             import traceback
