@@ -1,5 +1,5 @@
 translate english python in maica:
-    from MTTS import PY2, PY3
+    from bot_interface import PY2, PY3
     try:
         maica.MaicaAiStatus._descriptions.update({
             maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
