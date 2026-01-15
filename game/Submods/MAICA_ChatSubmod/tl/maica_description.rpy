@@ -1,5 +1,5 @@
 translate english python in maica:
-    from bot_interface import PY2, PY3
+    from MTTS import PY2, PY3
     try:
         maica.MaicaAiStatus._descriptions.update({
             maica.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
@@ -58,29 +58,33 @@ translate english python in maica:
 
 translate english python:
 
-    import maica_provider_manager as mpm
+    try:
+        import maica_provider_manager as mpm
 
-    mpm.MaicaProviderManager._isfailedresponse.update(
-        {
-            "name":"ERROR: Unable to retrieve node information.",
-            "description": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
-            "isOfficial": False,
-            "portalPage": "https://forum.monika.love/d/3954",
-            "servingModel": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
-            "modelLink": "",
-            "wsInterface": "wss://maicadev.monika.love/websocket",
-            "httpInterface": "https://maicadev.monika.love/api"
-        }
-    )
-    mpm.MaicaProviderManager._fakelocalprovider.update(
-        {
-            "name":"Local Deployment",
-            "description": "When you have an available local deployment, select this node.",
-            "isOfficial": False,
-            "portalPage": "https://github.com/PencilMario/MAICA",
-            "servingModel": "None",
-            "modelLink": "",
-            "wsInterface": "ws://127.0.0.1:5000",
-            "httpInterface": "http://127.0.0.1:6000",
-        }
-    )
+        mpm.MaicaProviderManager._isfailedresponse.update(
+            {
+                "name":"ERROR: Unable to retrieve node information.",
+                "description": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
+                "isOfficial": False,
+                "portalPage": "https://forum.monika.love/d/3954",
+                "servingModel": "Check the update log to get the current service status, or check submod_log.log for the cause of the failure.",
+                "modelLink": "",
+                "wsInterface": "wss://maicadev.monika.love/websocket",
+                "httpInterface": "https://maicadev.monika.love/api"
+            }
+        )
+        mpm.MaicaProviderManager._fakelocalprovider.update(
+            {
+                "name":"Local Deployment",
+                "description": "When you have an available local deployment, select this node.",
+                "isOfficial": False,
+                "portalPage": "https://github.com/PencilMario/MAICA",
+                "servingModel": "None",
+                "modelLink": "",
+                "wsInterface": "ws://127.0.0.1:5000",
+                "httpInterface": "http://127.0.0.1:6000",
+            }
+        )
+    except Exception as e:
+        import store
+        store.mas_submod_utils.submod_log.error("MAICA Blessland seemingly not exist: {}".format(e))
