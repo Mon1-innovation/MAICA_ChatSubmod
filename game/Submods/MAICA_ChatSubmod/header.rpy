@@ -140,7 +140,6 @@ init 10 python:
     store.stat_folded = True
 
     from bot_interface import PY2, PY3
-    import copy
     def iterize(dict):
         if PY2:
             return dict.iteritems()
@@ -155,7 +154,7 @@ init 10 python:
         store.mas_api_keys.save_keys()
     
     def maica_reset_setting():
-        persistent.maica_setting_dict = copy.deepcopy(mdef_setting)
+        persistent.maica_setting_dict = mdef_setting.copy()
         persistent.mas_geolocation = ''
         persistent.mas_player_additions = []
         persistent.maica_setting_dict["mspire_category"] = []
