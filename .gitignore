@@ -1,7 +1,7 @@
 game/python-packages/__pycache__/**
 example.log
 
-**/**.pyc
+**/*.pyc
 token.txt
 MAICA_ChatSubmod**.zip
 CLAUDE.md
