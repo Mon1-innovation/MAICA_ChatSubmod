@@ -89,7 +89,7 @@ screen maica_log():
     
     use maica_common_outer_frame():
         use maica_common_inner_frame():
-            style_prefix "generic_fancy_check"
+            style_prefix "console_font"
             
             use divider_small(maica_log.get("title"))
 
