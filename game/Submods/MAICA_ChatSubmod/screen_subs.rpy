@@ -8,8 +8,8 @@ screen maica_dscl_pvn_notify(prob = 1.0):
     frame:
         xalign 1.0
         yalign 0.0
-        xoffset -25
-        yoffset 20
+        xoffset -5
+        yoffset 5
         xsize 400
         ysize 300
         background "mod_assets/console/dscl_pvn.png"
