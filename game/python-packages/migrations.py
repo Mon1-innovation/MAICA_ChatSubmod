@@ -1,4 +1,4 @@
-class migration_instance():
+class migration_instance(object):
 
     def __init__(self, last_ver, curr_ver):
         self.last_ver, self.curr_ver = last_ver, curr_ver

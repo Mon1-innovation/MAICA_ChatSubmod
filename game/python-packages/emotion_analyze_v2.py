@@ -49,7 +49,7 @@ class FallBackEmo(object):
         else:
             return self._last_known
 
-class EmoSelector:
+class EmoSelector(object):
 
     def __init__(self, selector, storage, sentiment, fallback_predictor = None, eoc=None):
         self.selector = selector

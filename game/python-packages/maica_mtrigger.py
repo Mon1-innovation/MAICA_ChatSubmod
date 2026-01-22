@@ -6,7 +6,7 @@ except NameError:
     basestring = str  # Python 3 统一用 str
 
 
-class NothingLogger:
+class NothingLogger(object):
     def debug(self, *args):
         return
 
@@ -18,11 +18,11 @@ def check_and_search(sub, target):
     else:
         return False
 
-class MTriggerAction:
+class MTriggerAction(object):
     instant = 0     #收到以后立刻触发
     post = 1        #当前轮对话结束后触发
 
-class MTriggerExprop:
+class MTriggerExprop(object):
     """
     注意: 所有的值都有默认值, 如有需要请务必修改
     """
@@ -44,7 +44,7 @@ class MTriggerExprop:
         self.curr_value = curr_value
         self.suggestion = suggestion
 
-class MTriggerMethod:
+class MTriggerMethod(object):
     all = -1
     request = 0
     table = 1
@@ -61,7 +61,7 @@ common_switch_template = MTriggerTemplate("common_switch_template", "selection",
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False))
 customize_template = MTriggerTemplate("customized", None, exprop=MTriggerExprop(True, True, False, False, False, False))
 
-class MTriggerManager:
+class MTriggerManager(object):
     SIZE_LIMIT = {
         MTriggerMethod.all : 100000,
         MTriggerMethod.request : 3870,

@@ -328,7 +328,7 @@ class AiException(Exception):
     def __str__(self):
         return super().__str__()
 # 接口类
-class ChatBotInterface():
+class ChatBotInterface(object):
     WRITING = 1
     END = 0
 
@@ -354,7 +354,7 @@ class ChatBotInterface():
     def get_message(self):
         raise Exception("该类未实现get_message()")
     
-class TalkSplitV2():
+class TalkSplitV2(object):
 
     # 简单文档:
     # 先实例化. 一个实例原理上可以用到连接死为止, 也可以每轮对话重建
