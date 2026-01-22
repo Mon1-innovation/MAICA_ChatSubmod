@@ -155,6 +155,7 @@ init 10 python:
     
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
+        sync_provider_id(persistent.maica_setting_dict["provider_id"])
         persistent.mas_geolocation = ''
         persistent.mas_player_additions = []
         persistent.maica_setting_dict["mspire_category"] = []
