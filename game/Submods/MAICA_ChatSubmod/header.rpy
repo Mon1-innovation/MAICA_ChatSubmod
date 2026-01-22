@@ -416,7 +416,7 @@ init 10 python:
             pid = 0
         persistent.maica_setting_dict["provider_id"] = pid
         ai.provider_id = pid 
-        ai.provider_manager.set_provider_id(pid)
+        # ai.provider_manager.set_provider_id(pid)
 
         # 刷新 vista_manager 缓存的 base_url
         ai.vista_manager.base_url = ai.provider_manager.get_api_url()

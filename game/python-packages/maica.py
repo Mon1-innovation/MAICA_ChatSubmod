@@ -545,7 +545,7 @@ class MaicaAi(ChatBotInterface):
 
     @provider_id.setter
     def provider_id(self, value):
-        self.provider_manager.set_provider_id(self.provider_id)
+        self.provider_manager.set_provider_id(value)
 
     def reset_stat(self):
         self.stat = {
