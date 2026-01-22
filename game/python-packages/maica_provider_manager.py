@@ -24,7 +24,7 @@ class DefaultLogger(object):
 logger = DefaultLogger()
 
 
-class MaicaProviderManager:
+class MaicaProviderManager(object):
     """MAICA服务提供商管理器 - 实例化模式"""
 
     # 类级别的共享数据
