@@ -54,15 +54,15 @@ class MaicaProviderManager:
 
     _provider_list = "https://maicadev.monika.love/api/servers"
 
-    def __init__(self, provider_id=None):
+    def __init__(self, pid=None):
         """
         初始化MaicaProviderManager实例
 
         Args:
-            provider_id: 服务提供商ID，如果为None则使用默认值
+            pid: 服务提供商ID，如果为None则使用默认值
         """
-        self._provider_id = provider_id
-        self._last_provider_id = provider_id
+        self._provider_id = pid
+        self._last_provider_id = pid
         self._servers = [self._fakelocalprovider]
         self._isMaicaNameServer = None
 
@@ -112,29 +112,29 @@ class MaicaProviderManager:
     def get_wssurl(self):
         """获取WebSocket URL"""
         if self._provider_id is None:
-            logger.warning("Cannot find server by id: {}, returning default failed response".format(self.provider_id))
+            logger.warning("Cannot find server by id: {}, returning default failed response".format(self.pid))
             return self._isfailedresponse["wsInterface"] + "/"
         return self._get_server_by_id(self._provider_id)["wsInterface"] + "/"
 
     def get_api_url(self):
         """获取API URL"""
         if self._provider_id is None:
-            logger.warning("Cannot find server by id: {}, returning default failed response".format(self.provider_id))
+            logger.warning("Cannot find server by id: {}, returning default failed response".format(self.pid))
             return self._isfailedresponse["httpInterface"] + "/"
         return self._get_server_by_id(self._provider_id)["httpInterface"] + "/"
 
     def get_server_info(self):
         """获取当前服务器信息"""
         if self._provider_id is None:
-            logger.error("Cannot find server by id: {}, returning default failed response".format(self.provider_id))
+            logger.error("Cannot find server by id: {}, returning default failed response".format(self.pid))
             return self._isfailedresponse
         return self._get_server_by_id(self._provider_id)
 
-    def set_provider_id(self, provider_id):
+    def set_provider_id(self, pid):
         """设置provider_id"""
-        self._provider_id = provider_id
-        if provider_id:
-            self._last_provider_id = provider_id
+        self._provider_id = pid
+        if pid:
+            self._last_provider_id = pid
 
     def get_provider_id(self):
         """获取provider_id"""
