@@ -164,7 +164,7 @@ screen maica_tz_setting():
             hbox:
                 style_prefix "maica_check"
                 textbutton _("根据语言自动选择"):
-                    action SetDict(persistent.maica_setting_dict, "tz", 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes')
+                    action SetDict(persistent.maica_setting_dict, "tz", 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes')
             
             hbox:
                 style_prefix "maica_check"
@@ -186,11 +186,11 @@ screen maica_advance_setting():
     $ _tooltip = store._tooltip
     python:
         def reset_to_default():
-            for item in store.maica.maica.default_setting:
+            for item in store.maica.maica_instance.default_setting:
                 if item == 'seed':
-                    store.maica.maica.default_setting[item] = 0
+                    store.maica.maica_instance.default_setting[item] = 0
                 if item in persistent.maica_advanced_setting:
-                    persistent.maica_advanced_setting[item] = store.maica.maica.default_setting[item]
+                    persistent.maica_advanced_setting[item] = store.maica.maica_instance.default_setting[item]
                     persistent.maica_advanced_setting_status[item] = False
 
     modal True
@@ -392,7 +392,7 @@ screen maica_advance_setting():
                 action [
                     Function(reset_to_default),
                     Hide("maica_advance_setting"),
-                    Function(renpy.notify, _("MAICA: 已重置高级设置") if store.maica.maica.is_accessable() else _("MAICA: 已重置高级设置(缺省值)"))
+                    Function(renpy.notify, _("MAICA: 已重置高级设置") if store.maica.maica_instance.is_accessable() else _("MAICA: 已重置高级设置(缺省值)"))
                 ]
 
 
@@ -404,10 +404,10 @@ screen maica_select_language():
         style_prefix "generic_fancy_check"
         hbox:
             textbutton _("zh | 简体中文"):
-                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.zh_cn)
+                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.zh_cn)
         hbox:
             textbutton _("en | English"):
-                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica.MaicaAiLang.en)
+                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.en)
        
 
 default use_email = True
@@ -416,7 +416,7 @@ screen maica_login():
     zorder 92
 
     $ ok_action = [
-                    Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
+                    Function(store.maica.maica_instance._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
                     Function(_maica_verify_token),
                     Function(_maica_clear), 
                     Hide("maica_login")
@@ -458,7 +458,7 @@ screen maica_login():
         # hbox:
         #     textbutton _("连接至服务器生成MAICA令牌"):
         #         action [
-        #             Function(store.maica.maica._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
+        #             Function(store.maica.maica_instance._gen_token, store._maica_LoginAcc, store._maica_LoginPw, "", store._maica_LoginEmail if store._maica_LoginEmail != "" else None),
         #             Function(_maica_verify_token),
         #             Function(_maica_clear), 
         #             Hide("maica_login")
@@ -587,7 +587,7 @@ screen maica_location_input(addition="", edittarget=None):
         def cancel():
             persistent.mas_geolocation = persistent._mas_geolocation
         def verify(position):
-            res = store.maica.maica.verify_legality("geolocation", position)
+            res = store.maica.maica_instance.verify_legality("geolocation", position)
             if res.get("success", False):
                 renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功{#maica_location}")) + "\n" + renpy.substitute(_("地区编码: ")) + res.get("content").get("geocode"))
             else:
@@ -754,7 +754,7 @@ screen maica_node_setting():
     use maica_common_outer_frame():
         use maica_common_inner_frame():
 
-            for provider in store.maica.maica.provider_manager._servers:
+            for provider in store.maica.maica_instance.provider_manager._servers:
                 use maica_l2_subframe():
                     text str(provider.get('id')) + ' | ' + provider.get('name')
                     
@@ -789,13 +789,13 @@ screen maica_node_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("刷新节点列表"):
-                action Function(store.maica.maica.provider_manager.get_provider)
+                action Function(store.maica.maica_instance.provider_manager.get_provider)
 
             textbutton _("关闭"):
                 action Hide("maica_node_setting")
             
             textbutton _("测试当前节点可用性"):
-                action Function(store.maica.maica.accessable)
+                action Function(store.maica.maica_instance.accessable)
                         
 screen maica_mspire_setting():
     $ _tooltip = store._tooltip
@@ -845,7 +845,7 @@ screen maica_mspire_setting():
 screen maica_triggers():
     $ _tooltip = store._tooltip
     python:
-        maica_triggers = store.maica.maica.mtrigger_manager
+        maica_triggers = store.maica.maica_instance.mtrigger_manager
 
     modal True
     zorder 92
@@ -947,7 +947,7 @@ screen maica_triggers():
 screen maica_mpostals():
     python:
         import time, os
-        maica_triggers = store.maica.maica.mtrigger_manager
+        maica_triggers = store.maica.maica_instance.mtrigger_manager
         preview_len = 200
 
         def _delect_portal(title):
@@ -1082,14 +1082,14 @@ screen maica_support():
 
 screen maica_workload_stat_lite():
     python:
-        onliners = store.maica.maica.workload_raw.get("onliners")
-        ai = store.maica.maica
+        onliners = store.maica.maica_instance.workload_raw.get("onliners")
+        ai = store.maica.maica_instance
         data = ai.get_workload_lite()
         store.update_interval = 15
 
         @store.workload_throttle
         def check_and_update():
-            store.maica.maica.update_workload()
+            store.maica.maica_instance.update_workload()
     
     zorder 90
     fixed:
@@ -1127,14 +1127,14 @@ screen maica_workload_stat_lite():
 screen maica_workload_stat():
     $ _tooltip = store._tooltip
     python:
-        stat = {k: v for k, v in iterize(store.maica.maica.workload_raw) if k != "onliners"}
-        onliners = store.maica.maica.workload_raw.get("onliners")
+        stat = {k: v for k, v in iterize(store.maica.maica_instance.workload_raw) if k != "onliners"}
+        onliners = store.maica.maica_instance.workload_raw.get("onliners")
     python:
         store.update_interval = 15
 
         @store.workload_throttle
         def check_and_update():
-            store.maica.maica.update_workload()
+            store.maica.maica_instance.update_workload()
 
     modal True
     zorder 90
@@ -1228,22 +1228,22 @@ screen maica_statics():
             xsize 942
             spacing 5
             hbox:
-                text _("累计对话轮次: [store.maica.maica.stat.get('message_count')]"):
+                text _("累计对话轮次: [store.maica.maica_instance.stat.get('message_count')]"):
                     size 20
             hbox:
-                text _("累计MSpire轮次: [store.maica.maica.stat.get('mspire_count')]"):
+                text _("累计MSpire轮次: [store.maica.maica_instance.stat.get('mspire_count')]"):
                     size 20
             hbox:
-                text _("累计收到Token: [store.maica.maica.stat.get('received_token')]"):
+                text _("累计收到Token: [store.maica.maica_instance.stat.get('received_token')]"):
                     size 20
             hbox:
-                text _("每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]"):
+                text _("每个会话累计Token: [store.maica.maica_instance.stat.get('received_token_by_session')]"):
                     size 20
             hbox:
-                text _("累计发信数: [store.maica.maica.stat.get('mpostal_count')]"):
+                text _("累计发信数: [store.maica.maica_instance.stat.get('mpostal_count')]"):
                     size 20
             hbox:
-                $ user_disp = store.maica.maica.user_acc or renpy.substitute(_("未登录"))
+                $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("未登录"))
                 text _("当前用户: [user_disp]"):
                     size 20
 
@@ -1251,7 +1251,7 @@ screen maica_statics():
                 xpos 10
                 style_prefix "confirm"
                 textbutton _("重置统计数据"):
-                    action Function(store.maica.maica.reset_stat)
+                    action Function(store.maica.maica_instance.reset_stat)
 
 screen maica_input_lang_warning():
 
@@ -1259,7 +1259,7 @@ screen maica_input_lang_warning():
     zorder 99
 
     use maica_setter_small_frame(title=_("输入语言警告"), ok_action=Hide("maica_input_lang_warning")):
-        $ current_lang = store.maica.maica.target_lang
+        $ current_lang = store.maica.maica_instance.target_lang
         hbox:
             text _("你的输入语言似乎与MAICA目标语言不符."):
                 size 20

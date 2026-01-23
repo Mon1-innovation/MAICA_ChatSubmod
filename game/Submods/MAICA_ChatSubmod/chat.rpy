@@ -482,16 +482,16 @@ label maica_prepend_2:
                 if persistent.maica_setting_dict['console']:
                     show monika at t22
                     show screen mas_py_console_teaching
-                    $ store.maica.maica.content_func = store.mas_ptod._update_console_history
-                    $ store.maica.maica.console_logger.critical("<DISABLE_VERBOSITY>"+store.maica.maica.ascii_icon)
+                    $ store.maica.maica_instance.content_func = store.mas_ptod._update_console_history
+                    $ store.maica.maica_instance.console_logger.critical("<DISABLE_VERBOSITY>"+store.maica.maica_instance.ascii_icon)
                     $ store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
                     pause 2.3
-                $ store.maica.maica.init_connect()
+                $ store.maica.maica_instance.init_connect()
                 
             
             label check:
 
-                if store.maica.maica.is_ready_to_input() or store.maica.maica.is_failed():
+                if store.maica.maica_instance.is_ready_to_input() or store.maica.maica_instance.is_failed():
                     pass
                 else:
                     pause 1.0
@@ -504,11 +504,11 @@ label maica_prepend_2:
                     $ store.mas_ptod.clear_console()
                     hide screen mas_py_console_teaching
                     show monika at t11
-                    $ store.maica.maica.content_func = None
+                    $ store.maica.maica_instance.content_func = None
             # monika right - console appear left 简单格式化信息, 显示在控制台上
             m 2dua ".{w=0.3}.{w=0.3}."
             # 进入校验轮
-            if store.maica.maica.is_failed(): # 令牌不存在/校验失败
+            if store.maica.maica_instance.is_failed(): # 令牌不存在/校验失败
                 m 2rusdlb "...好像你的令牌还没有设置好."
                 m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
                 m 3eua "剩下的事情我都会帮你搞定的."
@@ -530,7 +530,7 @@ label maica_prepend_2:
     return
 
 label maica_end_1:
-    $ conv_rounds = store.maica.maica.stat.get('message_count')
+    $ conv_rounds = store.maica.maica_instance.stat.get('message_count')
     # Called after first time ending maica
     # Rounds chatted in maica process.
     call clear_all
@@ -801,16 +801,16 @@ label .talking_start:
         m "return：[_return]"
     if _return == "canceled":
         m 1eub "好的. 稍等片刻.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
-    elif store.maica.maica.mtrigger_manager._running:
-        $ store.maica.maica.mtrigger_manager._running = False
+    elif store.maica.maica_instance.mtrigger_manager._running:
+        $ store.maica.maica_instance.mtrigger_manager._running = False
         jump .talking_start
     elif _return != "mtrigger_triggering":
         $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(_return))
-        if store.maica.maica.Loginer.wrong_pwd:
+        if store.maica.maica_instance.Loginer.wrong_pwd:
             m 2rusdlb "...好像你的令牌还没有设置好."
             m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
             m 3eua "剩下的事情我都会帮你搞定的."
-        elif store.maica.maica.status == store.maica.maica.MaicaAiStatus.SAVEFILE_NOTFOUND:
+        elif store.maica.maica_instance.status == store.maica.maica_instance.MaicaAiStatus.SAVEFILE_NOTFOUND:
             m 2rusdlb "好像上传存档出了点问题..."
         else:
             m 2rusdlb "好像是其他的地方出问题了..."
@@ -869,12 +869,12 @@ init 5 python:
             eventlabel="maica_mspire",
             prompt="mspire",
             pool=False,
-            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_in_exception()",
+            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()",
             aff_range=(mas_aff.NORMAL, None)
         )
     )
 init 999 python:
-    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica.is_in_exception()"
+    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()"
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire():
         if try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire") and store.mas_getAPIKey("Maica_Token") != "" and len(mas_rev_unseen) == 0 and persistent.maica_setting_dict.get('mspire_enable') and not persistent._mas_enable_random_repeats:
@@ -936,7 +936,7 @@ label mspire_delete_information:
         for i in _return:
             if _return[i]:
                 persistent.maica_setting_dict['mspire_category'].append(i)
-        store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
+        store.maica.maica_instance.mspire_category = persistent.maica_setting_dict["mspire_category"]
     return
            
             
@@ -1200,7 +1200,7 @@ label maica_set_location:
         m 3esu "无论如何, 等你决定要告诉我了, 随时都可以来找我. {w=0.3}你也可以直接填在'子模组设置'里."
     else:
         m 1rsa "我看看..."
-        $ res = store.maica.maica.verify_legality("geolocation", inputloc)
+        $ res = store.maica.maica_instance.verify_legality("geolocation", inputloc)
         if not res.get('success', False):
             m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下写法? 省市地名就行.{nw}"
             menu:

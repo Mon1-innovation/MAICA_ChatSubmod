@@ -97,9 +97,9 @@ init 5 python in maica:
 
     data = {}
     def change_token(content):
-        if store.maica.maica.wss_session is not None and store.maica.maica.is_connected():
+        if store.maica.maica_instance.wss_session is not None and store.maica.maica_instance.is_connected():
             return False, _("MAICA仍在连接中, 请先断开连接")
-        store.maica.maica.ciphertext = content.strip()
+        store.maica.maica_instance.ciphertext = content.strip()
         renpy.notify(_("MAICA: 请在子模组界面使用已保存的令牌重新连接"))
         return True, content
     store.mas_registerAPIKey(
@@ -107,8 +107,8 @@ init 5 python in maica:
         _("MAICA令牌{size=-10} *{i}(在子模组处登录后自动生成){/i}*"),
         on_change=change_token,
     )
-    maica = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
-    maica.ascii_icon = """                                                             
+    maica_instance = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    maica_instance.ascii_icon = """                                                             
     __  ___ ___     ____ ______ ___ 
    /  |/  //   |   /  _// ____//   |
   / /|_/ // /| |   / / / /    / /| |
@@ -120,24 +120,24 @@ init 5 python in maica:
     if store.persistent.maica_stat is None:
         store.persistent.maica_stat = maica.stat.copy()
     else:    
-        maica.update_stat(store.persistent.maica_stat)
+        maica_instance.update_stat(store.persistent.maica_stat)
     
     if store.persistent.maica_mtrigger_status is None:
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
     else:
-        maica.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
+        maica_instance.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
 
     if store.persistent._maica_visuals is None:
         store.persistent._maica_visuals = maica.vista_manager.export_list()
     else:
-        maica.vista_manager.import_list(store.persistent._maica_visuals)
-    maica.vista_manager.android = store.renpy.android
+        maica_instance.vista_manager.import_list(store.persistent._maica_visuals)
+    maica_instance.vista_manager.android = store.renpy.android
     import maica_vista_files_manager
     if renpy.windows:
-        maica.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
+        maica_instance.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
     elif renpy.android:
         try:
-            maica.vista_manager.magick_path = store.ANDROID_MAGICK_BINPATH
+            maica_instance.vista_manager.magick_path = store.ANDROID_MAGICK_BINPATH
         except:
             pass
 
@@ -160,16 +160,16 @@ init 5 python in maica:
         eoc = json_exporter.emotion_eoc
         return eoc
 
-    maica.MoodStatus.selector = init_selector()
-    maica.MoodStatus.storage = init_storage()
-    maica.MoodStatus.sentiment = init_sentiment()
-    maica.MoodStatus.eoc = init_eoc()
+    maica_instance.MoodStatus.selector = init_selector()
+    maica_instance.MoodStatus.storage = init_storage()
+    maica_instance.MoodStatus.sentiment = init_sentiment()
+    maica_instance.MoodStatus.eoc = init_eoc()
 
     @store.mas_submod_utils.functionplugin("_quit", )
     def clear_maica():
-        maica.auto_reconnect = False
-        maica.AutoReconnector.disable()
-        maica.close_wss_session()
+        maica_instance.auto_reconnect = False
+        maica_instance.AutoReconnector.disable()
+        maica_instance.close_wss_session()
         store.persistent.maica_stat = maica.stat.copy()
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
         store.persistent._maica_visuals = maica.vista_manager.export_list()
@@ -181,12 +181,12 @@ init 5 python in maica:
     def check_workload():
         try:
             last_workload_update = time.time()
-            store.maica.maica.update_workload()
+            store.maica.maica_instance.update_workload()
         except Exception as e:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
-        store.maica.maica.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
+        store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
         import time
         failed = False
         store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
@@ -195,7 +195,7 @@ init 5 python in maica:
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
         if store.mas_getAPIKey("Maica_Token") != "":
-            store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
+            store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
             import requests
             canwhere = False
@@ -214,12 +214,12 @@ init 5 python in maica:
                     if res.status_code == 200 and res2.status_code == 200:
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
-                            store.maica.maica.status = 13408
+                            store.maica.maica_instance.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
                     
                         with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
                             file.write(res2.content)
-                            store.maica.maica.status = 13408
+                            store.maica.maica_instance.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
                         
                     else:
@@ -243,14 +243,14 @@ init 5 python in maica:
                 failed = True
         if failed:
             persistent.maica_setting_dict['provider_id'] = 2
-        store.maica.maica.accessable()
-        submod_ver_limit = store.maica.maica.version_info
+        store.maica.maica_instance.accessable()
+        submod_ver_limit = store.maica.maica_instance.version_info
         if submod_ver_limit.get("success"):
             minver = submod_ver_limit.get("content", {}).get("fe_blessland_version", "0.0.0")
             if store.mas_utils.compareVersionLists(minver.strip().split('.'), store.maica_ver.strip().split('.')) == -1:
-                store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
-        if store.maica.maica.is_outdated:
-            store.maica.maica.disable(store.maica.maica.MaicaAiStatus.VERSION_OLD)
+                store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
+        if store.maica.maica_instance.is_outdated:
+            store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
 
         if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
@@ -260,7 +260,7 @@ init 5 python in maica:
         check_workload()
 
     def validate_version():
-        # if not (config.debug or config.developer or store.maica.maica._ignore_accessable):
+        # if not (config.debug or config.developer or store.maica.maica_instance._ignore_accessable):
         libv_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "maica_release_version"))
         if not os.path.exists(libv_path):
             return None, None, None

@@ -50,7 +50,7 @@ init 10 python:
         "chat_session":1,
         "console":True,
         "console_font":maica_confont,
-        "target_lang":store.maica.maica.MaicaAiLang.zh_cn if config.language == "chinese" else store.maica.maica.MaicaAiLang.en,
+        "target_lang":store.maica.maica_instance.MaicaAiLang.zh_cn if config.language == "chinese" else store.maica.maica_instance.MaicaAiLang.en,
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
@@ -67,7 +67,7 @@ init 10 python:
         "mpostal_default_reply_time": 360,
         "42seed":False,
         "use_anim_background": True,
-        "tz": 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
+        "tz": 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
         "dscl_pvn":True,
         "input_lang_detect":True,
         "pprt":True
@@ -150,7 +150,7 @@ init 10 python:
         store._maica_LoginAcc = ""
         store._maica_LoginPw = ""
         store._maica_LoginEmail = ""
-        store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica.ciphertext})
+        store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica_instance.ciphertext})
         store.mas_api_keys.save_keys()
     
     def maica_reset_setting():
@@ -161,12 +161,12 @@ init 10 python:
         persistent.maica_setting_dict["mspire_category"] = []
 
     def _maica_verify_token():
-        res = store.maica.maica._verify_token()
+        res = store.maica.maica_instance._verify_token()
         if res.get("success"):
             renpy.show_screen("maica_message", message=_("验证成功"))
         else:
             store.mas_api_keys.api_keys.update({"Maica_Token":""})
-            store.maica.maica.ciphertext = ""
+            store.maica.maica_instance.ciphertext = ""
             renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + renpy.substitute(_("失败原因: ")) + res.get("exception"))
             
 
@@ -245,18 +245,18 @@ init 10 python:
 
         for key in keys_to_remove:
             del d[key]
-        res = store.maica.maica.upload_save(d)
+        res = store.maica.maica_instance.upload_save(d)
         if not res.get("success", False):
             store.mas_submod_utils.submod_log.error("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
         renpy.notify(_("MAICA: 存档上传成功") if res.get("success", False) else _("MAICA: 存档上传失败"))
 
     def reset_session():
-        store.maica.maica.reset_chat_session()
+        store.maica.maica_instance.reset_chat_session()
         renpy.notify(_("MAICA: 会话已重置"))
     def output_chat_history():
         import json
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
-            f.write(json.dumps(store.maica.maica.get_history().get("content"), []))
+            f.write(json.dumps(store.maica.maica_instance.get_history().get("content"), []))
         renpy.notify(_("MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def upload_chat_history():
@@ -268,7 +268,7 @@ init 10 python:
             #history = json.load(f)
             try:
                 history = json.load(f)
-                res = store.maica.maica.upload_history(history)
+                res = store.maica.maica_instance.upload_history(history)
                 if not res.get("success", False):
                     raise Exception(str(res))
             except Exception as e:
@@ -285,99 +285,99 @@ init 10 python:
         import copy
         run_migrations()
 
-        store.maica.maica.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
-        if store.maica.maica.auto_reconnect:
-            store.maica.maica.AutoReconnector.enable()
+        store.maica.maica_instance.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
+        if store.maica.maica_instance.auto_reconnect:
+            store.maica.maica_instance.AutoReconnector.enable()
         else:
-            store.maica.maica.AutoReconnector.disable()
-        store.maica.maica.auto_resume = persistent.maica_setting_dict["auto_resume"]
-        if store.maica.maica.auto_resume:
-            store.maica.maica.AutoResumeTasker.enable()
+            store.maica.maica_instance.AutoReconnector.disable()
+        store.maica.maica_instance.auto_resume = persistent.maica_setting_dict["auto_resume"]
+        if store.maica.maica_instance.auto_resume:
+            store.maica.maica_instance.AutoResumeTasker.enable()
         else:
-            store.maica.maica.AutoResumeTasker.disable()
-        store.maica.maica.keep_alive = persistent.maica_setting_dict["keep_alive"]
-        if store.maica.maica.keep_alive:
-            store.maica.maica.KeepAliveTasker.enable()
+            store.maica.maica_instance.AutoResumeTasker.disable()
+        store.maica.maica_instance.keep_alive = persistent.maica_setting_dict["keep_alive"]
+        if store.maica.maica_instance.keep_alive:
+            store.maica.maica_instance.KeepAliveTasker.enable()
         else:
-            store.maica.maica.KeepAliveTasker.disable()
+            store.maica.maica_instance.KeepAliveTasker.disable()
         if persistent.maica_setting_dict["use_custom_model_config"]:
             maica_apply_advanced_setting()
         else:
-            store.maica.maica.modelconfig = {}
+            store.maica.maica_instance.modelconfig = {}
         
         if persistent.maica_setting_dict["42seed"]:
             persistent.maica_advanced_setting_status["seed"] = False
             persistent.maica_advanced_setting['seed'] = 42
-            store.maica.maica.modelconfig.update({"seed":42})
-        store.maica.maica.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
-        store.maica.maica.chat_session = persistent.maica_setting_dict["chat_session"]
-        store.maica.maica.enable_mf = persistent.maica_setting_dict['enable_mf']
-        store.maica.maica.enable_mt = persistent.maica_setting_dict['enable_mt']
-        store.maica.maica.mspire_use_cache = persistent.maica_setting_dict["mspire_use_cache"]
+            store.maica.maica_instance.modelconfig.update({"seed":42})
+        store.maica.maica_instance.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
+        store.maica.maica_instance.chat_session = persistent.maica_setting_dict["chat_session"]
+        store.maica.maica_instance.enable_mf = persistent.maica_setting_dict['enable_mf']
+        store.maica.maica_instance.enable_mt = persistent.maica_setting_dict['enable_mt']
+        store.maica.maica_instance.mspire_use_cache = persistent.maica_setting_dict["mspire_use_cache"]
         store.mas_ptod.font = persistent.maica_setting_dict["console_font"]
-        store.maica.maica.target_lang = persistent.maica_setting_dict["target_lang"]
-        store.maica.maica.mspire_category = persistent.maica_setting_dict["mspire_category"]
-        store.maica.maica.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
+        store.maica.maica_instance.target_lang = persistent.maica_setting_dict["target_lang"]
+        store.maica.maica_instance.mspire_category = persistent.maica_setting_dict["mspire_category"]
+        store.maica.maica_instance.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-        store.maica.maica.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
-        store.maica.maica.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
-        store.maica.maica.provider_id = persistent.maica_setting_dict["provider_id"]
-        store.maica.maica.max_history_token = persistent.maica_setting_dict["max_history_token"]
-        store.maica.maica.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
-        if store.maica.maica.enable_strict_mode:
-            store.maica.maica.WSCookiesTask.enable_cookie()
+        store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
+        store.maica.maica_instance.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
+        store.maica.maica_instance.provider_id = persistent.maica_setting_dict["provider_id"]
+        store.maica.maica_instance.max_history_token = persistent.maica_setting_dict["max_history_token"]
+        store.maica.maica_instance.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
+        if store.maica.maica_instance.enable_strict_mode:
+            store.maica.maica_instance.WSCookiesTask.enable_cookie()
         else:
-            store.maica.maica.WSCookiesTask.disable_cookie()
-        store.maica.maica.tz = persistent.maica_setting_dict["tz"]
-        store.maica.maica.dscl_pvn = persistent.maica_setting_dict["dscl_pvn"]
-        store.maica.maica.input_lang_detect = persistent.maica_setting_dict["input_lang_detect"]
-        store.maica.maica.pprt = persistent.maica_setting_dict["pprt"]
-        store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica.mtrigger_manager.output_settings())
+            store.maica.maica_instance.WSCookiesTask.disable_cookie()
+        store.maica.maica_instance.tz = persistent.maica_setting_dict["tz"]
+        store.maica.maica_instance.dscl_pvn = persistent.maica_setting_dict["dscl_pvn"]
+        store.maica.maica_instance.input_lang_detect = persistent.maica_setting_dict["input_lang_detect"]
+        store.maica.maica_instance.pprt = persistent.maica_setting_dict["pprt"]
+        store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica_instance.mtrigger_manager.output_settings())
         store.mas_submod_utils.getAndRunFunctions()
-        if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn:
-            store.maica.maica.MoodStatus.emote_translate = {}
-        elif store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.en:
+        if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn:
+            store.maica.maica_instance.MoodStatus.emote_translate = {}
+        elif store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.en:
             import json_exporter
-            store.maica.maica.MoodStatus.emote_translate = json_exporter.emotion_etz
+            store.maica.maica_instance.MoodStatus.emote_translate = json_exporter.emotion_etz
         if not persistent.maica_setting_dict.get('mspire_enable') and mas_inEVL("maica_mspire"):
             store.MASEventList.clean()
         if not ininit:
-            renpy.notify(_("MAICA: 已上传设置") if store.maica.maica.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
+            renpy.notify(_("MAICA: 已上传设置") if store.maica.maica_instance.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
             
     def maica_discard_setting():
-        persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica.auto_reconnect
-        persistent.maica_setting_dict["auto_resume"] = store.maica.maica.auto_resume
-        persistent.maica_setting_dict["keep_alive"] = store.maica.maica.keep_alive
+        persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica_instance.auto_reconnect
+        persistent.maica_setting_dict["auto_resume"] = store.maica.maica_instance.auto_resume
+        persistent.maica_setting_dict["keep_alive"] = store.maica.maica_instance.keep_alive
 
         # 没开42 但是相关设置改变了 证明之前开了42
-        if not persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica.modelconfig):
+        if not persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica_instance.modelconfig):
             persistent.maica_setting_dict["42seed"] = True
         # 正常情况
-        elif persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica.modelconfig):
+        elif persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica_instance.modelconfig):
             persistent.maica_setting_dict["42seed"] = True
         else:
             persistent.maica_setting_dict["42seed"] = False
         # maica_discard_advanced_setting()
-        persistent.maica_setting_dict["sf_extraction"] = store.maica.maica.sf_extraction
-        persistent.maica_setting_dict["chat_session"] = store.maica.maica.chat_session
-        persistent.maica_setting_dict['enable_mf'] = store.maica.maica.enable_mf
-        persistent.maica_setting_dict['enable_mt'] = store.maica.maica.enable_mt
-        persistent.maica_setting_dict["mspire_use_cache"] = store.maica.maica.mspire_use_cache
+        persistent.maica_setting_dict["sf_extraction"] = store.maica.maica_instance.sf_extraction
+        persistent.maica_setting_dict["chat_session"] = store.maica.maica_instance.chat_session
+        persistent.maica_setting_dict['enable_mf'] = store.maica.maica_instance.enable_mf
+        persistent.maica_setting_dict['enable_mt'] = store.maica.maica_instance.enable_mt
+        persistent.maica_setting_dict["mspire_use_cache"] = store.maica.maica_instance.mspire_use_cache
         persistent.maica_setting_dict["console_font"] = store.mas_ptod.font
-        persistent.maica_setting_dict["target_lang"] = store.maica.maica.target_lang
-        persistent.maica_setting_dict["mspire_category"] = store.maica.maica.mspire_category
-        persistent.maica_setting_dict["mspire_search_type"] = store.maica.maica.mspire_type
+        persistent.maica_setting_dict["target_lang"] = store.maica.maica_instance.target_lang
+        persistent.maica_setting_dict["mspire_category"] = store.maica.maica_instance.mspire_category
+        persistent.maica_setting_dict["mspire_search_type"] = store.maica.maica_instance.mspire_type
         persistent.maica_setting_dict["log_level"] = store.mas_submod_utils.submod_log.level
-        persistent.maica_setting_dict["log_conlevel"] = store.maica.maica.console_logger.level
-        # persistent.maica_setting_dict["mspire_session"] = store.maica.maica.mspire_session
-        persistent.maica_setting_dict["provider_id"] = store.maica.maica.provider_manager._provider_id
-        persistent.maica_setting_dict["max_history_token"] = store.maica.maica.max_history_token
-        persistent.maica_setting_dict["strict_mode"] = store.maica.maica.enable_strict_mode
-        persistent.maica_setting_dict["tz"] = store.maica.maica.tz
-        persistent.maica_setting_dict["dscl_pvn"] = store.maica.maica.dscl_pvn
-        persistent.maica_setting_dict["input_lang_detect"] = store.maica.maica.input_lang_detect
-        persistent.maica_setting_dict["pprt"] = store.maica.maica.pprt
-        store.maica.maica.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
+        persistent.maica_setting_dict["log_conlevel"] = store.maica.maica_instance.console_logger.level
+        # persistent.maica_setting_dict["mspire_session"] = store.maica.maica_instance.mspire_session
+        persistent.maica_setting_dict["provider_id"] = store.maica.maica_instance.provider_manager._provider_id
+        persistent.maica_setting_dict["max_history_token"] = store.maica.maica_instance.max_history_token
+        persistent.maica_setting_dict["strict_mode"] = store.maica.maica_instance.enable_strict_mode
+        persistent.maica_setting_dict["tz"] = store.maica.maica_instance.tz
+        persistent.maica_setting_dict["dscl_pvn"] = store.maica.maica_instance.dscl_pvn
+        persistent.maica_setting_dict["input_lang_detect"] = store.maica.maica_instance.input_lang_detect
+        persistent.maica_setting_dict["pprt"] = store.maica.maica_instance.pprt
+        store.maica.maica_instance.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
         renpy.notify(_("MAICA: 已放弃设置修改"))
 
@@ -387,17 +387,17 @@ init 10 python:
         for k, v in persistent.maica_advanced_setting_status.items():
             if v:
                 settings_dict[k] = persistent.maica_advanced_setting[k]
-        store.maica.maica.modelconfig.update(settings_dict)
+        store.maica.maica_instance.modelconfig.update(settings_dict)
         store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
             
     def maica_discard_advanced_setting():
         settings_dict = {}
         for k, v in persistent.maica_advanced_setting_status.items():
-            persistent.maica_advanced_setting_status[k] = k in store.maica.maica.modelconfig
-            if k in store.maica.maica.modelconfig:
-                persistent.maica_advanced_setting[k] = store.maica.maica.modelconfig[k]
-            elif k in store.maica.maica.default_setting:
-                persistent.maica_advanced_setting[k] = store.maica.maica.default_setting[k]
+            persistent.maica_advanced_setting_status[k] = k in store.maica.maica_instance.modelconfig
+            if k in store.maica.maica_instance.modelconfig:
+                persistent.maica_advanced_setting[k] = store.maica.maica_instance.modelconfig[k]
+            elif k in store.maica.maica_instance.default_setting:
+                persistent.maica_advanced_setting[k] = store.maica.maica_instance.default_setting[k]
 
 
     def sync_provider_id(pid, reconnect=True):
@@ -408,7 +408,7 @@ init 10 python:
         - 断开当前已连接的 websocket (如有), 重新 accessable() 并重连
         """
         import threading, time
-        ai = store.maica.maica
+        ai = store.maica.maica_instance
         try:
             pid = int(pid)
         except Exception:
@@ -518,7 +518,7 @@ init 10 python:
         import os, json
         try:
             with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "custom_modelconfig.json"), "r") as f:
-                store.maica.maica.modelconfig = json.load(f)
+                store.maica.maica_instance.modelconfig = json.load(f)
         except Exception as e:
             if not ininit:
                 renpy.notify(_("MAICA: 加载高级参数失败, 查看submod_log.log获取详细原因").format(e))
@@ -588,8 +588,8 @@ screen maica_setting_pane():
 
     python:
         import store.maica as maica
-        stat = _("未连接") if not maica.maica.wss_session else _("已连接") if maica.maica.is_connected() else _("已断开")
-        store.maica.maica.ciphertext = store.mas_getAPIKey("Maica_Token")
+        stat = _("未连接") if not maica.maica_instance.wss_session else _("已连接") if maica.maica_instance.is_connected() else _("已断开")
+        store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
 
         import nonunicode_detect
@@ -614,7 +614,7 @@ screen maica_setting_pane():
                     text _("> 你当前的MAS构建版本过旧, 可能影响正常运行, 请升级至最新版本"):
                         style "main_menu_version_l"
 
-            elif store.maica.maica.is_outdated is True:
+            elif store.maica.maica_instance.is_outdated is True:
                 hbox:
             
                     text _("> 当前版本支持已终止, 请更新至最新版"):
@@ -656,9 +656,9 @@ screen maica_setting_pane():
                     text _("> 警告: 当前系统非Unicode语言不是简体中文, 可能导致包含中文的响应出现问题"):
                         style "main_menu_version_l"
 
-            if 13400 <= maica.maica.status <= 13499:
+            if 13400 <= maica.maica_instance.status <= 13499:
                 hbox:
-                    text _("> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"):
+                    text _("> MAICA通信状态: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
                         style "main_menu_version_l"
 
             hbox:
@@ -677,21 +677,21 @@ screen maica_setting_pane():
             use intro_tooltip()
             timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
 
-            if not maica.maica.is_accessable():
+            if not maica.maica_instance.is_accessable():
                 textbutton _("> 使用账号生成令牌")
                     # action Show("maica_login")
                 
-            elif not maica.maica.is_connected():
+            elif not maica.maica_instance.is_connected():
                 textbutton _("> 使用账号生成令牌"):
                     action Show("maica_login")
                 
-            if maica.maica.has_token() and not maica.maica.is_connected():
+            if maica.maica_instance.has_token() and not maica.maica_instance.is_connected():
                 textbutton _("> 使用已保存令牌连接"):
-                    action Function(store.maica.maica.init_connect)
+                    action Function(store.maica.maica_instance.init_connect)
 
                 
-            elif maica.maica.is_connected():
-                if maica.maica.is_ready_to_input():
+            elif maica.maica_instance.is_connected():
+                if maica.maica_instance.is_ready_to_input():
                     textbutton _("> 手动上传设置"):
                         action Function(maica_apply_setting)
                     
@@ -705,11 +705,11 @@ screen maica_setting_pane():
                 textbutton _("> 导出当前对话"):
                     action Function(output_chat_history)
                 
-                textbutton _("> 上传对话历史到会话 [store.maica.maica.chat_session]"):
+                textbutton _("> 上传对话历史到会话 [store.maica.maica_instance.chat_session]"):
                     action Function(upload_chat_history)
 
                 textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住, 退出以断开连接")):
-                    action Function(store.maica.maica.close_wss_session)
+                    action Function(store.maica.maica_instance.close_wss_session)
 
             else:
                 textbutton _("> 使用已保存令牌连接")
@@ -745,11 +745,11 @@ screen maica_setting():
             store._tooltip = None
 
         def reset_adv_to_default():
-            for item in store.maica.maica.default_setting:
+            for item in store.maica.maica_instance.default_setting:
                 if item == 'seed':
-                    store.maica.maica.default_setting[item] = 0
+                    store.maica.maica_instance.default_setting[item] = 0
                 if item in persistent.maica_advanced_setting:
-                    persistent.maica_advanced_setting[item] = store.maica.maica.default_setting[item]
+                    persistent.maica_advanced_setting[item] = store.maica.maica_instance.default_setting[item]
                     persistent.maica_advanced_setting_status[item] = False
 
     $ _tooltip = store._tooltip
@@ -771,17 +771,17 @@ screen maica_setting():
 
                 text "=====MaicaAi()====="
 
-                text "ai.is_responding: [store.maica.maica.is_responding()]"
+                text "ai.is_responding: [store.maica.maica_instance.is_responding()]"
 
-                text "ai.is_failed: [store.maica.maica.is_failed()]"
+                text "ai.is_failed: [store.maica.maica_instance.is_failed()]"
 
-                text "ai.is_connected: [store.maica.maica.is_connected()]"
+                text "ai.is_connected: [store.maica.maica_instance.is_connected()]"
 
-                text "ai.is_ready_to_input: [store.maica.maica.is_ready_to_input()]"
+                text "ai.is_ready_to_input: [store.maica.maica_instance.is_ready_to_input()]"
 
-                text "ai.MaicaAiStatus.is_submod_exception: [store.maica.maica.MaicaAiStatus.is_submod_exception(store.maica.maica.status)]"
+                text "ai.MaicaAiStatus.is_submod_exception: [store.maica.maica_instance.MaicaAiStatus.is_submod_exception(store.maica.maica_instance.status)]"
 
-                text "ai.len_message_queue(): [store.maica.maica.len_message_queue()]"
+                text "ai.len_message_queue(): [store.maica.maica_instance.len_message_queue()]"
 
                 text "maica_chr_exist: [maica_chr_exist]"
 
@@ -793,7 +793,7 @@ screen maica_setting():
 
                 text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]"
 
-                text "triggered_list: [store.maica.maica.mtrigger_manager.triggered_list]"
+                text "triggered_list: [store.maica.maica_instance.mtrigger_manager.triggered_list]"
 
                 textbutton "输出Event信息到日志":
                     action Function(log_eventstat)
@@ -844,13 +844,13 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("服务提供节点: [store.maica.maica.provider_manager.get_server_info().get('name', 'Unknown')]"):
+                textbutton _("服务提供节点: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"):
                     action Show("maica_node_setting")
                     hovered SetField(_tooltip, "value", _("设置服务器节点"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "maica_check_nohover"
-                $ user_disp = store.maica.maica.user_acc or renpy.substitute(_("未登录"))
+                $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("未登录"))
                 textbutton _("当前用户: [user_disp]"):
                     action NullAction()
                     hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往注册网站"))

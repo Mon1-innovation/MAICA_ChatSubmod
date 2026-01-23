@@ -7,7 +7,7 @@ label maica_talking(mspire = False):
     python:
         import time
         import copy
-        from store.maica import maica as ai
+        from store.maica import maica_instance as ai
         import bot_interface
         from maica_mtrigger import MTriggerAction 
         import traceback
@@ -41,7 +41,7 @@ label maica_talking(mspire = False):
                                 #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
                             ).strip(' \t\n\r') #mas_input
 
-                    if store.maica.maica.input_lang_detect and not bot_interface.is_correct_lang(question, target_lang=store.maica.maica.target_lang):
+                    if store.maica.maica_instance.input_lang_detect and not bot_interface.is_correct_lang(question, target_lang=store.maica.maica_instance.target_lang):
                         renpy.show_screen("maica_input_lang_warning")
                         continue
                     if question == "":
@@ -142,7 +142,7 @@ label maica_hide_console:
 
 label maica_reconnect:
     python:
-        store.maica.maica.close_wss_session()
+        store.maica.maica_instance.close_wss_session()
     return
 
 label maica_mpostal_load:
@@ -169,7 +169,7 @@ label maica_init_connect(use_pause_instand_wait = False):
     python:
         _return = None
         return_code = None
-        ai = store.maica.maica
+        ai = store.maica.maica_instance
         ai.content_func = store.mas_ptod._update_console_history
         if not ai.is_connected():
             ai.console_logger.critical("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" + ai.ascii_icon)
@@ -219,7 +219,7 @@ label maica_mpostal_read:
         jump maica_mpostal_read.failed
 
     python:
-        ai = store.maica.maica
+        ai = store.maica.maica_instance
         import time
         for cur_postal in persistent._maica_send_or_received_mpostals:
             if cur_postal["responsed_status"] != "notupload":
@@ -372,7 +372,7 @@ init 999 python:
 
 label show_workload:
     # python hide:
-        # ai = store.maica.maica
+        # ai = store.maica.maica_instance
         # data = ai.get_workload_lite()
         # if data["total_inuse_vmem"] and data["total_vmem"] and data["avg_usage"]:
         #     ai.console_logger.info("<DISABLE_VERBOSITY><MAICA LLM Server> Current Workload ({} users online)".format(data["onliners"]))

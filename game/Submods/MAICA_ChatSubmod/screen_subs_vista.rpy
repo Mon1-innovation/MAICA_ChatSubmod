@@ -4,7 +4,7 @@ init python:
         image = file_selector.select_file()
         if image:
             try:
-                store.maica.maica.vista_manager.upload(image)
+                store.maica.maica_instance.vista_manager.upload(image)
             except Exception as e:
                 renpy.notify(_("MAICA: 上传失败"))
             
@@ -13,14 +13,14 @@ init python:
 
     def maica_reupload_image(uuid):
         try:
-            store.maica.maica.vista_manager.reupload(uuid)
+            store.maica.maica_instance.vista_manager.reupload(uuid)
             renpy.notify(_("MAICA: 重新上传成功"))
         except Exception as e:
             renpy.notify(_("MAICA: 重新上传失败"))
 
     def maica_upload_image_android_submit(image_path):
         try:
-            store.maica.maica.vista_manager.upload(image_path)
+            store.maica.maica_instance.vista_manager.upload(image_path)
             renpy.notify(_("MAICA: 上传成功"))
         except Exception as e:
             renpy.notify(_("MAICA: 上传失败"))
@@ -55,14 +55,14 @@ screen maica_upload_image_android():
 screen maica_vista_filelist(selecting=False):
     python:
         import time
-        files = store.maica.maica.vista_manager.export_list()
-        #store.maica.maica.vista_manager.list_remote()
+        files = store.maica.maica_instance.vista_manager.export_list()
+        #store.maica.maica_instance.vista_manager.list_remote()
         def is_expired(item):
             global files
             index = files.index(item)
             if index >= 3:
                 return True
-            return time.time() - item['upload_time'] > 28800# or item['uuid'] in store.maica.maica.vista_manager.cloud_files
+            return time.time() - item['upload_time'] > 28800# or item['uuid'] in store.maica.maica_instance.vista_manager.cloud_files
 
         def selected_is_full():
             return len(store._maica_selected_visuals) >= 3
@@ -144,7 +144,7 @@ screen maica_vista_filelist(selecting=False):
                         add Transform(img_path, size=get_scaled_size((item['width'], item['height'])))
                     else:
                         text _("图片文件不存在: [img_path]")
-                if store.maica.maica.is_connected():
+                if store.maica.maica_instance.is_connected():
                     if selecting:
                         if not is_expired(item):
                             if not persistent._maica_vista_enabled:
@@ -170,16 +170,16 @@ screen maica_vista_filelist(selecting=False):
                         if not is_expired(item):
                             textbutton _("删除这张图片 (本地和远程)"):
                                 action [Function(remove_if_selected, item),
-                                    Function(store.maica.maica.vista_manager.delete, item['uuid'])]
+                                    Function(store.maica.maica_instance.vista_manager.delete, item['uuid'])]
                         else:
                             textbutton _("删除这张图片 (仅本地)"):
-                                action Function(store.maica.maica.vista_manager.remove, item['uuid'])
+                                action Function(store.maica.maica_instance.vista_manager.remove, item['uuid'])
                             textbutton _("重新上传这张图片"):
                                 action [Function(maica_reupload_image, item['uuid'])]
         hbox:
             xpos 10
             style_prefix "confirm"
-            if store.maica.maica.is_connected():
+            if store.maica.maica_instance.is_connected():
                 textbutton _("上传新图片"):
                     if renpy.android:
                         action Show("maica_upload_image_android")

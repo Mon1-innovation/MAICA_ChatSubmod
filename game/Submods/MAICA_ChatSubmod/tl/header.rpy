@@ -15,8 +15,8 @@ translate english strings:
     new "Connection closed"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:147
-    old "> MAICA通信状态: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"
-    new "> MAICA connection status: [maica.maica.status]|[maica.maica.MaicaAiStatus.get_description(maica.maica.status)]"
+    old "> MAICA通信状态: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"
+    new "> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:151
     old "> Websocket: [stat]"
@@ -51,12 +51,12 @@ translate english strings:
     new "> MAICA params and settings *some options may need reconnection"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:201
-    old "累计对话轮次: [store.maica.maica.stat.get('message_count')]"
-    new "Total conversation rounds: [store.maica.maica.stat.get('message_count')]"
+    old "累计对话轮次: [store.maica.maica_instance.stat.get('message_count')]"
+    new "Total conversation rounds: [store.maica.maica_instance.stat.get('message_count')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:204
-    old "累计收到Token: [store.maica.maica.stat.get('received_token')]"
-    new "Total tokens recieved: [store.maica.maica.stat.get('received_token')]"
+    old "累计收到Token: [store.maica.maica_instance.stat.get('received_token')]"
+    new "Total tokens recieved: [store.maica.maica_instance.stat.get('received_token')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:206
     old "重置统计数据"
@@ -315,8 +315,8 @@ translate english strings:
     new "Set true for concluding internet information gathered by AgentLM again. Helps model focusing on search results but will lag specific responses."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:470
-    old "累计MSpire轮次: [store.maica.maica.stat.get('mspire_count')]"
-    new "Total MSpire rounds: [store.maica.maica.stat.get('mspire_count')]"
+    old "累计MSpire轮次: [store.maica.maica_instance.stat.get('mspire_count')]"
+    new "Total MSpire rounds: [store.maica.maica_instance.stat.get('mspire_count')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:501
     old "高级参数会大幅影响模型的表现"
@@ -427,8 +427,8 @@ translate english strings:
     new "Enabling may improve performance in particular occasion.\nBut also may result in overall performance decrease."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:605
-    old "服务提供节点: [store.maica.maica.provider_manager.get_server_info().get('name', 'Unknown')]"
-    new "Current provider: [store.maica.maica.provider_manager.get_server_info().get('name', 'Unknown')]"
+    old "服务提供节点: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"
+    new "Current provider: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:607
     old "设置服务器节点"
@@ -540,12 +540,12 @@ translate english strings:
     new "Set to true to pre-analyze MTrigger items by MFocus(if both exists) to inform core model if request could be done. \nMay improve synchronousity of MTrigger, but also increases delay."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:786
-    old "每个会话累计Token: [store.maica.maica.stat.get('received_token_by_session')]"
-    new "Overall tokens recieved: [store.maica.maica.stat.get('received_token_by_session')]"
+    old "每个会话累计Token: [store.maica.maica_instance.stat.get('received_token_by_session')]"
+    new "Overall tokens recieved: [store.maica.maica_instance.stat.get('received_token_by_session')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:789
-    old "当前用户: [store.maica.maica.user_acc]"
-    new "Current user: [store.maica.maica.user_acc]"
+    old "当前用户: [store.maica.maica_instance.user_acc]"
+    new "Current user: [store.maica.maica_instance.user_acc]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:840
     old "会话长度: "
@@ -560,8 +560,8 @@ translate english strings:
     new "[persistent.maica_setting_dict.get('max_history_token')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:850
-    old "上传对话历史到会话 [store.maica.maica.chat_session]"
-    new "Recover history to chat session [store.maica.maica.chat_session]"
+    old "上传对话历史到会话 [store.maica.maica_instance.chat_session]"
+    new "Recover history to chat session [store.maica.maica_instance.chat_session]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:930
     old "MTrigger列表"
@@ -592,8 +592,8 @@ translate english strings:
     new "> Manually upload settings [[Ensure connection is ready first]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:345
-    old "> 上传对话历史到会话 [store.maica.maica.chat_session]"
-    new "> Upload chat history to session [store.maica.maica.chat_session]"
+    old "> 上传对话历史到会话 [store.maica.maica_instance.chat_session]"
+    new "> Upload chat history to session [store.maica.maica_instance.chat_session]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:353
     old "> MAICA参数与设置 {size=-10}*部分选项重新连接生效"
@@ -756,8 +756,8 @@ translate english strings:
     new "Read [m_name]'s reply"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:992
-    old "累计发信数: [store.maica.maica.stat.get('mpostal_count')]"
-    new "MPostal sent count: [store.maica.maica.stat.get('mpostal_count')]"
+    old "累计发信数: [store.maica.maica_instance.stat.get('mpostal_count')]"
+    new "MPostal sent count: [store.maica.maica_instance.stat.get('mpostal_count')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1015
     old "严格模式下, 将会在每次发送时携带cookie信息"
@@ -807,12 +807,12 @@ translate english strings:
     new "System default"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1141
-    old "选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
-    new "Set timezone: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica.target_lang == store.maica.maica.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
+    old "选择时区: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
+    new "Set timezone: [persistent.maica_advanced_setting.get('tz') or 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes']"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1413
-    old "控制台log等级: [logging.getLevelName(store.maica.maica.console_logger.level)]"
-    new "Console logging verbosity: [logging.getLevelName(store.maica.maica.console_logger.level)]"
+    old "控制台log等级: [logging.getLevelName(store.maica.maica_instance.console_logger.level)]"
+    new "Console logging verbosity: [logging.getLevelName(store.maica.maica_instance.console_logger.level)]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1415
     old "这将影响控制台中每条log的等级, 低于该等级的log将不会记录"

@@ -3,6 +3,7 @@ init 999 python in maica:
     from maica_mtrigger import *
     import store
     import time
+    ai = store.maica.maica_instance
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
             super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3 * 有10分钟冷却"),method=MTriggerMethod.request)
@@ -18,7 +19,7 @@ init 999 python in maica:
     def aff_callback(affection):
         #from math import ceil
         affection = float(affection)
-        maica.console_logger.debug("<mtrigger> aff_callback called")
+        ai.console_logger.debug("<mtrigger> aff_callback called")
         if affection < 0:
             pass#store.mas_loseAffection(1, -affection)
         elif affection > 0:
@@ -26,7 +27,7 @@ init 999 python in maica:
 
     aff_trigger = AffTrigger(common_affection_template, "alter_affection", callback=aff_callback)
     aff_trigger.condition = aff_trigger.can_triggered
-    maica.mtrigger_manager.add_trigger(aff_trigger)
+    ai.mtrigger_manager.add_trigger(aff_trigger)
 
 #################################################################################
 
@@ -58,13 +59,13 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                maica.console_logger.warning("<mtrigger> {} is not a vaild outfit".format(clothes))
+                ai.console_logger.warning("<mtrigger> {} is not a vaild outfit".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid outfit".format(clothes))
                 return
             return store.renpy.call("mtrigger_change_clothes", self.clothes_data[clothes])
 
     clothes_trigger = ClothesTrigger(common_switch_template, "clothes")
-    maica.mtrigger_manager.add_trigger(clothes_trigger)
+    ai.mtrigger_manager.add_trigger(clothes_trigger)
 
 #################################################################################
 
@@ -84,7 +85,7 @@ init 999 python in maica:
     def minigame_callback(item):
         
         if not item in unlocked_games_dict:
-            maica.console_logger.warning("<mtrigger> {} is not a vaild minigame".format(item))
+            ai.console_logger.warning("<mtrigger> {} is not a vaild minigame".format(item))
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
@@ -98,7 +99,7 @@ init 999 python in maica:
         ),
         description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
     )
-    maica.mtrigger_manager.add_trigger(minigame_trigger)
+    ai.mtrigger_manager.add_trigger(minigame_trigger)
     
 
 #################################################################################
@@ -113,35 +114,35 @@ init 999 python in maica:
         description = _("内置 | 调用亲吻事件"),
         exprop = MTriggerExprop(item_name_zh = "亲吻玩家", item_name_en = "kiss player")
         )
-    maica.mtrigger_manager.add_trigger(kiss_trigger)
+    ai.mtrigger_manager.add_trigger(kiss_trigger)
 
 #################################################################################
 
     def mtrigger_leave_callback(arg):
-        maica.console_logger.debug("<mtrigger> mtrigger_leave_callback called")
+        ai.console_logger.debug("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
     leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"),method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="帮助玩家离开游戏", item_name_en="help player quit game"))
-    maica.mtrigger_manager.add_trigger(leave_trigger)
+    ai.mtrigger_manager.add_trigger(leave_trigger)
 
 #################################################################################
 
     def mtrigger_takeout_callback(arg):
-        maica.console_logger.debug("<mtrigger> mtrigger_takeout_callback called")
+        ai.console_logger.debug("<mtrigger> mtrigger_takeout_callback called")
         store.renpy.call("mtrigger_takeout")
     takeout_trigger = MTriggerBase(customize_template, "go_outside", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="和玩家一起出门", item_name_en="go outside with player"))
-    maica.mtrigger_manager.add_trigger(takeout_trigger)
+    ai.mtrigger_manager.add_trigger(takeout_trigger)
 
 #################################################################################
 
     def mtrigger_idle_callback(arg):
-        maica.console_logger.debug("<mtrigger> mtrigger_idle_callback called")
+        ai.console_logger.debug("<mtrigger> mtrigger_idle_callback called")
         store.MASEventList.push("mtrigger_brb")
         return "stop"
     idle_trigger = MTriggerBase(customize_template, "idle", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="当玩家表示想要短暂离开(<1小时)时调用", item_name_en="Call when the player indicates they want to take a temporary leave (<1 hour)."))
-    maica.mtrigger_manager.add_trigger(idle_trigger)
+    ai.mtrigger_manager.add_trigger(idle_trigger)
 
 #################################################################################
 
@@ -198,12 +199,12 @@ init 999 python in maica:
             selection = u"\u6674\u5929" if selection == "Clear" and u"\u6674\u5929" in self.weathers else selection
             if not selection in self.weathers:
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid weather!".format(selection))
-                maica.console_logger.warning("<mtrigger> {} is not a valid weather!".format(selection))
+                ai.console_logger.warning("<mtrigger> {} is not a valid weather!".format(selection))
                 return
             weather = self.weathers[selection]
             store.renpy.call("mas_change_weather", weather, by_user=True, set_persistent=True)
     weather_trigger = WeatherTrigger()
-    maica.mtrigger_manager.add_trigger(weather_trigger)
+    ai.mtrigger_manager.add_trigger(weather_trigger)
 
 #################################################################################
 
@@ -216,7 +217,7 @@ init 999 python in maica:
     location_trigger = MTriggerBase(customize_template, "location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
         description = _("内置 | 调用切换房间"), method=MTriggerMethod.table,
         exprop = MTriggerExprop(item_name_zh="切换游戏内场景/房间", item_name_en="change in-game location/room"))
-    maica.mtrigger_manager.add_trigger(location_trigger)
+    ai.mtrigger_manager.add_trigger(location_trigger)
 
 #################################################################################
 
@@ -229,7 +230,7 @@ init 999 python in maica:
     backup_trigger = MTriggerBase(customize_template, "backup", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
         description = _("内置 | 备份存档 * 需要 Extra Plus 子模组"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="备份存档", item_name_en="backup savefile"))
-    maica.mtrigger_manager.add_trigger(backup_trigger)
+    ai.mtrigger_manager.add_trigger(backup_trigger)
 
 #################################################################################
 
@@ -242,7 +243,7 @@ init 999 python in maica:
     hold_trigger = MTriggerBase(customize_template, "hold", condition=mtrigger_hold_condition, callback=mtrigger_hold_callback,
         description = _("内置 | 拥抱"), method=MTriggerMethod.table,
         exprop = MTriggerExprop(item_name_zh="拥抱玩家", item_name_en="hold player"))
-    maica.mtrigger_manager.add_trigger(hold_trigger)
+    ai.mtrigger_manager.add_trigger(hold_trigger)
 
 #################################################################################
 
@@ -301,7 +302,7 @@ init 999 python in maica:
                         store.renpy.call("mtrigger_youtubemusic_search")
                         return
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
-                maica.console_logger.warning("<mtrigger> {} is not a valid music!".format(selection))
+                ai.console_logger.warning("<mtrigger> {} is not a valid music!".format(selection))
                 return
             if selection == "停止/静音":
                 store.mas_play_song(None)
@@ -310,7 +311,7 @@ init 999 python in maica:
             store.renpy.call("mtrigger_music_auto", self.__class__, selection)
 
     music_trigger = MusicTrigger()
-    maica.mtrigger_manager.add_trigger(music_trigger)
+    ai.mtrigger_manager.add_trigger(music_trigger)
 
 #################################################################################
 
@@ -346,13 +347,13 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                maica.console_logger.warning("<mtrigger> {} is not a vaild hair".format(clothes))
+                ai.console_logger.warning("<mtrigger> {} is not a vaild hair".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid hair".format(clothes))
                 return
             return store.renpy.call("mtrigger_change_hair", self.clothes_data[clothes])
 
     hair_trigger = HairTrigger(common_switch_template, "hair")
-    maica.mtrigger_manager.add_trigger(hair_trigger)
+    ai.mtrigger_manager.add_trigger(hair_trigger)
 
 #################################################################################
 
@@ -389,13 +390,13 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                maica.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
+                ai.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid acs".format(clothes))
                 return
             acs = self.clothes_data[clothes]
             return store.renpy.call("mtrigger_unwear_acs", acs)
     unwear = UnWearTrigger(common_switch_template, "unwear_acs")
-    maica.mtrigger_manager.add_trigger(unwear)
+    ai.mtrigger_manager.add_trigger(unwear)
 
 
 #################################################################################
@@ -427,13 +428,13 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                maica.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
+                ai.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid acs".format(clothes))
                 return
             return store.renpy.call("mtrigger_change_acs", self.clothes_data[clothes])
 
     acs_trigger = AcsTrigger(common_switch_template, "acs")
-    maica.mtrigger_manager.add_trigger(acs_trigger)
+    ai.mtrigger_manager.add_trigger(acs_trigger)
                     
 #################################################################################
 
@@ -450,4 +451,4 @@ init 999 python in maica:
     dscl_trigger = MTriggerBase(common_meter_template, "dscl", condition=mtrigger_dscl_condition, callback=mtrigger_dscl_callback,
         description = _("内置 | 聊天劣化提示 (接收器)"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="sth", item_name_en=""))
-    maica.mtrigger_manager.add_trigger(dscl_trigger)
+    ai.mtrigger_manager.add_trigger(dscl_trigger)
