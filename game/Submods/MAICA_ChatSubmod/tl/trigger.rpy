@@ -3,8 +3,8 @@
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:7
-    old "内置 | 调整好感, 范围为单次-1~3"
-    new "Integrated | Adjusting affection within range -1~3 per time"
+    old "内置 | 调整好感, 范围为单次0~3"
+    new "Integrated | Adjusting affection within range 0~3 per time"
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:29
     old "内置 | 更换衣服"
@@ -77,8 +77,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:8
-    old "内置 | 调整好感, 范围为单次-1~3 * 有10分钟冷却"
-    new "Intergrated | Adjust affection, -1~3 per time * 10 minutes cooldown"
+    old "内置 | 调整好感, 范围为单次0~3 * 有10分钟冷却"
+    new "Intergrated | Adjust affection, 0~3 per time * 10 minutes cooldown"
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:152
     old "内置 | 更换天气 * 在天堂树林内不生效"

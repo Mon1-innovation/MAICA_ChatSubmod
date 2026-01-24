@@ -6,7 +6,7 @@ init 999 python in maica:
     ai = store.maica.maica_instance
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次-1~3 * 有10分钟冷却"),method=MTriggerMethod.request)
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次0~3 * 有10分钟冷却"),method=MTriggerMethod.request)
             self.last_triggered = time.time()
         
         def triggered(self, data):
