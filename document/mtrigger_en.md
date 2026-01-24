@@ -112,5 +112,5 @@ maica_instance.mtrigger_manager.add_trigger(example_mtrigger)
 You can find the `Maica` instance using:
 
 ```python
-maica_instance = store.maica.maica
+maica_instance = store.maica.maica_instance
 ```
