@@ -266,6 +266,7 @@ init 999 python in maica:
                 callback = self.callback,
                 description = _("内置 | 更换背景音乐"),
                 perf_suggestion=True,
+                method = MTriggerMethod.table
             )
         
         def on_build_pre(self):
