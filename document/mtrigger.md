@@ -118,5 +118,5 @@ maica_instance.mtrigger_manager.add_trigger(example_mtrigger)
 你可以用以下方式找到`Maica`实例
 
 ```python
-maica_instance = store.maica.maica
+maica_instance = store.maica.maica_instance
 ```
