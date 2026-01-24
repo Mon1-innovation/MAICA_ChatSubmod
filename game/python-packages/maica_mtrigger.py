@@ -108,12 +108,15 @@ class MTriggerManager(object):
         self.triggered_list = []
         self._running = False
         res = []
+        current_length = len(json.dumps(res, ensure_ascii=False))
         for i in self.triggers:
             if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
-                if len(res) + len(i) > self.SIZE_LIMIT[method] and not full:
+                item_length = len(i)
+                if current_length + item_length > self.SIZE_LIMIT[method] and not full:
                     self.disable_trigger(i.name)
                     continue
                 res.append(i.build())
+                current_length += item_length
         return res
         
 
