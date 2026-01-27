@@ -20,23 +20,39 @@ label maica_talking(mspire = False):
         is_retry_before_sendmessage = False
         question = False
 
-        def extend_say(text):
+        import renpy.statements
+
+        def parse_pyextend(l):
+            return l.rest()
+
+        def execute_pyextend(text):
             ctx = renpy.game.context()
-
-            # 必须已经在 say 中
-            if not hasattr(ctx, "say") or ctx.say is None:
-                raise Exception("extend_say called outside of say.")
-
-            # 追加文本（支持 {变量} 替换）
             ctx.say.what += renpy.substitute(text)
-
-            # 强制刷新当前 interaction
             renpy.exports.restart_interaction()
 
-        def extend_say_charwise(text, delay=0.02):
-            for ch in text:
-                extend_say(ch)
-                renpy.pause(delay, hard=True)
+        renpy.statements.register(
+            "pyextend",
+            parse=parse_pyextend,
+            execute=execute_pyextend
+        )
+
+        # def extend_say(text):
+        #     ctx = renpy.game.context()
+
+        #     # 必须已经在 say 中
+        #     if not hasattr(ctx, "say") or ctx.say is None:
+        #         raise Exception("extend_say called outside of say.")
+
+        #     # 追加文本（支持 {变量} 替换）
+        #     ctx.say.what += renpy.substitute(text)
+
+        #     # 强制刷新当前 interaction
+        #     renpy.exports.restart_interaction()
+
+        # def extend_say_charwise(text, delay=0.02):
+        #     for ch in text:
+        #         extend_say(ch)
+        #         renpy.pause(delay, hard=True)
 
         while True:
             if is_retry_before_sendmessage:
@@ -124,7 +140,7 @@ label maica_talking(mspire = False):
                     if not is_extend:
                         renpy.say(m, message[1])
                     else:
-                        extend_say_charwise(message[1])
+                        pyextend(message[1])
 
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
