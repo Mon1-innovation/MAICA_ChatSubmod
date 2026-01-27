@@ -19,6 +19,25 @@ label maica_talking(mspire = False):
         printed = False
         is_retry_before_sendmessage = False
         question = False
+
+        def extend_say(text):
+            ctx = renpy.game.context()
+
+            # 必须已经在 say 中
+            if not hasattr(ctx, "say") or ctx.say is None:
+                raise Exception("extend_say called outside of say.")
+
+            # 追加文本（支持 {变量} 替换）
+            ctx.say.what += renpy.substitute(text)
+
+            # 强制刷新当前 interaction
+            renpy.exports.restart_interaction()
+
+        def extend_say_charwise(text, delay=0.02):
+            for ch in text:
+                extend_say(ch)
+                renpy.pause(delay, hard=True)
+
         while True:
             if is_retry_before_sendmessage:
                 ai.chat(is_retry_before_sendmessage)
@@ -103,13 +122,9 @@ label maica_talking(mspire = False):
                     extend = message[2] if len(message) >= 3 else False
                     
                     if not extend:
-                        # 普通 say
                         renpy.say(m, message[1])
                     else:
-                        # 追加文本
-                        store._last_say_text += message[1]
-                        # 重新刷新 say 窗口
-                        renpy.exports.restart_interaction()
+                        extend_say_charwise(message[1])
 
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
