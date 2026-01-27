@@ -20,39 +20,21 @@ label maica_talking(mspire = False):
         is_retry_before_sendmessage = False
         question = False
 
-        import renpy.statements
+        class ExtendSayer(object):
+            def __init__(self):
+                self._history = ""
 
-        def parse_pyextend(l):
-            return l.rest()
+            def say(self, text):
+                if self._history:
+                    new_text = self._history + "{fast}" + text
+                    if len(_history_list):
+                        _history_list.pop()
+                else:
+                    new_text = text
+                renpy.say(m, new_text)
+                self._history += text
 
-        def execute_pyextend(text):
-            ctx = renpy.game.context()
-            ctx.say.what += renpy.substitute(text)
-            renpy.exports.restart_interaction()
-
-        renpy.statements.register(
-            "pyextend",
-            parse=parse_pyextend,
-            execute=execute_pyextend
-        )
-
-        # def extend_say(text):
-        #     ctx = renpy.game.context()
-
-        #     # 必须已经在 say 中
-        #     if not hasattr(ctx, "say") or ctx.say is None:
-        #         raise Exception("extend_say called outside of say.")
-
-        #     # 追加文本（支持 {变量} 替换）
-        #     ctx.say.what += renpy.substitute(text)
-
-        #     # 强制刷新当前 interaction
-        #     renpy.exports.restart_interaction()
-
-        # def extend_say_charwise(text, delay=0.02):
-        #     for ch in text:
-        #         extend_say(ch)
-        #         renpy.pause(delay, hard=True)
+        extend_sayer = ExtendSayer()
 
         while True:
             if is_retry_before_sendmessage:
@@ -138,9 +120,10 @@ label maica_talking(mspire = False):
                     is_extend = message[2] if len(message) >= 3 else False
                     
                     if not is_extend:
-                        renpy.say(m, message[1])
+                        extend_sayer = ExtendSayer()
+                        extend_sayer.say(message[1])
                     else:
-                        pyextend(message[1])
+                        extend_sayer.say(message[1])
 
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
