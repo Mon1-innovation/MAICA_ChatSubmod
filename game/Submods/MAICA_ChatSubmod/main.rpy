@@ -119,9 +119,9 @@ label maica_talking(mspire = False):
                 received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
                 try:
-                    extend = message[2] if len(message) >= 3 else False
+                    is_extend = message[2] if len(message) >= 3 else False
                     
-                    if not extend:
+                    if not is_extend:
                         renpy.say(m, message[1])
                     else:
                         extend_say_charwise(message[1])
