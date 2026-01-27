@@ -101,7 +101,16 @@ label maica_talking(mspire = False):
                 renpy.show(u"monika {}".format(message[0]))
                 try:
                     extend = message[2] if len(message) >= 3 else False
-                    renpy.say(m, message[1]) if not extend else renpy.say(m, message[1], interact=True)
+                    
+                    if not extend:
+                        # 普通 say
+                        renpy.say(m, message[1])
+                    else:
+                        # 追加文本
+                        store._last_say_text += message[1]
+                        # 重新刷新 say 窗口
+                        renpy.exports.restart_interaction()
+
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.console_logger.error("!!SUBMOD ERROR when chatting: {}".format(e))
