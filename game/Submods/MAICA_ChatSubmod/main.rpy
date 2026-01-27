@@ -96,7 +96,7 @@ label maica_talking(mspire = False):
                         _history_list.pop()
                     continue    
                 message = ai.get_message()
-                store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}'".format(message[0], message[1]))
+                store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}', extend={}".format(message[0], message[1], message[2] if len(message) >= 3 else False))
                 received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
                 try:
