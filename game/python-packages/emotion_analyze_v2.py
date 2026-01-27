@@ -187,7 +187,7 @@ class EmoSelector(object):
                 continue
 
             new_matches.append(match) # new_rawmatches.append(rawmatch)
-            pre_piece, post_piece = message_cuttingmat.split(rawmatch, 1)[0]
+            pre_piece, post_piece = message_cuttingmat.split('[{}]'.format(rawmatch), 1)
             message_pieces.append(pre_piece); message_cuttingmat = post_piece
 
         message_pieces.append(message_cuttingmat)

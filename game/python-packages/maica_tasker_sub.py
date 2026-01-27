@@ -1208,7 +1208,7 @@ class StreamingPacketValidator(MaicaWSTask):
         )
 
         # 解析格式: "Streaming finished with seed None for {nickname}, {number} packets sent -- your traceray ID is {id}"
-        pattern = r'Streaming finished with seed None for ([^,]+), (\d+) packets sent -- your traceray ID is ([^\s]+)'
+        pattern = r'([^,]+), (\d+) packets sent -- your traceray ID is ([^\s]+)'
         match = re.search(pattern, content)
 
         if not match:
