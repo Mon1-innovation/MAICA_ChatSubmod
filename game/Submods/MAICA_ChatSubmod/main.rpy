@@ -121,9 +121,7 @@ label maica_talking(mspire = False):
                     
                     if not is_extend:
                         extend_sayer = ExtendSayer()
-                        extend_sayer.say(message[1])
-                    else:
-                        extend_sayer.say(message[1])
+                    extend_sayer.say(message[1])
 
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
