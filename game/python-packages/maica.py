@@ -616,8 +616,8 @@ class MaicaAi(ChatBotInterface):
 
     def add_ana(self, ana_input):
         emote_talk_zipped = self.MoodStatus.analyze(ana_input)
-        for pair in emote_talk_zipped:
-            self._append_to_message_list(*pair)
+        for index, pair in enumerate(emote_talk_zipped):
+            self._append_to_message_list(*pair, extend=False if index == 0 else True)
 
     def get_message(self, add_pause = True):
         res = self.message_list.get()
