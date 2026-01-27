@@ -61,6 +61,7 @@ class EmoSelector(object):
         self.main_strength = 0.0
         self.pre_mood = u"微笑"
         self.pre_emotes = []
+        self.curr_emotes = []
         self.emote = ""
         self.pre_pos = 0
         self.fallback_predictor = fallback_predictor
@@ -111,7 +112,7 @@ class EmoSelector(object):
             message (str): 需要进行情绪分析的字符串消息。
         
         Returns:
-            str: 处理后的字符串消息，其中情绪标签已被去除。
+            list.
         
         """
 
@@ -128,18 +129,30 @@ class EmoSelector(object):
         message = re.sub(bad_pattern, '', message)
         # 查找所有匹配的内容
         matches = re.findall(pattern, message)
-        m = 0.25
-        o = -0.1
+        rawmatches = []
+
+        # m = 0.25
+        # o = -0.1
         emo = self.pre_mood
-        # 处理每个匹配的内容
-        for match in matches:
+
+        new_matches = []
+        # new_rawmatches = []
+
+        message_cuttingmat = message
+        message_pieces = []
+        
+        # This part sanitizes matches
+        for index, match in enumerate(matches):
             rawmatch = match
+
             # 可能是有句子被套上了
             if get_encoded_len(match) >= 16 and not '[' in match and not ']' in match:
                 message = message.replace('[{}]'.format(rawmatch), rawmatch)
                 continue
+
             if ' ' in match:
                 match = match.replace(' ', '')
+
             # 如果匹配内容在字典的键中，去除匹配的字符串
             if match == "player":
                 continue
@@ -148,24 +161,43 @@ class EmoSelector(object):
 
             if match == u"很开心":
                 match = u"开心"
-            randf = random.random()
-            if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'微笑'].keys() and match == u'微笑':
-                if 0 <= randf < 0.25:
-                    match = u'笑'
-                elif 0.25 <= randf < 0.5:
-                    match = u'开心'
-            elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'笑'].keys() and match == u'笑':
-                if 0 <= randf < 0.25:
-                    match = u'微笑'
-                elif 0.25 <= randf < 0.75:
-                    match = u'开心'
-            elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'开心'].keys() and match == u'开心':
-                if 0 <= randf < 0.25:
-                    match = u'微笑'
-                elif 0.25 <= randf < 0.75:
-                    match = u'笑'
 
-            match = self.emote_translate.get(match, match)
+            if index == 0:
+                randf = random.random()
+                if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'微笑'].keys() and match == u'微笑':
+                    if 0 <= randf < 0.25:
+                        match = u'笑'
+                    elif 0.25 <= randf < 0.5:
+                        match = u'开心'
+                elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'笑'].keys() and match == u'笑':
+                    if 0 <= randf < 0.25:
+                        match = u'微笑'
+                    elif 0.25 <= randf < 0.75:
+                        match = u'开心'
+                elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'开心'].keys() and match == u'开心':
+                    if 0 <= randf < 0.25:
+                        match = u'微笑'
+                    elif 0.25 <= randf < 0.75:
+                        match = u'笑'
+
+            rawmatches.append(rawmatch)
+
+            if new_matches and match == new_matches[-1]:
+                # This is a repetition, treat as null
+                continue
+
+            new_matches.append(match) # new_rawmatches.append(rawmatch)
+            pre_piece, post_piece = message_cuttingmat.split(rawmatch, 1)[0]
+            message_pieces.append(pre_piece); message_cuttingmat = post_piece
+
+        message_pieces.append(message_cuttingmat)
+
+        emos = []
+
+        # Then this part processes
+        for index, match in enumerate(new_matches):
+            match = new_matches[index] = self.emote_translate.get(match, match)
+            # rawmatch = new_rawmatches[index]
 
             if not match in self.selector:
                 temp_match = None
@@ -176,30 +208,46 @@ class EmoSelector(object):
                         temp_match = content[0]
 
                 if temp_match:
-                    message = message.replace('[{}]'.format(rawmatch), temp_match)
+                    # message = message.replace('[{}]'.format(rawmatch), temp_match)
                     logger.warning("[Maica::EmoSelector] {} is not in selector, normalized to {}".format(match, temp_match))
                     if temp_match[0] != '[':
                         continue
-                    match = rawmatch = temp_match.strip('[').strip(']')
+                    match = new_matches[index] = temp_match.strip('[').strip(']')
 
             if match in self.selector:
                 emo = match
-                m = 0.7
-                o = 0.0
+                # m = 0.7
+                # o = 0.0
                 self.fallback_selector.last = emo
             else:
                 emo = self.fallback_selector.predict()
                 logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
 
-            if not keep_tags:
-                message = message.replace('[{}]'.format(rawmatch), '')
+            emos.append(emo)
 
-        if matches == []:
-            emo = self.fallback_selector.predict()
+        if not keep_tags:
+            for index, piece in enumerate(message_pieces):
+                for rawmatch in rawmatches:
+                    message_pieces[index] = piece.replace('[{}]'.format(rawmatch), '')
 
-        self.process_strength(emo, m, o)
-        self.pre_mood = emo
-        return message
+        # So now len(message_pieces) should equal to len(emos) + 1
+        # Now we check if the first piece is empty. If it isn't, this talk does not begin with a match
+        # We fix that by adding a fallback prediction.
+
+        if not message_pieces[0].strip():
+            message_pieces.pop(0)
+
+        if len(emos) < len(message_pieces):
+            emos.insert(0, self.fallback_selector.predict())
+
+        emo_codes = []
+
+        for emo in emos:
+            self.process_strength(emo)
+            self.pre_mood = emo
+            emo_codes.append(self.get_emote())
+
+        return list(zip(emo_codes, message_pieces))
 
     def process_strength(self, emote, multi=0.7, offset=0.0):
         res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage, eoc=self.eoc, excepted=self.pre_emotes)

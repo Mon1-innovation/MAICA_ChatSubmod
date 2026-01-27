@@ -614,15 +614,19 @@ class MaicaAi(ChatBotInterface):
     def generate_vista_url(self, uuid):
         return self.provider_manager.get_api_url() + "vista?content={}".format(uuid)
 
+    def add_ana(self, ana_input):
+        emote_talk_zipped = self.MoodStatus.analyze(ana_input)
+        for pair in emote_talk_zipped:
+            self._append_to_message_list(*pair)
+
     def get_message(self, add_pause = True):
         res = self.message_list.get()
         if len(self.message_list) < 1:
             talk = self.TalkSpilter.split_present_sentence()
             if talk:
-                talk = self.MoodStatus.analyze(talk)
-                emote = self.MoodStatus.get_emote()
-                self._append_to_message_list(emote,talk)
-        return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1])
+                self.add_ana(talk)
+
+        return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1], res[2] if len(res) >= 3 else False)
     def _gen_token(self, account, pwd, token = "", email = None):
         if token != "":
             self.ciphertext = token
@@ -957,17 +961,14 @@ class MaicaAi(ChatBotInterface):
             self.stat["received_token"] += 1
             self.stat["received_token_by_session"][self.chat_session if not self._in_mspire else self.mspire_session] += 1
             if self.pprt:
-                res = self.MoodStatus.analyze(event.data.content)
-                emote = self.MoodStatus.get_emote()
-                self._append_to_message_list(emote,res)
+                self.add_ana(event.data.content)
             else:
                 self.TalkSpilter.add_part(event.data.content)
                 if len(self.message_list) == 0:
                     res = self.TalkSpilter.split_present_sentence()
                     if res:
-                        res = self.MoodStatus.analyze(res)
-                        emote = self.MoodStatus.get_emote()
-                        self._append_to_message_list(emote,res)
+                        self.add_ana(res)
+
         elif event.data.status == "maica_chat_loop_finished":
             self._in_mspire = False
             if self.pprt:
@@ -975,9 +976,7 @@ class MaicaAi(ChatBotInterface):
             else:
                 talks = self.TalkSpilter.announce_stop()
             for item in talks:
-                t = self.MoodStatus.analyze(item)
-                emote = self.MoodStatus.get_emote()
-                self._append_to_message_list(emote,t)
+                self.add_ana(item)
             self.status = self.MaicaAiStatus.MESSAGE_DONE
             self.MoodStatus.reset()
             # 释放聊天锁，允许下一个聊天请求
@@ -985,7 +984,7 @@ class MaicaAi(ChatBotInterface):
     
     def mpostal_callback(self, processor, event):
         if event.data.status == "maica_core_nostream_reply":
-            message = self.MoodStatus.analyze(event.data.content)
+            message = ''.join([i[1] for i in self.MoodStatus.analyze(event.data.content)])
             if len(message) > 0 and message[0] == " ":
                 message = message[1:]
             message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
@@ -1023,13 +1022,13 @@ class MaicaAi(ChatBotInterface):
         )
         self.stat['message_count'] += 1
 
-    def _append_to_message_list(self, emote, message):
+    def _append_to_message_list(self, emote, message, extend=False):
         if len(message) == 0:
             return
         elif message[0] == " ":
             message = message[1:]
         message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
-        self.message_list.put((emote, message_step1))
+        self.message_list.put((emote, message_step1, extend))
     def upload_save(self, dict):
         """
         向Maica服务上传并保存存档数据。
