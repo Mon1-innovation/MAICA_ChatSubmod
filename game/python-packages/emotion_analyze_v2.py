@@ -102,11 +102,16 @@ class EmoSelector(object):
             emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu'])
             return emo
         
+        if not self.pre_pos:
+            self.pre_pos = random.randint(1, 7)
+
         if not keep_pose:
-            self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
+            new_pos = get_pos(self.main_strength, self.pre_pos) if not idle else idle_pos(self.pre_pos)
+        else:
+            new_pos = self.pre_pos
 
         if self.emote != "":
-            return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote if not idle else idle_emo())
+            return "{}{}".format(new_pos, self.emote if not idle else idle_emo())
         else:
             return "idle"
 
