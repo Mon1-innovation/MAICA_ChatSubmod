@@ -73,7 +73,7 @@ class EmoSelector(object):
         self.pre_emotes = []
         self.fallback_selector.__init__()
 
-    def get_emote(self, idle = False):
+    def get_emote(self, idle = False, keep_pose = False):
         """
         获取表情
         
@@ -98,7 +98,9 @@ class EmoSelector(object):
             emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu'])
             return emo
         
-        self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
+        if not keep_pose:
+            self.pre_pos = get_pos(self.main_strength, self.pre_pos if self.pre_pos != 0 else random.randint(1, 7))
+
         if self.emote != "":
             return "{}{}".format(get_pos(self.main_strength, self.pre_pos)if not idle else idle_pos(self.pre_pos), self.emote if not idle else idle_emo())
         else:
@@ -242,10 +244,10 @@ class EmoSelector(object):
 
         emo_codes = []
 
-        for emo in emos:
+        for index, emo in enumerate(emos):
             self.process_strength(emo)
             self.pre_mood = emo
-            emo_codes.append(self.get_emote())
+            emo_codes.append(self.get_emote(keep_pose=index >= 1))
 
         return list(zip(emo_codes, message_pieces))
 
