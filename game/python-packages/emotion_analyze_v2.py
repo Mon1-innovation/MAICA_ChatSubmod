@@ -255,9 +255,9 @@ class EmoSelector(object):
             self.process_strength(emo)
             self.pre_mood = emo
             emo_codes.append(self.get_emote(keep_pose=(index >= 1)))
-            logger.debug("[Maica::EmoSelector] index {} keep_pose {} emo {}".format(index, index >= 1, emo_codes[-1]))
+            # logger.debug("[Maica::EmoSelector] index {} keep_pose {} emo {}".format(index, index >= 1, emo_codes[-1]))
 
-        logger.debug("[Maica::EmoSelector] pre_pos {}".format(self.pre_pos))
+        # logger.debug("[Maica::EmoSelector] pre_pos {}".format(self.pre_pos))
         return list(zip(emo_codes, message_pieces))
 
     def process_strength(self, emote, multi=0.7, offset=0.0):
