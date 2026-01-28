@@ -106,6 +106,8 @@ class EmoSelector(object):
         else:
             new_pos = self.pre_pos
 
+        self.pre_pos = new_pos
+
         if self.emote != "":
             return "{}{}".format(new_pos, self.emote if not idle else idle_emo())
         else:
