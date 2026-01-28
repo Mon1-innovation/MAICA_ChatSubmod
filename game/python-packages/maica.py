@@ -6,11 +6,23 @@ import emotion_analyze_v2
 import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender, maica_vista_files_manager
 import maica_provider_manager
 
+# Import LoggerManager for injection point registration
+from logger_manager import get_logger_manager, MultiLoggerWrapper
+
 import websocket
 import maica_mtrigger
 from maica_mtrigger import MTriggerAction
+
+# Initialize injection point registration
+_logger_manager = get_logger_manager()
+
+# Register initial injection points
 maica_tasker.default_logger = logger
+_logger_manager.register_injected_reference('maica_tasker.default_logger', maica_tasker, 'default_logger')
+
 websocket._logging._logger = logger
+_logger_manager.register_injected_reference('websocket._logging._logger', websocket._logging, '_logger')
+
 websocket._logging.enableTrace(False)
 import datetime
 
@@ -318,23 +330,27 @@ class MaicaAi(ChatBotInterface):
         h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
         self.console_logger.addHandler(h)
 
+        # Create optimized logger_both using MultiLoggerWrapper
+        from logger_manager import MultiLoggerWrapper
+        self.logger_both_wrapper = MultiLoggerWrapper([logger, self.console_logger])
 
+        # For backward compatibility, also create the legacy logger_both class
         class logger_both:
-            def __init__(self, flogger):
-                self.flogger = flogger
+            def __init__(self, wrapper):
+                self.wrapper = wrapper
             def info(self, msg):
-                logger.info(msg)
-                self.flogger.info(msg)
+                self.wrapper.info(msg)
             def error(self, msg):
-                logger.error(msg)
-                self.flogger.error(msg)
+                self.wrapper.error(msg)
             def warning(self, msg):
-                logger.warning(msg)
-                self.flogger.warning(msg)
+                self.wrapper.warning(msg)
             def debug(self, msg):
-                logger.debug(msg)
-                self.flogger.debug(msg)
-        maica_mtrigger.logger = logger_both(self.console_logger)
+                self.wrapper.debug(msg)
+
+        maica_mtrigger.logger = logger_both(self.logger_both_wrapper)
+
+        # Register the third injection point
+        _logger_manager.register_injected_reference('maica_mtrigger.logger', maica_mtrigger, 'logger')
 
         self.vista_manager = maica_vista_files_manager.MAICAVistaFilesManager(
             base_url=self.provider_manager.get_api_url(),

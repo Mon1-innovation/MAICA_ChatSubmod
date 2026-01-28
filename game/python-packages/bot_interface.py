@@ -7,19 +7,19 @@ import sys
 import re
 import math
 import logging
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
-DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
-chlr = logging.StreamHandler() # 输出到控制台的handler
-chlr.setFormatter(formatter)
-chlr.setLevel(logging.DEBUG)  # 也可以不设置，不设置就默认用logger的level
-#fhlr = logging.FileHandler('example.log')
-#fhlr.setFormatter(formatter)
-logger.addHandler(chlr)
-#logger.addHandler(fhlr)
-logger.info('正在使用logging')
+
+# Initialize LoggerManager for centralized logger management
+from logger_manager import get_logger_manager, get_logger
+
+# Get the global logger manager instance
+_logger_manager = get_logger_manager()
+
+# Keep logger for backward compatibility
+# This logger reference will be updated by the manager
+logger = _logger_manager.logger
+
+# Log initialization
+logger.info('正在使用logging - LoggerManager已初始化')
 
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3

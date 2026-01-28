@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from bot_interface import PY2, PY3, logger
+from bot_interface import PY2, PY3
+from logger_manager import get_logger
+
+# Get logger dynamically to ensure latest configuration
+logger = get_logger()
 
 EMOTE_DICT = {}
 EMOTE_EFFECT = {}

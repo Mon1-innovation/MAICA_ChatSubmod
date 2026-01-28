@@ -1,11 +1,17 @@
 import websocket
 import maica_tasker_events
 import traceback
+
+# Import LoggerManager for logger synchronization
+from logger_manager import get_logger_manager, get_logger
+
 # 常量定义：WebSocket事件类型
 MAICATASKEVENT_TYPE_WS = 0
 MAICATASKEVENT_TYPE_TASK = 1
 
 MaicaTaskEvent = maica_tasker_events.MaicaTaskEvent
+
+
 class DefaultLogger(object):
     """
     默认日志记录器，用于在没有提供日志记录器的情况下输出日志信息。
@@ -27,7 +33,61 @@ class DefaultLogger(object):
         print("[WARNING] {}".format(msg))
 
 
-default_logger = DefaultLogger()
+class DynamicDefaultLogger(object):
+    """
+    动态默认日志记录器 - 代理到 LoggerManager 获取的最新 logger
+
+    这个类确保每次日志调用都使用最新的 logger 实例和配置，
+    支持运行时修改 logger（如通过 .rpy 文件的动态赋值）。
+    """
+
+    def __init__(self):
+        """初始化动态日志记录器"""
+        self._manager = get_logger_manager()
+
+    def _get_current_logger(self):
+        """获取当前最新的 logger 实例"""
+        return self._manager.logger
+
+    def debug(self, msg, *args, **kwargs):
+        """输出调试级别的日志"""
+        return self._get_current_logger().debug(msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        """输出信息级别的日志"""
+        return self._get_current_logger().info(msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        """输出错误级别的日志"""
+        return self._get_current_logger().error(msg, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        """输出警告级别的日志"""
+        return self._get_current_logger().warning(msg, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        """输出严重级别的日志"""
+        return self._get_current_logger().critical(msg, *args, **kwargs)
+
+    def setLevel(self, level):
+        """设置日志级别"""
+        return self._get_current_logger().setLevel(level)
+
+    def addHandler(self, hdlr):
+        """添加处理器"""
+        return self._get_current_logger().addHandler(hdlr)
+
+    def removeHandler(self, hdlr):
+        """移除处理器"""
+        return self._get_current_logger().removeHandler(hdlr)
+
+    def __getattr__(self, name):
+        """代理所有未知属性到当前 logger"""
+        return getattr(self._get_current_logger(), name)
+
+
+# 创建全局动态默认日志记录器实例
+default_logger = DynamicDefaultLogger()
 
 
 class MaicaTaskManager(object):
