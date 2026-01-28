@@ -247,7 +247,8 @@ class EmoSelector(object):
         for index, emo in enumerate(emos):
             self.process_strength(emo)
             self.pre_mood = emo
-            emo_codes.append(self.get_emote(keep_pose=index >= 1))
+            emo_codes.append(self.get_emote(keep_pose=(index >= 1)))
+            logger.debug("[Maica::EmoSelector] index {} keep_pose {} emo {}".format(index, index >= 1, emo_codes[-1]))
 
         return list(zip(emo_codes, message_pieces))
 
