@@ -987,6 +987,8 @@ screen maica_mpostals():
                 use maica_l2_subframe():
                     label postal["raw_title"]:
                         style "maica_check_nohover_label"
+                    text "":
+                        style "small_link"
                     text renpy.substitute(_("信件状态: ")) + postal["responsed_status"]:
                         xalign 0.0
                         style "small_link"
@@ -1017,6 +1019,7 @@ screen maica_mpostals():
                         if os.path.exists(postal['raw_image']):
                             add Transform(postal['raw_image'], size=get_scaled_size((480, 360)))
                     hbox:
+                        style_prefix "confirm"
                         textbutton _("阅读[player]写的信"):
                             action [
                                     Hide("maica_mpostals"),
