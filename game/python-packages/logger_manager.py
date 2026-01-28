@@ -74,6 +74,35 @@ class LoggerManager(object):
         """Get the current root logger instance"""
         return self._root_logger
 
+    def set_logger(self, new_logger):
+        """
+        Replace the root logger with a custom logger instance.
+
+        This is useful for integrating with external logging systems (e.g., RenPy's submod_log).
+        After replacing the logger, all module loggers will automatically use the new logger
+        through their dynamic proxy mechanisms.
+
+        Args:
+            new_logger: A logger-like object with debug, info, warning, error, critical methods
+        """
+        if new_logger is None:
+            if self._root_logger:
+                self._root_logger.warning("Attempt to set logger to None, operation ignored")
+            return
+
+        self._root_logger = new_logger
+
+        # Log the replacement through the new logger
+        try:
+            self._root_logger.info("Logger replaced with custom logger instance")
+        except:
+            pass  # Silently fail if new logger doesn't support logging yet
+
+        # NOTE: We do NOT call _sync_injected_references() here because:
+        # - All module loggers (bot_interface.logger, emotion_analyze_v2.logger, etc.)
+        #   use dynamic proxies that retrieve the logger on each call
+        # - They will automatically use the new logger without needing synchronization
+
     def set_log_level(self, level):
         """
         Set the log level for all handlers and the root logger.

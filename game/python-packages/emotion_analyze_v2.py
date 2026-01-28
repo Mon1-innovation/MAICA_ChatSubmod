@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os, json, math, random
-from bot_interface import PY2, PY3, Queue
-from logger_manager import get_logger
-
-# Get logger dynamically to ensure latest configuration
-logger = get_logger()
+from bot_interface import PY2, PY3, Queue, logger
 
 def sort_by_val(ele):
     key = list(ele.keys())[0]

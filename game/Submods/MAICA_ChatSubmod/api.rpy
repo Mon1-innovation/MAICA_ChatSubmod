@@ -87,13 +87,12 @@ init 5 python in maica:
     import maica, os, json
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     maica.logger = store.mas_submod_utils.submod_log
-    import bot_interface
-    bot_interface.logger = store.mas_submod_utils.submod_log
 
-    import maica_provider_manager
-    maica_provider_manager.logger = maica.logger
-    import maica_tasker
-    maica_tasker.default_logger = maica.logger
+    # Integrate logger_manager with submod_log for centralized logging
+    # This single call synchronizes all module loggers through dynamic proxies
+    from logger_manager import get_logger_manager
+    _logger_manager = get_logger_manager()
+    _logger_manager.set_logger(store.mas_submod_utils.submod_log)
 
     data = {}
     def change_token(content):
