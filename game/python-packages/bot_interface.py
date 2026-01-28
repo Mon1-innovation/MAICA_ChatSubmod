@@ -14,9 +14,64 @@ from logger_manager import get_logger_manager, get_logger
 # Get the global logger manager instance
 _logger_manager = get_logger_manager()
 
-# Keep logger for backward compatibility
-# This logger reference will be updated by the manager
-logger = _logger_manager.logger
+
+class _LoggerProxy(object):
+    """
+    Dynamic logger proxy that retrieves the latest logger from LoggerManager.
+
+    This ensures that all modules using bot_interface.logger always get the most
+    current logger configuration, including any runtime modifications to log levels,
+    handlers, or formatters.
+    """
+
+    def _get_current_logger(self):
+        """Get the current logger from LoggerManager"""
+        return _logger_manager.logger
+
+    # Core logging methods - proxy to current logger
+    def debug(self, msg, *args, **kwargs):
+        return self._get_current_logger().debug(msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        return self._get_current_logger().info(msg, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        return self._get_current_logger().warning(msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        return self._get_current_logger().error(msg, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        return self._get_current_logger().critical(msg, *args, **kwargs)
+
+    def exception(self, msg, *args, **kwargs):
+        return self._get_current_logger().exception(msg, *args, **kwargs)
+
+    def log(self, level, msg, *args, **kwargs):
+        return self._get_current_logger().log(level, msg, *args, **kwargs)
+
+    # Handler management
+    def addHandler(self, handler):
+        return self._get_current_logger().addHandler(handler)
+
+    def removeHandler(self, handler):
+        return self._get_current_logger().removeHandler(handler)
+
+    # Level management
+    def setLevel(self, level):
+        return self._get_current_logger().setLevel(level)
+
+    def getEffectiveLevel(self):
+        return self._get_current_logger().getEffectiveLevel()
+
+    # Properties access
+    def __getattr__(self, name):
+        """Delegate unknown attributes to the current logger"""
+        return getattr(self._get_current_logger(), name)
+
+
+# Create the dynamic logger proxy instance
+logger = _LoggerProxy()
 
 # Log initialization
 logger.info('正在使用logging - LoggerManager已初始化')

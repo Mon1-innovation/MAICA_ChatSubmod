@@ -23,6 +23,15 @@ _logger_manager.register_injected_reference('maica_tasker.default_logger', maica
 websocket._logging._logger = logger
 _logger_manager.register_injected_reference('websocket._logging._logger', websocket._logging, '_logger')
 
+# Register bot_interface logger for centralized management
+_logger_manager.register_injected_reference('bot_interface.logger', bot_interface, 'logger')
+
+# Register emotion_analyze_v2 logger for centralized management
+_logger_manager.register_injected_reference('emotion_analyze_v2.logger', emotion_analyze_v2, 'logger')
+
+# Register maica_provider_manager logger for centralized management
+_logger_manager.register_injected_reference('maica_provider_manager.logger', maica_provider_manager, 'logger')
+
 websocket._logging.enableTrace(False)
 import datetime
 

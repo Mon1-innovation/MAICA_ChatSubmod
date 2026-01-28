@@ -5,10 +5,7 @@ import shutil
 import requests
 import struct
 import subprocess
-from logger_manager import get_logger
-
-# Get logger dynamically to ensure latest configuration
-logger = get_logger()
+from bot_interface import logger
 
 class MAICAVistaFilesManager(object):
     """MVista图片管理器，用于上传、删除、下载图片并管理本地UUID记录"""
