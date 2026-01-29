@@ -170,8 +170,8 @@ init 5 python in maica:
         maica_instance.AutoReconnector.disable()
         maica_instance.close_wss_session()
         store.persistent.maica_stat = maica_instance.stat.copy()
-        store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
-        store.persistent._maica_visuals = maica.vista_manager.export_list()
+        store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
+        store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
         mas_rmEVL("mas_corrupted_persistent")
 
     import time
