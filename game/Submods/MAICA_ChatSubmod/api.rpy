@@ -117,17 +117,17 @@ init 5 python in maica:
 """.format(store.maica_ver)
 
     if store.persistent.maica_stat is None:
-        store.persistent.maica_stat = maica.stat.copy()
+        store.persistent.maica_stat = maica_instance.stat.copy()
     else:    
         maica_instance.update_stat(store.persistent.maica_stat)
     
     if store.persistent.maica_mtrigger_status is None:
-        store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
+        store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
     else:
         maica_instance.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
 
     if store.persistent._maica_visuals is None:
-        store.persistent._maica_visuals = maica.vista_manager.export_list()
+        store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
     else:
         maica_instance.vista_manager.import_list(store.persistent._maica_visuals)
     maica_instance.vista_manager.android = store.renpy.android
@@ -169,7 +169,7 @@ init 5 python in maica:
         maica_instance.auto_reconnect = False
         maica_instance.AutoReconnector.disable()
         maica_instance.close_wss_session()
-        store.persistent.maica_stat = maica.stat.copy()
+        store.persistent.maica_stat = maica_instance.stat.copy()
         store.persistent.maica_mtrigger_status = maica.mtrigger_manager.output_settings()
         store.persistent._maica_visuals = maica.vista_manager.export_list()
         mas_rmEVL("mas_corrupted_persistent")
