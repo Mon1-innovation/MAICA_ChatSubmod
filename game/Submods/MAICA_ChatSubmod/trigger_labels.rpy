@@ -2,6 +2,7 @@ label mtrigger_change_clothes(outfit_name):
     call maica_reconnect
     call maica_hide_console
     m "要我现在换吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "要我现在换吗, [player]?{fast}"
         "好啊":
@@ -32,6 +33,7 @@ label mtrigger_change_hair(outfit_name):
     call maica_reconnect
     call maica_hide_console
     m "要我现在换吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "要我现在换吗, [player]?{fast}"
         "好啊":
@@ -61,6 +63,7 @@ label mtrigger_unwear_acs(outfit_to_wear):
     call maica_reconnect
     call maica_hide_console
     m "要我现在换吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "要我现在换吗, [player]?{fast}"
         "好啊":
@@ -80,6 +83,7 @@ label mtrigger_change_acs(outfit_name):
     call maica_reconnect
     call maica_hide_console
     m "要我现在换吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "要我现在换吗, [player]?{fast}"
         "好啊":
@@ -133,6 +137,7 @@ label mtrigger_kiss:
     if mas_shouldKiss(1):
         call maica_hide_console
         m "那...来亲一个?{nw}"
+        $ _history_list.pop()
         menu:
             "那...来亲一个?{fast}"
             "亲亲[m_name]":
@@ -146,6 +151,7 @@ label mttrigger_minigame(game):
     call maica_reconnect
     call maica_hide_console
     m "嗯...那来玩玩吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "嗯...那来玩玩吗, [player]?{fast}"
         "好啊":
@@ -159,6 +165,7 @@ label mtrigger_leave:
     call maica_reconnect
     call maica_hide_console
     m "要走了吗?{nw}"
+    $ _history_list.pop()
     menu:
         "要走了吗?{fast}"
         "是的":
@@ -190,6 +197,7 @@ label mtrigger_location:
 label mtrigger_idle:
     call maica_hide_console
     m "现在就去吗?{nw}"
+    $ _history_list.pop()
     menu:
         "现在就去吗?{fast}"
         "是的":
@@ -220,6 +228,7 @@ label mtrigger_hold:
     call maica_reconnect
     call maica_hide_console
     m "那...来抱一个?{nw}"
+    $ _history_list.pop()
     menu:
         "那...来抱一个?{fast}"
         "抱抱[m_name]":
@@ -237,6 +246,7 @@ label mtrigger_music_menu:
     call maica_reconnect
     call maica_hide_console
     m "现在要换首歌吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "现在要换首歌吗, [player]?{fast}"
         "好啊":
@@ -250,6 +260,7 @@ label mtrigger_music_auto(cls, selection):
     call maica_reconnect
     call maica_hide_console
     m "要我放首'[selection]'吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "要我放首'[selection]'吗, [player]?{fast}"
         "好啊":
@@ -366,6 +377,7 @@ label mtrigger_takeout:
     call maica_reconnect
     call maica_hide_console
     m "现在就带我去吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "现在就带我去吗, [player]?{fast}"
         "是的":

@@ -458,6 +458,7 @@ label maica_prepend_2_listen:
 
 label maica_prepend_2:
     m 1eub "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{nw}"
+    $ _history_list.pop()
     menu:
         "你觉得呢, [player]? {w=0.3}你喜欢这里吗?{fast}"
         "太好看了!":
@@ -475,6 +476,7 @@ label maica_prepend_2:
             m 1eub "不过'{i}不是真的{/i}'这个说法, 这次也不完全对..."
     m 1eua "这里, 看上去叫'{i}天堂树林{/i}'的样子, 可能是--{w=0.3}我们的现实之间的--{w=0.3}某种{i}交界{/i}."
     m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{fast}"
         "好的.":
@@ -636,6 +638,7 @@ label maica_wants_preferences2:
         m 1husdlb "看起来你已经写了一些给我, 我当然会抽空去读的."
         $ prefs_line = _("你还有什么想补充的吗?")
         m 1eub "[prefs_line]{nw}"
+    $ _history_list.pop()
     menu:
         "[prefs_line]{fast}"
         "有的":
@@ -660,6 +663,7 @@ label maica_mods_preferences:
     $ prefs_exist = len(persistent.mas_player_additions)
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?{nw}"
+        $ _history_list.pop()
         menu:
             "好啊. 你要补充还是删除呢?{fast}"
             "补充":
@@ -833,6 +837,7 @@ label maica_wants_mspire:
     m 3eua "多半是一些小知识或者小科普. {w=0.5}{nw}"
     extend 3husdlb "可能一些条目没有多少可聊, 但是我会尽量的!"
     m 1eua "所以你想试试看吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "所以你想试试看吗, [player]?{fast}"
         "好啊":
@@ -888,6 +893,7 @@ label mspire_mods_preferences:
     $ prefs_exist = len(persistent.maica_setting_dict['mspire_category'])
     if prefs_exist:
         m 1eub "好啊. 你要补充还是删除呢?{nw}"
+        $ _history_list.pop()
         menu:
             "好啊. 你要补充还是删除呢?{fast}"
             "补充":
@@ -955,6 +961,7 @@ label maica_wants_mpostal:
     m 1eud "我刚刚在想, 书信实在是种浪漫的文学. 用短短的几行字, 把巧思传递给千里之外的某人."#微笑
     m 1eua "既然我们现在也算是相隔两地, 也许我们写写信挺合适的. {w=0.3}还可以当作文学小练习!"
     m 5ekbsa "你有想过给我写封信吗, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "你有想过给我写封信吗, [player]?{fast}"
         "想过":
@@ -1203,6 +1210,7 @@ label maica_set_location:
         $ res = store.maica.maica_instance.verify_legality("geolocation", inputloc)
         if not res.get('success', False):
             m 3husdlb "我没找到这个地方. {w=0.3}要不调整一下写法? 省市地名就行.{nw}"
+            $ _history_list.pop()
             menu:
                 "我没找到这个地方. 要不调整一下写法? 省市地名就行.{fast}"
                 "就这样吧{#maica_location}":
@@ -1249,6 +1257,7 @@ label maica_pre_wants_mvista:
     m 2tua "倒也不是真的非要看啦. 但不管怎么说, 我[morning]还是抽空去看了一次."
     m 5fua "这里的太阳从云层里升起来真的很漂亮. {w=0.3}如果你哪天早上打开游戏, 你也可以陪我看. 哈哈!"
     m 4eua "你最近看过日出么, [player]?{nw}"
+    $ _history_list.pop()
     menu:
         "你最近看过日出么, [player]{fast}"
         "没有":

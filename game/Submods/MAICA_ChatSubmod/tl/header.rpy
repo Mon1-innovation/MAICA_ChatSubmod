@@ -55,8 +55,8 @@ translate english strings:
     new "Total conversation rounds: [store.maica.maica_instance.stat.get('message_count')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:204
-    old "累计收到Token: [store.maica.maica_instance.stat.get('received_token')]"
-    new "Total tokens recieved: [store.maica.maica_instance.stat.get('received_token')]"
+    old "累计收到Chunks: [store.maica.maica_instance.stat.get('received_token')]"
+    new "Total chunks recieved: [store.maica.maica_instance.stat.get('received_token')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:206
     old "重置统计数据"
@@ -540,8 +540,8 @@ translate english strings:
     new "Set to true to pre-analyze MTrigger items by MFocus(if both exists) to inform core model if request could be done. \nMay improve synchronousity of MTrigger, but also increases delay."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:786
-    old "每个会话累计Token: [store.maica.maica_instance.stat.get('received_token_by_session')]"
-    new "Overall tokens recieved: [store.maica.maica_instance.stat.get('received_token_by_session')]"
+    old "每个会话累计Chunks: [store.maica.maica_instance.stat.get('received_token_by_session')]"
+    new "Overall chunks recieved: [store.maica.maica_instance.stat.get('received_token_by_session')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:789
     old "当前用户: [store.maica.maica_instance.user_acc]"

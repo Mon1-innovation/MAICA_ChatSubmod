@@ -295,7 +295,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     mspire_type = "in_fuzzy_all"
     use_cache = False
 
-    def process_request(self, category, session, pprt=False):
+    def process_request(self, category, session, pprt=False, flush=False):
         """
         处理MSpire聊天请求。
 
@@ -307,6 +307,17 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
             taskowner: 任务所有者（通常是MaicaTaskManager）
         """
         import random
+
+        if flush and str(session) != '0':
+            data = {
+                "type": "query",
+                "chat_session": session,
+                "reset": True
+            }
+            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+                data['cookie'] = MAICAWSCookiesHandler._cookie
+            self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
+
         data = {
             "type": "query",
             "chat_session": session,

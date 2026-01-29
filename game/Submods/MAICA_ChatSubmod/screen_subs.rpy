@@ -1237,10 +1237,10 @@ screen maica_statics():
                 text _("累计MSpire轮次: [store.maica.maica_instance.stat.get('mspire_count')]"):
                     size 20
             hbox:
-                text _("累计收到Token: [store.maica.maica_instance.stat.get('received_token')]"):
+                text _("累计收到Chunks: [store.maica.maica_instance.stat.get('received_token')]"):
                     size 20
             hbox:
-                text _("每个会话累计Token: [store.maica.maica_instance.stat.get('received_token_by_session')]"):
+                text _("每个会话累计Chunks: [store.maica.maica_instance.stat.get('received_token_by_session')]"):
                     size 20
             hbox:
                 text _("累计发信数: [store.maica.maica_instance.stat.get('mpostal_count')]"):
