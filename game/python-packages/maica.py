@@ -929,7 +929,8 @@ class MaicaAi(ChatBotInterface):
         self.MSpireProcessor.start_request(
             category=self.mspire_category,
             session=self.mspire_session,
-            pprt=self.pprt
+            pprt=self.pprt,
+            flush=self.chat_session != self.mspire_session # Leave the zero detection to later procedure
         )
         self._in_mspire = True
     
