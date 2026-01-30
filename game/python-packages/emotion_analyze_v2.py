@@ -59,18 +59,22 @@ class EmoSelector(object):
         self.affection = 100
         self.eoc = eoc
         self.main_strength = 0.0
-        self.pre_emote = u"微笑"
-        self.pre_emotes = []
-        self.curr_emotes = []
-        self.emote = ""
-        self.pre_pos = 0
+        self._pre_emote_kw = u"微笑"
+        self._pre_emote_code = ""
+
+        self._emote_code = ""
+        self._emote_kw = ""
+        self._pre_pos = 0
         self.fallback_predictor = fallback_predictor
         self.fallback_selector = FallBackEmo()
 
     def reset(self):
-        self.pre_emote = u"微笑"
         self.main_strength = 0.0
-        self.pre_emotes = []
+        self._pre_emote_kw = u"微笑"
+        self._pre_emote_code = ""
+
+        self._emote_code = ""
+        self._emote_kw = ""
         self.fallback_selector.__init__()
 
     def get_emote(self, idle = False, keep_pose = False):
@@ -100,22 +104,22 @@ class EmoSelector(object):
             return emo
         
         if keep_pose and keep_pose != "force":
-            if self.sentiment[self.pre_emote] != self.sentiment[self.emote]:
+            if self.sentiment[self._pre_emote_kw] != self.sentiment[self._emote_kw]:
                 if 0.5 <= random.random():
                     keep_pose = False
         
-        if not self.pre_pos:
-            self.pre_pos = random.randint(1, 7)
+        if not self._pre_pos:
+            self._pre_pos = random.randint(1, 7)
 
         if not keep_pose:
-            new_pos = get_pos(self.main_strength, self.pre_pos) if not idle else idle_pos(self.pre_pos)
+            new_pos = get_pos(self.main_strength, self._pre_pos) if not idle else idle_pos(self._pre_pos)
         else:
-            new_pos = self.pre_pos
+            new_pos = self._pre_pos
 
-        self.pre_pos = new_pos
+        self._pre_pos = new_pos
 
-        if self.emote != "":
-            return "{}{}".format(new_pos, self.emote if not idle else idle_emo())
+        if self._emote_code != "":
+            return "{}{}".format(new_pos, self._emote_code if not idle else idle_emo())
         else:
             return "idle"
 
@@ -148,7 +152,7 @@ class EmoSelector(object):
 
         # m = 0.25
         # o = -0.1
-        emo = self.pre_emote
+        emo = self._pre_emote_kw
 
         new_matches = []
         # new_rawmatches = []
@@ -179,17 +183,17 @@ class EmoSelector(object):
 
             if index == 0:
                 randf = random.random()
-                if len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'微笑'].keys() and match == u'微笑':
+                if self._pre_emote_code and self._pre_emote_code in self.selector[u'微笑'].keys() and match == u'微笑':
                     if 0 <= randf < 0.25:
                         match = u'笑'
                     elif 0.25 <= randf < 0.5:
                         match = u'开心'
-                elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'笑'].keys() and match == u'笑':
+                elif self._pre_emote_code and self._pre_emote_code in self.selector[u'笑'].keys() and match == u'笑':
                     if 0 <= randf < 0.25:
                         match = u'微笑'
                     elif 0.25 <= randf < 0.75:
                         match = u'开心'
-                elif len(self.pre_emotes) and self.pre_emotes[-1] in self.selector[u'开心'].keys() and match == u'开心':
+                elif self._pre_emote_code and self._pre_emote_code in self.selector[u'开心'].keys() and match == u'开心':
                     if 0 <= randf < 0.25:
                         match = u'微笑'
                     elif 0.25 <= randf < 0.75:
@@ -259,23 +263,23 @@ class EmoSelector(object):
 
         for index, emo in enumerate(emos):
             self.process_strength(emo)
-            self.pre_emote = emo
+            self._pre_emote_kw = emo
             emo_codes.append(self.get_emote(keep_pose=(index >= 1))) # keep_pose is randomly neutualized if sentiment changes to make performance more natural, use "force" to enforce effect.
             # logger.debug("[Maica::EmoSelector] index {} keep_pose {} emo {}".format(index, index >= 1, emo_codes[-1]))
 
-        # logger.debug("[Maica::EmoSelector] pre_pos {}".format(self.pre_pos))
+        # logger.debug("[Maica::EmoSelector] pre_pos {}".format(self._pre_pos))
         return list(zip(emo_codes, message_pieces))
 
     def process_strength(self, emote, multi=0.7, offset=0.0):
-        res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage, eoc=self.eoc, excepted=self.pre_emotes)
+        self._emote_kw = emote
+        res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage, eoc=self.eoc, excepted=[self._pre_emote_code])
         strength_diff = res[1] - self.main_strength
-        self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset)) if self.sentiment[emote] == self.sentiment[self.pre_emote] else 0.1
-        self.emote = res[0]
-        self.pre_emotes.append(self.emote)
-        if self.pre_emotes.__len__() > 1:
-            self.pre_emotes = self.pre_emotes[-1:]
-        if self.sentiment[self.pre_emote] == self.sentiment[emote]:
-            if self.pre_emote != emote:
+        self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset)) if self.sentiment[emote] == self.sentiment[self._pre_emote_kw] else 0.1
+        self._emote_code = res[0]
+        self._pre_emote_code = self._emote_code
+
+        if self.sentiment[self._pre_emote_kw] == self.sentiment[emote]:
+            if self._pre_emote_kw != emote:
                 if self.main_strength <= 0.3:
                     self.main_strength += 0.2
                 elif self.main_strength <= 0.6:
