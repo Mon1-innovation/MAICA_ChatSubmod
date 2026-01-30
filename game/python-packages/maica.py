@@ -1040,7 +1040,7 @@ class MaicaAi(ChatBotInterface):
         message = str(message)
         self.ChatProcessor.start_request(
             query=message,
-            session = session if session else self.chat_session,
+            session = session if session == None else self.chat_session,
             trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
             taskowner = self.task_manager,
             visions = visions,
