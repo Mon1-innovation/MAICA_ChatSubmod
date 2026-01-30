@@ -146,7 +146,11 @@ class MaicaTaskManager(object):
         self.create_event(event)
 
     def _ws_onerror(self, wsapp, error):
-        default_logger.error("[MaicaTaskManager] WebSocket error: {}".format(error))
+        error_type = type(error).__name__
+        context = "url={}".format(wsapp.url if wsapp else "unknown")
+        default_logger.error("[MaicaTaskManager] WebSocket error [{}]: {} ({})".format(
+            error_type, error, context
+        ))
         if hasattr(error, '__traceback__'):
             default_logger.error(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
         self.reset_all_task()
