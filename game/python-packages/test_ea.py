@@ -40,7 +40,7 @@ def print_info(data = ""):
     print(selector.analyze(data))
     #print(selector.get_emote())
     #print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
-    #print("期望表情: {}:{}".format(selector.pre_mood,selector.selector.get(selector.pre_mood, None)))
+    #print("期望表情: {}:{}".format(selector.pre_emote,selector.selector.get(selector.pre_emote, None)))
 
 print_info("[脸红]")
 print_info("我当然想和你融为一体, [player]. {w=0.3}[若要了解彼此的心声, 唯有坦诚相待.]")
