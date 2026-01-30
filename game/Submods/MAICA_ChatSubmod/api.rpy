@@ -185,6 +185,8 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        if renpy.android:
+            persistent.maica_setting_dict['provider_id'] = 2
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
         import time
         failed = False
