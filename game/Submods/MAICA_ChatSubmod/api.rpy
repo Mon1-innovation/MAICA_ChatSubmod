@@ -21,6 +21,7 @@ default persistent._maica_last_version = "0.0.1"
 default persistent._maica_vista_enabled = False
 default persistent._maica_send_or_received_mpostals = []
 default persistent._maica_visuals = []
+default persistent._last_boot_os = None
 define _maica_selected_visuals = []
 #{
 #    "raw_title":"",
@@ -185,8 +186,9 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
-        if renpy.android:
+        if persistent._last_boot_os != "android" and renpy.android:
             persistent.maica_setting_dict['provider_id'] = 2
+        persistent._last_boot_os = "android" if renpy.android else "other"
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
         import time
         failed = False
