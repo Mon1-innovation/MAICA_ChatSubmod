@@ -979,10 +979,8 @@ screen maica_setting():
                 $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)\n! 当前session与MSpire会话相同, 可能导致迷惑性的表现")
                 hbox:
                     style_prefix "maica_check_nohover"
-                    textbutton _("! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."):
-                        action NullAction()
-                        hovered SetField(_tooltip, "value", tooltip_chat_session)
-                        unhovered SetField(_tooltip, "value", _tooltip.default)
+                    text _("! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."):
+                        color "#FF0000"
             else:
                 $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
             use num_bar(_("当前会话"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
@@ -1007,7 +1005,6 @@ screen maica_setting():
                             action NullAction()
                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                             unhovered SetField(_tooltip, "value", _tooltip.default)
-
 
                     hbox:
                         style_prefix "maica_check"
@@ -1076,10 +1073,8 @@ screen maica_setting():
                         $ tooltip_ms_session = _("MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! 当前session与主会话相同, 自动清空已禁用")
                         hbox:
                             style_prefix "maica_check_nohover"
-                            textbutton _("! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."):
-                                action NullAction()
-                                hovered SetField(_tooltip, "value", tooltip_ms_session)
-                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                            text _("! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."):
+                                color "#FF0000"
                     else:
                         $ tooltip_ms_session = _("MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! MSpire每次生成前将自动清空该session")
                     use num_bar(_("MSpire会话"), 200 if config.language == "chinese" else 350, tooltip_ms_session, "mspire_session", 0, 9)
