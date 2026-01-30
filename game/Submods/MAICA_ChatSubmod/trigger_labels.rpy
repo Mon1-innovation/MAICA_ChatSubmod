@@ -134,7 +134,7 @@ label mtrigger_acs_select:
 
 label mtrigger_kiss:
     call maica_reconnect
-    if mas_shouldKiss(1):
+    if mas_shouldKiss(1, datetime.timedelta(0)):
         call maica_hide_console
         m "那...来亲一个?{nw}"
         $ _history_list.pop()
