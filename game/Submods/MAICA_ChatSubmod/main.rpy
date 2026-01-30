@@ -155,10 +155,11 @@ label maica_talking.end:
         $ store.mas_ptod.clear_console()
     return return_code
 label maica_talking.ask_mspire_continue:
-    m "你想详细聊点嘛?{nw}"
+    m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
+    $ _history_list.pop()
     menu:
-        "你想详细聊点嘛?{fast}"
-        "好呀":
+        "嗯...我们要接着这个话题聊聊吗?{fast}"
+        "好啊":
             jump maica_talking.asking
         "算了":
             $ return_code = "canceled"
