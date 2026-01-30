@@ -123,37 +123,59 @@ class MaicaTaskManager(object):
 
         创建MaicaTaskEvent事件并分发给所有监听的任务。
         """
-        event = MaicaTaskEvent(
-            taskowner=self,
-            event_type=MAICATASKEVENT_TYPE_WS,
-            data=WSResponse(message)
-        )
-        self.create_event(event)
+        try:
+            event = MaicaTaskEvent(
+                taskowner=self,
+                event_type=MAICATASKEVENT_TYPE_WS,
+                data=WSResponse(message)
+            )
+            self.create_event(event)
+        except Exception as e:
+            error_type = type(e).__name__
+            default_logger.error("[MaicaTaskManager] Error in _ws_onmessage [{}]: {}".format(
+                error_type, e
+            ))
+            default_logger.error(''.join(traceback.format_exc()))
     
     def _ws_onclose(self, wsapp, close_status_code=None, close_msg=None):
-        event = maica_tasker_events.WebSocketClosedEvent(
-            taskowner=self,
-            event_type=MAICATASKEVENT_TYPE_TASK,
-            data=maica_tasker_events.GenericData(
-                name="websocket_closed",
-                content={
-                    "close_status_code": close_status_code,
-                    "close_msg": close_msg,
-                    "wsapp": wsapp
-                }
+        try:
+            event = maica_tasker_events.WebSocketClosedEvent(
+                taskowner=self,
+                event_type=MAICATASKEVENT_TYPE_TASK,
+                data=maica_tasker_events.GenericData(
+                    name="websocket_closed",
+                    content={
+                        "close_status_code": close_status_code,
+                        "close_msg": close_msg,
+                        "wsapp": wsapp
+                    }
+                )
             )
-        )
-        self.create_event(event)
+            self.create_event(event)
+        except Exception as e:
+            error_type = type(e).__name__
+            default_logger.error("[MaicaTaskManager] Error in _ws_onclose [{}]: {}".format(
+                error_type, e
+            ))
+            default_logger.error(''.join(traceback.format_exc()))
 
     def _ws_onerror(self, wsapp, error):
-        error_type = type(error).__name__
-        context = "url={}".format(wsapp.url if wsapp else "unknown")
-        default_logger.error("[MaicaTaskManager] WebSocket error [{}]: {} ({})".format(
-            error_type, error, context
-        ))
-        if hasattr(error, '__traceback__'):
-            default_logger.error(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
-        self.reset_all_task()
+        try:
+            error_type = type(error).__name__
+            context = "url={}".format(wsapp.url if wsapp else "unknown")
+            default_logger.error("[MaicaTaskManager] WebSocket error [{}]: {} ({})".format(
+                error_type, error, context
+            ))
+            if hasattr(error, '__traceback__'):
+                default_logger.error(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
+        except Exception as e:
+            error_type = type(e).__name__
+            default_logger.error("[MaicaTaskManager] Error in _ws_onerror [{}]: {}".format(
+                error_type, e
+            ))
+            default_logger.error(''.join(traceback.format_exc()))
+        finally:
+            self.reset_all_task()
     def _on_event(self, event_object):
         """
         将事件分发给任务列表中的所有任务。
