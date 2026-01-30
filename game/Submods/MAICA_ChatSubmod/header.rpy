@@ -1052,7 +1052,6 @@ screen maica_setting():
                     $ tooltip_ms_time = _("MSpire对话的最小时间间隔")
                     use prog_bar(_("MSpire最小间隔"), 250 if config.language == "chinese" else 400, tooltip_ms_time, "mspire_interval", 10, 180, "m")
 
-
                     hbox:
                         style_prefix "maica_check"
                         textbutton _("MSpire搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
@@ -1062,13 +1061,21 @@ screen maica_setting():
                             hovered SetField(_tooltip, "value", _("MSpire搜索话题的模式"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                    hbox:
-                        style_prefix "generic_fancy_check"
-                        textbutton _("MSpire使用缓存"):
-                            action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                            hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践\n* MSpire会话不为0时不生效"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-                            
+                    if persistent.maica_setting_dict['mspire_session'] == 0:
+                        hbox:
+                            style_prefix "generic_fancy_check"
+                            textbutton _("MSpire使用缓存"):
+                                action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
+                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数并固定最佳实践"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+                    else:
+                        hbox:
+                            textbutton _("MSpire使用缓存"):
+                                style "generic_fancy_check_button_disabled"
+                                action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
+                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n! MSpire会话不为0, MSpire缓存不会生效"))
+                                unhovered SetField(_tooltip, "value", _tooltip.default)
+
                     if persistent.maica_setting_dict['mspire_session'] != 0 and persistent.maica_setting_dict['chat_session'] == persistent.maica_setting_dict['mspire_session']:
                         $ tooltip_ms_session = _("MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! 当前session与主会话相同, 自动清空已禁用")
                         hbox:
