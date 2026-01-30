@@ -77,10 +77,10 @@ label maica_talking.asking:
                         images = []
                         for item in store._maica_selected_visuals:
                             images.append(ai.generate_vista_url(item['uuid']))
-                        ai.chat(question, images)
+                        ai.chat(question, images, session = None if not mspire_is_started else ai.mspire_session)
                         store._maica_selected_visuals = []
                     else:
-                        ai.chat(question, session = None if ai.mspire_session == 0 else ai.mspire_session)
+                        ai.chat(question, session = None if not mspire_is_started else ai.mspire_session)
                     is_retry_before_sendmessage = False
                 else:
                     ai.start_MSpire()
