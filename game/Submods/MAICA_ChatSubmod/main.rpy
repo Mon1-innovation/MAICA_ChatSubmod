@@ -19,6 +19,7 @@ label maica_talking(mspire = False):
         printed = False
         is_retry_before_sendmessage = False
         question = False
+        mspire_is_started = False # MSpire已开启开场白
 
         class ExtendSayer(object):
             def __init__(self):
@@ -35,7 +36,8 @@ label maica_talking(mspire = False):
                 self._history += text
 
         extend_sayer = ExtendSayer()
-
+label maica_talking.asking:
+    python:
         while True:
             if is_retry_before_sendmessage:
                 ai.chat(is_retry_before_sendmessage)
@@ -78,10 +80,11 @@ label maica_talking(mspire = False):
                         ai.chat(question, images)
                         store._maica_selected_visuals = []
                     else:
-                        ai.chat(question)
+                        ai.chat(question, session = None if ai.mspire_session == 0 else ai.mspire_session)
                     is_retry_before_sendmessage = False
                 else:
                     ai.start_MSpire()
+                    mspire_is_started = True
             else:
                 return_code = "disconnected"
                 store.mas_submod_utils.submod_log.warning("label maica_talking::disconnected maybe unexpected")
@@ -134,10 +137,13 @@ label maica_talking(mspire = False):
                 return_code = "canceled"
                 break
             if mspire:
-                return_code = "canceled"
-                afm_pref = renpy.game.preferences.afm_enable
-                renpy.game.preferences.afm_enable = False
-                break
+                if ai.mspire_session == 0:
+                    afm_pref = renpy.game.preferences.afm_enable
+                    renpy.game.preferences.afm_enable = False
+                    break
+                else:
+                    mspire = False
+                    renpy.jump("maica_talking.ask_mspire_continue")
             
     # store.mas_ptod.write_command()
 
@@ -148,7 +154,16 @@ label maica_talking.end:
     if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":    
         $ store.mas_ptod.clear_console()
     return return_code
-
+label maica_talking.ask_mspire_continue:
+    m "你想详细聊点嘛?{nw}"
+    menu:
+        "你想详细聊点嘛?{fast}"
+        "好呀":
+            jump maica_talking.asking
+        "算了":
+            $ return_code = "canceled"
+            jump maica_talking.end
+    return
 label maica_show_console:
     if persistent.maica_setting_dict['console']:
         $ maica_enableWorkLoadScreen()

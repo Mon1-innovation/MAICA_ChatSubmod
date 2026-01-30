@@ -320,7 +320,7 @@ init 10 python:
         store.maica.maica_instance.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
         store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
         store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
-        store.maica.maica_instance.mspire_session = 0#persistent.maica_setting_dict["mspire_session"]
+        store.maica.maica_instance.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica_instance.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica_instance.max_history_token = persistent.maica_setting_dict["max_history_token"]
         store.maica.maica_instance.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
@@ -369,7 +369,7 @@ init 10 python:
         persistent.maica_setting_dict["mspire_search_type"] = store.maica.maica_instance.mspire_type
         persistent.maica_setting_dict["log_level"] = store.mas_submod_utils.submod_log.level
         persistent.maica_setting_dict["log_conlevel"] = store.maica.maica_instance.console_logger.level
-        # persistent.maica_setting_dict["mspire_session"] = store.maica.maica_instance.mspire_session
+        persistent.maica_setting_dict["mspire_session"] = store.maica.maica_instance.mspire_session
         persistent.maica_setting_dict["provider_id"] = store.maica.maica_instance.provider_manager._provider_id
         persistent.maica_setting_dict["max_history_token"] = store.maica.maica_instance.max_history_token
         persistent.maica_setting_dict["strict_mode"] = store.maica.maica_instance.enable_strict_mode

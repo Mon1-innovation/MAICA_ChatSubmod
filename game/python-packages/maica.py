@@ -1031,7 +1031,7 @@ class MaicaAi(ChatBotInterface):
         self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         
-    def chat(self, message, visions = None):
+    def chat(self, message, visions = None, session=None):
         from maica_mtrigger import MTriggerMethod
         if not self.__accessable:
             return logger.error("Maica is not serving")
@@ -1040,7 +1040,7 @@ class MaicaAi(ChatBotInterface):
         message = str(message)
         self.ChatProcessor.start_request(
             query=message,
-            session = self.chat_session,
+            session = session if session else self.chat_session,
             trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
             taskowner = self.task_manager,
             visions = visions,
