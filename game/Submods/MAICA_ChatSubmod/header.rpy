@@ -341,8 +341,9 @@ init 10 python:
             store.maica.maica_instance.MoodStatus.emote_translate = json_exporter.emotion_etz
         if not persistent.maica_setting_dict.get('mspire_enable') and mas_inEVL("maica_mspire"):
             store.MASEventList.clean()
+        send_success = store.maica.maica_instance.send_settings()
         if not ininit:
-            renpy.notify(_("MAICA: 已上传设置") if store.maica.maica_instance.send_settings() else _("MAICA: 请等待连接就绪后手动上传"))
+            renpy.notify(_("MAICA: 已上传设置") if send_success else _("MAICA: 请等待连接就绪后手动上传"))
             
     def maica_discard_setting():
         persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica_instance.auto_reconnect
