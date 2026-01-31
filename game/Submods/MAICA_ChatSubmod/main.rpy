@@ -20,6 +20,7 @@ label maica_talking(mspire = False):
         is_retry_before_sendmessage = False
         question = False
         mspire_is_started = False # MSpire已开启开场白
+        mspire_user_responsed = False # 玩家想继续ms
 
         class ExtendSayer(object):
             def __init__(self):
@@ -153,6 +154,8 @@ label maica_talking.end:
     call maica_hide_console
     if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":    
         $ store.mas_ptod.clear_console()
+    if mspire_user_responsed:
+        $ maica_apply_setting(True)
     return return_code
 label maica_talking.ask_mspire_continue:
     m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
@@ -160,7 +163,10 @@ label maica_talking.ask_mspire_continue:
     menu:
         "嗯...我们要接着这个话题聊聊吗?{fast}"
         "好啊":
+            $ mspire_user_responsed = True
+            $ store.maica.maica_instance.modelconfig.update({"pre_additive":1})
             jump maica_talking.asking
+            
         "算了":
             $ return_code = "canceled"
             jump maica_talking.end
