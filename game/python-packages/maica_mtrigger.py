@@ -141,7 +141,10 @@ class MTriggerManager(object):
         self._running = True
         # Create a copy of the list to safely iterate
         triggers_to_process = [t for t in self.triggered_list if t[0].action == action]
-        
+
+        # Sort by priority (highest first)
+        triggers_to_process.sort(key=lambda t: t[0].priority, reverse=True)
+
         for t in triggers_to_process:
             if remove:
                 self.triggered_list.remove(t)
@@ -162,7 +165,7 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False):
+    def __init__(self, template, name, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False, priority=0):
         self.name = name
         self.template = template
         self.callback = callback
@@ -172,6 +175,7 @@ class MTriggerBase(object):
         self.condition = condition
         self.method = method
         self.perf_suggestion = perf_suggestion
+        self.priority = priority
 
         if self.template.name != common_affection_template.name and exprop.item_name_zh == "":
             raise Exception("Non affection template must have exprop.item_name_zh.")
