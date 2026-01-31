@@ -794,7 +794,8 @@ screen maica_setting():
 
                 text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]"
 
-                text "triggered_list: [store.maica.maica_instance.mtrigger_manager.triggered_list]"
+                $ triggered_list = str(store.maica.maica_instance.mtrigger_manager.triggered_list).replace("[", "[[").replace("{", "{{").replace("【", "【【")
+                text "triggered_list: [triggered_list]"
 
                 textbutton "输出Event信息到日志":
                     action Function(log_eventstat)
@@ -832,13 +833,13 @@ screen maica_setting():
                                 ]
                 
                 textbutton "显示maica_dscl_pvn_notify 0.3":
-                    action Show("maica_dscl_pvn_notify", prob=0.3)
+                    action Function(store.mtrigger_dscl, prob=0.3)
                 
                 textbutton "显示maica_dscl_pvn_notify 0.6":
-                    action Show("maica_dscl_pvn_notify", prob=0.6)
+                    action Function(store.mtrigger_dscl, prob=0.6)
 
                 textbutton "显示maica_dscl_pvn_notify 0.9":
-                    action Show("maica_dscl_pvn_notify", prob=0.9)
+                    action Function(store.mtrigger_dscl, prob=0.9)
 
             hbox:
                 use divider(_("连接与安全"))
