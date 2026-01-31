@@ -38,3 +38,17 @@ translate english strings:
     old "无法回复信件, 尝试失败次数已达上限"
     new "Failed replying mail. Not retrying because failure count limit reached"
 
+# TODO: Translation updated at 2026-01-30 23:25
+
+# game/Submods/MAICA_ChatSubmod/main.rpy:158
+translate english maica_talking_ask_mspire_continue_d7c52385:
+
+    # m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
+    m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/main.rpy:160
+    old "嗯...我们要接着这个话题聊聊吗?{fast}"
+    new "Hmm...shall we go further on this topic?{fast}"
+

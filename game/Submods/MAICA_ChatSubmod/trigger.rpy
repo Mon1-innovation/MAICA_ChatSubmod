@@ -105,7 +105,8 @@ init 999 python in maica:
 #################################################################################
 
     def mtrigger_kiss_condition():
-        return store.mas_shouldKiss(1)
+        import datetime
+        return store.mas_shouldKiss(1, datetime.timedelta(0))
 
     def mtrigger_kiss_callback(arg):
         store.renpy.call("mtrigger_kiss")

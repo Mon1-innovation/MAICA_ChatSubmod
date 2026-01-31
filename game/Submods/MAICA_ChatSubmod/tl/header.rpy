@@ -1358,3 +1358,35 @@ translate english strings:
     old "MAICA: 已切换节点, 正在重新连接"
     new "MAICA: Provider applied, reconnecting"
 
+# TODO: Translation updated at 2026-01-30 23:25
+
+translate english strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:979
+    old "每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)\n! 当前session与MSpire会话相同, 可能导致迷惑性的表现"
+    new "Each session stores and applies history context independently.\n* Set to 0 to disable context (single round conversation)\n! Current session same as MSpire session, may cause confusing behaviour"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:982
+    old "! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."
+    new "! Current main session is set to same as MSpire session which may cause unexpected issues.\n! Please avoid setting these the same value (except 0) unless you literally understand what you're doing."
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1069
+    old "启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数并固定最佳实践"
+    new "Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Forces default super params and best practice"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1076
+    old "启用MSpire缓存.\n! MSpire会话不为0, MSpire缓存不会生效"
+    new "Enable MSpire cache.\n! MSpire session not 0, with which MSpire cache conflicts"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1080
+    old "MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! 当前session与主会话相同, 自动清空已禁用"
+    new "Session MSpire uses.\n* Set to 0 to disable context (single round conversation)\n* MSpire will offer choice to continue if not 0\n! Currently same as main session, auto resetting disabled"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1086
+    old "MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! MSpire每次生成前将自动清空该session"
+    new "Session MSpire uses.\n* Set to 0 to disable context (single round conversation)\n* MSpire will offer choice to continue if not 0\n! This session resets before MSpire generation every time"
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1087
+    old "MSpire会话"
+    new "MSpire session"
+
