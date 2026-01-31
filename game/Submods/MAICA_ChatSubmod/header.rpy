@@ -794,7 +794,7 @@ screen maica_setting():
 
                 text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]"
 
-                $ triggered_list = store.maica.maica_instance.mtrigger_manager.triggered_list.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
+                $ triggered_list = str(store.maica.maica_instance.mtrigger_manager.triggered_list).replace("[", "[[").replace("{", "{{").replace("【", "【【")
                 text "triggered_list: [triggered_list]"
 
                 textbutton "输出Event信息到日志":
