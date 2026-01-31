@@ -164,7 +164,8 @@ label maica_talking.ask_mspire_continue:
         "嗯...我们要接着这个话题聊聊吗?{fast}"
         "好啊":
             $ mspire_user_responsed = True
-            $ store.maica.maica_instance.modelconfig.update({"pre_additive":1})
+            $ new_pre_additive = max(min(int(persistent.maica_advanced_setting['pre_additive']) + 1, 5), 0)
+            $ store.maica.maica_instance.modelconfig.update({"pre_additive": new_pre_additive})
             jump maica_talking.asking
             
         "算了":
