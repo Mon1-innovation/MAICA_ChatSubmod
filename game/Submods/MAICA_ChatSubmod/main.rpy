@@ -166,6 +166,7 @@ label maica_talking.ask_mspire_continue:
             $ mspire_user_responsed = True
             $ new_pre_additive = max(min(int(persistent.maica_advanced_setting['pre_additive']) + 1, 5), 0)
             $ store.maica.maica_instance.modelconfig.update({"pre_additive": new_pre_additive})
+            $ store.maica.maica_instance.send_settings()
             jump maica_talking.asking
             
         "算了":
