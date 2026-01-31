@@ -412,3 +412,38 @@ label mtrigger_dscl(prob=1.0):
         pause 5.0
         hide chibi_peek with moveoutleft
         return
+
+init python:
+
+    def mtrigger_dscl(prob=1.0):
+        if prob < 0.5:
+            return
+
+        elif prob < 0.8:
+            renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
+            return
+
+        renpy.invoke_in_thread(_mtrigger_dscl_anim, prob)
+
+    def _mtrigger_dscl_anim(prob):
+
+        renpy.show_screen("maica_dscl_pvn_notify", prob)
+
+        behind_bg = MAS_BACKGROUND_Z - 1
+        renpy.show(
+            "chibi_peek",
+            zorder=behind_bg,
+            at_list=[],
+            layer="master",
+            what=None,
+            transform=None,
+            tag=None,
+            transition=moveinleft
+        )
+
+        renpy.pause(5.0, hard=True)
+
+        renpy.hide(
+            "chibi_peek",
+            transition=moveoutleft
+        )
