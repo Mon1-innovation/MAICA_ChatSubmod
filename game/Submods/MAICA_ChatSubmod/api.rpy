@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.6.5'
+    maica_ver = '1.6.6'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -566,6 +566,7 @@ init 999 python:
         def migration_1_6_6():
             if renpy.android:
                 persistent.maica_setting_dict['provider_id'] = 2
+                sync_provider_id(persistent.maica_setting_dict['provider_id'])
 
         import migrations
         migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
