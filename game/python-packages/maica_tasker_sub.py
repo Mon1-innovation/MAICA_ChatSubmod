@@ -607,6 +607,7 @@ class MAICASettingSendTasker(MaicaWSTask):
         )
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             request_body['cookie'] = MAICAWSCookiesHandler._cookie
+        request_body['reset']=True
         self.manager.ws_client.send(json.dumps(request_body, ensure_ascii=False))
 
     def on_event(self, event):
