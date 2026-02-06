@@ -6,7 +6,7 @@ translate english python in maica:
     try:
         maica_instance.MaicaAiStatus._descriptions.update({
             maica_instance.MaicaAiStatus.NOT_READY: u"Waiting for account setup",
-            maica_instance.MaicaAiStatus.WAIT_AVAILABILITY:u"Service status acquiring failed, restart the game and check mas.log if issue persists",
+            maica_instance.MaicaAiStatus.WAIT_AVAILABILITY:u"Core not initialized, check mas.log if issue persists",
             maica_instance.MaicaAiStatus.WAIT_AUTH: u"Account acquired, verifying",
             maica_instance.MaicaAiStatus.WAIT_SERVER_TOKEN: u"Waiting for token verification",
             maica_instance.MaicaAiStatus.WAIT_USE_TOKEN: u"Waiting for token",

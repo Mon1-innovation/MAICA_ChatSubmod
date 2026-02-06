@@ -154,7 +154,7 @@ class MaicaAi(ChatBotInterface):
 
         _descriptions = {
             NOT_READY: u"未准备好, 等待配置账户信息",
-            WAIT_AVAILABILITY:u"需要验证可用性, 请重启. 若问题仍然存在则检查mas.log",
+            WAIT_AVAILABILITY:u"核心未初始化. 若问题持续存在, 检查mas.log",
             WAIT_AUTH: u"账户信息已确认，连接MAICA服务器验证中",
             WAIT_SERVER_TOKEN: u"等待令牌验证结果",
             WAIT_USE_TOKEN: u"等待传入令牌",
