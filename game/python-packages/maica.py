@@ -650,7 +650,11 @@ class MaicaAi(ChatBotInterface):
             talk = self.TalkSpilter.split_present_sentence()
             if talk:
                 self.add_ana(talk)
-
+        try:
+            if type(res[1]) == ellipsis:
+                res[1] = "..."
+        except:
+            pass
         return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1], res[2] if len(res) >= 3 else False)
     def _gen_token(self, account, pwd, token = "", email = None):
         if token != "":
