@@ -367,3 +367,45 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
             data['cookie'] = MAICAWSCookiesHandler._cookie
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
+
+class MAICARawContextProcessor(SessionSenderAndReceiver):
+    """
+    原始上下文处理器，用于 -1 session。
+
+    实验性功能，允许用户自行管理 session 上下文。
+    query 必须为消息列表。
+
+    Note:
+        - chat_session = -1
+        - MFocus 不会介入 (无 trigger)
+        - 受 4096 字符限制
+    """
+
+    MAX_CONTEXT_LENGTH = 4096
+
+    def process_request(self, query, taskowner, pprt=False):
+        """
+        处理原始上下文查询请求。
+
+        Args:
+            query (list): 消息列表，格式:
+                [{"role": "system/user/assistant", "content": "..."}, ...]
+            taskowner: 任务管理器实例
+            pprt (bool): 是否启用自动断句和实时后处理
+
+        Raises:
+            ValueError: 如果 query 不是列表类型
+        """
+        if not isinstance(query, list):
+            raise ValueError("query must be a list for -1 session")
+
+        data = {
+            'type': 'query',
+            'chat_session': -1,
+            'query': query,
+            'pprt': pprt
+        }
+        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
+            data['cookie'] = MAICAWSCookiesHandler._cookie
+        taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
+

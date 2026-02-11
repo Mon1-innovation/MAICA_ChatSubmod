@@ -1,4 +1,20 @@
 default return_code = None
+
+init python:
+    class ExtendSayer(object):
+        def __init__(self):
+            self._history = ""
+
+        def say(self, text):
+            if self._history:
+                new_text = self._history + "{fast}" + text
+                if len(_history_list):
+                    _history_list.pop()
+            else:
+                new_text = text
+            renpy.say(m, new_text)
+            self._history += text
+
 label maica_talking(mspire = False):
     call maica_show_console
     call maica_init_connect(use_pause_instand_wait = True)
@@ -21,20 +37,6 @@ label maica_talking(mspire = False):
         question = False
         mspire_is_started = False # MSpire已开启开场白
         mspire_user_responsed = False # 玩家想继续ms
-
-        class ExtendSayer(object):
-            def __init__(self):
-                self._history = ""
-
-            def say(self, text):
-                if self._history:
-                    new_text = self._history + "{fast}" + text
-                    if len(_history_list):
-                        _history_list.pop()
-                else:
-                    new_text = text
-                renpy.say(m, new_text)
-                self._history += text
 
         extend_sayer = ExtendSayer()
 label maica_talking.asking:

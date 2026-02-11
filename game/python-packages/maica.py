@@ -3,7 +3,7 @@
 from bot_interface import *
 import bot_interface
 import emotion_analyze_v2
-import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender, maica_vista_files_manager
+import maica_tasker, maica_tasker_sub, maica_tasker_sub_sessionsender, maica_vista_files_manager, maica_context_query
 import maica_provider_manager
 
 # Import LoggerManager for injection point registration
@@ -475,6 +475,13 @@ class MaicaAi(ChatBotInterface):
             except_ws_status=['maica_core_nostream_reply', 'maica_chat_loop_finished']
         )
         self.MPostalProcessor._external_callback = self.mpostal_callback
+        self.RawContextProcessor = maica_tasker_sub_sessionsender.MAICARawContextProcessor(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="raw_context_processor",
+            manager=self.task_manager,
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+        )
+        self.RawContextProcessor._external_callback = self.general_chat_callback
 
         self.AutoReconnector = maica_tasker_sub.AutoReconnector(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -1049,6 +1056,32 @@ class MaicaAi(ChatBotInterface):
             taskowner = self.task_manager,
             visions = visions,
             pprt = self.pprt
+        )
+        self.stat['message_count'] += 1
+
+    def start_raw_context(self, query):
+        """
+        启动 -1 session 原始上下文查询。
+
+        实验性功能，允许用户自行管理对话上下文。
+
+        Args:
+            query (list): 消息列表，使用 MAICAContextQueryBuilder.build() 生成:
+                [{"role": "system/user/assistant", "content": "..."}, ...]
+            pprt (bool): 是否启用自动断句和实时后处理
+
+        Note:
+            - 受 4096 字符限制
+            - MFocus 不会介入 (无 trigger)
+        """
+        if not self.__accessable:
+            return logger.error("Maica is not serving")
+        if not self.is_ready_to_input():
+            return logger.error("Maica is not ready to input")
+        self.RawContextProcessor.start_request(
+            query=query,
+            taskowner=self.task_manager,
+            pprt=self.pprt
         )
         self.stat['message_count'] += 1
 
