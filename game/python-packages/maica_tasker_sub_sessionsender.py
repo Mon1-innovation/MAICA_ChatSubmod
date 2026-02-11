@@ -383,7 +383,7 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
 
     MAX_CONTEXT_LENGTH = 4096
 
-    def process_request(self, query, taskowner, pprt=False):
+    def process_request(self, query, taskowner, visions=None, pprt=False):
         """
         处理原始上下文查询请求。
 
@@ -391,6 +391,7 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
             query (list): 消息列表，格式:
                 [{"role": "system/user/assistant", "content": "..."}, ...]
             taskowner: 任务管理器实例
+            visions: 可选，图像数据
             pprt (bool): 是否启用自动断句和实时后处理
 
         Raises:
@@ -405,6 +406,8 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
             'query': query,
             'pprt': pprt
         }
+        if visions:
+            data['vision'] = visions
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
         taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))

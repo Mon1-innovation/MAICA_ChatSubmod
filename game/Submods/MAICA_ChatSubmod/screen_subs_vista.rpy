@@ -4,7 +4,7 @@ init python:
         image = file_selector.select_file()
         if image:
             try:
-                store.maica.maica_instance.vista_manager.upload(image)
+                return store.maica.maica_instance.vista_manager.upload(image)
             except Exception as e:
                 renpy.notify(_("MAICA: 上传失败"))
             

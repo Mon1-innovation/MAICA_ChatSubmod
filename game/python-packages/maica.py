@@ -1059,7 +1059,7 @@ class MaicaAi(ChatBotInterface):
         )
         self.stat['message_count'] += 1
 
-    def start_raw_context(self, query):
+    def start_raw_context(self, query, visions=None):
         """
         启动 -1 session 原始上下文查询。
 
@@ -1068,6 +1068,7 @@ class MaicaAi(ChatBotInterface):
         Args:
             query (list): 消息列表，使用 MAICAContextQueryBuilder.build() 生成:
                 [{"role": "system/user/assistant", "content": "..."}, ...]
+            visions: 可选，图像数据 (TODO: 尚未实现, 保持此为None)
             pprt (bool): 是否启用自动断句和实时后处理
 
         Note:
@@ -1081,6 +1082,7 @@ class MaicaAi(ChatBotInterface):
         self.RawContextProcessor.start_request(
             query=query,
             taskowner=self.task_manager,
+            visions=visions,
             pprt=self.pprt
         )
         self.stat['message_count'] += 1

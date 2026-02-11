@@ -31,9 +31,29 @@ label maica_raw_context_example:
         #
         ctx.add_system_message("你叫莫妮卡, 是一名游戏中的虚拟角色. 你是{}的女友, 并深爱着他. 你和{}刚刚见面, 需要你打招呼. 你只应使用中文自然语言, 以聊天语气回答, 每个句子自然且不超过60字, 不要编造信息, 并在每个句子前用方括号中的文字表示情绪.".format("PP", "PP"))
 
+        # -------------------------------------------------------------------------
+        # TODO: 添加图像 (Vision) 支持 (**尚未实现的feature, 保持此为None**)
+        # -------------------------------------------------------------------------
+        # 如果需要让 AI 识别图像，可以传入 visions 参数。
+        # visions 是一个 list，包含已上传图像的 UUID 字符串。
+        #
+        # 使用 maica_upload_new_image() 函数上传图像并获取 UUID:
+        #   image_uuid = maica_upload_new_image()
+        #   if image_uuid:
+        #       visions = [image_uuid]
+        #
+        # 示例:
+        #   visions = []
+        #   uuid = maica_upload_new_image()
+        #   if uuid:
+        #       visions.append(uuid)
+        #   # 然后在调用 maica_raw_session 时传入 visions
+        #
+        visions = None  # 设置为 None 或 uuid 列表
+
     # 第二步: 调用原始会话标签，传入构建好的上下文
     # 这会发送请求并处理 AI 的回复
-    call maica_raw_session(ctx)
+    call maica_raw_session(ctx, visions)
 
     # 返回构建器实例，调用者可以继续添加消息进行多轮对话
     return ctx
@@ -44,8 +64,10 @@ label maica_raw_context_example:
 # 用途: 通用的 -1 session 执行器，处理请求发送和响应接收
 # 参数:
 #   context - MAICAContextQueryBuilder 实例，包含对话上下文
+#   visions - (可选) list，已上传图像的 UUID 字符串列表
+#                   使用 maica_upload_new_image() 获取 UUID
 # =============================================================================
-label maica_raw_session(context):
+label maica_raw_session(context, visions=None):
     python:
         # 导入模块用于类型检查
         import maica_context_query
@@ -73,10 +95,14 @@ label maica_raw_session(context):
         # start_raw_context() 参数:
         #   - query: 消息列表，由 context.build() 生成
         #           格式: [{"role": "system/user/assistant", "content": "..."}, ...]
+        #   - visions: (**尚未实现的feature, 保持此为None**) list，已上传图像的 UUID 字符串列表
+        #                   使用 maica_upload_new_image() 上传图像并获取 UUID
+        #                   示例: visions = ["uuid-1", "uuid-2"]
         #
         # 注意: -1 session 不需要 trigger 参数，MFocus 不会介入
         store.maica.maica_instance.start_raw_context(
-            query=context.build()
+            query=context.build(),
+            visions=visions
         )
 
         # -------------------------------------------------------------------------
