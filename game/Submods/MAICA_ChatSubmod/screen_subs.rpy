@@ -927,7 +927,7 @@ screen maica_triggers():
                                     action Function(maica_triggers.enable_trigger, trigger.name)
                                     selected maica_triggers.trigger_status(trigger.name)
                             
-                        else:
+                        elif trigger.condition() == False:
                             if maica_triggers.trigger_status(trigger.name):
                                 textbutton _("当前不满足触发条件"):
                                     style "generic_fancy_check_button_disabled"
@@ -938,6 +938,19 @@ screen maica_triggers():
                                     style "generic_fancy_check_button_disabled"
                                     action Function(maica_triggers.enable_trigger, trigger.name)
                                     selected maica_triggers.trigger_status(trigger.name)
+
+                        # elif trigger.condition() == None:
+                        #     if maica_triggers.trigger_status(trigger.name):
+                        #         textbutton _("当前不满足触发条件"):
+                        #             style "generic_fancy_check_button_disabled"
+                        #             action Function(maica_triggers.disable_trigger, trigger.name)
+                        #             selected maica_triggers.trigger_status(trigger.name)
+                        #     else:
+                        #         textbutton _("当前不满足触发条件"):
+                        #             style "generic_fancy_check_button_disabled"
+                        #             action Function(maica_triggers.enable_trigger, trigger.name)
+                        #             selected maica_triggers.trigger_status(trigger.name)
+
         hbox:
             xpos 10
             style_prefix "confirm"

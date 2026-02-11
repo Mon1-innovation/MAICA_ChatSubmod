@@ -378,7 +378,7 @@ init 999 python in maica:
             self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
                                     for key in store.monika_chr.get_acs()
                                     if key.name in store.mas_selspr.ACS_SEL_MAP}
-            return len(list(self.clothes_data.keys()))
+            return len(list(self.clothes_data.keys())) > 0
         def on_build_pre(self):
             self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
                                     for key in store.monika_chr.get_acs()
@@ -441,7 +441,7 @@ init 999 python in maica:
 #################################################################################
 
     def mtrigger_dscl_condition():
-        return False
+        return None
 
     def mtrigger_dscl_callback(arg):
         if isinstance(arg, (str, unicode)):
