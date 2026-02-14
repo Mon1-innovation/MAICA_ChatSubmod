@@ -831,6 +831,12 @@ screen maica_setting():
                                     Function(store.maica_apply_setting),
                                     Function(store.MASEventList.push, "maica_mpostal_load")
                                 ]
+                textbutton "推送maica_raw_context_example":
+                    action [
+                                    Hide("maica_setting"),
+                                    Function(store.maica_apply_setting),
+                                    Function(store.MASEventList.push, "maica_raw_context_example")
+                                ]
                 
                 textbutton "显示maica_dscl_pvn_notify 0.3":
                     action Function(store.mtrigger_dscl, prob=0.3)

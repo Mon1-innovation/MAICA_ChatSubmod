@@ -185,24 +185,6 @@ renpy_symbol_enter = {
     "\n": ""
 }
 # 关键字替换字符串:
-
-def key_replace(*args):
-        """
-        传入格式说明：key_replace(原始字符串，{'关键字':'新数据'})
-        可变传参说明：key_replace(原始字符串1,原始字符串2,{'关键字1':'新数据1','关键字2':'新数据2'},{'关键字':'新数据'})
-        PS： 一个(原始字符串)对应一个字典，一个字典可以传入多个关键字替换
-        :return:
-        """
-        str_main = []  # 用于存储传入的字符串主体
-        rep_info = []  # 用于存储传入替换关键字信息
-        for key_info in args:  # 遍历传入的参数
-            if isinstance(key_info, dict):  # 如果是字典格式，则代表是(替换关键字信息)
-                rep_info.append(key_info)
-            else:  # 如果是字符串或其它，则将其添加到字符串列表中
-                str_main.append(key_info)
-
-        case_list = []  # 用于存储替换后的结果
-        # 遍历传入的字符串和字典，分别进行替换操作
 def key_replace(*args):
         """
         传入格式说明：key_replace(原始字符串，{'关键字':'新数据'})
