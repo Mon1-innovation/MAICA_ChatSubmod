@@ -173,7 +173,6 @@ init 5 python in maica:
         store.persistent.maica_stat = maica_instance.stat.copy()
         store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
         store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
-        mas_rmEVL("mas_corrupted_persistent")
 
     import time
     last_workload_update = time.time()
