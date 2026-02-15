@@ -945,7 +945,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 30
+                    xpos 2
                     xfill True
                     has vbox:
                         xmaximum 950
@@ -1001,7 +1001,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 30
+                    xpos 2
                     xfill True
                     has vbox:
                         xmaximum 950
@@ -1120,7 +1120,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 30
+                    xpos 2
                     xfill True
                     has vbox:
                         xmaximum 950
@@ -1158,7 +1158,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 30
+                    xpos 2
                     xfill True
                     has vbox:
                         xmaximum 950
