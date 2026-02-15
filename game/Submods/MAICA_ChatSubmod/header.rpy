@@ -945,7 +945,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 2
+                    xpos 4
                     xfill True
                     has vbox:
                         xmaximum 950
@@ -1001,7 +1001,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 2
+                    xpos 4
                     xfill True
                     has vbox:
                         xmaximum 950
@@ -1048,9 +1048,12 @@ screen maica_setting():
 
             hbox:
                 frame:
-                    xpos 30
+                    xmaximum 950
+                    xpos 4
+                    xfill True
                     has vbox:
                         xsize 950
+                        xfill True
                     hbox:
                         style_prefix "maica_check"
                         textbutton _("MSpire话题"):
@@ -1120,7 +1123,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 2
+                    xpos 4
                     xfill True
                     has vbox:
                         xmaximum 950
@@ -1158,7 +1161,7 @@ screen maica_setting():
             hbox:
                 frame:
                     xmaximum 950
-                    xpos 2
+                    xpos 4
                     xfill True
                     has vbox:
                         xmaximum 950
