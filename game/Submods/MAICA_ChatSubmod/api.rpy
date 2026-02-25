@@ -134,6 +134,8 @@ init 5 python in maica:
     maica_instance.vista_manager.android = store.renpy.android
     import maica_vista_files_manager
     if renpy.windows:
+        maica_instance.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick.exe"))
+    elif renpy.android:
         maica_instance.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
     elif renpy.android:
         try:
