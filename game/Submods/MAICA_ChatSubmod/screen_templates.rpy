@@ -338,7 +338,7 @@ init -1:
         hbox:
             frame:
                 xsize 950
-                xpos 30
+                xpos 4
                 has vbox:
                     xsize 950
                 transclude
@@ -347,7 +347,7 @@ init -1:
         hbox:
             frame:
                 xsize 850
-                xpos 30
+                xpos 4
                 has vbox:
                     xsize 850
                 transclude
