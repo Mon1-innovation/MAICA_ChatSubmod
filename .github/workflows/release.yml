@@ -98,3 +98,13 @@ jobs:
       if: steps.check_release.outputs.create_release == 'false'
       run: |
         echo "Release ${{ steps.set_version.outputs.version }} already exists. Skipping release creation."
+
+    - name: Upload artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-files
+        path: |
+          MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip
+          release_notes.md
+        retention-days: 30
