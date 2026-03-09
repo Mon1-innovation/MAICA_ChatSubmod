@@ -256,7 +256,7 @@ init 10 python:
     def output_chat_history():
         import json
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
-            f.write(json.dumps(store.maica.maica_instance.get_history().get("content"), []))
+            f.write(json.dumps(store.maica.maica_instance.get_history().get("content") or []))
         renpy.notify(_("MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
     
     def upload_chat_history():
