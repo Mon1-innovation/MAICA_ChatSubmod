@@ -1019,8 +1019,8 @@ translate english strings:
     new "Each session stores and applies history context independently.\n* Set to 0 to disable context (single round conversation)"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1514
-    old "会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"
-    new "Max length each session will preserve, in range of 512-28672.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues"
+    old "会话保留的最大长度. 范围512-20480.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"
+    new "Max length each session will preserve, in range of 512-20480.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1579
     old "启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"

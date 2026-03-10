@@ -994,8 +994,8 @@ screen maica_setting():
             use num_bar(_("当前会话"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
 
 
-            $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "max_history_token", 512, 28672)
+            $ tooltip_session_length = _("会话保留的最大长度. 范围512-20480.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
+            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "max_history_token", 512, 20480)
 
 
             hbox:
