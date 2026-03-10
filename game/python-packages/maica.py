@@ -173,8 +173,8 @@ class MaicaAi(ChatBotInterface):
             TOKEN_FAILED: u"令牌验证失败",
             CONNECT_PROBLEM: u"无法连接服务器, 请检查网络, 查看submod_log以获取详细信息",
             MODEL_NOT_FOUND: u"选择的 model 不正确",
-            TOKEN_MAX_EXCEEDED:u"session 已超过 28672 token, 对话已被裁剪",
-            TOKEN_24000_EXCEEDED:u"session 已超过 24576 token, 如需要历史记录请及时保存, 对话将很快被裁剪",
+            TOKEN_MAX_EXCEEDED:u"session 长度已达上限, 对话已被裁剪",
+            TOKEN_24000_EXCEEDED:u"session 长度接近上限, 如需要历史记录请及时保存, 对话将很快被裁剪",
             WSS_CLOSED_UNEXCEPTED:u"websocket 异常关闭, 查看submod_log以获取详细信息" if PY2 else u"websocket 异常关闭, 请确认已安装数据包, 查看submod_log以获取详细信息",
             SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档",
             SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
@@ -260,7 +260,7 @@ class MaicaAi(ChatBotInterface):
         self.in_mas = True
         self.provider_manager = maica_provider_manager.MaicaProviderManager()
         self.is_outdated = None
-        self.max_history_token = 28672
+        self.max_history_token = 8192
         self._in_mspire = False
         self.mspire_use_cache = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
