@@ -163,6 +163,7 @@ class EmoSelector(object):
         # This part sanitizes matches
         for index, match in enumerate(matches):
             rawmatch = match
+            match = self.emote_translate.get(match, match)
 
             # 可能是有句子被套上了
             if get_encoded_len(match) >= 16 and not '[' in match and not ']' in match:
@@ -215,7 +216,6 @@ class EmoSelector(object):
 
         # Then this part processes
         for index, match in enumerate(new_matches):
-            match = new_matches[index] = self.emote_translate.get(match, match)
             # rawmatch = new_rawmatches[index]
 
             if not match in self.selector:
@@ -247,7 +247,8 @@ class EmoSelector(object):
         if not keep_tags:
             for index, piece in enumerate(message_pieces):
                 for rawmatch in rawmatches:
-                    message_pieces[index] = piece.replace('[{}]'.format(rawmatch), '')
+                    piece = piece.replace('[{}]'.format(rawmatch), '')
+                message_pieces[index] = piece
 
         # So now len(message_pieces) should equal to len(emos) + 1
         # Now we check if the first piece is empty. If it isn't, this talk does not begin with a match
