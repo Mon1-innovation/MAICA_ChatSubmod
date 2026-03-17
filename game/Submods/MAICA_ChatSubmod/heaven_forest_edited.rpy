@@ -13,6 +13,8 @@ init -1 python:
         precip_type=store.mas_weather.PRECIP_TYPE_DEF,
         unlocked=False
     )
+
+    # Likely deprecated! We now use the weather implementation
     heaven_forest_d = MASFilterableBackground(
         # ID
         "heaven_forest_d",
