@@ -741,7 +741,7 @@ label change_to_heaven_forest():
 
 label change_to_heaven_forest_corrupted():
     $ mas_changeWeather(hf2_weather, True)
-    $ bg_change_info = mas_changeBackground(heaven_forest_d, by_user=None, set_persistent=False,)
+    $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
     call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
     return
 
