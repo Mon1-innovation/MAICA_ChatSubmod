@@ -166,7 +166,7 @@ init 999 python in maica:
             )
 
         def condition(self):
-            return store.mas_isMoniAff(higher=True) and not mas_current_weather in (hf_weather, hf2_weather)
+            return store.mas_isMoniAff(higher=True) and not store.mas_current_weather in (store.hf_weather, store.hf2_weather)
             
         def build(self):
             self.weathers = self.get_weather_dict()
