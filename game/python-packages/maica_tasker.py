@@ -199,6 +199,7 @@ class MaicaTaskManager(object):
 
     def close_ws(self):
         """关闭WebSocket连接。"""
+        default_logger.debug("manually closed websocket connection")
         self.ws_client.close()
 
     def register_task(self, task):

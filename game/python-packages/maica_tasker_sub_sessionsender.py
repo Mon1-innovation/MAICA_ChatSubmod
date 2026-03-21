@@ -179,8 +179,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
             self.process_request(*args, **kwargs)
         except Exception as e:
             import traceback
-            if self.logger:
-                self.logger.error("[SessionSenderAndReceiver] start_request error: {}".format(traceback.format_exc()))
+            self.logger.error("[SessionSenderAndReceiver] start_request error: {}".format(traceback.format_exc()))
             # 如果发生异常，立即释放锁
             self.processing = False
             SessionSenderAndReceiver.multi_lock.release()
