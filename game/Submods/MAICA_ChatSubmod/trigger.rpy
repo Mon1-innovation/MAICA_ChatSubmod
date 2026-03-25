@@ -166,7 +166,8 @@ init 999 python in maica:
             )
 
         def condition(self):
-            return store.mas_isMoniAff(higher=True) and not mas_current_weather in (hf_weather, hf2_weather)
+            current = store.mas_getCurrentBackgroundId()
+            return store.mas_isMoniAff(higher=True) and not current in("heaven_forest_d", "heaven_forest")
             
         def build(self):
             self.weathers = self.get_weather_dict()
