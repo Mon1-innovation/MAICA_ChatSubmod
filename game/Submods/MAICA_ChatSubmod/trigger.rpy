@@ -168,7 +168,13 @@ init 999 python in maica:
 
         def condition(self):
             # TODO: py3以后改为动态条件
-            return True#return store.mas_isMoniAff(higher=True) and self.can_change
+            import inspect
+            stack = inspect.stack()
+            for frame_info in stack:
+                stack_info = "function {} in {} # {}".format(frame_info.function, frame_info.filename, frame_info.lineno)
+                store.mas_submod_utils.submod_log.error(stack_info)
+
+            return False#return store.mas_isMoniAff(higher=True) and self.can_change
             
         def build(self):
             self.weathers = self.get_weather_dict()
