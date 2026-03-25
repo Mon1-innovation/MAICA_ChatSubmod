@@ -171,33 +171,6 @@ class SessionSenderAndReceiver(MaicaWSTask):
         # 尝试非阻塞地获取锁，避免竞态条件
         if not SessionSenderAndReceiver.multi_lock.acquire(blocking=False):
             raise RuntimeError("SessionSenderAndReceiver is already processing a request.")
-
-        # 确保query参数是UTF-8编码的unicode字符串
-        if 'query' in kwargs:
-            query = kwargs['query']
-            if PY2 and isinstance(query, str):
-                try:
-                    kwargs['query'] = query.decode('utf-8')
-                except UnicodeDecodeError:
-                    import chardet
-                    detected = chardet.detect(query)
-                    encoding = detected.get('encoding', 'utf-8')
-                    try:
-                        kwargs['query'] = query.decode(encoding, errors='ignore')
-                    except (LookupError, UnicodeDecodeError):
-                        kwargs['query'] = query.decode('latin-1', errors='ignore')
-            elif not PY2 and isinstance(query, bytes):
-                try:
-                    kwargs['query'] = query.decode('utf-8')
-                except UnicodeDecodeError:
-                    import chardet
-                    detected = chardet.detect(query)
-                    encoding = detected.get('encoding', 'utf-8')
-                    try:
-                        kwargs['query'] = query.decode(encoding, errors='ignore')
-                    except (LookupError, UnicodeDecodeError):
-                        kwargs['query'] = query.decode('latin-1', errors='ignore')
-
         self.logger.debug("[{}] start_request args: {}, kwargs: {}".format(self.__class__.__name__, args, kwargs))
 
         self.processing = True
