@@ -151,6 +151,7 @@ init 999 python in maica:
         def __init__(self):
             self.weathers = self.get_weather_dict()
             self.weathers_list = self.get_weather_list()
+            self.can_change = True
             super(WeatherTrigger, self).__init__(
                 common_switch_template,
                 "weather",
@@ -166,8 +167,8 @@ init 999 python in maica:
             )
 
         def condition(self):
-            current = store.mas_getCurrentBackgroundId()
-            return store.mas_isMoniAff(higher=True) and not current in("heaven_forest_d", "heaven_forest")
+            # TODO: py3以后改为动态条件
+            return True#return store.mas_isMoniAff(higher=True) and self.can_change
             
         def build(self):
             self.weathers = self.get_weather_dict()

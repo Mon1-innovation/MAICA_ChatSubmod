@@ -730,6 +730,7 @@ label change_to_heaven_forest():
     #show expression _background as sp_mas_backbed zorder behind_bg
     #$ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
     $ mas_changeWeather(hf_weather, True)
+    $ store.maica.weather_trigger.can_change = False
     $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
     call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
     #$ behind_bg = MAS_BACKGROUND_Z - 2
@@ -740,6 +741,7 @@ label change_to_heaven_forest():
     return
 
 label change_to_heaven_forest_corrupted():
+    $ store.maica.weather_trigger.can_change = False
     $ mas_changeWeather(hf2_weather, True)
     $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
     call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
@@ -749,6 +751,7 @@ label clear_all:
     call maica_hide_console
     hide sp_mas_backbed
     $ HKBShowButtons()
+    $ store.maica.weather_trigger.can_change = True
     $ mas_changeWeather(mas_weather_def)
     $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
     if maica_chr_exist:
