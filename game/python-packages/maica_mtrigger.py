@@ -120,6 +120,9 @@ class MTriggerManager(object):
                     continue
                 res.append(i.build())
                 current_length += item_length
+
+        logger.debug('edge_debug build_data res {}'.format(str(res)))
+
         return res
         
 
