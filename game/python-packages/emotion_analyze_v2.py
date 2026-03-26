@@ -62,8 +62,8 @@ class EmoSelector(object):
         self._pre_emote_kw = u"微笑"
         self._pre_emote_code = "eua"
 
-        self._emote_code = ""
-        self._emote_kw = ""
+        self._emote_code = "eua"
+        self._emote_kw = u"微笑"
         self._pre_pos = 0
         self.fallback_predictor = fallback_predictor
         self.fallback_selector = FallBackEmo()
@@ -73,8 +73,8 @@ class EmoSelector(object):
         self._pre_emote_kw = u"微笑"
         self._pre_emote_code = "eua"
 
-        self._emote_code = ""
-        self._emote_kw = ""
+        self._emote_code = "eua"
+        self._emote_kw = u"微笑"
         self.fallback_selector.__init__()
 
     @staticmethod
