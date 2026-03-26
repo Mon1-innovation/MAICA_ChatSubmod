@@ -191,7 +191,7 @@ class EmoSelector(object):
 
         # m = 0.25
         # o = -0.1
-        emo = self._pre_emote_kw
+        emote_kw = self._pre_emote_kw
 
         new_matches = []
         # new_rawmatches = []
@@ -251,7 +251,7 @@ class EmoSelector(object):
 
         message_pieces.append(message_cuttingmat)
 
-        emos = []
+        emote_kws = []
 
         # Then this part processes
         for index, match in enumerate(new_matches):
@@ -273,15 +273,15 @@ class EmoSelector(object):
                     match = new_matches[index] = temp_match.strip('[').strip(']')
 
             if match in self.selector:
-                emo = match
+                emote_kw = match
                 # m = 0.7
                 # o = 0.0
-                self.fallback_selector.last = emo
+                self.fallback_selector.last = emote_kw
             else:
-                emo = self.fallback_selector.predict()
+                emote_kw = self.fallback_selector.predict()
                 logger.warning("[Maica::EmoSelector] {} is not in selector".format(match))
 
-            emos.append(emo)
+            emote_kws.append(emote_kw)
 
         if not keep_tags:
             for index, piece in enumerate(message_pieces):
@@ -289,37 +289,39 @@ class EmoSelector(object):
                     piece = piece.replace('[{}]'.format(rawmatch), '')
                 message_pieces[index] = piece
 
-        # So now len(message_pieces) should equal to len(emos) + 1
+        # So now len(message_pieces) should equal to len(emote_kws) + 1
         # Now we check if the first piece is empty. If it isn't, this talk does not begin with a match
         # We fix that by adding a fallback prediction.
 
         if not message_pieces[0].strip():
             message_pieces.pop(0)
 
-        if len(emos) < len(message_pieces):
-            emos.insert(0, self.fallback_selector.predict())
+        if len(emote_kws) < len(message_pieces):
+            emote_kws.insert(0, self.fallback_selector.predict())
 
-        emo_codes = []
+        emote_codes = []
 
-        for index, emo in enumerate(emos):
-            self.process_strength(emo)
-            self._pre_emote_kw = emo
-            emo_codes.append(self.get_emote(keep_pose=(index >= 1))) # keep_pose is randomly neutualized if sentiment changes to make performance more natural, use "force" to enforce effect.
-            # logger.debug("[Maica::EmoSelector] index {} keep_pose {} emo {}".format(index, index >= 1, emo_codes[-1]))
+        for index, emote_kw in enumerate(emote_kws):
+            self.process_strength(emote_kw)
+            self._pre_emote_kw = self._emote_kw
+            self._emote_kw = emote_kw
+            
+            emote_codes.append(self.get_emote(keep_pose=(index >= 1))) # keep_pose is randomly neutualized if sentiment changes to make performance more natural, use "force" to enforce effect.
+            # logger.debug("[Maica::EmoSelector] index {} keep_pose {} emote_kw {}".format(index, index >= 1, emote_codes[-1]))
 
         # logger.debug("[Maica::EmoSelector] pre_pos {}".format(self._pre_pos))
-        return list(zip(emo_codes, message_pieces))
+        return list(zip(emote_codes, message_pieces))
 
-    def process_strength(self, emote, multi=0.7, offset=0.0):
-        self._emote_kw = emote
-        res = get_sequence_emo(self.main_strength, self.selector[emote], self.storage, eoc=self.eoc, excepted=[self._pre_emote_code])
+    def process_strength(self, emote_kw, multi=0.7, offset=0.0):
+        
+        res = get_sequence_emo(self.main_strength, self.selector[emote_kw], self.storage, eoc=self.eoc, excepted=[self._pre_emote_code])
         strength_diff = res[1] - self.main_strength
-        self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset)) if self.sentiment[emote] == self.sentiment[self._pre_emote_kw] else 0.1
-        self._emote_code = res[0]
+        self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset)) if self.sentiment[emote_kw] == self.sentiment[self._pre_emote_kw] else 0.1
         self._pre_emote_code = self._emote_code
-
-        if self.sentiment[self._pre_emote_kw] == self.sentiment[emote]:
-            if self._pre_emote_kw != emote:
+        self._emote_code = res[0]
+        
+        if self.sentiment[self._pre_emote_kw] == self.sentiment[emote_kw]:
+            if self._pre_emote_kw != emote_kw:
                 if self.main_strength <= 0.3:
                     self.main_strength += 0.2
                 elif self.main_strength <= 0.6:
