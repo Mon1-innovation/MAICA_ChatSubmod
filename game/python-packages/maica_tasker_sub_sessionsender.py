@@ -269,11 +269,9 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             'type': 'query',
             'chat_session': session,
             'query': query,
-            # 'trigger': trigger,
+            'trigger': trigger,
             "pprt": pprt
         }
-        if trigger:
-            data['trigger'] = trigger
         if visions:
             data['vision'] = visions
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
