@@ -71,11 +71,27 @@ class EmoSelector(object):
     def reset(self):
         self.main_strength = 0.0
         self._pre_emote_kw = u"微笑"
-        self._pre_emote_code = ""
+        self._pre_emote_code = "eua"
 
         self._emote_code = ""
         self._emote_kw = ""
         self.fallback_selector.__init__()
+
+    @staticmethod
+    def breakdown_emo(emo):
+        eye = emo[0]
+        eyebrow = emo[1]
+        mouth = emo[-1]
+        leftovers = emo[2:-2]
+        leftovers_list = []
+        while leftovers:
+            if leftovers[0] in ['b', 't']:
+                leftovers_list.append(leftovers[:2])
+                leftovers = leftovers[2:]
+            else:
+                leftovers_list.append(leftovers[:3])
+                leftovers = leftovers[3:]
+        return eye, eyebrow, mouth, leftovers_list
 
     def get_emote(self, idle = False, keep_pose = False):
         """
@@ -99,9 +115,32 @@ class EmoSelector(object):
                 pos = 6
             return pos
         
-        def idle_emo():
-            emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu'])
-            return emo
+        def idle_emo(emo):
+            brokedown_emo = self.breakdown_emo(emo)
+            new_emo = ''
+            if brokedown_emo[0] in ['e', 't', 'h', 'd', 'f']:
+                new_emo += brokedown_emo[0]
+            else:
+                new_emo += 'e'
+            if brokedown_emo[1] in ['u', 'k', 's']:
+                new_emo += brokedown_emo[1]
+            else:
+                new_emo += 'u'
+            new_emo += ''.join(brokedown_emo[3])
+            if brokedown_emo[2] in ['a', 'c', 'u']:
+                new_emo += brokedown_emo[2]
+            elif brokedown_emo[2] in ['x', 'g']:
+                new_emo += 'c'
+            else:
+                new_emo += 'a'
+
+            if new_emo in ['eua', 'esa']:
+                new_emo += '_follow'
+            return new_emo
+
+        # def idle_emo():
+        #     emo = random.choice(['eua_follow', 'eua_follow', 'eua_follow', 'dua', 'esa_follow', 'esa_follow', 'esa_follow', 'tuu'])
+        #     return emo
         
         if keep_pose and keep_pose != "force":
             if self.sentiment[self._pre_emote_kw] != self.sentiment[self._emote_kw]:
@@ -119,7 +158,7 @@ class EmoSelector(object):
         self._pre_pos = new_pos
 
         if self._emote_code != "":
-            return "{}{}".format(new_pos, self._emote_code if not idle else idle_emo())
+            return "{}{}".format(new_pos, self._emote_code if not idle else idle_emo(self._pre_emote_code))
         else:
             return "idle"
 
@@ -184,17 +223,17 @@ class EmoSelector(object):
 
             if index == 0:
                 randf = random.random()
-                if self._pre_emote_code and self._pre_emote_code in self.selector[u'微笑'].keys() and match == u'微笑':
+                if self._pre_emote_kw == u'微笑' and match == u'微笑':
                     if 0 <= randf < 0.25:
                         match = u'笑'
                     elif 0.25 <= randf < 0.5:
                         match = u'开心'
-                elif self._pre_emote_code and self._pre_emote_code in self.selector[u'笑'].keys() and match == u'笑':
+                elif self._pre_emote_kw == u'笑' and match == u'笑':
                     if 0 <= randf < 0.25:
                         match = u'微笑'
                     elif 0.25 <= randf < 0.75:
                         match = u'开心'
-                elif self._pre_emote_code and self._pre_emote_code in self.selector[u'开心'].keys() and match == u'开心':
+                elif self._pre_emote_kw == u'开心' and match == u'开心':
                     if 0 <= randf < 0.25:
                         match = u'微笑'
                     elif 0.25 <= randf < 0.75:
