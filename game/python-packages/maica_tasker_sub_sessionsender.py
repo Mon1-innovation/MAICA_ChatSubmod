@@ -276,8 +276,14 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             data['vision'] = visions
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
-        taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
 
+        self.logger.debug("edge_debug sending data {}".format(json.dumps(data, ensure_ascii=False)))
+        try:
+            taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
+        except BaseException as e:
+            self.logger.error("edge_debug ws_client send interrupted: {}".format(str(e)))
+        finally:
+            self.logger.debug("edge_debug ws_client send ended")
 
 
 class MAICAMSpireProcessor(SessionSenderAndReceiver):
