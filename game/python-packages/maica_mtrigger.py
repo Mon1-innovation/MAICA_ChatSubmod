@@ -109,6 +109,9 @@ class MTriggerManager(object):
         self._running = False
         res = []
         current_length = len(json.dumps(res, ensure_ascii=False))
+
+        logger.debug('edge_debug self.triggers {}'.format(str(self.triggers)))
+
         for i in self.triggers:
             if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
                 item_length = len(i)
@@ -117,6 +120,9 @@ class MTriggerManager(object):
                     continue
                 res.append(i.build())
                 current_length += item_length
+
+        logger.debug('edge_debug build_data res {}'.format(str(res)))
+
         return res
         
 
