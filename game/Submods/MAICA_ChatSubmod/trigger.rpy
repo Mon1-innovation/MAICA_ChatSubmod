@@ -174,7 +174,7 @@ init 999 python in maica:
             #     stack_info = "edge_debug function {} in {} # {}".format(frame_info[3], frame_info[1], frame_info[2])
             store.mas_submod_utils.submod_log.debug("edge_debug condition called")
 
-            return True#return store.mas_isMoniAff(higher=True) and self.can_change
+            return store.mas_isMoniAff(higher=True) and self.can_change
             
         def build(self):
             self.weathers = self.get_weather_dict()
