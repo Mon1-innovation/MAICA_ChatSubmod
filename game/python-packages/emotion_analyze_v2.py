@@ -82,7 +82,7 @@ class EmoSelector(object):
         eye = emo[0]
         eyebrow = emo[1]
         mouth = emo[-1]
-        leftovers = emo[2:-2]
+        leftovers = emo[2:-1]
         leftovers_list = []
         while leftovers:
             if leftovers[0] in ['b', 't']:
