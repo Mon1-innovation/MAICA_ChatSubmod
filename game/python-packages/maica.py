@@ -1015,7 +1015,6 @@ class MaicaAi(ChatBotInterface):
             for item in talks:
                 self.add_ana(item)
             self.status = self.MaicaAiStatus.MESSAGE_DONE
-            self.MoodStatus.reset()
             # 释放聊天锁，允许下一个聊天请求
             processor.reset()
     
