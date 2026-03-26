@@ -47,7 +47,9 @@ label maica_talking.asking:
                 ai.chat(is_retry_before_sendmessage)
                 question = is_retry_before_sendmessage
                 is_retry_before_sendmessage = False
-            renpy.show("monika {}".format(ai.MoodStatus.get_emote(True)))
+            idle_emo = ai.MoodStatus.get_emote(True)
+            store.mas_submod_utils.submod_log.debug("idle emo: {}".format(idle_emo))
+            renpy.show("monika {}".format(idle_emo))
             if ai.is_ready_to_input():
                 if mspire is False:
                     if "stop" in store.action:
