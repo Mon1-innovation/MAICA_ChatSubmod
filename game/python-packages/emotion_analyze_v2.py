@@ -60,7 +60,7 @@ class EmoSelector(object):
         self.eoc = eoc
         self.main_strength = 0.0
         self._pre_emote_kw = u"微笑"
-        self._pre_emote_code = ""
+        self._pre_emote_code = "eua"
 
         self._emote_code = ""
         self._emote_kw = ""
