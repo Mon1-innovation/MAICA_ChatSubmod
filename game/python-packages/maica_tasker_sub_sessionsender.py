@@ -10,6 +10,7 @@ from bot_interface import PY2
 import threading
 import json
 from maica_tasker_sub import MAICAWSCookiesHandler
+from cp936_decode import decode_cp936
 
 class ChatLock(object):
     """
@@ -272,14 +273,23 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             'trigger': trigger,
             "pprt": pprt
         }
+        # if trigger:
+        #     data['trigger'] = trigger
+        # else:
+        #     data['trigger'] = []
         if visions:
             data['vision'] = visions
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
 
-        self.logger.debug("edge_debug sending data {}".format(json.dumps(data, ensure_ascii=False)))
+        dumped_data = json.dumps(data, ensure_ascii=False)
+        if PY2 and isinstance(dumped_data, str):
+            dumped_data = decode_cp936(dumped_data)
+
+        self.logger.debug("edge_debug sending data {}".format(dumped_data))
+        self.logger.debug("edge_debug data type {}".format(type(dumped_data)))
         try:
-            taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
+            taskowner.ws_client.send(dumped_data)
         except BaseException as e:
             self.logger.error("edge_debug ws_client send interrupted: {}".format(str(e)))
         finally:
