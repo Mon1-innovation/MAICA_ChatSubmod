@@ -239,6 +239,7 @@ label maica_init_connect(use_pause_instand_wait = False):
                         _history_list.pop()
                 continue
             if ai.is_ready_to_input():
+                maica_apply_setting(True)
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 _return = "success"
                 break

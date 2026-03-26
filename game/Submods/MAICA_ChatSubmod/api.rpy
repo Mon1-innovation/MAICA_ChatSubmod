@@ -262,7 +262,6 @@ init 5 python in maica:
         else:
             store.mas_unlockEVL("maica_greeting", "GRE")
         check_workload()
-        maica_apply_setting(True)
 
     def validate_version():
         # if not (config.debug or config.developer or store.maica.maica_instance._ignore_accessable):
