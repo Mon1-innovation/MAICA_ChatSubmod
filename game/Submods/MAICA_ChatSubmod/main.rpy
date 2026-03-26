@@ -40,6 +40,7 @@ label maica_talking(mspire = False):
 
         extend_sayer = ExtendSayer()
 label maica_talking.asking:
+    $ store.mas_submod_utils.submod_log.debug("current triggers: {}".format(ai.mtrigger_manager.build_data()))
     python:
         while True:
             if is_retry_before_sendmessage:
