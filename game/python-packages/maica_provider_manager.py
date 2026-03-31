@@ -110,15 +110,23 @@ class MaicaProviderManager(object):
         """获取WebSocket URL"""
         if self._provider_id is None:
             logger.warning("Cannot find server by id: {}, returning default failed response".format(self._provider_id))
-            return self._isfailedresponse["wsInterface"]
-        return self._get_server_by_id(self._provider_id)["wsInterface"]
+            url = self._isfailedresponse["wsInterface"]
+        else:
+            url = self._get_server_by_id(self._provider_id)["wsInterface"]
+        if isinstance(url, str):
+            url = url.strip('/')
+        return url
 
     def get_api_url(self):
         """获取API URL"""
         if self._provider_id is None:
             logger.warning("Cannot find server by id: {}, returning default failed response".format(self._provider_id))
-            return self._isfailedresponse["httpInterface"]
-        return self._get_server_by_id(self._provider_id)["httpInterface"]
+            url = self._isfailedresponse["httpInterface"]
+        else:
+            url = self._get_server_by_id(self._provider_id)["httpInterface"]
+        if isinstance(url, str):
+            url = url.strip('/')
+        return url
 
     def get_server_info(self):
         """获取当前服务器信息"""
