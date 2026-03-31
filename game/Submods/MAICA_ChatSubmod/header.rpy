@@ -1253,6 +1253,7 @@ screen maica_setting():
 
 
 screen maica_input_screen(prompt):
+    modal True
     default maica_input = store.maica.MaicaInputValue()
     style_prefix "input"
 
