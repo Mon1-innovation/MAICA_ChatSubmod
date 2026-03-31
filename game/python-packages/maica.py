@@ -578,6 +578,7 @@ class MaicaAi(ChatBotInterface):
     @provider_id.setter
     def provider_id(self, value):
         self.provider_manager.set_provider_id(value)
+        self.vista_manager.base_url = self.provider_manager.get_api_url()
 
     def reset_stat(self):
         self.stat = {
