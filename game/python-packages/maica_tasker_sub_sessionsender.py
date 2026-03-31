@@ -286,15 +286,7 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
         if PY2 and isinstance(dumped_data, str):
             dumped_data = decode_cp936(dumped_data)
 
-        self.logger.debug("edge_debug sending data {}".format(dumped_data))
-        self.logger.debug("edge_debug data type {}".format(type(dumped_data)))
-        try:
-            taskowner.ws_client.send(dumped_data)
-        except BaseException as e:
-            self.logger.error("edge_debug ws_client send interrupted: {}".format(str(e)))
-        finally:
-            self.logger.debug("edge_debug ws_client send ended")
-
+        taskowner.ws_client.send(dumped_data)
 
 class MAICAMSpireProcessor(SessionSenderAndReceiver):
     """

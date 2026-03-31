@@ -60,10 +60,10 @@ class EmoSelector(object):
         self.eoc = eoc
         self.main_strength = 0.0
         self._pre_emote_kw = u"微笑"
-        self._pre_emote_code = ""
+        self._pre_emote_code = "eua"
 
-        self._emote_code = ""
-        self._emote_kw = ""
+        self._emote_code = "eua"
+        self._emote_kw = u"微笑"
         self._pre_pos = 0
         self.fallback_predictor = fallback_predictor
         self.fallback_selector = FallBackEmo()
@@ -73,8 +73,8 @@ class EmoSelector(object):
         self._pre_emote_kw = u"微笑"
         self._pre_emote_code = "eua"
 
-        self._emote_code = ""
-        self._emote_kw = ""
+        self._emote_code = "eua"
+        self._emote_kw = u"微笑"
         self.fallback_selector.__init__()
 
     @staticmethod
@@ -82,7 +82,7 @@ class EmoSelector(object):
         eye = emo[0]
         eyebrow = emo[1]
         mouth = emo[-1]
-        leftovers = emo[2:-2]
+        leftovers = emo[2:-1]
         leftovers_list = []
         while leftovers:
             if leftovers[0] in ['b', 't']:
