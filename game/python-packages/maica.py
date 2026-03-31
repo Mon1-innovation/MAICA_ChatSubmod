@@ -645,7 +645,7 @@ class MaicaAi(ChatBotInterface):
     def update_stat(self, new):
         self.stat.update(new)
     def generate_vista_url(self, uuid):
-        return self.provider_manager.get_api_url() + "vista?content={}".format(uuid)
+        return self.provider_manager.get_api_url() + "/vista?content={}".format(uuid)
 
     def add_ana(self, ana_input):
         emote_talk_zipped = self.MoodStatus.analyze(ana_input)
@@ -682,7 +682,7 @@ class MaicaAi(ChatBotInterface):
         }
         try:
             import json
-            response = requests.get(self.provider_manager.get_api_url() + "register", params={"content":json.dumps(data)}, timeout=5)
+            response = requests.get(self.provider_manager.get_api_url() + "/register", params={"content":json.dumps(data)}, timeout=5)
             if (response.status_code != 200): 
                 raise Exception("Maica::_gen_token response process failed because server return {}".format(response.status_code))
         except Exception as e:
@@ -715,7 +715,7 @@ class MaicaAi(ChatBotInterface):
         """
         import requests
         try:
-            res = requests.get(self.provider_manager.get_api_url() + "legality", params={"access_token": self.ciphertext})
+            res = requests.get(self.provider_manager.get_api_url() + "/legality", params={"access_token": self.ciphertext})
             try:
                 res = res.json()
                 if res.get("success", False):
@@ -737,7 +737,7 @@ class MaicaAi(ChatBotInterface):
         import traceback
 
         try:
-            res = requests.get(self.provider_manager.get_api_url() + "version")
+            res = requests.get(self.provider_manager.get_api_url() + "/version")
             try:
                 res_data = res.json()
                 if res_data.get("success", False):
@@ -760,7 +760,7 @@ class MaicaAi(ChatBotInterface):
         import traceback
 
         try:
-            res = requests.get(self.provider_manager.get_api_url() + "emotion",
+            res = requests.get(self.provider_manager.get_api_url() + "/emotion",
                                params={
                                    "access_token": self.ciphertext,
                                    "content": json.dumps({
@@ -829,7 +829,7 @@ class MaicaAi(ChatBotInterface):
                 params["content"] = json.dumps(content)
 
             res = requests.get(
-                self.provider_manager.get_api_url() + "legality",
+                self.provider_manager.get_api_url() + "/legality",
                 params=params
             )
 
@@ -1120,7 +1120,7 @@ class MaicaAi(ChatBotInterface):
                     "content": dict
                 }
         res = requests.post(
-            self.provider_manager.get_api_url() + "savefile",
+            self.provider_manager.get_api_url() + "/savefile",
             json = content,
             headers = {"Content-Type": "application/json"}
         )
@@ -1152,7 +1152,7 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica is not serving")
         import requests, json
         res = requests.get(
-            self.provider_manager.get_api_url() + "history",
+            self.provider_manager.get_api_url() + "/history",
             params =
                 {
                     "access_token": self.ciphertext,
@@ -1192,7 +1192,7 @@ class MaicaAi(ChatBotInterface):
             "content": history
         }
         res = requests.put(
-            self.provider_manager.get_api_url() + "history",
+            self.provider_manager.get_api_url() + "/history",
             json = content,
             headers = {"Content-Type": "application/json"}
         )
@@ -1242,7 +1242,7 @@ class MaicaAi(ChatBotInterface):
             return None
 
         def task():
-            res = requests.get(self.provider_manager.get_api_url() + "workload")
+            res = requests.get(self.provider_manager.get_api_url() + "/workload")
             try:
                 data = res.json()
                 if data["success"]:
@@ -1344,7 +1344,7 @@ class MaicaAi(ChatBotInterface):
             self.task_manager.close_ws()
     def del_mtrigger(self):
         import requests
-        requests.delete(self.provider_manager.get_api_url()+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'})
+        requests.delete(self.provider_manager.get_api_url()+"/trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'})
 
     def send_mtrigger(self):
         try:
@@ -1365,7 +1365,7 @@ class MaicaAi(ChatBotInterface):
             }
             #requests.delete(self.provider_manager.get_api_url()+"trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session})
             res = requests.post(
-                self.provider_manager.get_api_url() + "trigger",
+                self.provider_manager.get_api_url() + "/trigger",
                 json = content,
                 headers = {"Content-Type": "application/json"}
             )
@@ -1454,8 +1454,8 @@ class MaicaAi(ChatBotInterface):
                 return
                 
         import requests, json
-        res = requests.get(self.provider_manager.get_api_url() + "accessibility")
-        logger.debug("accessable(): try get accessibility from {}".format(self.provider_manager.get_api_url() + "accessibility"))
+        res = requests.get(self.provider_manager.get_api_url() + "/accessibility")
+        logger.debug("accessable(): try get accessibility from {}".format(self.provider_manager.get_api_url() + "/accessibility"))
         d = res.json()
         if d.get(u"success", False):
             self._serving_status = d["content"]
@@ -1488,7 +1488,7 @@ class MaicaAi(ChatBotInterface):
                 except:
                     pass
             try:
-                res = requests.get(self.provider_manager.get_api_url() + "defaults").json()["content"]
+                res = requests.get(self.provider_manager.get_api_url() + "/defaults").json()["content"]
                 if type(res) == dict:
                     self.default_setting.update(res)
             except Exception as e:
