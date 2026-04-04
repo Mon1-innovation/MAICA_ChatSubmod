@@ -1399,8 +1399,8 @@ class MaicaAi(ChatBotInterface):
         Check if either Baidu or Google is reachable.
         Returns True if at least one is reachable, False otherwise.
         """
-        baidu_reachable = self.ping("www.baidu.com")
-        google_reachable = self.ping("www.google.com")
+        baidu_reachable = self.ping("www.baidu.com", 443)
+        google_reachable = self.ping("www.google.com", 443)
         
         return baidu_reachable or google_reachable
     def accessable(self):
