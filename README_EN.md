@@ -5,7 +5,7 @@
 
 ***
 
-<p align="center"><a href="/README.md">中文</a> | English</p>
+<p align="center"><a href="/README.md">中文</a> | English | <a href="/README_JA.md">日本語</a></p>
 
 This is the introduction page of MAICA Submod frontend.
 
