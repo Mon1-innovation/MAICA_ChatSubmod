@@ -29,10 +29,10 @@ translate english python in maica:
             maica_instance.MaicaAiStatus.SAVEFILE_NOTFOUND:u"Savefile for current session not found",
             maica_instance.MaicaAiStatus.SERVER_MAINTAIN:u"Server is under maintaince, please wait for further announcement",
             maica_instance.MaicaAiStatus.WRONE_INPUT:u"Wrong input, check for possible typo",
-            maica_instance.MaicaAiStatus.CERTIFI_BROKEN:u"You have a corrupted copy of MAS--likely because of other submods. Reinstallation required",
-            maica_instance.MaicaAiStatus.CERTIFI_AUTO_FIX:u"Tried autofixing broken cert module--restart the game to take effect, clean install if it doesn't.",
-            maica_instance.MaicaAiStatus.TOOLONG_CONTENT_LENGTH:u"Content too long, you should turn off big MTrigger.",
-            maica_instance.MaicaAiStatus.IS_SOURCECODE:u"This is a sourcecode copy, not an official release. Please download the latest release from the Releases page.",
+            maica_instance.MaicaAiStatus.CERTIFI_BROKEN:u"SSL/TLS corrupted, possibly caused by other submods. Clean reinstalling MAS required",
+            maica_instance.MaicaAiStatus.CERTIFI_AUTO_FIX:u"SSL/TLS corrupted, restart the game to apply patch. Clean reinstall MAS if issue persists",
+            maica_instance.MaicaAiStatus.TOOLONG_CONTENT_LENGTH:u"Content length exceeded, consider disabling large MTrigger items",
+            maica_instance.MaicaAiStatus.IS_SOURCECODE:u"Source code installation detected. Please install from release instead",
 
         })
         maica_instance.MaicaAiStatus._descriptions.update({
@@ -40,10 +40,10 @@ translate english python in maica:
             maica_instance.MaicaAiStatus.SEND_SETTING: u"Uploading settings",  # 新增
             maica_instance.MaicaAiStatus.FAILED_GET_NODE: u"Failed to get service node, server may be under maintenance or offline",  # 新增
             maica_instance.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket is connecting (this should be quick)",  # 新增
-            maica_instance.MaicaAiStatus.VERSION_OLD: u"Submod version is outdated, please update to the latest version",  # 新增
+            maica_instance.MaicaAiStatus.VERSION_OLD: u"Stale installation detected. Please update to latest release",  # 新增
         })
         maica_instance.MaicaAiStatus._descriptions.update({
-            maica_instance.MaicaAiStatus.NO_INTERTENT: u"Submod offline, double check installation and connectivity according to Readme",  # 新增
+            maica_instance.MaicaAiStatus.NO_INTERTENT: u"Submod offline detected. Double check installation and connectivity according to Readme",  # 新增
         })
         store.mas_setEVLPropValues("maica_main", prompt="I want to go to Heaven Forest", category=["you", "us", "mod", "MAICA"])
         store.mas_setEVLPropValues("maica_mods_preferences", prompt="I've something to change about my preferences", category=["you", "us", "mod", "MAICA"])

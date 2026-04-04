@@ -179,15 +179,15 @@ class MaicaAi(ChatBotInterface):
             SAVEFILE_NOTFOUND:u"玩家存档未找到, 请确保当前对话会话已经上传存档",
             SERVER_MAINTAIN:u"服务器维护中, 请关注相关通知",
             WRONE_INPUT:u"错误的输入, 请检查输入内容",
-            CERTIFI_BROKEN:u"证书模块损坏, 请重新安装MAS",
-            CERTIFI_AUTO_FIX:u"证书模块损坏, 已尝试自动修复, 若重启无效请干净安装",
+            CERTIFI_BROKEN:u"SSL/TLS 工作不正常, 可能由其它子模组导致. 请干净安装MAS",
+            CERTIFI_AUTO_FIX:u"SSL/TLS 工作不正常, 已尝试自动修复. 若重启无效请干净安装MAS",
             SEND_SETTING:u"上传设置中",
             FAILED_GET_NODE:u"获取服务节点失败, 服务器可能维护或离线",
             WEBSOCKET_CONNECTING:u"websocket 正在连接（这应该很快）",
             VERSION_OLD:u"子模组版本过旧, 请升级至最新版",
-            TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看 MTrigger 列表并关闭不需要的触发器",
+            TOOLONG_CONTENT_LENGTH:u"发送内容过长, 请查看 MTrigger 列表并禁用过大的条目",
             NO_INTERTENT:u"子模组未能联网, 根据 Readme 说明检查安装和网络连接",
-            IS_SOURCECODE:u"你不应从源码直接安装, 请从Releases界面下载最新发行版."
+            IS_SOURCECODE:u"检测到源码安装, 请从 Releases 下载安装最新发行版"
         }
 
         @classmethod
