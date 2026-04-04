@@ -1483,7 +1483,7 @@ class MaicaAi(ChatBotInterface):
             self.__accessable = False
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
         
-        # 版本过旧检测
+        # 版本信息获取
         if self.__accessable:
             version_info = self.get_version()
             self.version_info = version_info

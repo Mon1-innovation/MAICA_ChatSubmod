@@ -187,10 +187,13 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
+        # 如果从PC迁移到android，切换为plain节点
         if store.persistent._last_boot_os != "android" and renpy.android:
             store.persistent.maica_setting_dict['provider_id'] = 2
         store.persistent._last_boot_os = "android" if renpy.android else "other"
+
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
+
         import time
         failed = False
         store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
@@ -200,6 +203,8 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
         if store.mas_getAPIKey("Maica_Token") != "":
             store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
+
+        # certifi修复，仅在MAS原生导入失败时启动
         if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
             import requests
             canwhere = False
@@ -245,9 +250,14 @@ init 5 python in maica:
             else:
                 store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
                 failed = True
+        
+        # 如果自动修复失败，切换为plain节点
         if failed:
             persistent.maica_setting_dict['provider_id'] = 2
+
         store.maica.maica_instance.accessable()
+
+        # 版本限制检查
         submod_ver_limit = store.maica.maica_instance.version_info
         if submod_ver_limit.get("success"):
             minver = submod_ver_limit.get("content", {}).get("fe_blessland_version", "0.0.0")
