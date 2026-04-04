@@ -131,51 +131,53 @@ screen maica_vista_filelist(selecting=False):
             if renpy.android:
                 text _("Android设备上传图片可能有短暂的显示异常.")
             for item in files:
-                text renpy.substitute(_("上传时间: ")) + "{}".format(format_timestamp(item['upload_time']))
-                text "UUID: {}".format(item['uuid'])
-                if is_expired(item):
-                    text _("该文件已过期")
-                else:
-                    text _("该文件尚未过期")
-                hbox:
-                    python:
-                        img_path, img_exists = get_display_image(item)
-                    if img_exists:
-                        add Transform(img_path, size=get_scaled_size((item['width'], item['height'])))
+                use maica_l2_subframe():
+                    text renpy.substitute(_("上传时间: ")) + "{}".format(format_timestamp(item['upload_time']))
+                    if renpy.config.debug:
+                        text "UUID: {}".format(item['uuid'])
+                    if is_expired(item):
+                        text _("该文件已过期")
                     else:
-                        text _("图片文件不存在: [img_path]")
-                if store.maica.maica_instance.is_connected():
-                    if selecting:
-                        if not is_expired(item):
-                            if not persistent._maica_vista_enabled:
-                                textbutton _("! MVista尚未解锁"):
-                                    style "generic_fancy_check_button_disabled"
-                            elif selected_is_full():
-                                textbutton _("选中这张图片 (数量已满)"):
-                                    style "generic_fancy_check_button_disabled"
-                            else:
-                                if item in store._maica_selected_visuals:
-                                    textbutton _("选中这张图片"):
-                                        action Function(store._maica_selected_visuals.remove, item)
-                                        selected True
-                                else:
-                                    textbutton _("选中这张图片"):
-                                        action Function(store._maica_selected_visuals.append, item)
-                        else:
-                            textbutton _("选中这张图片 (已过期)"):
-                                style "generic_fancy_check_button_disabled"
-
+                        text _("该文件尚未过期")
                     hbox:
-                        style_prefix "maica_check"
-                        if not is_expired(item):
-                            textbutton _("删除这张图片 (本地和远程)"):
-                                action [Function(remove_if_selected, item),
-                                    Function(store.maica.maica_instance.vista_manager.delete, item['uuid'])]
+                        python:
+                            img_path, img_exists = get_display_image(item)
+                        if img_exists:
+                            add Transform(img_path, size=get_scaled_size((item['width'], item['height'])))
                         else:
-                            textbutton _("删除这张图片 (仅本地)"):
-                                action Function(store.maica.maica_instance.vista_manager.remove, item['uuid'])
-                            textbutton _("重新上传这张图片"):
-                                action [Function(maica_reupload_image, item['uuid'])]
+                            text _("图片文件不存在: [img_path]")
+                    if store.maica.maica_instance.is_connected():
+                        if selecting:
+                            if not is_expired(item):
+                                if not persistent._maica_vista_enabled:
+                                    textbutton _("! MVista尚未解锁"):
+                                        style "generic_fancy_check_button_disabled"
+                                elif selected_is_full():
+                                    textbutton _("选中这张图片 (数量已满)"):
+                                        style "generic_fancy_check_button_disabled"
+                                else:
+                                    if item in store._maica_selected_visuals:
+                                        textbutton _("选中这张图片"):
+                                            action Function(store._maica_selected_visuals.remove, item)
+                                            selected True
+                                    else:
+                                        textbutton _("选中这张图片"):
+                                            action Function(store._maica_selected_visuals.append, item)
+                            else:
+                                textbutton _("选中这张图片 (已过期)"):
+                                    style "generic_fancy_check_button_disabled"
+
+                        hbox:
+                            style_prefix "maica_check"
+                            if not is_expired(item):
+                                textbutton _("删除这张图片 (本地和远程)"):
+                                    action [Function(remove_if_selected, item),
+                                        Function(store.maica.maica_instance.vista_manager.delete, item['uuid'])]
+                            else:
+                                textbutton _("删除这张图片 (仅本地)"):
+                                    action Function(store.maica.maica_instance.vista_manager.remove, item['uuid'])
+                                textbutton _("重新上传这张图片"):
+                                    action [Function(maica_reupload_image, item['uuid'])]
         hbox:
             xpos 10
             style_prefix "confirm"
