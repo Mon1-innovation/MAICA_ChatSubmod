@@ -1399,10 +1399,17 @@ class MaicaAi(ChatBotInterface):
         Check if either Baidu or Google is reachable.
         Returns True if at least one is reachable, False otherwise.
         """
+        baidu_reachable = self.ping("www.baidu.com", 80)
+        google_reachable = self.ping("www.google.com", 80)
+            
+        return baidu_reachable or google_reachable
+    
+    def check_certifi(self):
         baidu_reachable = self.ping("www.baidu.com", 443)
         google_reachable = self.ping("www.google.com", 443)
-        
+            
         return baidu_reachable or google_reachable
+
     def accessable(self):
         """
         检查Maica服务是否可访问
@@ -1420,15 +1427,29 @@ class MaicaAi(ChatBotInterface):
         #self.__accessable = True
         #self.status = self.MaicaAiStatus.NOT_READY
         #return
+
+        # 网络检查
         if not self.can_access_internet():
             self.status = self.MaicaAiStatus.NO_INTERTENT
             logger.error("accessable(): no internet connection")
             self.__accessable = False
             return
-        if self.status == self.MaicaAiStatus.CERTIFI_AUTO_FIX:
-            logger.error("accessable(): certifi auto fix, need restart")
-            self.__accessable = False
-            return
+        # 检测证书是否是MAS版本/证书是否工作正常
+        if self.in_mas:
+            try:
+                import certifi
+                certifi.set_parent_dir
+            except AttributeError:
+                logger.error("accessable(): certifi is broken")
+                self.status = self.MaicaAiStatus.CERTIFI_BROKEN
+                self.__accessable = False
+                return
+            if not self.check_certifi():
+                self.status = self.MaicaAiStatus.CERTIFI_BROKEN
+                self.__accessable = False
+                return
+
+        # 获取服务节点
         try:
             if not self.provider_manager.get_provider():
                 if self.provider_id != 9999:
@@ -1443,16 +1464,7 @@ class MaicaAi(ChatBotInterface):
                 self.__accessable = False
                 return
 
-        if self.in_mas:
-            try:
-                import certifi
-                certifi.set_parent_dir
-            except AttributeError:
-                logger.error("accessable(): certifi is broken")
-                self.status = self.MaicaAiStatus.CERTIFI_BROKEN
-                self.__accessable = False
-                return
-                
+        #获取节点可用性
         import requests, json
         res = requests.get(self.provider_manager.get_api_url() + "/accessibility")
         logger.debug("accessable(): try get accessibility from {}".format(self.provider_manager.get_api_url() + "/accessibility"))
@@ -1471,8 +1483,7 @@ class MaicaAi(ChatBotInterface):
             self.__accessable = False
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
         
-        # 写下版本检测
-        # 后端返回示例：{"content":{"curr_version":"1.2.000.post3","fe_blessland_version":"1.5.0","legc_version":"1.2.000.rc10"},"exception":null,"success":true}
+        # 版本过旧检测
         if self.__accessable:
             version_info = self.get_version()
             self.version_info = version_info
