@@ -375,8 +375,8 @@ translate english strings:
     new "Please ensure connection is ready first"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:275
-    old "> 警告: 与 Better Loading 不兼容"
-    new "> Warning: Blessland is not compatible with Better Loading"
+    old "> 警告: {color=#ff0000}与 Better Loading 不兼容{/color}"
+    new "> Warning: Blessland is {color=#ff0000}NOT compatible with Better Loading{/color}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:298
     old "> 手动上传设置"
@@ -907,8 +907,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:395
-    old "> 警告: 找不到证书, 你是不是忘记安装数据包了?"
-    new "> Warning: no certification found, check datapack installation"
+    old "> 警告: {color=#ff0000}找不到证书{/color}, 你是不是忘记安装数据包了?"
+    new "> Warning: {color=#ff0000}no certification found{/color}, check datapack installation"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:520
     old "> 打开官网"
@@ -1039,8 +1039,8 @@ translate english strings:
     new "> Couldn't acquire online version stream, please check updates manually"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:509
-    old "> 当前版本支持已终止, 请更新至最新版"
-    new "> Support for current version has ended, an update is required"
+    old "> {color=#ff0000}当前版本支持已终止{/color}, 请更新至最新版"
+    new "> {color=#ff0000}Support for current version has ended{/color}, an update is required"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:541
     old "> 使用账号生成令牌"
@@ -1255,12 +1255,12 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:543
-    old "> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, 而不是源代码"
-    new "> Warning: MAICA Libs version not found. Please install from Release, not source code"
+    old "> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"
+    new "> Warning: MAICA Libs version not found. Please install from Release, {color=#ff0000}NOT source code{/color}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:548
-    old "> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"
-    new "> Warning: MAICA Libs v[libv] mismatch with UI v[uiv]. Please fully update from Release"
+    old "> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请{color=#ff0000}从Release{/color}完整地更新MAICA"
+    new "> Warning: MAICA Libs v[libv] mismatch with UI v[uiv]. Please fully update {color=#ff0000}from Release{/color}"
 
 # TODO: Translation updated at 2025-11-14 17:16
 
@@ -1315,8 +1315,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:581
-    old "> 警告: 当前系统非Unicode语言不是简体中文, 可能导致包含中文的响应出现问题"
-    new "> Warning: Current system 'non-unicode language' is not Chinese, expect possible encoding issues"
+    old "> 警告: {color=#ff0000}当前系统非Unicode语言不是简体中文{/color}, 可能导致包含中文的响应出现问题"
+    new "> Warning: current system 'non-unicode language' is not Chinese, expect possible encoding issues"
 
 # TODO: Translation updated at 2025-12-07 15:44
 

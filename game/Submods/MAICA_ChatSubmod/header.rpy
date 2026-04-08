@@ -618,19 +618,19 @@ screen maica_setting_pane():
             elif store.maica.maica_instance.is_outdated is True:
                 hbox:
             
-                    text _("> 当前版本支持已终止, 请更新至最新版"):
+                    text _("> {color=#ff0000}当前版本支持已终止{/color}, 请更新至最新版"):
                         style "main_menu_version_l"
             
             if renpy.android and not os.path.exists(os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')):
                 hbox:
 
-                    text _("> 警告: 找不到证书, 你是不是忘记安装数据包了?"):
+                    text _("> 警告: {color=#ff0000}找不到证书{/color}, 你是不是忘记安装数据包了?"):
                         style "main_menu_version_l"
 
             if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
                 hbox:
 
-                    text _("> 警告: 与 Better Loading 不兼容"):
+                    text _("> 警告: {color=#ff0000}与 Better Loading 不兼容{/color}"):
                         style "main_menu_version_l"
 
             if store.mas_submod_utils.isSubmodInstalled("Log Screen"):
@@ -643,18 +643,18 @@ screen maica_setting_pane():
             if res is None:
                 hbox:
 
-                    text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, 而不是源代码"):
+                    text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"):
                         style "main_menu_version_l"
             elif res != 0:
                 hbox:
 
-                    text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请从Release完整地更新MAICA"):
+                    text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请{color=#ff0000}从Release{/color}完整地更新MAICA"):
                         style "main_menu_version_l"
 
             if renpy.windows and not is_zhcn:
                 hbox:
 
-                    text _("> 警告: 当前系统非Unicode语言不是简体中文, 可能导致包含中文的响应出现问题"):
+                    text _("> 警告: {color=#ff0000}当前系统非Unicode语言不是简体中文{/color}, 可能导致包含中文的响应出现问题"):
                         style "main_menu_version_l"
 
             if 13400 <= maica.maica_instance.status <= 13499:
