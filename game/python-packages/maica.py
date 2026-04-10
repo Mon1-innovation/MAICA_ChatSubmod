@@ -661,7 +661,9 @@ class MaicaAi(ChatBotInterface):
         try:
             if type(res[1]) == ellipsis:
                 res[1] = "..."
-        except:
+            if type(res[1]) in (int, float):
+                res[1] = str(res[1])
+        except Exception:
             pass
         return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1], res[2] if len(res) >= 3 else False)
     def _gen_token(self, account, pwd, token = "", email = None):
