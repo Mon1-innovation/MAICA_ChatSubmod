@@ -587,14 +587,15 @@ init python:
 
 screen maica_setting_pane():
 
+    on "show" action Function(store.maica.refresh_setting_pane_cache)
+
     python:
         import store.maica as maica
+        pane_cache = maica.maica_setting_pane_cache
         stat = _("未连接") if not maica.maica_instance.wss_session else _("已连接") if maica.maica_instance.is_connected() else _("已断开")
         store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
-
-        import nonunicode_detect
-        is_zhcn = nonunicode_detect.is_zhcn()
+        version_check = pane_cache.get("version_check", None)
 
     vbox:
         # background None
@@ -621,37 +622,38 @@ screen maica_setting_pane():
                     text _("> {color=#ff0000}当前版本支持已终止{/color}, 请更新至最新版"):
                         style "main_menu_version_l"
             
-            if renpy.android and not os.path.exists(os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')):
+            if pane_cache.get("cacert_missing", False):
                 hbox:
 
                     text _("> 警告: {color=#ff0000}找不到证书{/color}, 你是不是忘记安装数据包了?"):
                         style "main_menu_version_l"
 
-            if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
+            if pane_cache.get("better_loading_installed", False):
                 hbox:
 
                     text _("> 警告: {color=#ff0000}与 Better Loading 不兼容{/color}"):
                         style "main_menu_version_l"
 
-            if store.mas_submod_utils.isSubmodInstalled("Log Screen"):
+            if pane_cache.get("log_screen_installed", False):
                 hbox:
 
                     text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
                         style "main_menu_version_l"
 
-            $ res, libv, uiv = store.maica.validate_version()
-            if res is None:
-                hbox:
+            if version_check is not None:
+                $ res, libv, uiv = version_check
+                if res is None:
+                    hbox:
 
-                    text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"):
-                        style "main_menu_version_l"
-            elif res != 0:
-                hbox:
+                        text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"):
+                            style "main_menu_version_l"
+                elif res != 0:
+                    hbox:
 
-                    text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请{color=#ff0000}从Release{/color}完整地更新MAICA"):
-                        style "main_menu_version_l"
+                        text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请{color=#ff0000}从Release{/color}完整地更新MAICA"):
+                            style "main_menu_version_l"
 
-            if renpy.windows and not is_zhcn:
+            if renpy.windows and not pane_cache.get("is_zhcn", True):
                 hbox:
 
                     text _("> 警告: {color=#ff0000}当前系统非Unicode语言不是简体中文{/color}, 可能导致包含中文的响应出现问题"):
@@ -724,7 +726,7 @@ screen maica_setting_pane():
             else:
                 textbutton _("> 更新日志与服务状态"):
                     action Show("maica_log")
-            if os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "donation")):
+            if pane_cache.get("donation_exists", False):
                 textbutton _("> 向 MAICA 捐赠"):
                     action Show("maica_support")
 

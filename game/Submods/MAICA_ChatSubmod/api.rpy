@@ -185,6 +185,64 @@ init 5 python in maica:
             store.maica.maica_instance.update_workload()
         except Exception as e:
             store.mas_submod_utils.submod_log.error("MAICA: Update Workload Error: {}".format(e))
+
+    _maica_version_check_cache = None
+    maica_setting_pane_cache = {
+        "initialized": False,
+        "version_check": None,
+        "cacert_missing": False,
+        "better_loading_installed": False,
+        "log_screen_installed": False,
+        "is_zhcn": True,
+        "donation_exists": False,
+    }
+
+    def validate_version(force=False):
+        global _maica_version_check_cache
+        if _maica_version_check_cache is not None and not force:
+            return _maica_version_check_cache
+
+        # if not (config.debug or config.developer or store.maica.maica_instance._ignore_accessable):
+        libv_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "maica_release_version"))
+        if not os.path.exists(libv_path):
+            _maica_version_check_cache = (None, None, None)
+        else:
+            with open(libv_path, 'r') as libv_file:
+                libv = libv_file.read()
+            uiv = store.maica_ver
+            _maica_version_check_cache = (store.mas_utils.compareVersionLists(libv.strip().split('.'), uiv.strip().split('.')), libv, uiv)
+
+        return _maica_version_check_cache
+
+    def refresh_setting_pane_cache(force_version=False):
+        global maica_setting_pane_cache
+        try:
+            import nonunicode_detect
+            is_zhcn = nonunicode_detect.is_zhcn()
+        except Exception as e:
+            is_zhcn = True
+            store.mas_submod_utils.submod_log.error("MAICA: Non-unicode language check failed: {}".format(e))
+
+        if renpy.android:
+            cert_path = os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')
+            cacert_missing = not os.path.exists(cert_path)
+        else:
+            cacert_missing = False
+
+        donation_path = os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "donation")
+
+        maica_setting_pane_cache = {
+            "initialized": True,
+            "version_check": validate_version(force=force_version),
+            "cacert_missing": cacert_missing,
+            "better_loading_installed": store.mas_submod_utils.isSubmodInstalled("Better Loading"),
+            "log_screen_installed": store.mas_submod_utils.isSubmodInstalled("Log Screen"),
+            "is_zhcn": is_zhcn,
+            "donation_exists": os.path.exists(donation_path),
+        }
+
+        return maica_setting_pane_cache
+
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
         # 如果从PC迁移到android，切换为plain节点
@@ -212,12 +270,12 @@ init 5 python in maica:
                 try:
                     store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
                     try:
-                        res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False)
-                        res2 = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False)
+                        res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False, timeout=5)
+                        res2 = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False, timeout=5)
                     except:
                         store.mas_submod_utils.submod_log.warning("Download from github mirror failed, try to download from 0721play")
-                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False)
-                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False)
+                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False, timeout=5)
+                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False, timeout=5)
 
 
                     if res.status_code == 200 and res2.status_code == 200:
@@ -240,7 +298,7 @@ init 5 python in maica:
 
             
             url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
-            response = requests.get(url, verify=False)
+            response = requests.get(url, verify=False, timeout=5)
             if response.status_code == 200:
                 path = os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem") if not renpy.android else os.path.join(ANDROID_MASBASE, "game", "python-packages", "certifi", "cacert.pem")
                 # 将文件保存到本地
@@ -254,6 +312,8 @@ init 5 python in maica:
         # 如果自动修复失败，切换为plain节点
         if failed:
             persistent.maica_setting_dict['provider_id'] = 2
+
+        refresh_setting_pane_cache(force_version=True)
 
         store.maica.maica_instance.accessable()
 
@@ -273,17 +333,6 @@ init 5 python in maica:
             store.mas_unlockEVL("maica_greeting", "GRE")
         check_workload()
 
-    def validate_version():
-        # if not (config.debug or config.developer or store.maica.maica_instance._ignore_accessable):
-        libv_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "maica_release_version"))
-        if not os.path.exists(libv_path):
-            return None, None, None
-        else:
-            with open(libv_path, 'r') as libv_file:
-                libv = libv_file.read()
-        uiv = store.maica_ver
-        return store.mas_utils.compareVersionLists(libv.strip().split('.'), uiv.strip().split('.')), libv, uiv
-        
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
         # Calculate the number of filled positions in the progress bar
         filled_length = int(round(bar_length * percentage / 100.0))
