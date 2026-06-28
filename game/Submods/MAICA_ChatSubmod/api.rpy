@@ -243,30 +243,14 @@ init 5 python in maica:
 
         return maica_setting_pane_cache
 
-    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
-    def start_maica():
-        # 如果从PC迁移到android，切换为plain节点
-        if store.persistent._last_boot_os != "android" and renpy.android:
-            store.persistent.maica_setting_dict['provider_id'] = 2
-        store.persistent._last_boot_os = "android" if renpy.android else "other"
+    maica_certifi_download_thread_running = False
 
-        store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
-
-        import time
-        failed = False
-        store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
-        if renpy.android and store.get_build_timescamp() < store.cn_mas_mobile_min_timescamp:
-            store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
-        if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
-            store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
-        if store.mas_getAPIKey("Maica_Token") != "":
-            store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
-
-        # certifi修复，仅在MAS原生导入失败时启动
-        if not store.mas_can_import.certifi() or store.maica_can_update_cacert:
+    def maica_download_certifi_files(fix_certifi, basedir, android, android_masbase):
+        global maica_certifi_download_thread_running
+        try:
             import requests
-            canwhere = False
-            if not store.mas_can_import.certifi():
+            failed = False
+            if fix_certifi:
                 try:
                     store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
                     try:
@@ -277,18 +261,17 @@ init 5 python in maica:
                         res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False, timeout=5)
                         res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False, timeout=5)
 
-
                     if res.status_code == 200 and res2.status_code == 200:
-                        with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
+                        with open(os.path.normpath(os.path.join(basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
                             store.maica.maica_instance.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
-                    
-                        with open(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
+
+                        with open(os.path.normpath(os.path.join(basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
                             file.write(res2.content)
                             store.maica.maica_instance.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
-                        
+
                     else:
                         store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}", res.status_code, res2.status_code)
                         failed = True
@@ -296,22 +279,67 @@ init 5 python in maica:
                     store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed: {}".format(e))
                     failed = True
 
-            
             url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
-            response = requests.get(url, verify=False, timeout=5)
-            if response.status_code == 200:
-                path = os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem") if not renpy.android else os.path.join(ANDROID_MASBASE, "game", "python-packages", "certifi", "cacert.pem")
-                # 将文件保存到本地
-                with open(path, "wb") as file:
-                    file.write(response.content)
-                store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
-            else:
-                store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+            try:
+                response = requests.get(url, verify=False, timeout=5)
+                if response.status_code == 200:
+                    path = os.path.join(basedir, "game", "python-packages", "certifi", "cacert.pem") if not android else os.path.join(android_masbase, "game", "python-packages", "certifi", "cacert.pem")
+                    with open(path, "wb") as file:
+                        file.write(response.content)
+                    store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
+                else:
+                    store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+                    failed = True
+            except Exception as e:
+                store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror: {}".format(e))
                 failed = True
-        
-        # 如果自动修复失败，切换为plain节点
-        if failed:
+
+            if failed:
+                persistent.maica_setting_dict['provider_id'] = 2
+        finally:
+            maica_certifi_download_thread_running = False
+
+    def maica_start_certifi_download_in_background(fix_certifi):
+        global maica_certifi_download_thread_running
+        if maica_certifi_download_thread_running:
+            store.mas_submod_utils.submod_log.info("MAICA: certifi download already running")
+            return
+
+        maica_certifi_download_thread_running = True
+        basedir = renpy.config.basedir
+        android = renpy.android
+        android_masbase = ANDROID_MASBASE if android else None
+        store.mas_submod_utils.submod_log.info("MAICA: certifi download started in background")
+        try:
+            renpy.invoke_in_thread(lambda: maica_download_certifi_files(fix_certifi, basedir, android, android_masbase))
+        except Exception as e:
+            maica_certifi_download_thread_running = False
+            store.mas_submod_utils.submod_log.error("MAICA: certifi background download failed to start: {}".format(e))
+
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
+    def start_maica():
+        # 如果从PC迁移到android，切换为plain节点
+        if store.persistent._last_boot_os != "android" and renpy.android:
+            store.persistent.maica_setting_dict['provider_id'] = 2
+        store.persistent._last_boot_os = "android" if renpy.android else "other"
+
+        store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
+
+        import time
+        store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
+        if renpy.android and store.get_build_timescamp() < store.cn_mas_mobile_min_timescamp:
+            store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
+        if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
+            store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
+        if store.mas_getAPIKey("Maica_Token") != "":
+            store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
+
+        # certifi修复，仅在MAS原生导入失败时启动
+        certifi_broken = not store.mas_can_import.certifi()
+        if certifi_broken:
             persistent.maica_setting_dict['provider_id'] = 2
+        if certifi_broken or store.maica_can_update_cacert:
+            maica_start_certifi_download_in_background(certifi_broken)
 
         refresh_setting_pane_cache(force_version=True)
 
