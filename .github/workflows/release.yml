@@ -69,7 +69,10 @@ jobs:
           -x '.git*' \
           -x '.github*' \
           -x '*.git*' \
-          -x '.vscode/*'
+          -x '.vscode/*' \
+          -x 'README.md' \
+          -x 'README_EN.md' \
+          -x 'tests/*'
 
     - name: Generate Release Notes
       id: generate_release_notes
