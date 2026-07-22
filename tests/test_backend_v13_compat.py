@@ -77,30 +77,45 @@ def literal_dict(text, name):
     assert False, "dictionary {!r} is not closed".format(name)
 
 
-def remove_compatibility_dicts(text):
-    """Remove any pure old-to-canonical dictionary literal, regardless of name."""
-    ranges = []
-    for start, char in enumerate(text):
-        if char != "{":
+def lex_source(text):
+    """Linear quote/escape/comment-aware lexer used for Ren'Py structure checks."""
+    tokens = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char.isspace():
+            index += 1
             continue
-        depth = 0
-        for index in range(start, len(text)):
-            if text[index] == "{":
-                depth += 1
-            elif text[index] == "}":
-                depth -= 1
-                if depth == 0:
-                    try:
-                        value = ast.literal_eval(text[start:index + 1])
-                    except (SyntaxError, ValueError, TypeError, RecursionError, OverflowError):
-                        break
-                    if (isinstance(value, dict) and value and
-                            all(key in RENAMES and RENAMES[key] == item for key, item in value.items())):
-                        ranges.append((start, index + 1))
-                    break
-    for start, end in reversed(ranges):
-        text = text[:start] + text[end:]
-    return text
+        if char == "#":
+            index = text.find("\n", index)
+            if index < 0:
+                break
+            continue
+        if char in "'\"":
+            quote = char * (3 if text.startswith(char * 3, index) else 1)
+            index += len(quote)
+            value = []
+            while index < len(text) and not text.startswith(quote, index):
+                if text[index] == "\\" and index + 1 < len(text):
+                    value.append(text[index + 1])
+                    index += 2
+                else:
+                    value.append(text[index])
+                    index += 1
+            assert index < len(text), "unterminated string in static contract source"
+            index += len(quote)
+            tokens.append(("STRING", "".join(value)))
+            continue
+        if char.isalpha() or char == "_":
+            end = index + 1
+            while end < len(text) and (text[end].isalnum() or text[end] == "_"):
+                end += 1
+            tokens.append(("NAME", text[index:end]))
+            index = end
+            continue
+        tokens.append(("OP", char))
+        index += 1
+    return tokens
 
 
 def strip_comments_and_strings(text, suffix):
@@ -128,25 +143,37 @@ def screen_blocks(text):
 def ui_owner_exists(text, key):
     for screen in screen_blocks(text):
         for control in re.findall(r"(?ms)^\s*(?:textbutton|use\s+\w+)[^\n]*.*?(?=^\s*(?:textbutton|use\s+\w+|if|elif|else)\b|\Z)", screen):
-            if key not in control:
-                continue
-            if re.search(r"\baction\b[^\n]*(?:SetDict|ToggleDict|Function|SetField)[^\n]*['\"]{}['\"]".format(key), control):
+            tokens = lex_source(control)
+            values = [value for _kind, value in tokens]
+            if ("action" in values and any(name in values for name in ("SetDict", "ToggleDict", "Function", "SetField"))
+                    and any(kind == "STRING" and value == key for kind, value in tokens)):
                 return True
     return False
 
 
 def runtime_owner_exists(text, key):
-    for match in re.finditer(r"(?m)^\s*def\s+(\w+)\s*\(", text):
-        body = function_body(text[match.start():], re.escape(match.group(1)))
-        if not re.search(r"\b(?:chat_params|modelconfig|settings_dict|request_body|payload|data)\b", body):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SyntaxWarning)
+        tree = ast.parse(text)
+    for function in (node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))):
+        names = {node.id for node in ast.walk(function) if isinstance(node, ast.Name)}
+        relevant = re.search(r"(?:build|normalize|send|setting|config|process|chat)", function.name) or names.intersection(
+            {"chat_params", "modelconfig", "settings_dict", "request_body", "payload", "data"})
+        if not relevant:
             continue
-        if re.search(r"(?:['\"]{}['\"]\s*:|\[['\"]{}['\"]\]|\.{}\b)".format(key, key, key), body):
-            return True
+        for node in ast.walk(function):
+            if isinstance(node, ast.Attribute) and node.attr == key:
+                return True
+            if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant) and node.slice.value == key:
+                return True
+            if isinstance(node, ast.keyword) and node.arg == key:
+                return True
+            if isinstance(node, ast.Dict) and any(isinstance(item, ast.Constant) and item.value == key for item in node.keys):
+                return True
     return False
 
 
 def python_owner_names(text):
-    text = remove_compatibility_dicts(text)
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", SyntaxWarning)
@@ -206,38 +233,57 @@ def python_owner_names(text):
 
 
 def rpy_owner_names(text):
-    """One linear pass: discard prose strings/comments, retain structural string keys."""
+    tokens = lex_source(text)
+    exempt_indices = set()
+    stack = []
+    for index, token in enumerate(tokens):
+        if token == ("OP", "{"):
+            stack.append(index)
+        elif token == ("OP", "}") and stack:
+            start = stack.pop()
+            inner = tokens[start + 1:index]
+            pairs = [(pos, inner[pos][1], inner[pos + 2][1]) for pos in range(len(inner) - 2)
+                     if inner[pos][0] == "STRING" and inner[pos + 1] == ("OP", ":") and inner[pos + 2][0] == "STRING"]
+            if pairs and all(old in RENAMES and RENAMES[old] == new for _pos, old, new in pairs):
+                exempt_indices.update(start + 1 + pos for pos, _old, _new in pairs)
     found = set()
-    index = 0
-    code = []
-    while index < len(text):
-        char = text[index]
-        if char == "#":
-            end = text.find("\n", index)
-            index = len(text) if end < 0 else end
+    for index, (kind, value) in enumerate(tokens):
+        if index in exempt_indices:
             continue
-        if char in "'\"":
-            quote = char * (3 if text.startswith(char * 3, index) else 1)
-            start = index + len(quote)
-            end = text.find(quote, start)
-            if end < 0:
-                break
-            value = text[start:end]
-            before = "".join(code).rstrip()[-1:] or ""
-            after_index = end + len(quote)
-            after = text[after_index:].lstrip()[:1]
-            if value in RENAMES and (before == "[" or after in (']', ':')):
-                found.add(value)
-            code.append(" ")
-            index = after_index
-            continue
-        code.append(char)
-        index += 1
-    bare = "".join(code)
-    for old in RENAMES:
-        if re.search(r"(?:\.|\b){}\b\s*(?:=|\()".format(old), bare):
-            found.add(old)
+        previous = tokens[index - 1][1] if index else ""
+        following = tokens[index + 1][1] if index + 1 < len(tokens) else ""
+        if value in RENAMES and ((kind == "STRING" and (previous == "[" or following in ("]", ":")))
+                                 or (kind == "NAME" and (previous == "." or following in ("=", "(")))):
+            found.add(value)
     return found
+
+
+def ws_status_owner_exists(text, status):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SyntaxWarning)
+        tree = ast.parse(text)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Compare) and any(isinstance(item, ast.Constant) and item.value == status for item in node.comparators):
+            return True
+        if isinstance(node, ast.keyword) and node.arg == "except_ws_status":
+            if any(isinstance(item, ast.Constant) and item.value == status for item in ast.walk(node.value)):
+                return True
+    return False
+
+
+def quality_reference_exists(text, translated=False):
+    tokens = lex_source(text)
+    for index, (kind, value) in enumerate(tokens):
+        if value != "gen_quality_chk":
+            continue
+        previous = tokens[index - 1][1] if index else ""
+        following = tokens[index + 1][1] if index + 1 < len(tokens) else ""
+        if translated:
+            if kind == "STRING" and previous in ("old", "new"):
+                return True
+        elif kind == "NAME" or (kind == "STRING" and (previous in ("[", "(", ",") or following in ("]", ")", ":", ","))):
+            return True
+    return False
 
 
 def assert_key_default(text, key, value_pattern):
@@ -362,6 +408,17 @@ def test_b_owner_helpers_reject_default_only_synthetic_source():
     assert not runtime_owner_exists(defaults, "prompt_pname_repl")
 
 
+def test_b_owner_helpers_ignore_comments_but_accept_structural_owners():
+    commented_ui = 'screen x():\n    # action SetDict(data, "prompt_pname_repl", True)\n    textbutton "x"\n'
+    real_ui = 'screen x():\n    textbutton "x":\n        action SetDict(data, "prompt_pname_repl", True)\n'
+    commented_runtime = 'def build_payload():\n    # data["prompt_pname_repl"] = value\n    return {}\n'
+    real_runtime = 'def build_payload():\n    data = {"prompt_pname_repl": value}\n    return data\n'
+    assert not ui_owner_exists(commented_ui, "prompt_pname_repl")
+    assert ui_owner_exists(real_ui, "prompt_pname_repl")
+    assert not runtime_owner_exists(commented_runtime, "prompt_pname_repl")
+    assert runtime_owner_exists(real_runtime, "prompt_pname_repl")
+
+
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     assert_key_default(header, "tz", r"(?:None|['\"][^'\"]+['\"])")
@@ -436,9 +493,14 @@ def test_d_cookie_handler_task_and_strict_ui_are_retired():
 def test_d_current_ws_statuses_replace_retired_registrations():
     runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub.py")
     for current in ("maica_quality_status", "maica_loop_warn_reset", "maica_core_streaming_continue"):
-        assert current in runtime
+        assert ws_status_owner_exists(runtime, current), "status is only prose or unregistered: {}".format(current)
     for old in ("maica_dscl_status", "maica_loop_warn_finished", "maica_core_nostream_reply"):
         assert not re.search(r"except_ws_status\s*=\s*\[[^]]*{}".format(old), runtime, re.S)
+
+
+def test_d_ws_status_helper_ignores_comment_only_presence():
+    assert not ws_status_owner_exists('def build():\n    # except_ws_status=["maica_quality_status"]\n    return None\n', "maica_quality_status")
+    assert ws_status_owner_exists('def build():\n    task(except_ws_status=["maica_quality_status"])\n', "maica_quality_status")
 
 
 def test_e_mtrigger_mspire_mpostal_and_temporary_trigger_payloads():
@@ -544,7 +606,7 @@ QUALITY_FILES = (
 @pytest.mark.parametrize("relative", QUALITY_FILES)
 def test_h_each_quality_runtime_and_translation_reference_is_renamed(relative):
     text = source(relative)
-    assert "gen_quality_chk" in text, "new quality owner missing in {}".format(relative)
+    assert quality_reference_exists(text, "/tl/" in relative), "new quality owner missing in {}".format(relative)
     assert "dscl_pvn" not in runtime_identifiers(relative), "old quality runtime owner remains in {}".format(relative)
 
 
@@ -559,19 +621,22 @@ def test_retired_setting_identifiers_are_not_runtime_owners():
     found = {}
     for path in paths:
         text = path.read_text(encoding="utf-8")
-        hits = python_owner_names(text) if path.suffix == ".py" else rpy_owner_names(remove_compatibility_dicts(text))
+        hits = python_owner_names(text) if path.suffix == ".py" else rpy_owner_names(text)
         if hits:
             found[str(path.relative_to(ROOT))] = sorted(hits)
     assert not found, "retired runtime setting identifiers remain: {}".format(found)
 
 
 def test_retired_owner_scanners_ignore_prose_and_detect_real_subscripts():
-    note = 'note = "sfe_aggressive = documentation only"\n'
+    note = 'note = "hello \\" sfe_aggressive = documentation only"\n'
     owner = 'data["sfe_aggressive"] = value\n'
+    compat = 'whatever_name = {"sfe_aggressive": "prompt_pname_repl"}\n'
     assert "sfe_aggressive" not in python_owner_names(note)
     assert "sfe_aggressive" in python_owner_names(owner)
+    assert "sfe_aggressive" not in python_owner_names(compat)
     assert "sfe_aggressive" not in rpy_owner_names(note)
     assert "sfe_aggressive" in rpy_owner_names(owner)
+    assert "sfe_aggressive" not in rpy_owner_names(compat)
 
 
 def test_retired_ws_protocol_identifiers_are_not_registered():
