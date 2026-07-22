@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 import urllib.request
 from pathlib import Path
@@ -11,6 +12,7 @@ if str(PACKAGE_ROOT) not in sys.path:
     sys.path.insert(0, str(PACKAGE_ROOT))
 
 import emotion_analyze_v2
+import logger_manager
 import maica
 import maica_mtrigger
 import maica_tasker
@@ -97,14 +99,88 @@ def _last_json(manager):
     return json.loads(manager.ws_client.sent[-1])
 
 
-def _new_validator(monkeypatch, packet_count=1):
+def _new_validator(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
-    validator = object.__new__(maica_tasker_sub.StreamingPacketValidator)
-    validator.manager = ManagerStub()
-    validator._enabled = True
-    validator._packet_count = packet_count
-    validator._validation_passed = True
+    manager = ManagerStub()
+    validator = maica_tasker_sub.StreamingPacketValidator(
+        task_type=1,
+        name="streaming_packet_validator",
+        manager=manager,
+        except_ws_status=[
+            "maica_core_streaming_continue",
+            "maica_core_complete",
+        ],
+    )
     return validator
+
+
+def _send_streaming_packets(validator, count):
+    for _index in range(count):
+        validator.on_received(EventStub("maica_core_streaming_continue"))
+
+
+def _copy_injected_references(registry):
+    return {
+        name: dict(reference) if isinstance(reference, dict) else reference
+        for name, reference in registry.items()
+    }
+
+
+def _assert_injected_references_equal(actual, expected):
+    assert list(actual) == list(expected)
+    for name, expected_reference in expected.items():
+        actual_reference = actual[name]
+        if isinstance(expected_reference, dict):
+            assert set(actual_reference) == set(expected_reference)
+            for key, expected_value in expected_reference.items():
+                assert actual_reference[key] is expected_value
+        else:
+            assert actual_reference is expected_reference
+
+
+@pytest.fixture
+def isolated_maica_ai_globals():
+    console_logger = logging.getLogger("mas_console_logger")
+    handlers_before = list(console_logger.handlers)
+    level_before = console_logger.level
+    propagate_before = console_logger.propagate
+    disabled_before = console_logger.disabled
+    mtrigger_logger_before = maica_mtrigger.logger
+    manager_before = logger_manager.get_logger_manager()
+    assert maica._logger_manager is manager_before
+    injected_before = _copy_injected_references(
+        manager_before._injected_references
+    )
+
+    yield
+
+    for handler in list(console_logger.handlers):
+        if handler not in handlers_before:
+            console_logger.removeHandler(handler)
+            handler.close()
+    for handler in handlers_before:
+        if handler not in console_logger.handlers:
+            console_logger.addHandler(handler)
+    console_logger.setLevel(level_before)
+    console_logger.propagate = propagate_before
+    console_logger.disabled = disabled_before
+    maica_mtrigger.logger = mtrigger_logger_before
+
+    registry = manager_before._injected_references
+    for name in list(registry):
+        if name not in injected_before:
+            del registry[name]
+    for name, reference in injected_before.items():
+        registry[name] = dict(reference) if isinstance(reference, dict) else reference
+
+    assert list(console_logger.handlers) == handlers_before
+    assert console_logger.level == level_before
+    assert console_logger.propagate is propagate_before
+    assert console_logger.disabled is disabled_before
+    assert maica_mtrigger.logger is mtrigger_logger_before
+    assert logger_manager.get_logger_manager() is manager_before
+    assert maica._logger_manager is manager_before
+    _assert_injected_references_equal(registry, injected_before)
 
 
 def _raw_messages_with_compact_size(target_size):
@@ -414,7 +490,9 @@ def test_mspire_accepts_integer_ctg_weight_boundaries(value):
 
 
 def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatch):
-    validator = _new_validator(monkeypatch, packet_count=3)
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 3)
+    assert validator.packet_count == 3
 
     validator.on_received(
         EventStub(
@@ -437,6 +515,8 @@ def test_streaming_malformed_and_mismatched_completion_paths_reset_count(
     content, monkeypatch
 ):
     validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 1)
+    assert validator.packet_count == 1
 
     validator.on_received(EventStub("maica_core_complete", content))
     assert validator.packet_count == 0
@@ -523,12 +603,12 @@ def test_vista_list_uses_list_endpoint_and_download_keeps_content_parameter(monk
     assert calls[1][1]["params"]["content"] == "uuid-1"
 
 
-def test_maica_ai_constructs_version_info():
+def test_maica_ai_constructs_version_info(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     assert hasattr(ai, "version_info")
 
 
-def test_maica_ai_disable_accepts_and_saves_status():
+def test_maica_ai_disable_accepts_and_saves_status(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     marker = ai.MaicaAiStatus.SERVER_MAINTAIN
     try:
