@@ -152,18 +152,22 @@ def test_meter_build_preserves_zero_curr_value():
     assert meter_data["exprop"].get("curr_value") == 0
 
 
-@pytest.mark.parametrize("item_list", [["ok", False], [""]])
+@pytest.mark.parametrize("item_list", [["ok", False], ["ok", ""]])
 def test_mtrigger_rejects_invalid_switch_items_before_sending(item_list):
-    curr_value = "ok" if "ok" in item_list else ""
     with pytest.raises(ValueError):
         _build_trigger(
             maica_mtrigger.common_switch_template,
             exprop=maica_mtrigger.MTriggerExprop(
                 item_name_zh="选项",
                 item_list=item_list,
-                curr_value=curr_value,
+                curr_value="ok",
             ),
         ).build()
+
+
+def test_mtrigger_accepts_one_character_name():
+    data = _build_trigger(maica_mtrigger.common_affection_template, name="a").build()
+    assert data["name"] == "a"
 
 
 @pytest.mark.parametrize("name", ["n" * 64, "valid_name", "valid-name"])
@@ -176,6 +180,11 @@ def test_mtrigger_accepts_valid_name_boundaries(name):
 def test_mtrigger_rejects_invalid_names(name):
     with pytest.raises(ValueError):
         _build_trigger(maica_mtrigger.common_affection_template, name=name).build()
+
+
+def test_mtrigger_rejects_empty_name():
+    with pytest.raises(ValueError):
+        _build_trigger(maica_mtrigger.common_affection_template, name="").build()
 
 
 def test_mtrigger_accepts_256_character_bilingual_names_and_switch_items():
