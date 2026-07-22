@@ -77,12 +77,11 @@ def literal_dict(text, name):
 
 
 def remove_compatibility_dicts(text):
-    """Remove explicitly named rename maps, while retaining all runtime strings."""
-    for name in ("chat_param_renames", "CHAT_PARAM_RENAMES", "SETTING_RENAMES", "RENAME_MAP"):
-        match = re.search(r"\b{}\s*=\s*\{{".format(name), text)
-        if not match:
+    """Remove any pure old-to-canonical dictionary literal, regardless of name."""
+    ranges = []
+    for start, char in enumerate(text):
+        if char != "{":
             continue
-        start = text.find("{", match.start())
         depth = 0
         for index in range(start, len(text)):
             if text[index] == "{":
@@ -90,8 +89,16 @@ def remove_compatibility_dicts(text):
             elif text[index] == "}":
                 depth -= 1
                 if depth == 0:
-                    text = text[:match.start()] + text[index + 1:]
+                    try:
+                        value = ast.literal_eval(text[start:index + 1])
+                    except (SyntaxError, ValueError):
+                        break
+                    if (isinstance(value, dict) and value and
+                            all(key in RENAMES and RENAMES[key] == item for key, item in value.items())):
+                        ranges.append((start, index + 1))
                     break
+    for start, end in reversed(ranges):
+        text = text[:start] + text[end:]
     return text
 
 
@@ -123,9 +130,30 @@ def assert_key_control(text, key, upper):
     assert "ToggleDict" not in context
 
 
+def function_body(text, name_pattern):
+    match = re.search(r"(?m)^(?P<indent>[ \t]*)def\s+(?:{})\s*\([^\n]*\):".format(name_pattern), text)
+    assert match, "function is missing: {}".format(name_pattern)
+    indent = match.group("indent")
+    following = text[match.end():]
+    next_def = re.search(r"(?m)^{}def\s+\w+\s*\(".format(re.escape(indent)), following)
+    return following[:next_def.start()] if next_def else following
+
+
+def assert_key_has_semantic_upper_bound(text, key, upper):
+    contexts = []
+    for match in re.finditer(r"\b{}\b|['\"]{}['\"]".format(key, key), text):
+        contexts.append(text[max(0, match.start() - 220):match.end() + 320])
+    assert contexts, "normalization owner is missing: {}".format(key)
+    bound = r"(?:min\s*\([^,\n]+,\s*{0}\s*\)|<=\s*{0}\b|>\s*{0}\b)".format(upper)
+    assert any(re.search(bound, context) for context in contexts), "{} is not semantically bounded to {}".format(key, upper)
+
+
 def test_a_backend_and_release_versions_are_final():
     assert re.search(r"SUPPORT_BACKEND\s*=\s*['\"]1\.3\.000['\"]", source("game/python-packages/maica.py"))
-    assert re.search(r"maica_ver\s*=\s*['\"]1\.8\.0['\"]", source("game/Submods/MAICA_ChatSubmod/api.rpy"))
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    assignments = re.findall(r"(?m)^\s*maica_ver\s*=\s*['\"]([^'\"]+)['\"]", api)
+    assert assignments, "init code never assigns maica_ver"
+    assert assignments[-1] == "1.8.0", "final effective maica_ver assignment is {}".format(assignments[-1])
 
 
 def test_a_migration_is_structurally_registered_and_invoked():
@@ -199,8 +227,9 @@ def test_c_tool_and_session_limits_are_two_and_28672():
     session_context = block_after(header + screen, r"(?:session_len_limit|max_history_token)", 800)
     assert re.search(r"(?:session_len_limit|max_history_token).{0,500}28672", session_context, re.S)
     normalize = source("game/python-packages/maica.py") + header
-    assert re.search(r"mf_const_tools.{0,400}(?:min\s*\([^)]*2|>\s*2|\b2\b)", normalize, re.S)
-    assert re.search(r"(?:session_len_limit|max_history_token).{0,500}(?:min\s*\([^)]*28672|>\s*28672|28672)", normalize, re.S)
+    assert_key_has_semantic_upper_bound(normalize, "mf_const_tools", 2)
+    session_key = "session_len_limit" if "session_len_limit" in normalize else "max_history_token"
+    assert_key_has_semantic_upper_bound(normalize, session_key, 28672)
 
 
 @pytest.mark.parametrize("relative", ("game/python-packages/maica.py", "game/python-packages/maica_tasker_sub_sessionsender.py"))
@@ -226,6 +255,8 @@ def test_d_cookie_injection_is_retired_in_every_builder(relative):
     patterns = (
         r"\[['\"]cookie['\"]\]\s*=", r"['\"]cookie['\"]\s*:",
         r"\.update\s*\([^)]*['\"]cookie['\"]", r"\.setdefault\s*\(\s*['\"]cookie['\"]",
+        r"\bdict\s*\([^)]*\bcookie\s*=", r"\.update\s*\([^)]*\bcookie\s*=",
+        r"\.setdefault\s*\(\s*cookie\s*=", r"\b(?:send|process_request|login|request_body)\s*\([^)]*\bcookie\s*=",
     )
     assert not any(re.search(pattern, text, re.S) for pattern in patterns), relative
 
@@ -278,22 +309,42 @@ def test_f_nickname_has_default_and_ui_owner():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     assert_key_default(header, "prompt_allow_nickname", r"True\b")
-    assert re.search(r"(?:textbutton|ToggleDict|SetDict).{0,240}prompt_allow_nickname", header + screen, re.S)
+    ui = header + screen
+    control = block_after(ui, r"(?m)^\s*textbutton[^\n]*prompt_allow_nickname", 650)
+    assert re.search(
+        r"action[^\n]*(?:ToggleDict|SetDict)\s*\(\s*persistent\.maica_advanced_setting\s*,\s*['\"]prompt_allow_nickname['\"]",
+        control,
+    )
+    assert re.search(r"persistent\.maica_advanced_setting(?:_status)?[^\n]*['\"]prompt_allow_nickname['\"]", control)
 
 
-def test_f_legality_sends_distinct_latitude_and_longitude_fields():
-    runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub_sessionsender.py")
-    legality = block_after(runtime, r"legality", 1800)
-    assert re.search(r"\b(?:latitude|lat)\b", legality)
-    assert re.search(r"\b(?:longitude|lng|lon)\b", legality)
+def test_f_legality_response_displays_distinct_latitude_and_longitude():
+    runtime = source("game/python-packages/maica.py") + source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    legality = function_body(runtime, r"\w*legality\w*")
+    latitude = re.search(
+        r"(?P<var>\w+)\s*=\s*[^\n]*(?:content|result|res)[^\n]*(?:get\s*\(\s*['\"](?:latitude|lat)['\"]|\[['\"](?:latitude|lat)['\"]\])",
+        legality,
+    )
+    longitude = re.search(
+        r"(?P<var>\w+)\s*=\s*[^\n]*(?:content|result|res)[^\n]*(?:get\s*\(\s*['\"](?:longitude|lng|lon)['\"]|\[['\"](?:longitude|lng|lon)['\"]\])",
+        legality,
+    )
+    assert latitude, "legality success path does not read latitude from response content"
+    assert longitude, "legality success path does not read longitude from response content"
+    lat_var, lon_var = latitude.group("var"), longitude.group("var")
+    displays = re.findall(r"(?:format\s*\([^)]*\)|%\s*\([^)]*\)|f['\"][^'\"]*['\"])", legality, re.S)
+    assert any(lat_var in display and lon_var in display for display in displays), "latitude and longitude must enter the same displayed success string"
 
 
 def test_g_header_shared_additions_helper_enforces_both_byte_limits():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
-    helper = block_after(header, r"def\s+(?P<name>_?maica_\w*addition\w*)\s*\(", 1800)
-    assert re.search(r"\b512\b", helper)
-    assert re.search(r"\b1536\b", helper)
-    assert re.search(r"encode\s*\(\s*['\"]utf-8['\"]\s*\)", helper)
+    helper = function_body(header, r"_?maica_\w*addition\w*")
+    count_reject = re.search(r"if\s+len\s*\(\s*\w*additions\w*\s*\)\s*(?:>=\s*512|>\s*511)\s*:(?P<body>.{0,500})", helper, re.S)
+    byte_reject = re.search(r"if\s+len\s*\([^)]*\.encode\s*\(\s*['\"]utf-8['\"]\s*\)[^)]*\)\s*(?:>\s*1536|>=\s*1537)\s*:(?P<body>.{0,500})", helper, re.S)
+    assert count_reject, "helper does not reject additions at the 512-item boundary"
+    assert byte_reject, "helper does not reject text over 1536 UTF-8 bytes"
+    for rejection in (count_reject.group("body"), byte_reject.group("body")):
+        assert re.search(r"\b(?:return|raise|notify|show_screen)\b", rejection), "limit branch does not reject or notify"
 
 
 def test_g_chat_and_screen_call_the_same_additions_helper():
