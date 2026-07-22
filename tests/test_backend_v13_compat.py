@@ -91,7 +91,7 @@ def remove_compatibility_dicts(text):
                 if depth == 0:
                     try:
                         value = ast.literal_eval(text[start:index + 1])
-                    except (SyntaxError, ValueError):
+                    except (SyntaxError, ValueError, TypeError, RecursionError, OverflowError):
                         break
                     if (isinstance(value, dict) and value and
                             all(key in RENAMES and RENAMES[key] == item for key, item in value.items())):
@@ -144,8 +144,29 @@ def assert_key_has_semantic_upper_bound(text, key, upper):
     for match in re.finditer(r"\b{}\b|['\"]{}['\"]".format(key, key), text):
         contexts.append(text[max(0, match.start() - 220):match.end() + 320])
     assert contexts, "normalization owner is missing: {}".format(key)
-    bound = r"(?:min\s*\([^,\n]+,\s*{0}\s*\)|<=\s*{0}\b|>\s*{0}\b)".format(upper)
-    assert any(re.search(bound, context) for context in contexts), "{} is not semantically bounded to {}".format(key, upper)
+    escaped = re.escape(key)
+    clamp_patterns = (
+        r"(?:\b{0}\b|['\"]{0}['\"])[^\n]{{0,160}}=\s*min\s*\([^,\n]+,\s*{1}\s*\)".format(escaped, upper),
+        r"=\s*min\s*\([^,\n]*(?:\b{0}\b|['\"]{0}['\"])[^,\n]*,\s*{1}\s*\)".format(escaped, upper),
+    )
+    if any(any(re.search(pattern, context) for pattern in clamp_patterns) for context in contexts):
+        return
+
+    branch = re.compile(
+        r"(?m)^(?P<indent>[ \t]*)if\s+[^\n]*(?:\b{0}\b|['\"]{0}['\"])[^\n]*"
+        r"(?:>\s*{1}\b|not\s+[^\n]*<=\s*{1}\b)[^\n]*:\s*\n"
+        r"(?P<body>(?:(?P=indent)[ \t]+[^\n]*(?:\n|$)){{1,12}})".format(escaped, upper)
+    )
+    for match in branch.finditer(text):
+        body = match.group("body")
+        clamps_to_upper = re.search(
+            r"(?:\b{0}\b|\[['\"]{0}['\"]\])\s*=\s*{1}\b".format(escaped, upper),
+            body,
+        )
+        rejects = re.search(r"\b(?:raise|return)\b", body)
+        if clamps_to_upper or rejects:
+            return
+    assert False, "{} over {} is neither clamped nor rejected".format(key, upper)
 
 
 def test_a_backend_and_release_versions_are_final():
