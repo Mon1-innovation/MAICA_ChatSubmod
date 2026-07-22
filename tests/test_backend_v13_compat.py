@@ -173,18 +173,23 @@ def runtime_owner_exists(text, key):
     return False
 
 
-def python_owner_names(text):
+def python_owner_names(text, context="synthetic Python source"):
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", SyntaxWarning)
             tree = ast.parse(text)
-    except (SyntaxError, ValueError, TypeError):
+    except (SyntaxError, ValueError, TypeError) as ast_error:
         try:
             tokens = [token for token in tokenize.generate_tokens(io.StringIO(text).readline)
                       if token.type not in (tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE,
                                             tokenize.INDENT, tokenize.DEDENT, tokenize.ENCODING)]
-        except (tokenize.TokenError, IndentationError):
-            return set()
+        except (tokenize.TokenError, IndentationError, SyntaxError) as tokenize_error:
+            snippet = text[:120].replace("\n", "\\n")
+            raise AssertionError(
+                "could not parse {} (AST: {}; tokenize: {}; input: {!r})".format(
+                    context, ast_error, tokenize_error, snippet
+                )
+            )
         found = set()
         for index, token in enumerate(tokens):
             if token.type == tokenize.NAME and token.string in RENAMES:
@@ -242,8 +247,27 @@ def rpy_owner_names(text):
         elif token == ("OP", "}") and stack:
             start = stack.pop()
             inner = tokens[start + 1:index]
-            pairs = [(pos, inner[pos][1], inner[pos + 2][1]) for pos in range(len(inner) - 2)
-                     if inner[pos][0] == "STRING" and inner[pos + 1] == ("OP", ":") and inner[pos + 2][0] == "STRING"]
+            members = []
+            member = []
+            member_depth = 0
+            for item in inner:
+                if item[0] == "OP" and item[1] in "([{":
+                    member_depth += 1
+                elif item[0] == "OP" and item[1] in ")]}" and member_depth:
+                    member_depth -= 1
+                if item == ("OP", ",") and member_depth == 0:
+                    if member:
+                        members.append(member)
+                    member = []
+                else:
+                    member.append(item)
+            if member:
+                members.append(member)
+            strict = bool(members) and all(
+                len(item) == 3 and item[0][0] == "STRING" and item[1] == ("OP", ":") and item[2][0] == "STRING"
+                for item in members
+            )
+            pairs = [(inner.index(item[0]), item[0][1], item[2][1]) for item in members] if strict else []
             if pairs and all(old in RENAMES and RENAMES[old] == new for _pos, old, new in pairs):
                 exempt_indices.update(start + 1 + pos for pos, _old, _new in pairs)
     found = set()
@@ -621,7 +645,7 @@ def test_retired_setting_identifiers_are_not_runtime_owners():
     found = {}
     for path in paths:
         text = path.read_text(encoding="utf-8")
-        hits = python_owner_names(text) if path.suffix == ".py" else rpy_owner_names(text)
+        hits = python_owner_names(text, str(path.relative_to(ROOT))) if path.suffix == ".py" else rpy_owner_names(text)
         if hits:
             found[str(path.relative_to(ROOT))] = sorted(hits)
     assert not found, "retired runtime setting identifiers remain: {}".format(found)
@@ -637,6 +661,21 @@ def test_retired_owner_scanners_ignore_prose_and_detect_real_subscripts():
     assert "sfe_aggressive" not in rpy_owner_names(note)
     assert "sfe_aggressive" in rpy_owner_names(owner)
     assert "sfe_aggressive" not in rpy_owner_names(compat)
+
+
+def test_retired_python_scanner_rejects_unparseable_input():
+    broken = 'note = """unterminated sfe_aggressive documentation'
+    with pytest.raises(AssertionError, match=r"AST:.*tokenize:.*input:"):
+        python_owner_names(broken, "unterminated synthetic fixture")
+
+
+def test_retired_rpy_scanner_does_not_exempt_mixed_compatibility_dicts():
+    pure = 'anything = {"sfe_aggressive": "prompt_pname_repl"}'
+    mixed = 'anything = {"sfe_aggressive": "prompt_pname_repl", "other": value}'
+    expanded = 'anything = {"sfe_aggressive": "prompt_pname_repl", **extra}'
+    assert "sfe_aggressive" not in rpy_owner_names(pure)
+    assert "sfe_aggressive" in rpy_owner_names(mixed)
+    assert "sfe_aggressive" in rpy_owner_names(expanded)
 
 
 def test_retired_ws_protocol_identifiers_are_not_registered():
