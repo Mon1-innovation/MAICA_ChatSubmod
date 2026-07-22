@@ -5,6 +5,7 @@ import io
 import json
 import re
 import tokenize
+import warnings
 from pathlib import Path
 
 import pytest
@@ -120,6 +121,125 @@ def runtime_identifiers(relative):
     return strip_comments_and_strings(path.read_text(encoding="utf-8"), path.suffix)
 
 
+def screen_blocks(text):
+    return re.findall(r"(?ms)^screen\s+\w+[^\n]*:.*?(?=^(?:screen|label|init)\b|\Z)", text)
+
+
+def ui_owner_exists(text, key):
+    for screen in screen_blocks(text):
+        for control in re.findall(r"(?ms)^\s*(?:textbutton|use\s+\w+)[^\n]*.*?(?=^\s*(?:textbutton|use\s+\w+|if|elif|else)\b|\Z)", screen):
+            if key not in control:
+                continue
+            if re.search(r"\baction\b[^\n]*(?:SetDict|ToggleDict|Function|SetField)[^\n]*['\"]{}['\"]".format(key), control):
+                return True
+    return False
+
+
+def runtime_owner_exists(text, key):
+    for match in re.finditer(r"(?m)^\s*def\s+(\w+)\s*\(", text):
+        body = function_body(text[match.start():], re.escape(match.group(1)))
+        if not re.search(r"\b(?:chat_params|modelconfig|settings_dict|request_body|payload|data)\b", body):
+            continue
+        if re.search(r"(?:['\"]{}['\"]\s*:|\[['\"]{}['\"]\]|\.{}\b)".format(key, key, key), body):
+            return True
+    return False
+
+
+def python_owner_names(text):
+    text = remove_compatibility_dicts(text)
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", SyntaxWarning)
+            tree = ast.parse(text)
+    except (SyntaxError, ValueError, TypeError):
+        try:
+            tokens = [token for token in tokenize.generate_tokens(io.StringIO(text).readline)
+                      if token.type not in (tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE,
+                                            tokenize.INDENT, tokenize.DEDENT, tokenize.ENCODING)]
+        except (tokenize.TokenError, IndentationError):
+            return set()
+        found = set()
+        for index, token in enumerate(tokens):
+            if token.type == tokenize.NAME and token.string in RENAMES:
+                previous = tokens[index - 1].string if index else ""
+                following = tokens[index + 1].string if index + 1 < len(tokens) else ""
+                if previous == "." or following in ("=", "("):
+                    found.add(token.string)
+            elif token.type == tokenize.STRING:
+                try:
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", SyntaxWarning)
+                        value = ast.literal_eval(token.string)
+                except (SyntaxError, ValueError, TypeError):
+                    continue
+                previous = tokens[index - 1].string if index else ""
+                following = tokens[index + 1].string if index + 1 < len(tokens) else ""
+                if value in RENAMES and (previous == "[" or following in ("]", ":")):
+                    found.add(value)
+        return found
+    pure_maps = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            pairs = []
+            for key_node, value_node in zip(node.keys, node.values):
+                if isinstance(key_node, ast.Constant) and isinstance(value_node, ast.Constant):
+                    pairs.append((key_node.value, value_node.value))
+            if pairs and len(pairs) == len(node.keys) and all(key in RENAMES and RENAMES[key] == value for key, value in pairs):
+                pure_maps.add(id(node))
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and node.id in RENAMES:
+            found.add(node.id)
+        elif isinstance(node, ast.Attribute) and node.attr in RENAMES:
+            found.add(node.attr)
+        elif isinstance(node, ast.Subscript):
+            value = node.slice.value if isinstance(node.slice, ast.Constant) else None
+            if value in RENAMES:
+                found.add(value)
+        elif isinstance(node, ast.keyword) and node.arg in RENAMES:
+            found.add(node.arg)
+        elif isinstance(node, ast.Dict) and id(node) not in pure_maps:
+            for key_node in node.keys:
+                if isinstance(key_node, ast.Constant) and key_node.value in RENAMES:
+                    found.add(key_node.value)
+    return found
+
+
+def rpy_owner_names(text):
+    """One linear pass: discard prose strings/comments, retain structural string keys."""
+    found = set()
+    index = 0
+    code = []
+    while index < len(text):
+        char = text[index]
+        if char == "#":
+            end = text.find("\n", index)
+            index = len(text) if end < 0 else end
+            continue
+        if char in "'\"":
+            quote = char * (3 if text.startswith(char * 3, index) else 1)
+            start = index + len(quote)
+            end = text.find(quote, start)
+            if end < 0:
+                break
+            value = text[start:end]
+            before = "".join(code).rstrip()[-1:] or ""
+            after_index = end + len(quote)
+            after = text[after_index:].lstrip()[:1]
+            if value in RENAMES and (before == "[" or after in (']', ':')):
+                found.add(value)
+            code.append(" ")
+            index = after_index
+            continue
+        code.append(char)
+        index += 1
+    bare = "".join(code)
+    for old in RENAMES:
+        if re.search(r"(?:\.|\b){}\b\s*(?:=|\()".format(old), bare):
+            found.add(old)
+    return found
+
+
 def assert_key_default(text, key, value_pattern):
     assert re.search(r"['\"]{}['\"]\s*:\s*{}".format(re.escape(key), value_pattern), text)
 
@@ -137,6 +257,22 @@ def function_body(text, name_pattern):
     following = text[match.end():]
     next_def = re.search(r"(?m)^{}def\s+\w+\s*\(".format(re.escape(indent)), following)
     return following[:next_def.start()] if next_def else following
+
+
+def conditional_body(text, condition_pattern):
+    match = re.search(r"(?m)^(?P<indent>[ \t]*)if\s+{}\s*:\s*$".format(condition_pattern), text)
+    assert match, "conditional branch is missing: {}".format(condition_pattern)
+    indent = len(match.group("indent"))
+    lines = []
+    for line in text[match.end():].splitlines():
+        if not line.strip():
+            lines.append(line)
+            continue
+        width = len(line) - len(line.lstrip(" \t"))
+        if width <= indent:
+            break
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def assert_key_has_semantic_upper_bound(text, key, upper):
@@ -209,14 +345,21 @@ def test_b_canonical_default_owner_exists(new):
 
 @pytest.mark.parametrize("new", RENAMES.values())
 def test_b_canonical_ui_owner_exists(new):
-    ui = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy") + source("game/Submods/MAICA_ChatSubmod/header.rpy")
-    assert re.search(r"['\"]{}['\"]|\b{}\b".format(new, new), ui), "UI owner missing: {}".format(new)
+    ui = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    ui += "\n".join(screen_blocks(source("game/Submods/MAICA_ChatSubmod/header.rpy")))
+    assert ui_owner_exists(ui, new), "UI owner missing: {}".format(new)
 
 
 @pytest.mark.parametrize("new", RENAMES.values())
 def test_b_canonical_runtime_upload_owner_exists(new):
-    runtime = source("game/Submods/MAICA_ChatSubmod/header.rpy") + source("game/python-packages/maica.py")
-    assert re.search(r"['\"]{}['\"]|\.{}\b".format(new, new), runtime), "runtime owner missing: {}".format(new)
+    runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub_sessionsender.py")
+    assert runtime_owner_exists(runtime, new), "runtime owner missing: {}".format(new)
+
+
+def test_b_owner_helpers_reject_default_only_synthetic_source():
+    defaults = 'defaults = {"prompt_pname_repl": False}'
+    assert not ui_owner_exists(defaults, "prompt_pname_repl")
+    assert not runtime_owner_exists(defaults, "prompt_pname_repl")
 
 
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
@@ -360,11 +503,9 @@ def test_f_legality_response_displays_distinct_latitude_and_longitude():
 def test_g_header_shared_additions_helper_enforces_both_byte_limits():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     helper = function_body(header, r"_?maica_\w*addition\w*")
-    count_reject = re.search(r"if\s+len\s*\(\s*\w*additions\w*\s*\)\s*(?:>=\s*512|>\s*511)\s*:(?P<body>.{0,500})", helper, re.S)
-    byte_reject = re.search(r"if\s+len\s*\([^)]*\.encode\s*\(\s*['\"]utf-8['\"]\s*\)[^)]*\)\s*(?:>\s*1536|>=\s*1537)\s*:(?P<body>.{0,500})", helper, re.S)
-    assert count_reject, "helper does not reject additions at the 512-item boundary"
-    assert byte_reject, "helper does not reject text over 1536 UTF-8 bytes"
-    for rejection in (count_reject.group("body"), byte_reject.group("body")):
+    count_reject = conditional_body(helper, r"len\s*\(\s*\w*additions\w*\s*\)\s*(?:>=\s*512|>\s*511)")
+    byte_reject = conditional_body(helper, r"len\s*\([^\n]*\.encode\s*\(\s*['\"]utf-8['\"]\s*\)[^\n]*\)\s*(?:>\s*1536|>=\s*1537)")
+    for rejection in (count_reject, byte_reject):
         assert re.search(r"\b(?:return|raise|notify|show_screen)\b", rejection), "limit branch does not reject or notify"
 
 
@@ -417,16 +558,20 @@ def test_retired_setting_identifiers_are_not_runtime_owners():
     paths += [path for path in PYTHON.glob("*.py") if not path.name.startswith("test_")]
     found = {}
     for path in paths:
-        text = remove_compatibility_dicts(path.read_text(encoding="utf-8"))
-        text = re.sub(r"(?s)(?:[rubfRUBF]*)('''.*?'''|\"\"\".*?\"\"\")", "", text)
-        text = re.sub(r"(?m)#.*$", "", text)
-        hits = [old for old in RENAMES if re.search(
-            r"(?:\.{}\b|\[['\"]{}['\"]\]|['\"]{}['\"]\s*:|\b{}\s*=)".format(old, old, old, old),
-            text,
-        )]
+        text = path.read_text(encoding="utf-8")
+        hits = python_owner_names(text) if path.suffix == ".py" else rpy_owner_names(remove_compatibility_dicts(text))
         if hits:
-            found[str(path.relative_to(ROOT))] = hits
+            found[str(path.relative_to(ROOT))] = sorted(hits)
     assert not found, "retired runtime setting identifiers remain: {}".format(found)
+
+
+def test_retired_owner_scanners_ignore_prose_and_detect_real_subscripts():
+    note = 'note = "sfe_aggressive = documentation only"\n'
+    owner = 'data["sfe_aggressive"] = value\n'
+    assert "sfe_aggressive" not in python_owner_names(note)
+    assert "sfe_aggressive" in python_owner_names(owner)
+    assert "sfe_aggressive" not in rpy_owner_names(note)
+    assert "sfe_aggressive" in rpy_owner_names(owner)
 
 
 def test_retired_ws_protocol_identifiers_are_not_registered():
