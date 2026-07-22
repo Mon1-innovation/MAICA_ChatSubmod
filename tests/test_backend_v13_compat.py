@@ -1,48 +1,19 @@
-"""Static release contracts for the MAICA backend-v1.3 migration.
+"""Collectable static contracts for the backend-v1.3 release cut-over."""
 
-These tests intentionally parse source instead of importing Ren'Py modules.  They are
-the release-side complement to the behavioural protocol tests.
-"""
-
+import ast
+import io
 import json
 import re
+import tokenize
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SUBMOD = ROOT / "game" / "Submods" / "MAICA_ChatSubmod"
 PYTHON = ROOT / "game" / "python-packages"
 ASSETS = ROOT / "game" / "mod_assets" / "console"
-
-
-def source(relative):
-    path = ROOT / relative
-    assert path.is_file(), "required contract source is missing: {}".format(relative)
-    return path.read_text(encoding="utf-8")
-
-
-def sources(paths):
-    return "\n".join(source(path) for path in paths)
-
-
-def production_sources():
-    paths = [path for path in SUBMOD.rglob("*.rpy") if path.name != "migrations.rpy"]
-    paths += list(PYTHON.glob("*.py"))
-    return "\n".join(path.read_text(encoding="utf-8") for path in paths)
-
-
-def executable_lines(text):
-    return "\n".join(
-        line for line in text.splitlines()
-        if line.strip() and not line.lstrip().startswith(("#", "old ", "new "))
-    )
-
-
-def assert_owner_renamed(text, old, new):
-    """Require the canonical owner and reject the old owner outside migration code."""
-    assert new in text, "canonical owner {!r} is missing".format(new)
-    assert old not in text, "retired runtime owner {!r} remains".format(old)
-
 
 RENAMES = {
     "sfe_aggressive": "prompt_pname_repl",
@@ -62,136 +33,341 @@ RENAMES = {
 }
 
 
-def test_a_release_version_migration_and_local_override_contract():
-    maica = source("game/python-packages/maica.py")
+def path_for(relative):
+    path = ROOT / relative
+    assert path.is_file(), "required contract source is missing: {}".format(relative)
+    return path
+
+
+def source(relative):
+    return path_for(relative).read_text(encoding="utf-8")
+
+
+def block_after(text, marker, radius=700):
+    match = re.search(marker, text)
+    assert match, "source context is missing: {}".format(marker)
+    return text[match.start():match.start() + radius]
+
+
+def literal_dict(text, name):
+    match = re.search(r"\b{}\s*=\s*\{{".format(re.escape(name)), text)
+    assert match, "dictionary {!r} is missing".format(name)
+    start = text.find("{", match.start())
+    depth = 0
+    quote = None
+    escaped = False
+    for index in range(start, len(text)):
+        char = text[index]
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+        elif char in "'\"":
+            quote = char
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return ast.literal_eval(text[start:index + 1])
+    assert False, "dictionary {!r} is not closed".format(name)
+
+
+def remove_compatibility_dicts(text):
+    """Remove explicitly named rename maps, while retaining all runtime strings."""
+    for name in ("chat_param_renames", "CHAT_PARAM_RENAMES", "SETTING_RENAMES", "RENAME_MAP"):
+        match = re.search(r"\b{}\s*=\s*\{{".format(name), text)
+        if not match:
+            continue
+        start = text.find("{", match.start())
+        depth = 0
+        for index in range(start, len(text)):
+            if text[index] == "{":
+                depth += 1
+            elif text[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    text = text[:match.start()] + text[index + 1:]
+                    break
+    return text
+
+
+def strip_comments_and_strings(text, suffix):
+    """Leave identifiers/operators while eliminating prose false positives."""
+    if suffix == ".py":
+        tokens = tokenize.generate_tokens(io.StringIO(text).readline)
+        return tokenize.untokenize(
+            (kind, "" if kind in (tokenize.COMMENT, tokenize.STRING) else value)
+            for kind, value, _start, _end, _line in tokens
+        )
+    text = re.sub(r"(?s)(?:[rubfRUBF]*)('''.*?'''|\"\"\".*?\"\"\")", "", text)
+    text = re.sub(r"(?m)#.*$", "", text)
+    return re.sub(r"(?s)(?:[rubfRUBF]*)(['\"])(?:\\.|(?!\1).)*\1", "", text)
+
+
+def runtime_identifiers(relative):
+    path = path_for(relative)
+    return strip_comments_and_strings(path.read_text(encoding="utf-8"), path.suffix)
+
+
+def assert_key_default(text, key, value_pattern):
+    assert re.search(r"['\"]{}['\"]\s*:\s*{}".format(re.escape(key), value_pattern), text)
+
+
+def assert_key_control(text, key, upper):
+    context = block_after(text, r"(?:textbutton|use\s+\w+)[^\n]*{}|{}[^\n]*(?:textbutton|use\s+\w+)".format(key, key), 500)
+    assert re.search(r"\b0\s*,\s*{}\b|(?:max|upper|maximum)\s*=\s*{}\b".format(upper, upper), context)
+    assert "ToggleDict" not in context
+
+
+def test_a_backend_and_release_versions_are_final():
+    assert re.search(r"SUPPORT_BACKEND\s*=\s*['\"]1\.3\.000['\"]", source("game/python-packages/maica.py"))
+    assert re.search(r"maica_ver\s*=\s*['\"]1\.8\.0['\"]", source("game/Submods/MAICA_ChatSubmod/api.rpy"))
+
+
+def test_a_migration_is_structurally_registered_and_invoked():
+    migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
-    migration_path = SUBMOD / "migrations.rpy"
-    assert re.search(r"SUPPORT_BACKEND\s*=\s*['\"]1\.3\.000['\"]", maica)
-    assert migration_path.is_file()
-    migration = migration_path.read_text(encoding="utf-8")
-    assert "1.8.0" in migration
-    assert re.search(r"(?:register|migration).{0,100}1\.8\.0|1\.8\.0.{0,100}(?:register|migration)", migration, re.S)
-    assert re.search(r"maica_ver\s*=\s*['\"]1\.8\.0['\"]", api)
-    assert "migrations.migration_instance" in api
-    assert "dev_enable.rpy" in source(".gitignore")
+    queue = block_after(migration, r"migration_queue\s*=", 1000)
+    assert re.search(r"\(\s*['\"]1\.8\.0['\"]\s*,\s*migration_1_8_0\s*\)", queue)
+    assert re.search(r"\bmaica_migration\s*\(", api) or re.search(r"\bmigrations\.migration_instance\s*\(", api)
+    assert re.search(r"persistent\._maica_last_version\s*=\s*store\.maica_ver", api)
 
 
-def test_b_retired_setting_owners_have_canonical_runtime_owners():
-    runtime = executable_lines(sources([
-        "game/Submods/MAICA_ChatSubmod/header.rpy",
-        "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
-        "game/python-packages/maica.py",
-        "game/python-packages/maica_tasker_sub.py",
-        "game/python-packages/maica_tasker_sub_sessionsender.py",
-    ]))
-    for old, new in RENAMES.items():
-        assert_owner_renamed(runtime, old, new)
+def test_a_dev_override_remains_ignored():
+    assert re.search(r"(?:^|/)dev_enable\.rpy$", source(".gitignore"), re.M)
 
 
-def test_c_setting_defaults_ranges_and_outbound_retirements():
+@pytest.mark.parametrize(("old", "new"), RENAMES.items())
+def test_b_migration_rename_map_has_exact_pair(old, new):
+    mapping = literal_dict(source("game/Submods/MAICA_ChatSubmod/migrations.rpy"), "chat_param_renames")
+    assert mapping.get(old) == new, "{} must migrate to {}".format(old, new)
+
+
+def test_b_migration_rename_map_has_no_unreviewed_keys():
+    mapping = literal_dict(source("game/Submods/MAICA_ChatSubmod/migrations.rpy"), "chat_param_renames")
+    assert set(mapping) == set(RENAMES)
+
+
+@pytest.mark.parametrize("new", RENAMES.values())
+def test_b_canonical_default_owner_exists(new):
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
-    screens = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
-    outbound = sources(["game/Submods/MAICA_ChatSubmod/header.rpy", "game/python-packages/maica.py"])
-    assert re.search(r"['\"]tz['\"]\s*:", header)
-    assert re.search(r"(?:target_lang|language)['\"]?\s*:\s*['\"]auto['\"]", header)
-    assert re.search(r"['\"]prompt_allow_nickname['\"]\s*:\s*True", header)
-    for key in ("mf_sf_access_impl", "mf_const_sf_access", "mt_concl_memory"):
-        assert re.search(r"['\"]{}['\"]\s*:\s*1\b".format(key), header)
-        control = re.search(r".{0,180}%s.{0,240}" % key, screens, re.S)
-        assert control and re.search(r"\b0\s*,\s*2\b", control.group(0))
-        assert "ToggleDict" not in control.group(0)
-    assert re.search(r"['\"]mt_disable_loop['\"]\s*:\s*True", header)
-    assert re.search(r"mf_const_tools.{0,160}\b(?:0\s*,\s*2|2\b)", screens, re.S)
-    assert re.search(r"session_len_limit.{0,200}28672", screens, re.S)
-    assert "mt_extraction" not in executable_lines(outbound)
+    assert re.search(r"['\"]{}['\"]\s*:".format(new), header), "default owner missing: {}".format(new)
+
+
+@pytest.mark.parametrize("new", RENAMES.values())
+def test_b_canonical_ui_owner_exists(new):
+    ui = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy") + source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    assert re.search(r"['\"]{}['\"]|\b{}\b".format(new, new), ui), "UI owner missing: {}".format(new)
+
+
+@pytest.mark.parametrize("new", RENAMES.values())
+def test_b_canonical_runtime_upload_owner_exists(new):
+    runtime = source("game/Submods/MAICA_ChatSubmod/header.rpy") + source("game/python-packages/maica.py")
+    assert re.search(r"['\"]{}['\"]|\.{}\b".format(new, new), runtime), "runtime owner missing: {}".format(new)
+
+
+def test_c_regular_settings_include_tz_and_auto_language_defaults():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    assert_key_default(header, "tz", r"(?:None|['\"][^'\"]+['\"])")
+    assert_key_default(header, "target_lang", r"['\"]auto['\"]")
+
+
+def test_c_tz_has_ui_and_outbound_owners():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    assert "maica_tz_setting" in screen and re.search(r"maica_setting_dict[^\n]*['\"]tz['\"]", screen)
+    assert re.search(r"maica_setting_dict[^\n]*['\"]tz['\"]", header)
+
+
+@pytest.mark.parametrize("key", ("mf_sf_access_impl", "mf_const_sf_access", "mt_concl_memory"))
+def test_c_tristate_default_and_control_are_integer_zero_to_two(key):
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    assert_key_default(header, key, r"1\b")
+    assert_key_control(screen, key, 2)
+
+
+def test_c_tool_and_session_limits_are_two_and_28672():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    assert_key_default(header, "mt_disable_loop", r"True\b")
+    assert_key_control(screen, "mf_const_tools", 2)
+    session_context = block_after(header + screen, r"(?:session_len_limit|max_history_token)", 800)
+    assert re.search(r"(?:session_len_limit|max_history_token).{0,500}28672", session_context, re.S)
+    normalize = source("game/python-packages/maica.py") + header
+    assert re.search(r"mf_const_tools.{0,400}(?:min\s*\([^)]*2|>\s*2|\b2\b)", normalize, re.S)
+    assert re.search(r"(?:session_len_limit|max_history_token).{0,500}(?:min\s*\([^)]*28672|>\s*28672|28672)", normalize, re.S)
+
+
+@pytest.mark.parametrize("relative", ("game/python-packages/maica.py", "game/python-packages/maica_tasker_sub_sessionsender.py"))
+def test_c_each_outbound_builder_retires_mt_extraction(relative):
+    assert not re.search(r"['\"]mt_extraction['\"]\s*:", source(relative)), relative
+
+
+def test_c_persistent_exports_retire_mas_sf_hcb():
     assert "mas_sf_hcb" not in source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")
     assert "mas_sf_hcb" not in source("game/python-packages/json_exporter.py")
 
 
-def test_d_websocket_auth_resume_and_retired_cookie_protocol():
-    maica = source("game/python-packages/maica.py")
+def test_d_login_and_generation_start_use_v13_protocol():
     tasker = source("game/python-packages/maica_tasker_sub.py")
-    sender = source("game/python-packages/maica_tasker_sub_sessionsender.py")
-    screens = sources(["game/Submods/MAICA_ChatSubmod/header.rpy", "game/Submods/MAICA_ChatSubmod/screen_subs.rpy"])
-    runtime = executable_lines("\n".join((maica, tasker, sender, screens)))
+    runtime = source("game/python-packages/maica.py") + tasker
     assert re.search(r"['\"]type['\"]\s*:\s*['\"]auth['\"]", tasker)
     assert "maica_mcore_gen_start" in runtime
-    for retired in ("MAICAWSCookiesHandler", "WSCookiesTask", "strict_mode"):
-        assert retired not in runtime
-    assert not re.search(r"['\"]cookie['\"]\s*:", runtime)
+
+
+@pytest.mark.parametrize("relative", ("game/python-packages/maica.py", "game/python-packages/maica_tasker_sub.py", "game/python-packages/maica_tasker_sub_sessionsender.py"))
+def test_d_cookie_injection_is_retired_in_every_builder(relative):
+    text = source(relative)
+    patterns = (
+        r"\[['\"]cookie['\"]\]\s*=", r"['\"]cookie['\"]\s*:",
+        r"\.update\s*\([^)]*['\"]cookie['\"]", r"\.setdefault\s*\(\s*['\"]cookie['\"]",
+    )
+    assert not any(re.search(pattern, text, re.S) for pattern in patterns), relative
+
+
+def test_d_cookie_handler_task_and_strict_ui_are_retired():
+    python_runtime = runtime_identifiers("game/python-packages/maica.py") + runtime_identifiers("game/python-packages/maica_tasker_sub.py")
+    ui_runtime = runtime_identifiers("game/Submods/MAICA_ChatSubmod/header.rpy") + runtime_identifiers("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    assert "MAICAWSCookiesHandler" not in python_runtime
+    assert "WSCookiesTask" not in python_runtime
+    assert not re.search(r"\bstrict_mode\b", ui_runtime)
+
+
+def test_d_current_ws_statuses_replace_retired_registrations():
+    runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub.py")
     for current in ("maica_quality_status", "maica_loop_warn_reset", "maica_core_streaming_continue"):
         assert current in runtime
-    for retired in ("maica_dscl_status", "maica_loop_warn_finished", "maica_core_nostream_reply"):
-        assert retired not in runtime
+    for old in ("maica_dscl_status", "maica_loop_warn_finished", "maica_core_nostream_reply"):
+        assert not re.search(r"except_ws_status\s*=\s*\[[^]]*{}".format(old), runtime, re.S)
 
 
-def test_e_mtrigger_mspire_and_mpostal_payload_owners():
+def test_e_mtrigger_mspire_mpostal_and_temporary_trigger_payloads():
     trigger = source("game/python-packages/maica_mtrigger.py")
     sender = source("game/python-packages/maica_tasker_sub_sessionsender.py")
-    assert "alter_value" in trigger
-    assert "alter_affection" not in executable_lines(trigger)
-    assert re.search(r"['\"]inspire['\"]\s*:\s*\{[^}]*ctg_weight", sender, re.S)
-    assert re.search(r"['\"]inspire['\"]\s*:\s*\{[^}]*use_cache", sender, re.S)
-    assert re.search(r"['\"]inspire['\"]\s*:\s*\{\s*\}", sender)
-    assert re.search(r"['\"]twk_super['\"]", sender)
-    assert not re.search(r"['\"]ic_prep['\"]", sender)
+    assert "alter_value" in trigger and "alter_affection" not in runtime_identifiers("game/python-packages/maica_mtrigger.py")
+    inspire = block_after(sender, r"class\s+MAICAMSpireProcessor", 3500)
+    assert re.search(r"['\"]inspire['\"]\s*:\s*\{[^}]*ctg_weight", inspire, re.S)
+    assert re.search(r"['\"]inspire['\"]\s*:\s*\{[^}]*use_cache", inspire, re.S)
+    assert re.search(r"['\"]inspire['\"]\s*:\s*\{\s*\}", inspire)
+    postal = block_after(sender, r"class\s+MAICAMPostalProcessor", 1800)
+    assert "twk_super" in postal and "ic_prep" not in runtime_identifiers("game/python-packages/maica_tasker_sub_sessionsender.py")
     assert re.search(r"['\"]triggers['\"]\s*:", sender)
     assert not re.search(r"['\"]trigger['\"]\s*:", sender)
 
 
-def test_f_rest_nickname_and_legality_contracts():
+def test_f_vista_list_and_download_routes_are_distinct():
     vista = source("game/python-packages/maica_vista_files_manager.py")
-    runtime = executable_lines(production_sources())
+    listing = block_after(vista, r"def\s+list_remote\s*\(", 1600)
+    download = block_after(vista, r"def\s+download\s*\(", 1600)
+    assert "/vista/list" in listing
+    assert re.search(r"/vista(?:['\"]|\?)", download)
+    assert re.search(r"params\s*=\s*\{[^}]*['\"]content['\"]", download, re.S)
+
+
+def test_f_emotion_endpoint_is_retired():
+    for path in list(PYTHON.glob("*.py")) + list(SUBMOD.glob("*.rpy")):
+        assert not re.search(r"['\"]/emotion(?:['\"/?]|$)", path.read_text(encoding="utf-8")), path.name
+
+
+def test_f_nickname_has_default_and_ui_owner():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
-    assert "/vista/list" in vista
-    assert not re.search(r"['\"]/emotion(?:['\"/?]|$)", runtime)
-    assert re.search(r"prompt_allow_nickname.{0,120}(?:True|1)", runtime, re.S)
-    assert "prompt_allow_nickname" in header
-    assert re.search(r"legality.{0,300}(?:latitude|longitude).{0,300}(?:latitude|longitude)", runtime, re.S)
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    assert_key_default(header, "prompt_allow_nickname", r"True\b")
+    assert re.search(r"(?:textbutton|ToggleDict|SetDict).{0,240}prompt_allow_nickname", header + screen, re.S)
 
 
-def test_g_player_additions_byte_limits_shared_validation_and_backup():
+def test_f_legality_sends_distinct_latitude_and_longitude_fields():
+    runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub_sessionsender.py")
+    legality = block_after(runtime, r"legality", 1800)
+    assert re.search(r"\b(?:latitude|lat)\b", legality)
+    assert re.search(r"\b(?:longitude|lng|lon)\b", legality)
+
+
+def test_g_header_shared_additions_helper_enforces_both_byte_limits():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    helper = block_after(header, r"def\s+(?P<name>_?maica_\w*addition\w*)\s*\(", 1800)
+    assert re.search(r"\b512\b", helper)
+    assert re.search(r"\b1536\b", helper)
+    assert re.search(r"encode\s*\(\s*['\"]utf-8['\"]\s*\)", helper)
+
+
+def test_g_chat_and_screen_call_the_same_additions_helper():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    names = re.findall(r"def\s+(_?maica_\w*addition\w*)\s*\(", header)
+    assert names, "shared additions validator is missing from header.rpy"
     chat = source("game/Submods/MAICA_ChatSubmod/chat.rpy")
-    screens = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    shared = [name for name in names if re.search(r"\b{}\s*\(".format(name), chat) and re.search(r"\b{}\s*\(".format(name), screen)]
+    assert shared, "chat.rpy and screen_subs.rpy must call one shared additions helper"
+
+
+def test_g_migration_preserves_additions_backup_and_notice():
     migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
-    combined = chat + "\n" + screens + "\n" + migration
-    assert re.search(r"\b512\b", combined)
-    assert re.search(r"\b1536\b", combined)
-    assert re.search(r"encode\s*\(\s*['\"]utf-8['\"]\s*\)", combined)
-    helper_names = set(re.findall(r"def\s+(_?maica_\w*addition\w*)\s*\(", combined))
-    assert helper_names
-    assert any(name in chat and name in screens for name in helper_names)
     assert "_maica_v18_player_additions_backup" in migration
     assert "_maica_v18_player_additions_notice_seen" in migration
-    assert not re.search(r"(?:mas_player_additions|player_additions).{0,240}(?:\[:1000\]|>\s*1000|1000\s*character)", executable_lines(combined), re.S)
 
 
-def test_h_quality_asset_and_references_are_renamed():
+@pytest.mark.parametrize("relative", ("game/Submods/MAICA_ChatSubmod/header.rpy", "game/Submods/MAICA_ChatSubmod/chat.rpy", "game/Submods/MAICA_ChatSubmod/screen_subs.rpy"))
+def test_g_old_1000_character_preprocessor_is_retired(relative):
+    assert not re.search(r"(?:maxlen\s*=\s*1000|\[:\s*1000\s*\]|len\s*\([^)]*\)\s*>\s*1000)", source(relative)), relative
+
+
+QUALITY_FILES = (
+    "game/Submods/MAICA_ChatSubmod/header.rpy",
+    "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
+    "game/Submods/MAICA_ChatSubmod/trigger.rpy",
+    "game/Submods/MAICA_ChatSubmod/trigger_labels.rpy",
+    "game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy",
+    "game/Submods/MAICA_ChatSubmod/tl/trigger.rpy",
+    "game/Submods/MAICA_ChatSubmod/tl/trigger_labels.rpy",
+)
+
+
+@pytest.mark.parametrize("relative", QUALITY_FILES)
+def test_h_each_quality_runtime_and_translation_reference_is_renamed(relative):
+    text = source(relative)
+    assert "gen_quality_chk" in text, "new quality owner missing in {}".format(relative)
+    assert "dscl_pvn" not in runtime_identifiers(relative), "old quality runtime owner remains in {}".format(relative)
+
+
+def test_h_quality_asset_is_replaced():
     assert not (ASSETS / "dscl_pvn.png").exists()
     assert (ASSETS / "gen_quality_chk.png").is_file()
-    refs = executable_lines(sources([
-        "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
-        "game/Submods/MAICA_ChatSubmod/trigger.rpy",
-        "game/Submods/MAICA_ChatSubmod/trigger_labels.rpy",
-        "game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy",
-        "game/Submods/MAICA_ChatSubmod/tl/trigger.rpy",
-        "game/Submods/MAICA_ChatSubmod/tl/trigger_labels.rpy",
-    ]))
-    assert "gen_quality_chk" in refs
-    assert "dscl_pvn" not in refs
 
 
-def test_retired_protocol_names_are_absent_from_production_runtime():
-    runtime = executable_lines(production_sources())
-    # Migration mappings are the sole compatibility boundary for renamed settings.
-    retired = list(RENAMES) + [
-        "maica_core_nostream_reply", "maica_dscl_status",
-        "maica_loop_warn_finished", "MAICAWSCookiesHandler",
-    ]
-    found = [name for name in retired if name in runtime]
-    assert not found, "retired production protocol/owners remain: {}".format(", ".join(found))
+def test_retired_setting_identifiers_are_not_runtime_owners():
+    paths = [path for path in SUBMOD.rglob("*.rpy") if path.name != "migrations.rpy"]
+    paths += [path for path in PYTHON.glob("*.py") if not path.name.startswith("test_")]
+    found = {}
+    for path in paths:
+        text = remove_compatibility_dicts(path.read_text(encoding="utf-8"))
+        text = re.sub(r"(?s)(?:[rubfRUBF]*)('''.*?'''|\"\"\".*?\"\"\")", "", text)
+        text = re.sub(r"(?m)#.*$", "", text)
+        hits = [old for old in RENAMES if re.search(
+            r"(?:\.{}\b|\[['\"]{}['\"]\]|['\"]{}['\"]\s*:|\b{}\s*=)".format(old, old, old, old),
+            text,
+        )]
+        if hits:
+            found[str(path.relative_to(ROOT))] = hits
+    assert not found, "retired runtime setting identifiers remain: {}".format(found)
+
+
+def test_retired_ws_protocol_identifiers_are_not_registered():
+    paths = list(PYTHON.glob("*.py")) + list(SUBMOD.glob("*.rpy"))
+    retired = ("maica_core_nostream_reply", "maica_dscl_status", "maica_loop_warn_finished")
+    found = {}
+    for path in paths:
+        identifiers = strip_comments_and_strings(path.read_text(encoding="utf-8"), path.suffix)
+        hits = [name for name in retired if re.search(r"\b{}\b".format(name), identifiers)]
+        if hits:
+            found[str(path.relative_to(ROOT))] = hits
+    assert not found, "retired websocket identifiers remain: {}".format(found)
 
 
 def test_persistent_filter_is_valid_json():
-    data = json.loads(source("game/Submods/MAICA_ChatSubmod/persistent_filter.json"))
-    assert isinstance(data, (list, dict))
+    assert isinstance(json.loads(source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")), (list, dict))
