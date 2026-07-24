@@ -563,6 +563,12 @@ def test_general_query_rejects_4097_utf8_bytes():
         processor.process_request(query, 1, [], manager)
 
 
+@pytest.mark.parametrize("query", [None, 123, ["hello"]])
+def test_validate_query_text_rejects_non_text_values(query):
+    with pytest.raises(ValueError):
+        maica_tasker_sub_sessionsender.validate_query_text(query)
+
+
 def test_raw_context_accepts_exactly_ten_messages():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICARawContextProcessor(
@@ -626,6 +632,11 @@ def test_raw_context_rejects_compact_json_over_sixteen_kibibytes():
         processor.process_request(query, manager)
 
 
+def test_validate_raw_context_reports_json_serialization_errors():
+    with pytest.raises(ValueError, match="serializable"):
+        maica_tasker_sub_sessionsender.validate_raw_context([object()])
+
+
 def test_mspire_ctg_weight_defaults_to_ten():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
@@ -661,7 +672,7 @@ def test_mspire_places_use_cache_inside_inspire(monkeypatch):
     assert payload["inspire"].get("use_cache") is True
 
 
-@pytest.mark.parametrize("value", [0, 101, True, 1.0])
+@pytest.mark.parametrize("value", [0, 101, True, 1.0, "10", None])
 def test_mspire_rejects_invalid_ctg_weight(value):
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
@@ -682,6 +693,31 @@ def test_mspire_accepts_integer_ctg_weight_boundaries(value):
     processor.process_request(["science"], 1)
     payload = _last_json(manager)
     assert payload["inspire"].get("ctg_weight") == value
+
+
+def test_mspire_does_not_mutate_category_list():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    category = ["science", "memory"]
+    original = list(category)
+    processor.process_request(category, 1, ctg_weight=20, use_cache=True)
+    assert category == original
+
+
+def test_maica_start_mspire_forwards_weight_and_cache_explicitly():
+    maica_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "python-packages"
+        / "maica.py"
+    ).read_text(encoding="utf-8")
+    block = maica_source.split("    def start_MSpire", 1)[1].split(
+        "    def start_MPostal", 1
+    )[0]
+    assert "ctg_weight=" in block
+    assert "use_cache=self.mspire_use_cache" in block
 
 
 def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatch):

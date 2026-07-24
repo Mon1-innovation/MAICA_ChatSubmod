@@ -255,6 +255,7 @@ class MaicaAi(ChatBotInterface):
         self.mspire_category = []
         self.mspire_session = 0
         self.mspire_sample = 250
+        self.mspire_weight = 10
         self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
         self.pprt=False
         self.in_mas = True
@@ -933,7 +934,8 @@ class MaicaAi(ChatBotInterface):
         """返回maica已接收并完成分句的台词数"""
         return self.message_list.size()
     
-    def start_MSpire(self):
+    def start_MSpire(self, ctg_weight=None):
+        """启动 MSpire；分类权重默认为实例配置的 10。"""
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         if not self.is_ready_to_input():
@@ -944,6 +946,8 @@ class MaicaAi(ChatBotInterface):
             category=self.mspire_category,
             session=self.mspire_session,
             pprt=self.pprt,
+            ctg_weight=self.mspire_weight if ctg_weight is None else ctg_weight,
+            use_cache=self.mspire_use_cache,
             flush=self.chat_session != self.mspire_session # Leave the zero detection to later procedure
         )
         self._in_mspire = True
@@ -1074,7 +1078,7 @@ class MaicaAi(ChatBotInterface):
             pprt (bool): 是否启用自动断句和实时后处理
 
         Note:
-            - 受 4096 字符限制
+            - 最多 10 条消息，紧凑 JSON 的 UTF-8 编码不超过 16 KiB
             - MFocus 不会介入 (无 trigger)
         """
         if not self.__accessable:
@@ -1517,4 +1521,3 @@ class MaicaAi(ChatBotInterface):
             
 
         
-
