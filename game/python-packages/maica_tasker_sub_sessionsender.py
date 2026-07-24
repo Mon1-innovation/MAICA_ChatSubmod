@@ -9,7 +9,6 @@ from maica_tasker import *
 from bot_interface import PY2
 import threading
 import json
-from maica_tasker_sub import MAICAWSCookiesHandler
 from cp936_decode import decode_cp936
 
 try:
@@ -223,7 +222,6 @@ class SessionSenderAndReceiver(MaicaWSTask):
 
     Class Attributes:
         multi_lock (ChatLock): 全局聊天锁，保证串行处理
-        strict_cookie (str|None): 严格模式下使用的Cookie值
 
     Instance Attributes:
         processing (bool): 是否正在处理请求
@@ -386,9 +384,6 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
         else:
             validate_query_text(query)
         data = self.build_request(query, session, triggers, visions, pprt)
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
-
         dumped_data = json.dumps(data, ensure_ascii=False)
         if PY2 and isinstance(dumped_data, str):
             dumped_data = decode_cp936(dumped_data)
@@ -439,8 +434,6 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "chat_session": session,
                 "reset": True
             }
-            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-                data['cookie'] = MAICAWSCookiesHandler._cookie
             self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
         if categories:
@@ -463,8 +456,6 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "inspire": {},
                 "pprt": pprt
             }
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
 
@@ -497,8 +488,6 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
         }
         if visions:
             data['vision'] = visions
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
 
@@ -542,7 +531,5 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
         }
         if visions:
             data['vision'] = visions
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
         taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
 

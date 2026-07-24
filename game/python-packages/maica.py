@@ -267,8 +267,6 @@ class MaicaAi(ChatBotInterface):
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.tz = "Asia/Shanghai"
         self.dscl_pvn = False
-        self.__ws_cookie = ""
-        self._enable_strict_mode = False
         self.default_setting = {
             "amt_aggressive": True,
             "deformation": False,
@@ -402,7 +400,7 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maicaloop_warn_handler",
             manager=self.task_manager,
-            except_ws_status=['maica_loop_warn_finished']
+            except_ws_status=['maica_loop_warn_reset']
         )
 
         self.HistoryStatus = maica_tasker_sub.HistoryStatusHandler(
@@ -422,17 +420,10 @@ class MaicaAi(ChatBotInterface):
             manager=self.task_manager,
             except_ws_status=[
                 'maica_mtrigger_trigger',
-                'maica_dscl_status'
+                'maica_quality_status'
             ]
         )
         self.MTriggerTasker.set_trigger_function(self.mtrigger_manager.triggered)
-
-        self.WSCookiesTask = maica_tasker_sub.MAICAWSCookiesHandler(
-            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
-            name="maica_ws_cookies_handler",
-            manager=self.task_manager,
-            except_ws_status=['maica_connection_security_cookie']
-        )
 
         self.Loginer = maica_tasker_sub.MAICALoginTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -473,7 +464,7 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mpostal_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_nostream_reply', 'maica_chat_loop_finished']
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
         )
         self.MPostalProcessor._external_callback = self.mpostal_callback
         self.RawContextProcessor = maica_tasker_sub_sessionsender.MAICARawContextProcessor(
@@ -496,8 +487,9 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="auto_resume_tasker",
             manager=self.task_manager,
+            except_ws_status=['maica_mcore_gen_start', 'maica_chat_loop_finished'],
         )
-        self.AutoResumeTasker.set_should_resume_func(self._should_resume())
+        self.AutoResumeTasker.set_should_resume_func(self._should_resume)
 
         self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -523,18 +515,6 @@ class MaicaAi(ChatBotInterface):
     @property
     def gen_time(self):
         return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.occupied_time
-
-    @property
-    def enable_strict_mode(self):
-        return self._enable_strict_mode
-
-    @enable_strict_mode.setter
-    def enable_strict_mode(self, value):
-        if value:
-            self.WSCookiesTask.enable_cookie()
-        else:
-            self.WSCookiesTask.disable_cookie()
-        self._enable_strict_mode = value
 
     @property
     def auto_reconnect(self):
@@ -975,8 +955,6 @@ class MaicaAi(ChatBotInterface):
         }
         data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz, "dscl_pvn":self.dscl_pvn})
         data['chat_params'].update(self.modelconfig)
-        if self.enable_strict_mode and self.__ws_cookie != "":
-            data['cookie'] = self.__ws_cookie
         return data
 
     def send_settings(self):
@@ -1026,7 +1004,7 @@ class MaicaAi(ChatBotInterface):
             processor.reset()
     
     def mpostal_callback(self, processor, event):
-        if event.data.status == "maica_core_nostream_reply":
+        if event.data.status == "maica_core_streaming_continue":
             message = ''.join([i[1] for i in self.MoodStatus.analyze(event.data.content)])
             if len(message) > 0 and message[0] == " ":
                 message = message[1:]
@@ -1041,7 +1019,6 @@ class MaicaAi(ChatBotInterface):
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        self.__ws_cookie = ""
         if self.multi_lock.locked():
             self.multi_lock.release()
         self.task_manager.ws_client.close()

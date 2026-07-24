@@ -880,6 +880,131 @@ def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatc
     assert validator.packet_count == 0
 
 
+def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.MAICALoginTasker(1, "login", manager)
+    tasker.on_manual_run("token")
+    assert _last_json(manager) == {"type": "auth", "access_token": "token"}
+
+
+def test_streaming_cache_completion_validates_without_tracker_id(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+    validator.on_received(
+        EventStub("maica_core_complete", "MSpire cache finished, 2 packets sent")
+    )
+    assert validator.validation_passed is True
+    assert validator.packet_count == 0
+
+
+@pytest.mark.parametrize("content", [None, 42, "request 99 completed without packet report"])
+def test_streaming_nontext_or_unrelated_numbers_are_controlled_failures(
+    content, monkeypatch
+):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 1)
+    validator.on_received(EventStub("maica_core_complete", content))
+    assert validator.validation_passed is False
+    assert validator.packet_count == 0
+    assert validator.manager.closed is True
+
+
+def test_streaming_disable_and_reset_clear_partial_count(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+    validator.disable()
+    assert validator.packet_count == 0
+    validator.enable()
+    _send_streaming_packets(validator, 1)
+    validator.reset()
+    assert validator.packet_count == 0
+
+
+def test_streaming_validation_resets_when_event_notification_raises(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 1)
+
+    def fail_create_event(_event):
+        raise RuntimeError("notification failed")
+
+    validator.manager.create_event = fail_create_event
+    with pytest.raises(RuntimeError, match="notification failed"):
+        validator.on_received(
+            EventStub("maica_core_complete", "Streaming finished for user, 2 packets sent")
+        )
+    assert validator.validation_passed is False
+    assert validator.packet_count == 0
+
+
+def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):
+    ai = maica.MaicaAi("account", "password")
+    assert ai.MPostalProcessor.except_ws_status == [
+        "maica_core_streaming_continue",
+        "maica_chat_loop_finished",
+    ]
+    assert "maica_quality_status" in ai.MTriggerTasker.except_ws_status
+    loop_task = ai.task_manager.get_task("maicaloop_warn_handler")
+    assert loop_task.except_ws_status == ["maica_loop_warn_reset"]
+
+
+def test_maica_runtime_has_no_websocket_cookie_owner(isolated_maica_ai_globals):
+    ai = maica.MaicaAi("account", "password")
+    assert not hasattr(maica_tasker_sub, "MAICAWSCookiesHandler")
+    assert not hasattr(ai, "WSCookiesTask")
+    assert not hasattr(ai, "enable_strict_mode")
+
+
+def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoResumeTasker(
+        1,
+        "resume",
+        manager,
+        except_ws_status=["maica_mcore_gen_start", "maica_chat_loop_finished"],
+    )
+    tasker.enable()
+    tasker.set_should_resume_func(lambda: True)
+
+    def ws_event(status):
+        return type(
+            "WsEvent",
+            (),
+            {
+                "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+                "data": type("Data", (), {"status": status})(),
+            },
+        )()
+
+    def task_event(name):
+        return type(
+            "TaskEvent",
+            (),
+            {
+                "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
+                "data": type("Data", (), {"name": name})(),
+            },
+        )()
+
+    tasker.on_event(ws_event("maica_mcore_gen_start"))
+    tasker.on_event(task_event("auto_reconnector_start_reconnect"))
+    tasker.on_event(task_event("maica_login_successful"))
+    assert _last_json(manager) == {"type": "reconn"}
+
+    manager.ws_client.sent[:] = []
+    tasker.on_event(ws_event("maica_chat_loop_finished"))
+    tasker.on_event(task_event("auto_reconnector_start_reconnect"))
+    tasker.on_event(task_event("maica_login_successful"))
+    assert manager.ws_client.sent == []
+
+    tasker.on_event(ws_event("maica_mcore_gen_start"))
+    tasker.on_event(task_event("websocket_closed"))
+    tasker.on_event(task_event("auto_reconnector_start_reconnect"))
+    tasker.on_event(task_event("maica_login_successful"))
+    assert manager.ws_client.sent == []
+
+
 @pytest.mark.parametrize(
     "content",
     [

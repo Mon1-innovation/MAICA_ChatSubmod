@@ -708,8 +708,6 @@ translate english strings:
     old "{size=-10}※ 还没有DCC账号? {a=https://forum.monika.love/signup}{i}{u}注册一个{/u}{/i}{/a}"
     new "{size=-10}※ Don't have DCC account yet? {a=https://forum.monika.love/signup}{i}{u}Sign up.{/u}{/i}{/a}"
 
-    old "严格反劫持: [persistent.maica_setting_dict.get('strict_mode')]"
-    new "Strict anti-hijack: [persistent.maica_setting_dict.get('strict_mode')]"
 
 # TODO: Translation updated at 2025-02-01 08:24
 
@@ -760,8 +758,6 @@ translate english strings:
     new "MPostal sent count: [store.maica.maica_instance.stat.get('mpostal_count')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1015
-    old "严格模式下, 将会在每次发送时携带cookie信息"
-    new "Strict anti-hijack enables MAICA websocket cookie"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1125
     old "状态码更新速度"
@@ -991,8 +987,6 @@ translate english strings:
     new "Provide history context for MTrigger, in range of 0-5 rounds.\n+ Improves MTrigger's understanding to serial conversation\n- Risk of breaking MTrigger reply pattern"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1464
-    old "ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"
-    new "Websocket strict mode: [persistent.maica_setting_dict.get('strict_mode')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1479
     old "目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"
@@ -1389,4 +1383,3 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1087
     old "MSpire会话"
     new "MSpire session"
-

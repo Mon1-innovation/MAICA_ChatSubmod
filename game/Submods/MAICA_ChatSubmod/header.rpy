@@ -323,11 +323,6 @@ init 10 python:
         store.maica.maica_instance.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica_instance.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica_instance.max_history_token = persistent.maica_setting_dict["max_history_token"]
-        store.maica.maica_instance.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
-        if store.maica.maica_instance.enable_strict_mode:
-            store.maica.maica_instance.WSCookiesTask.enable_cookie()
-        else:
-            store.maica.maica_instance.WSCookiesTask.disable_cookie()
         store.maica.maica_instance.tz = persistent.maica_setting_dict["tz"]
         store.maica.maica_instance.dscl_pvn = persistent.maica_setting_dict["dscl_pvn"]
         store.maica.maica_instance.input_lang_detect = persistent.maica_setting_dict["input_lang_detect"]
@@ -373,7 +368,6 @@ init 10 python:
         persistent.maica_setting_dict["mspire_session"] = store.maica.maica_instance.mspire_session
         persistent.maica_setting_dict["provider_id"] = store.maica.maica_instance.provider_manager._provider_id
         persistent.maica_setting_dict["max_history_token"] = store.maica.maica_instance.max_history_token
-        persistent.maica_setting_dict["strict_mode"] = store.maica.maica_instance.enable_strict_mode
         persistent.maica_setting_dict["tz"] = store.maica.maica_instance.tz
         persistent.maica_setting_dict["dscl_pvn"] = store.maica.maica_instance.dscl_pvn
         persistent.maica_setting_dict["input_lang_detect"] = store.maica.maica_instance.input_lang_detect
@@ -883,13 +877,6 @@ screen maica_setting():
                     action ToggleDict(persistent.maica_setting_dict, "keep_alive", True, False)
                     hovered SetField(_tooltip, "value", _("定期发送心跳包保持长连接活跃, 并检测网络延迟"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-            hbox:
-                style_prefix "generic_fancy_check"
-                textbutton _("ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
-                    hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
-
             hbox:
                 use divider(_("行为与表现"))
 
