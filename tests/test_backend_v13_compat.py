@@ -257,6 +257,14 @@ def subscript_parts(node):
     return None, []
 
 
+def dict_contains_key(node, key):
+    if node is None:
+        return False
+    return isinstance(node, ast.Dict) and any(
+        isinstance(item, ast.Constant) and item.value == key for item in node.keys
+    ) or any(dict_contains_key(child, key) for child in ast.iter_child_nodes(node))
+
+
 def runtime_owner_exists(text, key):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", SyntaxWarning)
@@ -271,15 +279,37 @@ def runtime_owner_exists(text, key):
             node.value.id for node in ast.walk(function)
             if isinstance(node, ast.Return) and isinstance(node.value, ast.Name)
         )
+        aliases = {}
+        for assignment in (node for node in ast.walk(function) if isinstance(node, ast.Assign)):
+            if len(assignment.targets) == 1 and isinstance(assignment.targets[0], ast.Name):
+                if isinstance(assignment.value, (ast.Name, ast.Dict)):
+                    aliases[assignment.targets[0].id] = (assignment.value, assignment.lineno)
         for call in (node for node in ast.walk(function) if isinstance(node, ast.Call)):
             if isinstance(call.func, ast.Attribute) and call.func.attr in ("send", "send_json", "post", "request"):
-                outbound.update(
-                    item.id for argument in call.args for item in ast.walk(argument) if isinstance(item, ast.Name)
-                )
+                for argument in call.args:
+                    outbound.update(item.id for item in ast.walk(argument) if isinstance(item, ast.Name))
+                    if dict_contains_key(argument, key):
+                        return True
+                    if isinstance(argument, ast.Name):
+                        entry = aliases.get(argument.id)
+                        value = entry[0] if entry and entry[1] < call.lineno else None
+                        definition_line = entry[1] if entry else call.lineno
+                        seen = set()
+                        while isinstance(value, ast.Name) and value.id not in seen:
+                            seen.add(value.id)
+                            entry = aliases.get(value.id)
+                            value = entry[0] if entry and entry[1] < definition_line else None
+                            definition_line = entry[1] if entry else definition_line
+                        if dict_contains_key(value, key):
+                            return True
+        nested_subscripts = {
+            id(parent.value) for parent in ast.walk(function)
+            if isinstance(parent, ast.Subscript) and isinstance(parent.value, ast.Subscript)
+        }
         for node in ast.walk(function):
             if isinstance(node, ast.Subscript):
                 root, parts = subscript_parts(node)
-                if root in outbound and parts and parts[-1] == key:
+                if id(node) not in nested_subscripts and root in outbound and parts and parts[-1] == key:
                     return True
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("update", "setdefault"):
                 root, _parts = subscript_parts(node.func.value)
@@ -291,8 +321,7 @@ def runtime_owner_exists(text, key):
                         ) for argument in node.args
                 ):
                     return True
-            if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict) and any(
-                    isinstance(item, ast.Constant) and item.value == key for item in node.value.keys):
+            if isinstance(node, ast.Return) and dict_contains_key(node.value, key):
                 return True
             if isinstance(node, (ast.Assign, ast.AnnAssign)):
                 targets = node.targets if isinstance(node, ast.Assign) else [node.target]
@@ -668,6 +697,33 @@ def test_b_runtime_owner_requires_keyed_data_to_reach_return_or_send():
     assert not runtime_owner_exists(dead_chat_params, key)
     assert not runtime_owner_exists(value_only, key)
     assert runtime_owner_exists(sent, key)
+
+
+def test_b_runtime_owner_accepts_direct_sink_dicts_and_local_aliases():
+    key = "prompt_pname_repl"
+    direct_send = 'def send(ws, value):\n    ws.send({"prompt_pname_repl": value})\n'
+    nested_send = 'def send(ws, value):\n    ws.send({"chat_params": {"prompt_pname_repl": value}})\n'
+    direct_return = 'def build(value):\n    return {"chat_params": {"prompt_pname_repl": value}}\n'
+    alias = (
+        'def send(ws, value):\n'
+        '    payload = {"prompt_pname_repl": value}\n'
+        '    wire = payload\n'
+        '    ws.send(wire)\n'
+    )
+    assert runtime_owner_exists(direct_send, key)
+    assert runtime_owner_exists(nested_send, key)
+    assert runtime_owner_exists(direct_return, key)
+    assert runtime_owner_exists(alias, key)
+
+
+def test_b_runtime_owner_rejects_intermediate_subscript_components():
+    source_text = (
+        'def build(value):\n'
+        '    payload = {}\n'
+        '    payload["prompt_pname_repl"]["other"] = value\n'
+        '    return payload\n'
+    )
+    assert not runtime_owner_exists(source_text, "prompt_pname_repl")
 
 
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
