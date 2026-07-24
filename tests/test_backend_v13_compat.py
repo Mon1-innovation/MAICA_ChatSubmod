@@ -257,79 +257,103 @@ def subscript_parts(node):
     return None, []
 
 
-def dict_contains_key(node, key):
-    if node is None:
-        return False
-    return isinstance(node, ast.Dict) and any(
-        isinstance(item, ast.Constant) and item.value == key for item in node.keys
-    ) or any(dict_contains_key(child, key) for child in ast.iter_child_nodes(node))
-
-
 def runtime_owner_exists(text, key):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", SyntaxWarning)
         tree = ast.parse(text)
+
+    allowed_containers = {"chat_params", "modelconfig", "settings_dict", "request_body", "payload"}
+
+    def literal_paths(node):
+        paths = set()
+        if not isinstance(node, ast.Dict):
+            return frozenset()
+        for key_node, value_node in zip(node.keys, node.values):
+            if not isinstance(key_node, ast.Constant) or not isinstance(key_node.value, str):
+                continue
+            if key_node.value == key:
+                paths.add(())
+            elif key_node.value in allowed_containers:
+                paths.update((key_node.value,) + path for path in literal_paths(value_node))
+        return frozenset(paths)
+
+    def expression_paths(node, environment):
+        if isinstance(node, ast.Name):
+            return environment.get(node.id, frozenset())
+        if isinstance(node, ast.Dict):
+            return literal_paths(node)
+        if isinstance(node, ast.Call):
+            name = node.func.attr if isinstance(node.func, ast.Attribute) else ""
+            if name in ("dumps", "dump", "encode"):
+                return frozenset(path for argument in node.args for path in expression_paths(argument, environment))
+        return frozenset()
+
+    def merge_environments(target, branches):
+        for name in set().union(*(set(branch) for branch in branches)):
+            target[name] = frozenset(path for branch in branches for path in branch.get(name, frozenset()))
+
+    def analyze_statements(statements, environment):
+        for statement in statements:
+            if isinstance(statement, (ast.Assign, ast.AnnAssign)):
+                targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target]
+                value_paths = expression_paths(statement.value, environment)
+                for target in targets:
+                    if isinstance(target, ast.Name):
+                        environment[target.id] = frozenset(value_paths)
+                    elif isinstance(target, ast.Subscript):
+                        root, parts = subscript_parts(target)
+                        if root in environment and parts and parts[-1] == key:
+                            container_path = tuple(parts[:-1])
+                            if not container_path or all(item in allowed_containers for item in container_path):
+                                environment[root] = environment[root] | {container_path}
+            elif isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
+                call = statement.value
+                if isinstance(call.func, ast.Attribute) and call.func.attr in ("send", "send_json", "post", "request"):
+                    if any(expression_paths(argument, environment) for argument in call.args):
+                        return True
+                if isinstance(call.func, ast.Attribute) and call.func.attr in ("update", "setdefault"):
+                    root, parts = subscript_parts(call.func.value)
+                    if isinstance(call.func.value, ast.Name):
+                        root, parts = call.func.value.id, []
+                    if root in environment and all(item in allowed_containers for item in parts):
+                        added = set()
+                        for argument in call.args:
+                            added.update(tuple(parts) + path for path in literal_paths(argument))
+                        environment[root] = environment[root] | added
+            elif isinstance(statement, ast.Return):
+                if expression_paths(statement.value, environment):
+                    return True
+            elif isinstance(statement, ast.If):
+                branches = []
+                for body in (statement.body, statement.orelse):
+                    branch = dict(environment)
+                    if analyze_statements(body, branch):
+                        return True
+                    branches.append(branch)
+                merge_environments(environment, branches)
+            elif isinstance(statement, (ast.For, ast.While)):
+                branch = dict(environment)
+                if analyze_statements(statement.body, branch):
+                    return True
+                merge_environments(environment, (environment, branch))
+            elif isinstance(statement, ast.Try):
+                branches = []
+                for body in [statement.body, statement.orelse] + [handler.body for handler in statement.handlers]:
+                    branch = dict(environment)
+                    if analyze_statements(body, branch):
+                        return True
+                    branches.append(branch)
+                merge_environments(environment, branches or [environment])
+                if analyze_statements(statement.finalbody, environment):
+                    return True
+        return False
+
     for function in (node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))):
         names = {node.id for node in ast.walk(function) if isinstance(node, ast.Name)}
         relevant = re.search(r"(?:build|normalize|send|setting|config|process|chat)", function.name) or names.intersection(
             {"chat_params", "modelconfig", "settings_dict", "request_body", "payload", "data"})
-        if not relevant:
-            continue
-        outbound = set(
-            node.value.id for node in ast.walk(function)
-            if isinstance(node, ast.Return) and isinstance(node.value, ast.Name)
-        )
-        aliases = {}
-        for assignment in (node for node in ast.walk(function) if isinstance(node, ast.Assign)):
-            if len(assignment.targets) == 1 and isinstance(assignment.targets[0], ast.Name):
-                if isinstance(assignment.value, (ast.Name, ast.Dict)):
-                    aliases[assignment.targets[0].id] = (assignment.value, assignment.lineno)
-        for call in (node for node in ast.walk(function) if isinstance(node, ast.Call)):
-            if isinstance(call.func, ast.Attribute) and call.func.attr in ("send", "send_json", "post", "request"):
-                for argument in call.args:
-                    outbound.update(item.id for item in ast.walk(argument) if isinstance(item, ast.Name))
-                    if dict_contains_key(argument, key):
-                        return True
-                    if isinstance(argument, ast.Name):
-                        entry = aliases.get(argument.id)
-                        value = entry[0] if entry and entry[1] < call.lineno else None
-                        definition_line = entry[1] if entry else call.lineno
-                        seen = set()
-                        while isinstance(value, ast.Name) and value.id not in seen:
-                            seen.add(value.id)
-                            entry = aliases.get(value.id)
-                            value = entry[0] if entry and entry[1] < definition_line else None
-                            definition_line = entry[1] if entry else definition_line
-                        if dict_contains_key(value, key):
-                            return True
-        nested_subscripts = {
-            id(parent.value) for parent in ast.walk(function)
-            if isinstance(parent, ast.Subscript) and isinstance(parent.value, ast.Subscript)
-        }
-        for node in ast.walk(function):
-            if isinstance(node, ast.Subscript):
-                root, parts = subscript_parts(node)
-                if id(node) not in nested_subscripts and root in outbound and parts and parts[-1] == key:
-                    return True
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("update", "setdefault"):
-                root, _parts = subscript_parts(node.func.value)
-                if isinstance(node.func.value, ast.Name):
-                    root = node.func.value.id
-                if root in outbound and any(
-                        isinstance(argument, ast.Dict) and any(
-                            isinstance(item, ast.Constant) and item.value == key for item in argument.keys
-                        ) for argument in node.args
-                ):
-                    return True
-            if isinstance(node, ast.Return) and dict_contains_key(node.value, key):
-                return True
-            if isinstance(node, (ast.Assign, ast.AnnAssign)):
-                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-                value = node.value
-                if isinstance(value, ast.Dict) and any(
-                        isinstance(item, ast.Constant) and item.value == key for item in value.keys):
-                    if any(isinstance(target, ast.Name) and target.id in outbound for target in targets):
-                        return True
+        if relevant and analyze_statements(function.body, {}):
+            return True
     return False
 
 
@@ -724,6 +748,32 @@ def test_b_runtime_owner_rejects_intermediate_subscript_components():
         '    return payload\n'
     )
     assert not runtime_owner_exists(source_text, "prompt_pname_repl")
+
+
+def test_b_runtime_owner_rejects_sink_value_side_references():
+    source_text = (
+        'def send(ws, labels):\n'
+        '    ws.send({"other": labels["prompt_pname_repl"]})\n'
+    )
+    assert not runtime_owner_exists(source_text, "prompt_pname_repl")
+
+
+def test_b_runtime_owner_rejects_unknown_nested_sink_containers():
+    sent = 'def send(ws):\n    ws.send({"docs": {"prompt_pname_repl": "label"}})\n'
+    returned = 'def build():\n    return {"docs": {"prompt_pname_repl": "label"}}\n'
+    assert not runtime_owner_exists(sent, "prompt_pname_repl")
+    assert not runtime_owner_exists(returned, "prompt_pname_repl")
+
+
+def test_b_runtime_owner_preserves_alias_snapshot_across_rebinding():
+    source_text = (
+        'def send(ws, value):\n'
+        '    payload = {"prompt_pname_repl": value}\n'
+        '    wire = payload\n'
+        '    payload = {}\n'
+        '    ws.send(wire)\n'
+    )
+    assert runtime_owner_exists(source_text, "prompt_pname_repl")
 
 
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
