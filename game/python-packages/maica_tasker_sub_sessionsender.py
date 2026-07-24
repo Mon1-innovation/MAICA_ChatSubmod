@@ -57,7 +57,7 @@ def validate_raw_context(query):
         raise ValueError("raw context cannot contain more than 10 messages")
     try:
         dumped = json.dumps(
-            query, ensure_ascii=False, separators=(",", ":")
+            query, ensure_ascii=False, separators=(",", ":"), allow_nan=False
         )
         size = len(_utf8_bytes(dumped))
     except (TypeError, ValueError, UnicodeError) as exc:
@@ -74,6 +74,36 @@ def normalize_mspire_weight(value=10):
     if value < 1 or value > 100:
         raise ValueError("ctg_weight must be an integer from 1 to 100")
     return int(value)
+
+
+def normalize_session(value):
+    """Return a strict MAICA chat session integer from -1 through 9."""
+    if isinstance(value, bool) or not isinstance(value, integer_types):
+        raise ValueError("session must be an integer from -1 to 9")
+    if value < -1 or value > 9:
+        raise ValueError("session must be an integer from -1 to 9")
+    return int(value)
+
+
+def normalize_mspire_categories(category):
+    """Copy and validate an ordered MSpire title list."""
+    if not isinstance(category, list):
+        raise ValueError("category must be a list")
+    categories = list(category)
+    for item in categories:
+        if not isinstance(item, text_types):
+            raise ValueError("each category must be non-empty text")
+        _utf8_bytes(item)
+        if not item.strip():
+            raise ValueError("each category must be non-empty text")
+    return categories
+
+
+def normalize_use_cache(value):
+    """Return an explicit boolean MSpire cache flag."""
+    if not isinstance(value, bool):
+        raise ValueError("use_cache must be a boolean")
+    return value
 
 class ChatLock(object):
     """
@@ -342,6 +372,7 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             visions (list|None): 视觉列表，可选
             pprt (bool): 是否启用自动断句和实时后处理
         """
+        session = normalize_session(session)
         if session == -1:
             validate_raw_context(query)
         else:
@@ -372,7 +403,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     ctg_weight = 10
 
     def process_request(self, category, session, pprt=False, flush=False,
-                        ctg_weight=_UNSET, use_cache=None):
+                        ctg_weight=_UNSET, use_cache=_UNSET):
         """
         处理MSpire聊天请求。
 
@@ -386,9 +417,13 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
         if ctg_weight is _UNSET:
             ctg_weight = self.ctg_weight
         weight = normalize_mspire_weight(ctg_weight)
-        categories = list(category) if category else []
-        cache_enabled = (MAICAMSpireProcessor.use_cache
-                         if use_cache is None else bool(use_cache))
+        session = normalize_session(session)
+        categories = normalize_mspire_categories(category)
+        if use_cache is _UNSET:
+            use_cache = self.use_cache
+        cache_enabled = normalize_use_cache(use_cache)
+        if cache_enabled and session != 0:
+            raise ValueError("use_cache is only available for session 0")
 
         if flush and str(session) != '0':
             data = {
@@ -407,8 +442,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "inspire": {
                     "type": MAICAMSpireProcessor.mspire_type,
                     "sample": 250,
-                    "title": (categories[0] if len(categories) == 1
-                              else categories),
+                    "title": categories,
                     "ctg_weight": weight,
                     "use_cache": cache_enabled,
                 },

@@ -583,6 +583,28 @@ def test_general_processor_minus_one_session_rejects_non_list_query(query):
         processor.process_request(query, -1, [], manager)
 
 
+@pytest.mark.parametrize("session", [True, False, -1.0, "1", -2, 10])
+def test_general_processor_rejects_invalid_session_values(session):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "general", manager
+    )
+    query = [] if session == -1 else "hello"
+    with pytest.raises(ValueError):
+        processor.process_request(query, session, [], manager)
+
+
+@pytest.mark.parametrize("session", [-1, 0, 9])
+def test_general_processor_accepts_session_boundaries(session):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "general", manager
+    )
+    query = [] if session == -1 else "hello"
+    processor.process_request(query, session, [], manager)
+    assert _last_json(manager)["chat_session"] == session
+
+
 @pytest.mark.parametrize("query", [None, 123, ["hello"]])
 def test_validate_query_text_rejects_non_text_values(query):
     with pytest.raises(ValueError):
@@ -665,6 +687,16 @@ def test_validate_raw_context_reports_json_serialization_errors():
         maica_tasker_sub_sessionsender.validate_raw_context([object()])
 
 
+@pytest.mark.parametrize("value", [math.nan, math.inf, -math.inf])
+def test_validate_raw_context_rejects_nested_non_finite_numbers(value):
+    secret = "private user body"
+    with pytest.raises(ValueError) as exc_info:
+        maica_tasker_sub_sessionsender.validate_raw_context(
+            [{"role": "user", "content": secret, "metadata": {"value": value}}]
+        )
+    assert secret not in str(exc_info.value)
+
+
 def test_mspire_ctg_weight_defaults_to_ten():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
@@ -728,25 +760,88 @@ def test_mspire_does_not_mutate_category_list():
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
         1, "mspire", manager
     )
-    category = ["science", "memory"]
+    category = ["science", "memory", "science"]
     original = list(category)
-    processor.process_request(category, 1, ctg_weight=20, use_cache=True)
+    processor.process_request(category, 0, ctg_weight=20, use_cache=True)
     assert category == original
     assert _last_json(manager)["inspire"]["title"] == category
 
 
-def test_maica_start_mspire_forwards_weight_and_cache_explicitly():
-    maica_source = (
-        Path(__file__).resolve().parents[1]
-        / "game"
-        / "python-packages"
-        / "maica.py"
-    ).read_text(encoding="utf-8")
-    block = maica_source.split("    def start_MSpire", 1)[1].split(
-        "    def start_MPostal", 1
-    )[0]
-    assert "ctg_weight=" in block
-    assert "use_cache=self.mspire_use_cache" in block
+def test_mspire_single_category_title_remains_a_list():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    processor.process_request(["science"], 0)
+    assert _last_json(manager)["inspire"]["title"] == ["science"]
+
+
+@pytest.mark.parametrize("category", ["science", ("science",), None])
+def test_mspire_rejects_non_list_categories(category):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(category, 0)
+
+
+@pytest.mark.parametrize("category", [[""], ["  "], [1], [None]])
+def test_mspire_rejects_invalid_category_items(category):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(category, 0)
+
+
+@pytest.mark.parametrize("use_cache", [0, 1, "false", None])
+def test_mspire_rejects_non_boolean_explicit_use_cache(use_cache):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(["science"], 0, use_cache=use_cache)
+
+
+def test_mspire_cache_is_only_allowed_for_session_zero():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(["science"], 1, use_cache=True)
+    processor.process_request(["science"], 1, use_cache=False)
+
+
+def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
+    class ProcessorRecorder(object):
+        def __init__(self):
+            self.kwargs = None
+
+        def start_request(self, **kwargs):
+            self.kwargs = kwargs
+
+    ai = object.__new__(maica.MaicaAi)
+    ai._MaicaAi__accessable = True
+    ai.is_ready_to_input = lambda: True
+    ai.stat = {"mspire_count": 0}
+    ai.MaicaAiStatus = maica.MaicaAi.MaicaAiStatus
+    ai.MSpireProcessor = ProcessorRecorder()
+    ai.mspire_category = ["science"]
+    ai.mspire_session = 0
+    ai.chat_session = 1
+    ai.pprt = False
+    ai.mspire_weight = 25
+    ai.mspire_use_cache = True
+    ai._in_mspire = False
+
+    maica.MaicaAi.start_MSpire(ai)
+
+    assert ai.MSpireProcessor.kwargs["ctg_weight"] == 25
+    assert ai.MSpireProcessor.kwargs["use_cache"] is True
 
 
 def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatch):
