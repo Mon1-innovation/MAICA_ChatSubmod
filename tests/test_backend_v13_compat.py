@@ -140,15 +140,97 @@ def screen_blocks(text):
     return re.findall(r"(?ms)^screen\s+\w+[^\n]*:.*?(?=^(?:screen|label|init)\b|\Z)", text)
 
 
+def default_owner_exists(text, key):
+    tokens = lex_source(text)
+    canonical = {"maica_default_dict", "maica_advanced_setting"}
+    for index in range(len(tokens) - 2):
+        if tokens[index][0] != "NAME" or tokens[index][1] not in canonical:
+            continue
+        if tokens[index + 1:index + 3] != [("OP", "="), ("OP", "{")]:
+            continue
+        depth = 1
+        cursor = index + 3
+        while cursor < len(tokens) and depth:
+            kind, value = tokens[cursor]
+            if (kind, value) == ("OP", "{"):
+                depth += 1
+            elif (kind, value) == ("OP", "}"):
+                depth -= 1
+            elif depth == 1 and kind == "STRING" and value == key:
+                if cursor + 1 < len(tokens) and tokens[cursor + 1] == ("OP", ":"):
+                    return True
+            cursor += 1
+    return False
+
+
+def action_calls(tokens):
+    for index, token in enumerate(tokens):
+        if token != ("NAME", "action"):
+            continue
+        cursor = index + 1
+        while cursor + 1 < len(tokens):
+            if tokens[cursor][0] == "NAME" and tokens[cursor + 1] == ("OP", "("):
+                name = tokens[cursor][1]
+                depth = 1
+                end = cursor + 2
+                while end < len(tokens) and depth:
+                    if tokens[end] == ("OP", "("):
+                        depth += 1
+                    elif tokens[end] == ("OP", ")"):
+                        depth -= 1
+                    end += 1
+                if depth == 0:
+                    yield name, tokens[cursor + 2:end - 1]
+                    cursor = end
+                    continue
+            cursor += 1
+
+
+def call_arguments(tokens):
+    arguments = []
+    argument = []
+    depth = 0
+    for token in tokens:
+        if token[0] == "OP" and token[1] in "([{":
+            depth += 1
+        elif token[0] == "OP" and token[1] in ")]}" and depth:
+            depth -= 1
+        if token == ("OP", ",") and depth == 0:
+            arguments.append(argument)
+            argument = []
+        else:
+            argument.append(token)
+    if argument:
+        arguments.append(argument)
+    return arguments
+
+
 def ui_owner_exists(text, key):
     for screen in screen_blocks(text):
         for control in re.findall(r"(?ms)^\s*(?:textbutton|use\s+\w+)[^\n]*.*?(?=^\s*(?:textbutton|use\s+\w+|if|elif|else)\b|\Z)", screen):
             tokens = lex_source(control)
-            values = [value for _kind, value in tokens]
-            if ("action" in values and any(name in values for name in ("SetDict", "ToggleDict", "Function", "SetField"))
-                    and any(kind == "STRING" and value == key for kind, value in tokens)):
-                return True
+            for name, arguments in action_calls(tokens):
+                positional = call_arguments(arguments)
+                if (name in ("SetDict", "ToggleDict", "SetField") and len(positional) >= 2
+                        and positional[1] == [("STRING", key)]):
+                    return True
+                if name == "Function" and any(argument == [("STRING", key)] for argument in positional[1:]):
+                    return True
     return False
+
+
+def subscript_parts(node):
+    parts = []
+    while isinstance(node, ast.Subscript):
+        if not isinstance(node.slice, ast.Constant) or not isinstance(node.slice.value, str):
+            return None, []
+        parts.append(node.slice.value)
+        node = node.value
+    if isinstance(node, ast.Name):
+        return node.id, list(reversed(parts))
+    if isinstance(node, ast.Attribute):
+        return node.attr, list(reversed(parts))
+    return None, []
 
 
 def runtime_owner_exists(text, key):
@@ -161,15 +243,41 @@ def runtime_owner_exists(text, key):
             {"chat_params", "modelconfig", "settings_dict", "request_body", "payload", "data"})
         if not relevant:
             continue
+        outbound = {"chat_params", "modelconfig", "settings_dict", "request_body", "payload"}
+        outbound.update(
+            node.value.id for node in ast.walk(function)
+            if isinstance(node, ast.Return) and isinstance(node.value, ast.Name)
+        )
+        for assignment in (node for node in ast.walk(function) if isinstance(node, (ast.Assign, ast.AnnAssign))):
+            targets = assignment.targets if isinstance(assignment, ast.Assign) else [assignment.target]
+            value = assignment.value
+            if isinstance(value, ast.Dict) and any(
+                    isinstance(item, ast.Constant) and item.value == "chat_params" for item in value.keys):
+                outbound.update(target.id for target in targets if isinstance(target, ast.Name))
         for node in ast.walk(function):
-            if isinstance(node, ast.Attribute) and node.attr == key:
+            if isinstance(node, ast.Subscript):
+                root, parts = subscript_parts(node)
+                if root in outbound and key in parts:
+                    return True
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("update", "setdefault"):
+                root, _parts = subscript_parts(node.func.value)
+                if isinstance(node.func.value, ast.Name):
+                    root = node.func.value.id
+                if root in outbound and any(
+                        isinstance(item, ast.Constant) and item.value == key
+                        for argument in node.args for item in ast.walk(argument)
+                ):
+                    return True
+            if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict) and any(
+                    isinstance(item, ast.Constant) and item.value == key for item in node.value.keys):
                 return True
-            if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant) and node.slice.value == key:
-                return True
-            if isinstance(node, ast.keyword) and node.arg == key:
-                return True
-            if isinstance(node, ast.Dict) and any(isinstance(item, ast.Constant) and item.value == key for item in node.keys):
-                return True
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                value = node.value
+                if isinstance(value, ast.Dict) and any(
+                        isinstance(item, ast.Constant) and item.value == key for item in value.keys):
+                    if any(isinstance(target, ast.Name) and target.id in outbound for target in targets):
+                        return True
     return False
 
 
@@ -249,27 +357,29 @@ def rpy_owner_names(text):
             inner = tokens[start + 1:index]
             members = []
             member = []
+            member_start = start + 1
             member_depth = 0
-            for item in inner:
+            for offset, item in enumerate(inner):
                 if item[0] == "OP" and item[1] in "([{":
                     member_depth += 1
                 elif item[0] == "OP" and item[1] in ")]}" and member_depth:
                     member_depth -= 1
                 if item == ("OP", ",") and member_depth == 0:
                     if member:
-                        members.append(member)
+                        members.append((member_start, member))
                     member = []
+                    member_start = start + 2 + offset
                 else:
                     member.append(item)
             if member:
-                members.append(member)
+                members.append((member_start, member))
             strict = bool(members) and all(
                 len(item) == 3 and item[0][0] == "STRING" and item[1] == ("OP", ":") and item[2][0] == "STRING"
-                for item in members
+                for _position, item in members
             )
-            pairs = [(inner.index(item[0]), item[0][1], item[2][1]) for item in members] if strict else []
+            pairs = [(position, item[0][1], item[2][1]) for position, item in members] if strict else []
             if pairs and all(old in RENAMES and RENAMES[old] == new for _pos, old, new in pairs):
-                exempt_indices.update(start + 1 + pos for pos, _old, _new in pairs)
+                exempt_indices.update(pos for pos, _old, _new in pairs)
     found = set()
     for index, (kind, value) in enumerate(tokens):
         if index in exempt_indices:
@@ -410,7 +520,7 @@ def test_b_migration_rename_map_has_no_unreviewed_keys():
 @pytest.mark.parametrize("new", RENAMES.values())
 def test_b_canonical_default_owner_exists(new):
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
-    assert re.search(r"['\"]{}['\"]\s*:".format(new), header), "default owner missing: {}".format(new)
+    assert default_owner_exists(header, new), "default owner missing: {}".format(new)
 
 
 @pytest.mark.parametrize("new", RENAMES.values())
@@ -441,6 +551,49 @@ def test_b_owner_helpers_ignore_comments_but_accept_structural_owners():
     assert ui_owner_exists(real_ui, "prompt_pname_repl")
     assert not runtime_owner_exists(commented_runtime, "prompt_pname_repl")
     assert runtime_owner_exists(real_runtime, "prompt_pname_repl")
+
+
+def test_b_default_owner_requires_a_named_canonical_dictionary():
+    key = "prompt_pname_repl"
+    assert not default_owner_exists('# maica_default_dict = {"prompt_pname_repl": False}\n', key)
+    assert not default_owner_exists('note = "maica_default_dict = {\\\"prompt_pname_repl\\\": False}"\n', key)
+    assert not default_owner_exists('unrelated = {"prompt_pname_repl": False}\n', key)
+    assert not default_owner_exists('maica_default_dict = {"group": {"prompt_pname_repl": False}}\n', key)
+    assert default_owner_exists('maica_default_dict = {"prompt_pname_repl": False}\n', key)
+    assert default_owner_exists('maica_advanced_setting = {"prompt_pname_repl": False}\n', key)
+
+
+def test_b_ui_owner_binds_the_key_to_the_setting_action():
+    misleading = (
+        'screen x():\n'
+        '    textbutton "prompt_pname_repl":\n'
+        '        action SetDict(other, "other", True)\n'
+    )
+    assert not ui_owner_exists(misleading, "prompt_pname_repl")
+
+
+def test_b_runtime_owner_requires_an_outbound_payload_path():
+    documentation = (
+        'def build_payload():\n'
+        '    labels = {"prompt_pname_repl": "Documentation"}\n'
+        '    return {}\n'
+    )
+    attribute = 'def build_payload():\n    logger.prompt_pname_repl\n    return {}\n'
+    nested_payload = (
+        'def build_payload(value):\n'
+        '    data = {"chat_params": {}}\n'
+        '    data["chat_params"]["prompt_pname_repl"] = value\n'
+        '    return data\n'
+    )
+    named_payload = (
+        'def send(value):\n'
+        '    request_body = {"prompt_pname_repl": value}\n'
+        '    return request_body\n'
+    )
+    assert not runtime_owner_exists(documentation, "prompt_pname_repl")
+    assert not runtime_owner_exists(attribute, "prompt_pname_repl")
+    assert runtime_owner_exists(nested_payload, "prompt_pname_repl")
+    assert runtime_owner_exists(named_payload, "prompt_pname_repl")
 
 
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
@@ -676,6 +829,19 @@ def test_retired_rpy_scanner_does_not_exempt_mixed_compatibility_dicts():
     assert "sfe_aggressive" not in rpy_owner_names(pure)
     assert "sfe_aggressive" in rpy_owner_names(mixed)
     assert "sfe_aggressive" in rpy_owner_names(expanded)
+
+
+def test_retired_rpy_scanner_tracks_repeated_and_escaped_mapping_members():
+    repeated = (
+        'anything = {"sfe_aggressive": "prompt_pname_repl", '
+        '"sfe_aggressive": "prompt_pname_repl"}\n'
+        'data["sfe_aggressive"] = "quoted \\\"sfe_aggressive\\\" text"\n'
+    )
+    large = "anything = {" + ", ".join(
+        '"sfe_aggressive": "prompt_pname_repl"' for _index in range(2000)
+    ) + "}\n"
+    assert "sfe_aggressive" in rpy_owner_names(repeated)
+    assert "sfe_aggressive" not in rpy_owner_names(large)
 
 
 def test_retired_ws_protocol_identifiers_are_not_registered():
