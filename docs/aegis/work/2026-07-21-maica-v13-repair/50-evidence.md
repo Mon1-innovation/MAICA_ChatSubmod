@@ -52,3 +52,17 @@
 - 规格审查：通过；修复了真实聊天仍使用 `trigger=`、跨 method 数量绕过和非有限 meter 三项缺口。
 - 最终质量审查：Approved，无 Critical/Important；模板 clone/spoof 与 Python 2 数值兼容已通过独立探针。
 - 延期 Minor：manager 暂不拒绝重复 trigger name；Ren'Py 内置触发器仍缺少执行 init 块的集成测试，留待最终 lint/手工冒烟覆盖。
+
+## 任务 3：session 与 MSpire 边界
+
+- 最终提交：`7579f3e257bf14c02f0615d5019f74fb94c8da89`；初始实现提交为 `606a55132ffc1484080997f3dce03f765b5a0805`。
+- 初始定向红灯：`11 failed, 3 passed`；补齐 validator 与调用链后为 `19 failed, 3 passed`。审查发现的 session 类型、分类、cache、非有限 JSON 与 MSpire `-1` session 均先补失败测试。
+- 最终定向测试：`59 passed`。
+- `python -m pytest tests/test_v13_contract_runtime.py -q`：`99 passed, 8 failed`；剩余失败属于后续 WebSocket、emotion、Vista 和 version/disable 任务。
+- `python -m pytest tests/test_start_maica_background_download.py -q`：`1 passed`；Python 编译与 `git diff --check` 通过，仅保留 `maica.py:53` 既存 banner 转义警告。
+- 普通 query：严格文本与 UTF-8 4 KiB；session 仅允许整数 `-1..9`，`-1` 实际调用链强制 raw list。
+- raw context：最多 10 条，紧凑 JSON UTF-8 不超过 16 KiB，`allow_nan=False`，序列化错误不包含用户正文。
+- MSpire：权重严格整数 `1..100`；session 仅 `0..9`；cache 仅 session 0；分类必须为非空文本列表并保序、保重复、复制输入，title 始终为列表；空分类发送 `{}`。
+- 中英文 `raw_session` 文档已同步为 10 条/16 KiB 与 `MAX_MESSAGES`/`MAX_BYTES`。
+- 规格审查：通过；修复了 `-1` 分派、多分类丢失与 Python 2 bytes 校验缺口。
+- 最终质量审查：Approved，无 Critical/Important/Minor；此前 session 宽松类型、MSpire 静默转换、非标准 NaN/Infinity JSON 与 MSpire raw session 均已关闭。

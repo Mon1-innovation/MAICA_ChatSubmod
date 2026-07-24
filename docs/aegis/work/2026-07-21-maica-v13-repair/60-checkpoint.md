@@ -18,11 +18,11 @@
 
 ## TodoCheckpointDraft
 
-- 当前任务：任务 3，修复 session、MSpire 与发送前尺寸校验。
-- 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、任务 1A/1B 契约测试、任务 2 MTrigger 严格协议与六个内置 switch，以及逐任务规格和质量审查。
-- 待完成：任务 3–9 的实现、两阶段逐任务复核、最终全局审查和发布门禁。
+- 当前任务：任务 4，统一 WebSocket 状态与完成包验证。
+- 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、任务 1A/1B 契约测试、任务 2 MTrigger、任务 3 session/MSpire，以及逐任务规格和质量审查。
+- 待完成：任务 4–9 的实现、两阶段逐任务复核、最终全局审查和发布门禁。
 - 阻塞项：无。
-- 下一步：派发任务 3 实现代理，先运行 session/MSpire 定向红灯，再实现 UTF-8 字节限制、紧凑 JSON 和 `ctg_weight` 规范化。
+- 下一步：派发任务 4 实现代理，先运行完成包与状态定向红灯，再统一当前 WebSocket 状态并保证计数器跨轮重置。
 
 ## EvidenceBundleDraft
 
@@ -41,14 +41,17 @@
 - 任务 2 最终提交：`25a3d4a6d937019b310facc53e0dcf4300a5e908`
 - 任务 2 目标测试：`42 passed`；完整 runtime 为 `46 passed, 20 failed`，剩余均属后续任务。
 - 任务 2 审查：规格通过；质量 Approved，无 Critical/Important。
+- 任务 3 最终提交：`7579f3e257bf14c02f0615d5019f74fb94c8da89`
+- 任务 3 目标测试：`59 passed`；完整 runtime 为 `99 passed, 8 failed`，剩余均属后续任务。
+- 任务 3 审查：规格通过；质量 Approved，无 Critical/Important/Minor。
 
 ## DriftCheckDraft
 
 - 原始意图：保持一致，现已明确为从干净基线完整重做。
 - 兼容边界：保持 `1.7.8` 存档和现有用户流程。
-- 新增所有者：MTrigger validation 与 request builder 成为协议规范化 owner，符合计划；后续纯迁移辅助模块仍未创建。
+- 新增所有者：MTrigger validation、request builder 与 session/MSpire validator 成为协议规范化 owner，符合计划；后续纯迁移辅助模块仍未创建。
 - 退役轨：旧字段、状态、cookie、端点和 v1.2 网络分支仍明确退役。
-- 决策：`continue`；任务 2 未引入 v1.2 网络 fallback，未触及后续设置迁移或版本门禁。
+- 决策：`continue`；任务 3 未触及 MPostal/WS、设置迁移或版本门禁，后续红灯归属明确。
 
 ## ResumeStateHint
 

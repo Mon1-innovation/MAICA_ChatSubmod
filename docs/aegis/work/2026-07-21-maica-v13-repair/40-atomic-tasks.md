@@ -6,8 +6,8 @@
 - [x] 1a. 为完整设置改名、认证 type、cookie 退役、断点续传和 MSpire 新结构添加失败测试。
 - [x] 2. 修复 MTrigger `choice`、`curr_item`、`triggers` 和严格 schema 校验。
 - [x] 3. 将佩戴/取下饰品合并为一个 switch，确保内置 switch 总数为 6。
-- [ ] 4. 修复 `-1 session` UTF-8/紧凑 JSON/10 条限制。
-- [ ] 5. 修复普通 session 4 KiB 和 MSpire `ctg_weight=1..100`。
+- [x] 4. 修复 `-1 session` UTF-8/紧凑 JSON/10 条限制。
+- [x] 5. 修复普通 session 4 KiB 和 MSpire `ctg_weight=1..100`。
 - [ ] 6. 统一 MPostal、质量、loop WebSocket 状态名。
 - [ ] 6a. 添加登录 `type: auth`、断点续传标记并删除 cookie/strict-mode 运行路径。
 - [ ] 7. 改造 `maica_core_complete` 解析并覆盖所有计数器重置路径。
