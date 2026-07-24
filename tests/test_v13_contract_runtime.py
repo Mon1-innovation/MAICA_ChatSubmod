@@ -898,6 +898,39 @@ def test_streaming_cache_completion_validates_without_tracker_id(monkeypatch):
     assert validator.packet_count == 0
 
 
+def test_streaming_legacy_seed_and_traceray_completion_still_validates(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+    validator.on_received(
+        EventStub(
+            "maica_core_complete",
+            "Streaming finished with seed None for Monika, 2 packets sent -- your traceray ID is trace-1",
+        )
+    )
+    assert validator.validation_passed is True
+    assert validator.packet_count == 0
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        "Streaming finished for user, -2 packets sent",
+        "Streaming finished for user, 1.2 packets sent",
+        "tracker 2024 packets sent",
+        "Streaming finished for user, 2 packets sent malicious-tail",
+    ],
+)
+def test_streaming_completion_rejects_ambiguous_or_extended_packet_counts(
+    content, monkeypatch
+):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+    validator.on_received(EventStub("maica_core_complete", content))
+    assert validator.validation_passed is False
+    assert validator.packet_count == 0
+    assert validator.manager.closed is True
+
+
 @pytest.mark.parametrize("content", [None, 42, "request 99 completed without packet report"])
 def test_streaming_nontext_or_unrelated_numbers_are_controlled_failures(
     content, monkeypatch
@@ -999,6 +1032,17 @@ def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monk
     assert manager.ws_client.sent == []
 
     tasker.on_event(ws_event("maica_mcore_gen_start"))
+    tasker.on_event(task_event("auto_reconnector_start_reconnect"))
+    tasker.on_event(task_event("websocket_closed"))
+    tasker.on_event(task_event("maica_login_successful"))
+    tasker.on_event(task_event("maica_login_successful"))
+    assert [json.loads(payload) for payload in manager.ws_client.sent] == [
+        {"type": "reconn"}
+    ]
+
+    manager.ws_client.sent[:] = []
+    tasker.on_event(ws_event("maica_mcore_gen_start"))
+    tasker._on_reconnect = False
     tasker.on_event(task_event("websocket_closed"))
     tasker.on_event(task_event("auto_reconnector_start_reconnect"))
     tasker.on_event(task_event("maica_login_successful"))

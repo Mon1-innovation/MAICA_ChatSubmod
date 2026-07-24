@@ -798,11 +798,13 @@ class AutoResumeTasker(MaicaWSTask):
                 if self._on_reconnect and self._generation_started:
                     if not self._should_resume_func():
                         self._generation_started = False
+                        self._on_reconnect = False
                         self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
                         return
                     data = {'type': 'reconn'}
                     self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
                     self._generation_started = False
+                    self._on_reconnect = False
                     self.logger.info("[AutoResumeTasker] sent resume request")
             elif event.data.name == 'auto_reconnector_start_reconnect':
                 self._on_reconnect = True
@@ -811,6 +813,7 @@ class AutoResumeTasker(MaicaWSTask):
                 self.reset_on_closed()
             elif event.data.name == 'maica_login_failed':
                 self._generation_started = False
+                self._on_reconnect = False
 
         return None
 
@@ -820,8 +823,9 @@ class AutoResumeTasker(MaicaWSTask):
 
         将_on_reconnect标志重置为False，准备下一次重连。
         """
-        self._on_reconnect = False
-        self._generation_started = False
+        if not (self._on_reconnect and self._generation_started):
+            self._on_reconnect = False
+            self._generation_started = False
         self.logger.debug("[AutoResumeTasker] reset reconnect state")
 
     def enable(self):
@@ -1216,13 +1220,19 @@ class StreamingPacketValidator(MaicaWSTask):
                 content = content.decode('utf-8')
             except (UnicodeDecodeError, AttributeError):
                 return None
-        match = re.search(r'(?:^|[,;:]\s*)?(\d+)\s+packets sent(?:\b|$)', content)
-        if not match:
-            return None
-        try:
-            return int(match.group(1))
-        except (TypeError, ValueError):
-            return None
+        patterns = (
+            r'Streaming finished for user, (0|[1-9]\d*) packets sent\Z',
+            r'MSpire cache finished, (0|[1-9]\d*) packets sent\Z',
+            r'Streaming finished with seed (?:None|-?(?:0|[1-9]\d*)) for [^,\r\n]+, (0|[1-9]\d*) packets sent -- your traceray ID is [^\s]+\Z',
+        )
+        for pattern in patterns:
+            match = re.match(pattern, content)
+            if match:
+                try:
+                    return int(match.group(1))
+                except (TypeError, ValueError):
+                    return None
+        return None
 
     def _reset_count(self):
         """重置数据包计数器。"""
