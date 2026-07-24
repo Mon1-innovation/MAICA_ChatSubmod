@@ -968,6 +968,7 @@ def test_streaming_validation_resets_when_event_notification_raises(monkeypatch)
         )
     assert validator.validation_passed is False
     assert validator.packet_count == 0
+    assert validator.manager.closed is True
 
 
 def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):
@@ -986,6 +987,13 @@ def test_maica_runtime_has_no_websocket_cookie_owner(isolated_maica_ai_globals):
     assert not hasattr(maica_tasker_sub, "MAICAWSCookiesHandler")
     assert not hasattr(ai, "WSCookiesTask")
     assert not hasattr(ai, "enable_strict_mode")
+
+
+def test_manual_maica_example_has_no_retired_cookie_or_strict_owner():
+    source = (PACKAGE_ROOT / "test_maica.py").read_text(encoding="utf-8")
+    assert "enable_strict_mode" not in source
+    assert "WSCookiesTask" not in source
+    assert "MAICAWSCookiesHandler" not in source
 
 
 def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monkeypatch):
@@ -1123,6 +1131,34 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
         tasker.on_event(login_event)
     assert tasker._generation_started is False
     assert tasker._on_reconnect is False
+
+
+def test_auto_resume_should_resume_failure_clears_flags_without_retry(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoResumeTasker(1, "resume-check-failure", manager)
+    tasker.enable()
+    tasker._generation_started = True
+    tasker._on_reconnect = True
+
+    def fail_check():
+        raise RuntimeError("resume check failed")
+
+    tasker.set_should_resume_func(fail_check)
+    login_event = type(
+        "TaskEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
+            "data": type("Data", (), {"name": "maica_login_successful"})(),
+        },
+    )()
+    with pytest.raises(RuntimeError, match="resume check failed"):
+        tasker.on_event(login_event)
+    assert tasker._generation_started is False
+    assert tasker._on_reconnect is False
+    tasker.on_event(login_event)
+    assert manager.ws_client.sent == []
 
 @pytest.mark.parametrize(
     "content",

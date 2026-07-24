@@ -800,16 +800,16 @@ class AutoResumeTasker(MaicaWSTask):
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
             if event.data.name == 'maica_login_successful':
                 if self._on_reconnect and self._generation_started:
-                    if not self._should_resume_func():
-                        self._clear_resume_state()
-                        self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
-                        return
-                    data = {'type': 'reconn'}
                     try:
+                        should_resume = self._should_resume_func()
+                        if not should_resume:
+                            self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
+                            return
+                        data = {'type': 'reconn'}
                         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
+                        self.logger.info("[AutoResumeTasker] sent resume request")
                     finally:
                         self._clear_resume_state()
-                    self.logger.info("[AutoResumeTasker] sent resume request")
             elif event.data.name == 'auto_reconnector_start_reconnect':
                 self._on_reconnect = True
                 self.logger.debug("[AutoResumeTasker] marked as reconnecting")
@@ -1175,8 +1175,7 @@ class StreamingPacketValidator(MaicaWSTask):
                 self.logger.error(
                     "[StreamingPacketValidator] failed to parse complete message: {}".format(content)
                 )
-                if self.manager and self.manager.ws_client:
-                    self.manager.close_ws()
+                self._close_ws_safely()
                 return
 
             self._validation_passed = self._packet_count == reported_packets
@@ -1186,25 +1185,36 @@ class StreamingPacketValidator(MaicaWSTask):
                         self._packet_count, reported_packets
                     )
                 )
-                self.manager.create_event(
-                    MaicaTaskEvent(
-                        taskowner=self,
-                        event_type=MAICATASKEVENT_TYPE_TASK,
-                        data=maica_tasker_events.GenericData(
-                            name='streaming_packet_mismatch',
-                            content={
-                                'received_count': self._packet_count,
-                                'reported_count': reported_packets,
-                            }
+                try:
+                    self.manager.create_event(
+                        MaicaTaskEvent(
+                            taskowner=self,
+                            event_type=MAICATASKEVENT_TYPE_TASK,
+                            data=maica_tasker_events.GenericData(
+                                name='streaming_packet_mismatch',
+                                content={
+                                    'received_count': self._packet_count,
+                                    'reported_count': reported_packets,
+                                }
+                            )
                         )
                     )
-                )
-                if self.manager and self.manager.ws_client:
-                    self.manager.close_ws()
+                finally:
+                    self._close_ws_safely()
             else:
                 self.logger.info("[StreamingPacketValidator] packet count verified successfully")
         finally:
             self._reset_count()
+
+    def _close_ws_safely(self):
+        if not self.manager or not self.manager.ws_client:
+            return
+        try:
+            self.manager.close_ws()
+        except Exception as error:
+            self.logger.error(
+                "[StreamingPacketValidator] failed to close WebSocket: {}".format(error)
+            )
 
     @staticmethod
     def _extract_reported_packets(content):
