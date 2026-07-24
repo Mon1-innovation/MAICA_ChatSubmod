@@ -8,9 +8,9 @@
 - [x] 3. 将佩戴/取下饰品合并为一个 switch，确保内置 switch 总数为 6。
 - [x] 4. 修复 `-1 session` UTF-8/紧凑 JSON/10 条限制。
 - [x] 5. 修复普通 session 4 KiB 和 MSpire `ctg_weight=1..100`。
-- [ ] 6. 统一 MPostal、质量、loop WebSocket 状态名。
-- [ ] 6a. 添加登录 `type: auth`、断点续传标记并删除 cookie/strict-mode 运行路径。
-- [ ] 7. 改造 `maica_core_complete` 解析并覆盖所有计数器重置路径。
+- [x] 6. 统一 MPostal、质量、loop WebSocket 状态名。
+- [x] 6a. 添加登录 `type: auth`、断点续传标记并删除 cookie/strict-mode 运行路径。
+- [x] 7. 改造 `maica_core_complete` 解析并覆盖所有计数器重置路径。
 - [ ] 8. 将 MVista 列举改为 `/vista/list`，保留下载路径。
 - [ ] 9. 退役 `/emotion` 网络回退，增加本地未知表情回退。
 - [ ] 10. 修复 `[player_nickname]` 到 MAS 函数的消息转换。

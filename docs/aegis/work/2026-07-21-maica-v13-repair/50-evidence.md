@@ -66,3 +66,18 @@
 - 中英文 `raw_session` 文档已同步为 10 条/16 KiB 与 `MAX_MESSAGES`/`MAX_BYTES`。
 - 规格审查：通过；修复了 `-1` 分派、多分类丢失与 Python 2 bytes 校验缺口。
 - 最终质量审查：Approved，无 Critical/Important/Minor；此前 session 宽松类型、MSpire 静默转换、非标准 NaN/Infinity JSON 与 MSpire raw session 均已关闭。
+
+## 任务 4：WebSocket 状态、断点续传与完成包
+
+- 最终提交：`8026472d0334569074d2f4afac6675d806267eda`；初始实现提交为 `d450a1d73940187f733f920ec1a0f35faa605696`。
+- 本切片契约初始新增红灯：`12 failed`；断线顺序、对抗完成文本、禁用状态、异常清理和通知断连均按 TDD 补充并先复现失败。
+- 最终定向 runtime：`23 passed`；静态 auth/cookie/strict/status：`7 passed, 111 deselected`。
+- `python -m pytest tests/test_v13_contract_runtime.py -q`：`122 passed, 5 failed`；剩余为 emotion 两项、Vista、version_info 与 disable。
+- 背景测试 `1 passed`；相关 Python 编译与 `git diff --check` 通过。保留 `maica.py` ASCII 图和 `test_maica.py` Windows 路径的既存转义警告。
+- 状态与认证：MPostal、质量、loop 使用当前 v1.3 状态名；登录显式发送 `type: auth`；生成开始使用 `maica_mcore_gen_start`。
+- 断点续传：仅“生成中且已计划重连”跨 `websocket_closed` 保留；登录成功只发送一次 `reconn`；终止、禁用、失败、重置和回调/发送异常均清理双标志。
+- 完成包：只接受当前 streaming、cache 与确证 legacy 的整串白名单格式；包数为无符号十进制整数，不要求 tracker ID；负数、小数、任意年份/tracker、恶意尾部均拒绝。
+- validator 在成功、数量不匹配、畸形、禁用、通知异常、close 异常和显式 reset 后均清零；通知异常仍执行安全断连且不被 close 异常覆盖。
+- cookie/strict：handler、task、请求注入、运行属性/UI 和手工脚本死引用均退役；旧 persistent 默认键仅保留且无读取 owner。
+- 规格审查：通过；修复了真实断线事件顺序、正则误取和 AutoResume 清理缺口。
+- 最终质量审查：Approved，无 Critical/Important/Minor；异常组合、畸形完成包和退役 owner 已独立复核。
