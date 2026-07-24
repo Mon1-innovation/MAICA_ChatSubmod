@@ -23,3 +23,17 @@
 - `python -m pytest tests/test_start_maica_background_download.py -q`：`1 passed`。
 - 规格审查：通过。
 - 质量审查：无 Critical/Important；Validator 使用真实事件累计，MaicaAi 测试恢复全局日志状态。
+
+## 任务 1B：静态迁移与退役契约测试
+
+- 最终提交：`bbf239e31aab96463abba365bf71f60b824c4612`；测试范围从基线 `46a84bc82fcc7ee358f57afccc02ef9646407d4d` 开始。
+- `python -m pytest tests/test_backend_v13_compat.py -q --collect-only`：`118 tests collected`，无 collection/import/fixture error。
+- `python -m pytest tests/test_backend_v13_compat.py -q`：旧 `1.7.8` 生产实现为 `90 failed, 28 passed`，无 ERROR/warning；红灯对应待实现的 v1.3 生产契约。
+- `python -m pytest tests/test_start_maica_background_download.py -q`：`1 passed`。
+- `python -m py_compile tests/test_backend_v13_compat.py`：通过。
+- `git diff --check`：通过；worktree clean。
+- 覆盖范围：14 项设置改名、`1.8.0` 迁移注册、默认/UI/runtime 唯一 owner、三态设置、`tz`、语言 auto、cookie/strict 退役、认证与断点状态、MTrigger/MSpire/MPostal、Vista、emotion/nickname/legality、additions、质量设置与资产、退役协议扫描。
+- 解析器证据：AST/tokenize 双失败显式拒绝；兼容映射只豁免完整、唯一、精确的 14 项映射；Ren'Py 扫描使用单遍栈，深度压力样本访问次数为 `2 * token 数`。
+- owner 对抗证据：最终复审主动执行 22 个 runtime 正反例，`MISMATCH []`；定向测试 `13 passed, 105 deselected`。
+- 规格审查：通过。
+- 最终质量审查：Approved，无 Critical/Important；此前发现的 UI 跨属性、dead payload、值侧引用、任意 docs/log 嵌套、alias 快照、容器更新和控制流顺序问题均已补回归并修复。

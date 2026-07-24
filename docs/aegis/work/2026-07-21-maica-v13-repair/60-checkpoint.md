@@ -18,11 +18,11 @@
 
 ## TodoCheckpointDraft
 
-- 当前任务：任务 1B，重新创建迁移/退役静态契约测试。
-- 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、完整重做范围校正、任务 1A 运行时契约测试及两阶段审查。
-- 待完成：任务 1B、任务 2–9 的实现、两阶段逐任务复核、最终全局审查和发布门禁。
+- 当前任务：任务 2，修复 MTrigger v1.3 序列化、严格校验和六个内置 switch。
+- 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、完整重做范围校正、任务 1A 运行时契约测试、任务 1B 静态迁移/退役契约测试，以及两项任务的规格和质量审查。
+- 待完成：任务 2–9 的实现、两阶段逐任务复核、最终全局审查和发布门禁。
 - 阻塞项：无。
-- 下一步：派发任务 1B 实现代理，创建 `tests/test_backend_v13_compat.py` 并验证旧实现产生清晰失败。
+- 下一步：派发任务 2 实现代理，先运行 MT 定向红灯，再修改 `maica_mtrigger.py`、sessionsender 和 `trigger.rpy`。
 
 ## EvidenceBundleDraft
 
@@ -34,14 +34,18 @@
 - 任务 1A 提交：`18d99b2de010e8a8a48386cce51fffe23fc76364`
 - 任务 1A 目标测试：`50 collected, 38 failed, 12 passed, 0 errors`
 - 任务 1A 审查：规格通过；质量无 Critical/Important。
+- 任务 1B 最终提交：`bbf239e31aab96463abba365bf71f60b824c4612`
+- 任务 1B 目标测试：`118 collected, 90 failed, 28 passed, 0 errors`；旧生产红灯符合预期。
+- 任务 1B 定向 owner/scanner 复审：`13 passed, 105 deselected`；22 个主动 runtime 正反例全部匹配。
+- 任务 1B 审查：规格通过；质量 Approved，无 Critical/Important。
 
 ## DriftCheckDraft
 
 - 原始意图：保持一致，现已明确为从干净基线完整重做。
 - 兼容边界：保持 `1.7.8` 存档和现有用户流程。
-- 新增所有者：仅增加纯迁移辅助模块和契约测试，均在计划内。
+- 新增所有者：当前仅增加契约测试；后续纯迁移辅助模块仍按计划创建。
 - 退役轨：旧字段、状态、cookie、端点和 v1.2 网络分支仍明确退役。
-- 决策：`continue`；任务 1A 未引入 production 漂移，红灯是后续实现的明确基线。
+- 决策：`continue`；任务 1A/1B 均未修改 production，红灯已形成后续实现的明确基线。
 
 ## ResumeStateHint
 
