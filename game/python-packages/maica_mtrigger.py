@@ -1,4 +1,4 @@
-import requests, json, re
+import requests, json, math, re
 
 try:
     basestring  # 套路检查
@@ -10,6 +10,12 @@ try:
 except AttributeError:
     def fullmatch(pattern, value):
         return re.match("(?:{})\\Z".format(pattern), value)
+
+try:
+    isfinite = math.isfinite
+except AttributeError:
+    def isfinite(value):
+        return not math.isinf(value) and not math.isnan(value)
 
 
 class NothingLogger(object):
@@ -114,23 +120,30 @@ class MTriggerManager(object):
 
     def trigger_status(self, name):
         return self.enable_map[name] if name in self.enable_map else False
-    
+
+    def validate_batch(self):
+        template_counts = {}
+        for trigger in self.triggers:
+            template_name = trigger.template.name
+            template_counts[template_name] = template_counts.get(template_name, 0) + 1
+        for template_name, count in template_counts.items():
+            limit = self.TEMPLATE_LIMITS.get(template_name)
+            if limit is not None and count > limit:
+                raise ValueError("Too many {} triggers: maximum is {}.".format(template_name, limit))
+
+        return True
+
 
     def build_data(self, method=MTriggerMethod.all, full = False):
+        self.validate_batch()
         self.triggered_list = []
         self._running = False
         res = []
         current_length = len(json.dumps(res, ensure_ascii=False))
-        template_counts = {}
 
         for i in self.triggers:
             if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
                 i.validate()
-                template_name = i.template.name
-                template_counts[template_name] = template_counts.get(template_name, 0) + 1
-                limit = self.TEMPLATE_LIMITS.get(template_name)
-                if limit is not None and template_counts[template_name] > limit:
-                    raise ValueError("Too many {} triggers: maximum is {}.".format(template_name, limit))
                 item_length = len(i)
                 if current_length + item_length > self.SIZE_LIMIT[method] and not full:
                     self.disable_trigger(i.name)
@@ -236,12 +249,16 @@ class MTriggerBase(object):
                 raise ValueError("Meter value_limits must contain exactly two numbers.")
             if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in limits):
                 raise ValueError("Meter value_limits must contain only numbers.")
+            if any(not isfinite(value) for value in limits):
+                raise ValueError("Meter value_limits must contain only finite numbers.")
             if limits[0] > limits[1]:
                 raise ValueError("Meter value_limits must be in non-descending order.")
             value = self.exprop.curr_value
             if value is not None:
                 if isinstance(value, bool) or not isinstance(value, (int, float)):
                     raise ValueError("Meter curr_value must be a number.")
+                if not isfinite(value):
+                    raise ValueError("Meter curr_value must be finite.")
                 if value < limits[0] or value > limits[1]:
                     raise ValueError("Meter curr_value must be within value_limits.")
 

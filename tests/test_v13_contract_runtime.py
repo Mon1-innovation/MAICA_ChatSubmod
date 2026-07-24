@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import sys
 import urllib.request
 from pathlib import Path
@@ -339,6 +340,27 @@ def test_meter_limits_must_be_two_items_in_ascending_order(limits):
 
 
 @pytest.mark.parametrize(
+    ("limits", "curr_value"),
+    [
+        ([math.nan, 1], 0),
+        ([-math.inf, math.inf], 0),
+        ([0, 1], math.nan),
+        ([0, 1], math.inf),
+    ],
+)
+def test_meter_rejects_non_finite_numbers(limits, curr_value):
+    with pytest.raises(ValueError):
+        _build_trigger(
+            maica_mtrigger.common_meter_template,
+            exprop=maica_mtrigger.MTriggerExprop(
+                item_name_zh="刻度",
+                value_limits=limits,
+                curr_value=curr_value,
+            ),
+        ).build()
+
+
+@pytest.mark.parametrize(
     ("template", "limit"),
     [
         (maica_mtrigger.common_affection_template, 1),
@@ -353,6 +375,50 @@ def test_mtrigger_batch_limits_are_enforced(template, limit):
         _build_trigger_batch(template, limit + 1)
 
 
+def test_switch_batch_limit_counts_triggers_across_methods():
+    manager = maica_mtrigger.MTriggerManager()
+    for index in range(6):
+        trigger = _build_trigger(
+            maica_mtrigger.common_switch_template,
+            name="table_{}".format(index),
+            exprop=_build_exprop(maica_mtrigger.common_switch_template),
+        )
+        trigger.method = maica_mtrigger.MTriggerMethod.table
+        manager.add_trigger(trigger)
+    request_trigger = _build_trigger(
+        maica_mtrigger.common_switch_template,
+        name="request_0",
+        exprop=_build_exprop(maica_mtrigger.common_switch_template),
+    )
+    request_trigger.method = maica_mtrigger.MTriggerMethod.request
+    manager.add_trigger(request_trigger)
+
+    with pytest.raises(ValueError):
+        manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+
+def test_switch_batch_limit_allows_legal_total_across_methods():
+    manager = maica_mtrigger.MTriggerManager()
+    for index in range(5):
+        trigger = _build_trigger(
+            maica_mtrigger.common_switch_template,
+            name="table_{}".format(index),
+            exprop=_build_exprop(maica_mtrigger.common_switch_template),
+        )
+        trigger.method = maica_mtrigger.MTriggerMethod.table
+        manager.add_trigger(trigger)
+    request_trigger = _build_trigger(
+        maica_mtrigger.common_switch_template,
+        name="request_0",
+        exprop=_build_exprop(maica_mtrigger.common_switch_template),
+    )
+    request_trigger.method = maica_mtrigger.MTriggerMethod.request
+    manager.add_trigger(request_trigger)
+
+    assert len(manager.build_data(maica_mtrigger.MTriggerMethod.table, full=True)) == 5
+    assert len(manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)) == 1
+
+
 def test_general_chat_payload_uses_triggers_key():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
@@ -362,6 +428,21 @@ def test_general_chat_payload_uses_triggers_key():
     payload = _last_json(manager)
     assert payload.get("triggers") == ["trigger"]
     assert "trigger" not in payload
+
+
+def test_maica_chat_calls_general_processor_with_triggers_keyword():
+    maica_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "python-packages"
+        / "maica.py"
+    ).read_text(encoding="utf-8")
+    chat_block = maica_source.split("    def chat(self,", 1)[1].split(
+        "    def start_raw_context", 1
+    )[0]
+
+    assert "triggers =" in chat_block
+    assert "trigger =" not in chat_block
 
 
 def test_builtin_switches_are_six_and_accessory_keeps_wear_and_unwear_actions():

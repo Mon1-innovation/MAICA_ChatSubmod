@@ -1054,7 +1054,7 @@ class MaicaAi(ChatBotInterface):
         self.ChatProcessor.start_request(
             query=message,
             session = self.chat_session if session == None else session,
-            trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
+            triggers = self.mtrigger_manager.build_data(MTriggerMethod.request),
             taskowner = self.task_manager,
             visions = visions,
             pprt = self.pprt
@@ -1517,5 +1517,4 @@ class MaicaAi(ChatBotInterface):
             
 
         
-
 
