@@ -85,6 +85,14 @@ def normalize_session(value):
     return int(value)
 
 
+def normalize_mspire_session(value):
+    """Return a strict MSpire session integer from 0 through 9."""
+    session = normalize_session(value)
+    if session < 0:
+        raise ValueError("MSpire session must be an integer from 0 to 9")
+    return session
+
+
 def normalize_mspire_categories(category):
     """Copy and validate an ordered MSpire title list."""
     if not isinstance(category, list):
@@ -417,7 +425,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
         if ctg_weight is _UNSET:
             ctg_weight = self.ctg_weight
         weight = normalize_mspire_weight(ctg_weight)
-        session = normalize_session(session)
+        session = normalize_mspire_session(session)
         categories = normalize_mspire_categories(category)
         if use_cache is _UNSET:
             use_cache = self.use_cache

@@ -816,6 +816,27 @@ def test_mspire_cache_is_only_allowed_for_session_zero():
     processor.process_request(["science"], 1, use_cache=False)
 
 
+@pytest.mark.parametrize("category", [[], ["science"]])
+def test_mspire_rejects_minus_one_session_before_sending(category):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    with pytest.raises(ValueError, match="0 to 9"):
+        processor.process_request(category, -1, use_cache=False)
+    assert manager.ws_client.sent == []
+
+
+@pytest.mark.parametrize("session", [0, 9])
+def test_mspire_accepts_nonnegative_session_boundaries(session):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    processor.process_request(["science"], session, use_cache=False)
+    assert _last_json(manager)["chat_session"] == session
+
+
 def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     class ProcessorRecorder(object):
         def __init__(self):
