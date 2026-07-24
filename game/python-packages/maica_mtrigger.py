@@ -6,16 +6,25 @@ except NameError:
     basestring = str  # Python 3 统一用 str
 
 try:
+    integer_types = (int, long)
+except NameError:
+    integer_types = (int,)
+number_types = integer_types + (float,)
+
+try:
     fullmatch = re.fullmatch
 except AttributeError:
     def fullmatch(pattern, value):
         return re.match("(?:{})\\Z".format(pattern), value)
 
-try:
-    isfinite = math.isfinite
-except AttributeError:
-    def isfinite(value):
-        return not math.isinf(value) and not math.isnan(value)
+_math_isfinite = getattr(math, "isfinite", None)
+
+def isfinite(value):
+    if isinstance(value, integer_types):
+        return True
+    if _math_isfinite is not None:
+        return _math_isfinite(value)
+    return not math.isinf(value) and not math.isnan(value)
 
 
 class NothingLogger(object):
@@ -73,6 +82,31 @@ common_switch_template = MTriggerTemplate("common_switch_template", "choice", ex
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False))
 customize_template = MTriggerTemplate("customized", None, exprop=MTriggerExprop(True, True, False, False, False, False))
 
+TEMPLATE_EXPROP_FIELDS = (
+    "item_name_zh",
+    "item_name_en",
+    "item_list",
+    "value_limits",
+    "curr_value",
+    "suggestion",
+)
+
+def template_spec(template):
+    return (
+        template.datakey,
+        tuple(getattr(template.exprop, field) for field in TEMPLATE_EXPROP_FIELDS),
+    )
+
+CANONICAL_TEMPLATE_SPECS = {
+    template.name: template_spec(template)
+    for template in (
+        common_affection_template,
+        common_switch_template,
+        common_meter_template,
+        customize_template,
+    )
+}
+
 class MTriggerManager(object):
     TEMPLATE_LIMITS = {
         common_affection_template.name: 1,
@@ -124,6 +158,7 @@ class MTriggerManager(object):
     def validate_batch(self):
         template_counts = {}
         for trigger in self.triggers:
+            trigger.validate_template()
             template_name = trigger.template.name
             template_counts[template_name] = template_counts.get(template_name, 0) + 1
         for template_name, count in template_counts.items():
@@ -224,7 +259,22 @@ class MTriggerBase(object):
         if len(value) > 256:
             raise ValueError("{} must be at most 256 characters.".format(field))
 
+    def validate_template(self):
+        canonical_spec = CANONICAL_TEMPLATE_SPECS.get(self.template.name)
+        if canonical_spec is None:
+            raise ValueError("Unknown MTrigger template: {}.".format(self.template.name))
+        actual_datakey, actual_flags = template_spec(self.template)
+        canonical_datakey, canonical_flags = canonical_spec
+        if actual_datakey != canonical_datakey or any(
+            actual is not canonical
+            for actual, canonical in zip(actual_flags, canonical_flags)
+        ):
+            raise ValueError("MTrigger template {} does not match its canonical schema.".format(self.template.name))
+
+        return True
+
     def validate(self):
+        self.validate_template()
         if not isinstance(self.name, basestring) or fullmatch(r"[A-Za-z0-9_-]{1,64}", self.name) is None:
             raise ValueError("Trigger name must match [A-Za-z0-9_-]{1,64}.")
         self._validate_display_string(self.description, "description")
@@ -247,7 +297,7 @@ class MTriggerBase(object):
             limits = self.exprop.value_limits
             if not isinstance(limits, (list, tuple)) or len(limits) != 2:
                 raise ValueError("Meter value_limits must contain exactly two numbers.")
-            if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in limits):
+            if any(isinstance(value, bool) or not isinstance(value, number_types) for value in limits):
                 raise ValueError("Meter value_limits must contain only numbers.")
             if any(not isfinite(value) for value in limits):
                 raise ValueError("Meter value_limits must contain only finite numbers.")
@@ -255,7 +305,7 @@ class MTriggerBase(object):
                 raise ValueError("Meter value_limits must be in non-descending order.")
             value = self.exprop.curr_value
             if value is not None:
-                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                if isinstance(value, bool) or not isinstance(value, number_types):
                     raise ValueError("Meter curr_value must be a number.")
                 if not isfinite(value):
                     raise ValueError("Meter curr_value must be finite.")

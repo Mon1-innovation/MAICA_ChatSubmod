@@ -360,6 +360,85 @@ def test_meter_rejects_non_finite_numbers(limits, curr_value):
         ).build()
 
 
+def test_meter_number_types_are_python2_compatible_and_accept_large_integers():
+    assert int in maica_mtrigger.integer_types
+    assert int in maica_mtrigger.number_types
+    assert float in maica_mtrigger.number_types
+
+    large_value = 10 ** 1000
+    data = _build_trigger(
+        maica_mtrigger.common_meter_template,
+        exprop=maica_mtrigger.MTriggerExprop(
+            item_name_zh="刻度",
+            value_limits=[0, large_value],
+            curr_value=large_value,
+        ),
+    ).build()
+    assert data["exprop"]["curr_value"] == large_value
+
+
+@pytest.mark.parametrize(
+    "canonical",
+    [
+        maica_mtrigger.common_affection_template,
+        maica_mtrigger.common_switch_template,
+        maica_mtrigger.common_meter_template,
+        maica_mtrigger.customize_template,
+    ],
+)
+def test_mtrigger_accepts_equivalent_canonical_template_clones(canonical):
+    flags = canonical.exprop
+    clone = maica_mtrigger.MTriggerTemplate(
+        canonical.name,
+        canonical.datakey,
+        exprop=maica_mtrigger.MTriggerExprop(
+            flags.item_name_zh,
+            flags.item_name_en,
+            flags.item_list,
+            flags.value_limits,
+            flags.curr_value,
+            flags.suggestion,
+        ),
+    )
+    assert _build_trigger(
+        clone,
+        exprop=_build_exprop(canonical),
+    ).build()["template"] == canonical.name
+
+
+def test_mtrigger_manager_rejects_spoofed_reserved_template_before_filtering():
+    spoof = maica_mtrigger.MTriggerTemplate(
+        maica_mtrigger.common_switch_template.name,
+        maica_mtrigger.common_switch_template.datakey,
+        exprop=maica_mtrigger.MTriggerExprop(False, False, False, False, False, False),
+    )
+    trigger = _build_trigger(
+        spoof,
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    trigger.method = maica_mtrigger.MTriggerMethod.table
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(trigger)
+
+    with pytest.raises(ValueError):
+        manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+
+def test_mtrigger_builder_rejects_unknown_template_name():
+    unknown = maica_mtrigger.MTriggerTemplate(
+        "unknown_template",
+        "value",
+        exprop=maica_mtrigger.MTriggerExprop(True, True, False, True, True, False),
+    )
+    with pytest.raises(ValueError):
+        _build_trigger(
+            unknown,
+            exprop=maica_mtrigger.MTriggerExprop(
+                item_name_zh="刻度", value_limits=[0, 1], curr_value=0
+            ),
+        ).build()
+
+
 @pytest.mark.parametrize(
     ("template", "limit"),
     [
