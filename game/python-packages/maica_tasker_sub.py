@@ -767,6 +767,10 @@ class AutoResumeTasker(MaicaWSTask):
         """
         return True
 
+    def _clear_resume_state(self):
+        self._on_reconnect = False
+        self._generation_started = False
+
     def on_received(self, event):
         """
         处理接收到的任务事件。
@@ -783,28 +787,28 @@ class AutoResumeTasker(MaicaWSTask):
         Returns:
             调用父类on_received方法的返回值
         """
+        if not self._enabled:
+            return
+
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             if event.data.status == 'maica_mcore_gen_start':
                 self._generation_started = True
             elif event.data.status == 'maica_chat_loop_finished':
-                self._generation_started = False
-            return
-
-        if not self._enabled:
+                self._clear_resume_state()
             return
 
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
             if event.data.name == 'maica_login_successful':
                 if self._on_reconnect and self._generation_started:
                     if not self._should_resume_func():
-                        self._generation_started = False
-                        self._on_reconnect = False
+                        self._clear_resume_state()
                         self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
                         return
                     data = {'type': 'reconn'}
-                    self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
-                    self._generation_started = False
-                    self._on_reconnect = False
+                    try:
+                        self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
+                    finally:
+                        self._clear_resume_state()
                     self.logger.info("[AutoResumeTasker] sent resume request")
             elif event.data.name == 'auto_reconnector_start_reconnect':
                 self._on_reconnect = True
@@ -812,8 +816,7 @@ class AutoResumeTasker(MaicaWSTask):
             elif event.data.name == 'websocket_closed':
                 self.reset_on_closed()
             elif event.data.name == 'maica_login_failed':
-                self._generation_started = False
-                self._on_reconnect = False
+                self._clear_resume_state()
 
         return None
 
@@ -824,8 +827,7 @@ class AutoResumeTasker(MaicaWSTask):
         将_on_reconnect标志重置为False，准备下一次重连。
         """
         if not (self._on_reconnect and self._generation_started):
-            self._on_reconnect = False
-            self._generation_started = False
+            self._clear_resume_state()
         self.logger.debug("[AutoResumeTasker] reset reconnect state")
 
     def enable(self):
@@ -844,7 +846,7 @@ class AutoResumeTasker(MaicaWSTask):
         禁用后，重连成功时不会自动发送恢复会话请求。
         """
         self._enabled = False
-        self._generation_started = False
+        self._clear_resume_state()
         self.logger.info("[AutoResumeTasker] auto-resume disabled")
 
     def set_should_resume_func(self, func):
@@ -870,8 +872,7 @@ class AutoResumeTasker(MaicaWSTask):
 
     def reset(self):
         super(AutoResumeTasker, self).reset()
-        self._on_reconnect = False
-        self._generation_started = False
+        self._clear_resume_state()
 
 class KeepWsAliveTasker(MaicaWSTask):
     """

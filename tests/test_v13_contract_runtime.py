@@ -1049,6 +1049,81 @@ def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monk
     assert manager.ws_client.sent == []
 
 
+def test_auto_resume_disabled_ignores_generation_marker(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    tasker = maica_tasker_sub.AutoResumeTasker(
+        1, "resume-disabled", ManagerStub(), ["maica_mcore_gen_start"]
+    )
+    event = type(
+        "WsEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+            "data": type("Data", (), {"status": "maica_mcore_gen_start"})(),
+        },
+    )()
+    tasker.on_event(event)
+    tasker.enable()
+    assert tasker._generation_started is False
+    assert tasker._on_reconnect is False
+
+
+def test_auto_resume_loop_finish_and_disable_clear_all_resume_flags(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    tasker = maica_tasker_sub.AutoResumeTasker(
+        1,
+        "resume-terminal",
+        ManagerStub(),
+        ["maica_mcore_gen_start", "maica_chat_loop_finished"],
+    )
+    tasker.enable()
+    tasker._generation_started = True
+    tasker._on_reconnect = True
+    loop_event = type(
+        "WsEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+            "data": type("Data", (), {"status": "maica_chat_loop_finished"})(),
+        },
+    )()
+    tasker.on_event(loop_event)
+    assert tasker._generation_started is False
+    assert tasker._on_reconnect is False
+
+    tasker._generation_started = True
+    tasker._on_reconnect = True
+    tasker.disable()
+    assert tasker._generation_started is False
+    assert tasker._on_reconnect is False
+
+
+def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoResumeTasker(1, "resume-send-failure", manager)
+    tasker.enable()
+    tasker.set_should_resume_func(lambda: True)
+    tasker._generation_started = True
+    tasker._on_reconnect = True
+
+    def fail_send(_payload):
+        raise RuntimeError("send failed")
+
+    manager.ws_client.send = fail_send
+    login_event = type(
+        "TaskEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
+            "data": type("Data", (), {"name": "maica_login_successful"})(),
+        },
+    )()
+    with pytest.raises(RuntimeError, match="send failed"):
+        tasker.on_event(login_event)
+    assert tasker._generation_started is False
+    assert tasker._on_reconnect is False
+
 @pytest.mark.parametrize(
     "content",
     [
