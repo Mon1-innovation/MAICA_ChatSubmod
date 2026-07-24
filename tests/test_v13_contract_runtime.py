@@ -563,10 +563,38 @@ def test_general_query_rejects_4097_utf8_bytes():
         processor.process_request(query, 1, [], manager)
 
 
+def test_general_processor_routes_minus_one_session_to_raw_context_validator():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "general", manager
+    )
+    query = [{"role": "user", "content": "hello"}]
+    processor.process_request(query, -1, [], manager)
+    assert _last_json(manager)["query"] == query
+
+
+@pytest.mark.parametrize("query", ["hello", ("hello",)])
+def test_general_processor_minus_one_session_rejects_non_list_query(query):
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "general", manager
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(query, -1, [], manager)
+
+
 @pytest.mark.parametrize("query", [None, 123, ["hello"]])
 def test_validate_query_text_rejects_non_text_values(query):
     with pytest.raises(ValueError):
         maica_tasker_sub_sessionsender.validate_query_text(query)
+
+
+def test_validate_query_text_rejects_bytes_on_python3():
+    if sys.version_info[0] >= 3:
+        with pytest.raises(ValueError):
+            maica_tasker_sub_sessionsender.validate_query_text(b"hello")
+        with pytest.raises(ValueError):
+            maica_tasker_sub_sessionsender.validate_query_text(b"\xff")
 
 
 def test_raw_context_accepts_exactly_ten_messages():
@@ -704,6 +732,7 @@ def test_mspire_does_not_mutate_category_list():
     original = list(category)
     processor.process_request(category, 1, ctg_weight=20, use_cache=True)
     assert category == original
+    assert _last_json(manager)["inspire"]["title"] == category
 
 
 def test_maica_start_mspire_forwards_weight_and_cache_explicitly():

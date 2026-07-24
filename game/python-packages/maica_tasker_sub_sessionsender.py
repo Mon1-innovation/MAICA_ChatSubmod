@@ -29,6 +29,12 @@ _UNSET = object()
 
 
 def _utf8_bytes(value):
+    if PY2 and isinstance(value, str):
+        try:
+            value.decode("utf-8")
+        except UnicodeError as exc:
+            raise ValueError("text must contain valid UTF-8 bytes: {}".format(exc))
+        return value
     if isinstance(value, bytes):
         return value
     return value.encode("utf-8")
@@ -336,7 +342,10 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             visions (list|None): 视觉列表，可选
             pprt (bool): 是否启用自动断句和实时后处理
         """
-        validate_query_text(query)
+        if session == -1:
+            validate_raw_context(query)
+        else:
+            validate_query_text(query)
         data = self.build_request(query, session, triggers, visions, pprt)
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
@@ -374,8 +383,6 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
             session (int): 聊天会话ID
             taskowner: 任务所有者（通常是MaicaTaskManager）
         """
-        import random
-
         if ctg_weight is _UNSET:
             ctg_weight = self.ctg_weight
         weight = normalize_mspire_weight(ctg_weight)
@@ -400,7 +407,8 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "inspire": {
                     "type": MAICAMSpireProcessor.mspire_type,
                     "sample": 250,
-                    "title": random.choice(categories),
+                    "title": (categories[0] if len(categories) == 1
+                              else categories),
                     "ctg_weight": weight,
                     "use_cache": cache_enabled,
                 },
