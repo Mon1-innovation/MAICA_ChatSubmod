@@ -252,7 +252,20 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
     用于处理常规的聊天请求，支持触发器和自定义会话。
     """
 
-    def process_request(self, query, session, trigger, taskowner, visions=None, pprt=False):
+    @staticmethod
+    def build_request(query, session, triggers, visions=None, pprt=False):
+        data = {
+            'type': 'query',
+            'chat_session': session,
+            'query': query,
+            'triggers': triggers,
+            'pprt': pprt,
+        }
+        if visions:
+            data['vision'] = visions
+        return data
+
+    def process_request(self, query, session, triggers, taskowner, visions=None, pprt=False):
         """
         处理通用聊天请求。
 
@@ -261,24 +274,12 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
         Args:
             query (str): 聊天查询内容
             session (int): 聊天会话ID
-            trigger: 触发器信息
+            triggers: 触发器信息
             taskowner: 任务所有者（通常是MaicaTaskManager）
             visions (list|None): 视觉列表，可选
             pprt (bool): 是否启用自动断句和实时后处理
         """
-        data = {
-            'type': 'query',
-            'chat_session': session,
-            'query': query,
-            'trigger': trigger,
-            "pprt": pprt
-        }
-        # if trigger:
-        #     data['trigger'] = trigger
-        # else:
-        #     data['trigger'] = []
-        if visions:
-            data['vision'] = visions
+        data = self.build_request(query, session, triggers, visions, pprt)
         if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
             data['cookie'] = MAICAWSCookiesHandler._cookie
 

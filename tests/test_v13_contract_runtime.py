@@ -78,6 +78,10 @@ def _build_trigger(template, name="trigger", exprop=None, description=""):
 def _build_exprop(template):
     if template is maica_mtrigger.common_affection_template:
         return maica_mtrigger.MTriggerExprop()
+    if template is maica_mtrigger.common_switch_template:
+        return maica_mtrigger.MTriggerExprop(
+            item_name_zh="项目", item_list=["item"], curr_value="item"
+        )
     return maica_mtrigger.MTriggerExprop(item_name_zh="项目")
 
 
@@ -203,6 +207,20 @@ def _raw_messages_with_compact_size(target_size):
 
 def test_common_switch_template_uses_choice_datakey():
     assert maica_mtrigger.common_switch_template.datakey == "choice"
+
+
+def test_common_affection_template_uses_alter_value_and_accepts_legacy_input():
+    received = []
+    trigger = maica_mtrigger.MTriggerBase(
+        maica_mtrigger.common_affection_template,
+        "affection",
+        callback=received.append,
+    )
+
+    assert maica_mtrigger.common_affection_template.datakey == "alter_value"
+    trigger.triggered({"alter_value": 1.5})
+    trigger.triggered({"affection": 0.5})
+    assert received == [1.5, 0.5]
 
 
 def test_switch_build_uses_curr_item_instead_of_curr_value():
@@ -344,6 +362,23 @@ def test_general_chat_payload_uses_triggers_key():
     payload = _last_json(manager)
     assert payload.get("triggers") == ["trigger"]
     assert "trigger" not in payload
+
+
+def test_builtin_switches_are_six_and_accessory_keeps_wear_and_unwear_actions():
+    trigger_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+
+    assert trigger_source.count("common_switch_template") == 6
+    assert "class AccessoryTrigger(MTriggerBase):" in trigger_source
+    assert '"wear|{}"' in trigger_source
+    assert '"unwear|{}"' in trigger_source
+    assert 'store.renpy.call("mtrigger_change_acs"' in trigger_source
+    assert 'store.renpy.call("mtrigger_unwear_acs"' in trigger_source
 
 
 def test_general_query_accepts_exactly_4096_utf8_bytes():
