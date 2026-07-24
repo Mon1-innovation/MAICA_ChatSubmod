@@ -284,8 +284,10 @@ def runtime_owner_exists(text, key):
             return literal_paths(node)
         if isinstance(node, ast.Call):
             name = node.func.attr if isinstance(node.func, ast.Attribute) else ""
-            if name in ("dumps", "dump", "encode"):
+            if name in ("dumps", "dump"):
                 return frozenset(path for argument in node.args for path in expression_paths(argument, environment))
+            if name == "encode" and isinstance(node.func, ast.Attribute):
+                return expression_paths(node.func.value, environment)
         return frozenset()
 
     def merge_environments(target, branches):
@@ -306,6 +308,10 @@ def runtime_owner_exists(text, key):
                             container_path = tuple(parts[:-1])
                             if not container_path or all(item in allowed_containers for item in container_path):
                                 environment[root] = environment[root] | {container_path}
+                        elif root in environment and parts and all(item in allowed_containers for item in parts):
+                            environment[root] = environment[root] | {
+                                tuple(parts) + path for path in value_paths
+                            }
             elif isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
                 call = statement.value
                 if isinstance(call.func, ast.Attribute) and call.func.attr in ("send", "send_json", "post", "request"):
@@ -317,8 +323,15 @@ def runtime_owner_exists(text, key):
                         root, parts = call.func.value.id, []
                     if root in environment and all(item in allowed_containers for item in parts):
                         added = set()
-                        for argument in call.args:
-                            added.update(tuple(parts) + path for path in literal_paths(argument))
+                        if call.func.attr == "setdefault" and call.args:
+                            first = call.args[0]
+                            if isinstance(first, ast.Constant) and first.value == key:
+                                added.add(tuple(parts))
+                        else:
+                            for argument in call.args:
+                                added.update(tuple(parts) + path for path in literal_paths(argument))
+                            if any(keyword.arg == key for keyword in call.keywords):
+                                added.add(tuple(parts))
                         environment[root] = environment[root] | added
             elif isinstance(statement, ast.Return):
                 if expression_paths(statement.value, environment):
@@ -336,11 +349,19 @@ def runtime_owner_exists(text, key):
                 if analyze_statements(statement.body, branch):
                     return True
                 merge_environments(environment, (environment, branch))
+                if analyze_statements(statement.orelse, environment):
+                    return True
             elif isinstance(statement, ast.Try):
-                branches = []
-                for body in [statement.body, statement.orelse] + [handler.body for handler in statement.handlers]:
-                    branch = dict(environment)
-                    if analyze_statements(body, branch):
+                initial = dict(environment)
+                normal = dict(initial)
+                if analyze_statements(statement.body, normal):
+                    return True
+                if analyze_statements(statement.orelse, normal):
+                    return True
+                branches = [normal]
+                for handler in statement.handlers:
+                    branch = dict(initial)
+                    if analyze_statements(handler.body, branch):
                         return True
                     branches.append(branch)
                 merge_environments(environment, branches or [environment])
@@ -774,6 +795,75 @@ def test_b_runtime_owner_preserves_alias_snapshot_across_rebinding():
         '    ws.send(wire)\n'
     )
     assert runtime_owner_exists(source_text, "prompt_pname_repl")
+
+
+def test_b_runtime_owner_tracks_serialization_wrapper_receivers():
+    direct = (
+        'def send(ws, json, value):\n'
+        '    data = {"prompt_pname_repl": value}\n'
+        '    ws.send(json.dumps(data).encode())\n'
+    )
+    alias = (
+        'def send(ws, json, value):\n'
+        '    data = {"prompt_pname_repl": value}\n'
+        '    wire = json.dumps(data)\n'
+        '    ws.send(wire.encode("utf-8"))\n'
+    )
+    assert runtime_owner_exists(direct, "prompt_pname_repl")
+    assert runtime_owner_exists(alias, "prompt_pname_repl")
+
+
+def test_b_runtime_owner_tracks_container_assignment_and_common_updates():
+    key = "prompt_pname_repl"
+    assigned = (
+        'def build(value):\n'
+        '    data = {}\n'
+        '    data["chat_params"] = {"prompt_pname_repl": value}\n'
+        '    return data\n'
+    )
+    setdefault = (
+        'def build(value):\n'
+        '    payload = {}\n'
+        '    payload.setdefault("prompt_pname_repl", value)\n'
+        '    return payload\n'
+    )
+    keyword_update = (
+        'def build(value):\n'
+        '    payload = {}\n'
+        '    payload.update(prompt_pname_repl=value)\n'
+        '    return payload\n'
+    )
+    value_side = (
+        'def build(labels):\n'
+        '    payload = {}\n'
+        '    payload.setdefault("other", labels["prompt_pname_repl"])\n'
+        '    return payload\n'
+    )
+    assert runtime_owner_exists(assigned, key)
+    assert runtime_owner_exists(setdefault, key)
+    assert runtime_owner_exists(keyword_update, key)
+    assert not runtime_owner_exists(value_side, key)
+
+
+def test_b_runtime_owner_analyzes_try_and_loop_else_paths():
+    try_else = (
+        'def send(ws, value):\n'
+        '    try:\n'
+        '        payload = {"prompt_pname_repl": value}\n'
+        '    except ValueError:\n'
+        '        payload = {}\n'
+        '    else:\n'
+        '        ws.send(payload)\n'
+    )
+    loop_else = (
+        'def send(ws, values):\n'
+        '    for value in values:\n'
+        '        pass\n'
+        '    else:\n'
+        '        ws.send({"prompt_pname_repl": True})\n'
+    )
+    assert runtime_owner_exists(try_else, "prompt_pname_repl")
+    assert runtime_owner_exists(loop_else, "prompt_pname_repl")
 
 
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
