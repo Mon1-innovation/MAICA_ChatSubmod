@@ -4,8 +4,8 @@
 
 - [x] 1. 添加 v1.3 运行时契约测试夹具和边界断言。
 - [x] 1a. 为完整设置改名、认证 type、cookie 退役、断点续传和 MSpire 新结构添加失败测试。
-- [ ] 2. 修复 MTrigger `choice`、`curr_item`、`triggers` 和严格 schema 校验。
-- [ ] 3. 将佩戴/取下饰品合并为一个 switch，确保内置 switch 总数为 6。
+- [x] 2. 修复 MTrigger `choice`、`curr_item`、`triggers` 和严格 schema 校验。
+- [x] 3. 将佩戴/取下饰品合并为一个 switch，确保内置 switch 总数为 6。
 - [ ] 4. 修复 `-1 session` UTF-8/紧凑 JSON/10 条限制。
 - [ ] 5. 修复普通 session 4 KiB 和 MSpire `ctg_weight=1..100`。
 - [ ] 6. 统一 MPostal、质量、loop WebSocket 状态名。

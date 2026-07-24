@@ -37,3 +37,18 @@
 - owner 对抗证据：最终复审主动执行 22 个 runtime 正反例，`MISMATCH []`；定向测试 `13 passed, 105 deselected`。
 - 规格审查：通过。
 - 最终质量审查：Approved，无 Critical/Important；此前发现的 UI 跨属性、dead payload、值侧引用、任意 docs/log 嵌套、alias 快照、容器更新和控制流顺序问题均已补回归并修复。
+
+## 任务 2：MTrigger 严格协议与六个内置 switch
+
+- 最终提交：`25a3d4a6d937019b310facc53e0dcf4300a5e908`；初始实现提交为 `698a7d5aeb76b39960cb4d19256b520df85c4773`。
+- 初始定向红灯：`19 failed, 8 passed`；实现和审查补充的调用链、跨 method 总量、有限数、模板伪造等回归均先得到预期失败。
+- 最终任务范围：`42 passed`。
+- `python -m pytest tests/test_v13_contract_runtime.py -q`：`46 passed, 20 failed`；剩余红灯属于后续 session/MSpire、WebSocket、Vista/emotion 和版本任务。
+- `python -m pytest tests/test_start_maica_background_download.py -q`：`1 passed`。
+- Python 编译与 `git diff --check`：通过；`maica.py:53` 仍有既存 ASCII 图 invalid escape `SyntaxWarning`，不由本任务引入。
+- 出站契约：`choice`、`curr_item`、`curr_value`、`alter_value` 与顶层 `triggers` 已统一；网络运行路径不再发送 `selection`、顶层 `trigger` 或布尔 switch 条目。
+- 六个 switch：`clothes`、`minigame`、`weather`、`music`、`hair`、`accessory`；饰品 `wear|名称` / `unwear|名称` 分别映射到原佩戴/取下动作，玩家挑选入口保留。
+- 严格校验：四模板总量在 method 过滤前统一计算；名称、字符串、成员关系、meter 范围、bool、NaN/Infinity、Python 2 `long` 和 canonical template schema 均有回归。
+- 规格审查：通过；修复了真实聊天仍使用 `trigger=`、跨 method 数量绕过和非有限 meter 三项缺口。
+- 最终质量审查：Approved，无 Critical/Important；模板 clone/spoof 与 Python 2 数值兼容已通过独立探针。
+- 延期 Minor：manager 暂不拒绝重复 trigger name；Ren'Py 内置触发器仍缺少执行 init 块的集成测试，留待最终 lint/手工冒烟覆盖。
