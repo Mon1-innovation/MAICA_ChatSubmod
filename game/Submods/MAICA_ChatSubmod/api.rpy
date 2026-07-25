@@ -664,6 +664,6 @@ init 999 python:
             ("1.2.19", m_1_2_19),
             ("1.2.23", m_1_2_23),
             ("1.6.6", migration_1_6_6)
-        ]
+        ] + migration_queue
         migration.migrate()
         persistent._maica_last_version = store.maica_ver
