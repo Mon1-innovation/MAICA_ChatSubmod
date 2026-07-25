@@ -35,6 +35,19 @@ _logger_manager.register_injected_reference('maica_provider_manager.logger', mai
 websocket._logging.enableTrace(False)
 import datetime
 
+MAX_SESSION_LEN_LIMIT = 28672
+
+
+def normalize_chat_params(params):
+    normalized = dict(params or {})
+    if normalized.get("mf_const_tools") == 3:
+        normalized["mf_const_tools"] = 2
+    if normalized.get("mf_const_tools", 0) > 2:
+        normalized["mf_const_tools"] = 2
+    if normalized.get("session_len_limit", 0) > MAX_SESSION_LEN_LIMIT:
+        normalized["session_len_limit"] = MAX_SESSION_LEN_LIMIT
+    return normalized
+
 def seconds_to_hms(timestamp_ms):
     # 将毫秒转换为秒
     timestamp_s = timestamp_ms
@@ -54,6 +67,7 @@ class MaicaAi(ChatBotInterface):
                                     
 """
     class MaicaAiLang:
+        auto = "auto"
         zh_cn = "zh"
         en = "en"
     class MaicaMSpiretype:
@@ -239,7 +253,7 @@ class MaicaAi(ChatBotInterface):
         self.wss_thread = None
         self.enable_mf = True
         self.enable_mt = True
-        self.sf_extraction = False
+        self.savefile_access = False
         self.stream_output = True
         self.content_func = None
         # 待发送消息队列
@@ -266,31 +280,39 @@ class MaicaAi(ChatBotInterface):
         self.mspire_use_cache = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.tz = "Asia/Shanghai"
-        self.dscl_pvn = False
+        self.gen_quality_chk = False
         self.default_setting = {
-            "amt_aggressive": True,
             "deformation": False,
             "enable_mf": True,
             "enable_mt": True,
-            "esc_aggressive": True,
+            "esearch_llm_concl": True,
             "frequency_penalty": 0.44,
-            "max_length": 8192,
+            "gen_enforce_lang": True,
+            "gen_quality_chk": True,
             "max_tokens": 1600,
-            "mf_aggressive": False,
-            "mt_extraction": True,
+            "mf_const_sf_access": 1,
+            "mf_const_tools": 1,
+            "mf_context_rnds": 0,
+            "mf_disable_loop": True,
+            "mf_llm_concl": False,
+            "mf_precheck_mt": True,
+            "mf_sf_access_impl": 1,
+            "mt_concl_memory": 1,
+            "mt_context_rnds": 1,
+            "mt_disable_loop": True,
             "nsfw_acceptive": True,
-            "post_additive": 1,
-            "pre_additive": 0,
             "presence_penalty": 0.34,
+            "prompt_allow_nickname": True,
+            "prompt_pname_repl": False,
+            "savefile_access": True,
             "seed": None,
-            "sf_extraction": True,
-            "sfe_aggressive": False,
+            "session_len_limit": 8192,
             "stream_output": True,
-            "target_lang": "zh",
+            "target_lang": "auto",
             "temperature": 0.22,
-            "tnd_aggressive": 1,
             "top_p": 0.7,
-            "tz": None
+            "twk_super": False,
+            "tz": None,
         }
         self.workload_raw = {
             "None":{
@@ -934,8 +956,29 @@ class MaicaAi(ChatBotInterface):
             "type": "params",
             "chat_params": {}
         }
-        data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz, "dscl_pvn":self.dscl_pvn})
+        data["chat_params"].update({
+            "enable_mf": self.enable_mf,
+            "enable_mt": self.enable_mt,
+            "prompt_pname_repl": self.modelconfig.get("prompt_pname_repl", self.default_setting["prompt_pname_repl"]),
+            "mf_llm_concl": self.modelconfig.get("mf_llm_concl", self.default_setting["mf_llm_concl"]),
+            "mf_const_tools": self.modelconfig.get("mf_const_tools", self.default_setting["mf_const_tools"]),
+            "esearch_llm_concl": self.modelconfig.get("esearch_llm_concl", self.default_setting["esearch_llm_concl"]),
+            "mf_precheck_mt": self.modelconfig.get("mf_precheck_mt", self.default_setting["mf_precheck_mt"]),
+            "mf_context_rnds": self.modelconfig.get("mf_context_rnds", self.default_setting["mf_context_rnds"]),
+            "mt_context_rnds": self.modelconfig.get("mt_context_rnds", self.default_setting["mt_context_rnds"]),
+            "mf_disable_loop": self.modelconfig.get("mf_disable_loop", self.default_setting["mf_disable_loop"]),
+            "mt_disable_loop": self.modelconfig.get("mt_disable_loop", self.default_setting["mt_disable_loop"]),
+            "gen_enforce_lang": self.modelconfig.get("gen_enforce_lang", self.default_setting["gen_enforce_lang"]),
+            "twk_super": self.modelconfig.get("twk_super", self.default_setting["twk_super"]),
+            "savefile_access": self.savefile_access,
+            "stream_output": self.stream_output,
+            "target_lang": self.target_lang,
+            "session_len_limit": self.max_history_token,
+            "tz": self.tz,
+            "gen_quality_chk": self.gen_quality_chk,
+        })
         data['chat_params'].update(self.modelconfig)
+        data['chat_params'] = normalize_chat_params(data['chat_params'])
         return data
 
     def send_settings(self):
