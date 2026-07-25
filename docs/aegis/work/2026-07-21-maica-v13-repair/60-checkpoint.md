@@ -18,11 +18,11 @@
 
 ## TodoCheckpointDraft
 
-- 当前任务：任务 5，修复 Vista 路由、昵称占位符和表情回退。
-- 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、任务 1A/1B 契约测试、任务 2 MTrigger、任务 3 session/MSpire、任务 4 WebSocket/完成包，以及逐任务规格和质量审查。
-- 待完成：任务 5–9 的实现、两阶段逐任务复核、最终全局审查和发布门禁。
+- 当前任务：任务 6，修复三态设置、默认值与 `1.8.0` 持久化迁移。
+- 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、任务 1A/1B 契约测试、任务 2 MTrigger、任务 3 session/MSpire、任务 4 WebSocket/完成包、任务 5 Vista/emotion/nickname/legality，以及逐任务规格和质量审查。
+- 待完成：任务 6–9 的实现、逐任务复核、最终全局审查和发布门禁。
 - 阻塞项：无。
-- 下一步：派发任务 5 实现代理，先运行 Vista/nickname/emotion 定向红灯，再修 REST 路由与本地消息回退。
+- 下一步：按任务 6 的原子步骤先读取设置与迁移 owner，运行现有设置迁移红灯，再分片实现三态设置、完整改名、幂等迁移与 additions 保护；不得提前修改发布版本号。
 
 ## EvidenceBundleDraft
 
@@ -47,14 +47,17 @@
 - 任务 4 最终提交：`8026472d0334569074d2f4afac6675d806267eda`
 - 任务 4 目标测试：`23 passed`；完整 runtime 为 `122 passed, 5 failed`，剩余均属后续任务。
 - 任务 4 审查：规格通过；质量 Approved，无 Critical/Important/Minor。
+- 任务 5 实现提交：`64ceac14a0c2e0ef3e50592ad0dd04198633b5a9`；审查修复提交：`bafb16b`。
+- 任务 5 目标测试：runtime `8 passed`，静态契约 `4 passed`；完整 runtime 为 `130 passed, 2 failed`，剩余均属后续任务。
+- 任务 5 审查：规格通过；质量 Approved，无 Critical/Important/Minor。
 
 ## DriftCheckDraft
 
 - 原始意图：保持一致，现已明确为从干净基线完整重做。
 - 兼容边界：保持 `1.7.8` 存档和现有用户流程。
-- 新增所有者：MTrigger、request/session/MSpire validator、AutoResume 状态机与完成包解析器成为各自协议 owner，符合计划；后续纯迁移辅助模块仍未创建。
+- 新增所有者：MTrigger、request/session/MSpire validator、AutoResume 状态机、完成包解析器与本地 `FallBackEmo` 成为各自协议 owner，符合计划；后续纯迁移辅助模块仍未创建。
 - 退役轨：旧字段、状态、cookie、端点和 v1.2 网络分支仍明确退役。
-- 决策：`continue`；任务 4 未触及 Vista/emotion、设置迁移或版本门禁，剩余五个 runtime 红灯归属明确。
+- 决策：`continue`；任务 5 未触及设置迁移或版本门禁，剩余两个 runtime 红灯归属任务 8，当前进入任务 6。
 
 ## ResumeStateHint
 

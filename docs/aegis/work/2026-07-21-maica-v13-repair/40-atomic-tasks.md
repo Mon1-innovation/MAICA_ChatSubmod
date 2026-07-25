@@ -11,9 +11,9 @@
 - [x] 6. 统一 MPostal、质量、loop WebSocket 状态名。
 - [x] 6a. 添加登录 `type: auth`、断点续传标记并删除 cookie/strict-mode 运行路径。
 - [x] 7. 改造 `maica_core_complete` 解析并覆盖所有计数器重置路径。
-- [ ] 8. 将 MVista 列举改为 `/vista/list`，保留下载路径。
-- [ ] 9. 退役 `/emotion` 网络回退，增加本地未知表情回退。
-- [ ] 10. 修复 `[player_nickname]` 到 MAS 函数的消息转换。
+- [x] 8. 将 MVista 列举改为 `/vista/list`，保留下载路径。
+- [x] 9. 退役 `/emotion` 网络回退，增加本地未知表情回退。
+- [x] 10. 修复 `[player_nickname]` 到 MAS 函数的消息转换。
 - [ ] 11. 将三个布尔高级设置改为整数三态和后端默认值。
 - [ ] 11a. 重建全部 v1.3 设置改名、弃用参数、语言 auto、范围和资产引用。
 - [ ] 12. 实现 `1.8.0` 幂等迁移、旧键回滚副本和 `mf_const_tools=3` 降级。

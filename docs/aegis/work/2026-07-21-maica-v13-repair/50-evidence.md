@@ -81,3 +81,17 @@
 - cookie/strict：handler、task、请求注入、运行属性/UI 和手工脚本死引用均退役；旧 persistent 默认键仅保留且无读取 owner。
 - 规格审查：通过；修复了真实断线事件顺序、正则误取和 AutoResume 清理缺口。
 - 最终质量审查：Approved，无 Critical/Important/Minor；异常组合、畸形完成包和退役 owner 已独立复核。
+
+## 任务 5：MVista、表情回退、昵称与 legality
+
+- 实现提交：`64ceac14a0c2e0ef3e50592ad0dd04198633b5a9`；主线程审查修复提交：`bafb16b`。
+- 初始任务红灯覆盖 Vista 列举、未知表情、本地昵称转换与 legality 字段；审查新增的固定内部哨兵碰撞和 `FallBackEmo` 字典读取问题先得到 `2 failed, 130 deselected`。
+- 审查修复 GREEN：`python -m pytest tests/test_v13_contract_runtime.py -q -k "literal_internal_text or configured_emotion_sequence"` → `2 passed, 130 deselected`。
+- 最终定向 runtime：`8 passed, 124 deselected`；静态 Vista/nickname/emotion/legality 契约：`4 passed, 114 deselected`。
+- `python -m pytest tests/test_v13_contract_runtime.py -q`：`130 passed, 2 failed`；仅剩任务 8 负责的 `version_info` 与 `disable(status)` 红灯。
+- `python -m pytest tests/test_start_maica_background_download.py -q`：`1 passed`；相关 Python 编译通过，只有 `maica.py:53` 既存 ASCII 图转义警告；`git diff --check` 通过。
+- REST：列举改为 `GET /vista/list`，下载仍为 `GET /vista?content=...`；上传和删除路径未改。
+- 表情与昵称：生产路径不再请求 `/emotion`；未知标签由本地 `FallBackEmo` 处理；`[player_nickname]` 在保留普通正文的同时转换为 `[mas_get_player_nickname()]`。
+- legality：显示 `latitude/longitude`，兼容 `lat/lng/lon` 别名。
+- 规格审查：通过；任务 5 的修复轨、退役轨和兼容边界均有测试映射。
+- 最终质量审查：Approved，无 Critical/Important/Minor；审查发现的两个问题已按 TDD 修复并加入回归。

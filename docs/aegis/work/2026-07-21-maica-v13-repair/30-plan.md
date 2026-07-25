@@ -329,7 +329,7 @@ def test_malformed_complete_message_resets_count():
 
 **步骤：**
 
-- [ ] **5.1 写 REST 与消息失败测试。** 添加：
+- [x] **5.1 写 REST 与消息失败测试。** 添加：
 
 ```python
 def test_vista_list_uses_list_endpoint(monkeypatch):
@@ -352,15 +352,15 @@ def test_emotion_endpoint_is_not_called(monkeypatch):
     assert analyze_unknown_emotion("[未知标签]文本")
 ```
 
-- [ ] **5.2 运行失败测试。** 运行 `python -m pytest tests/test_v13_contract_runtime.py -q -k "vista or nickname or emotion"`。
+- [x] **5.2 运行失败测试。** 运行 `python -m pytest tests/test_v13_contract_runtime.py -q -k "vista or nickname or emotion"`。
 
-- [ ] **5.3 修正 Vista 路由。** 只修改列举方法的 URL，下载方法继续使用带 `content` 参数的 `/vista`。
+- [x] **5.3 修正 Vista 路由。** 只修改列举方法的 URL，下载方法继续使用带 `content` 参数的 `/vista`。
 
-- [ ] **5.4 退役网络表情回退。** 移除 `get_emotion()` 中的 requests 调用，将 `MaicaAi` 初始化改为本地回退配置；让 `emotion_analyze_v2.py` 在 `fallback_predictor is None` 时使用 `fallback_selector.predict()`。
+- [x] **5.4 退役网络表情回退。** 移除 `get_emotion()` 中的 requests 调用，将 `MaicaAi` 初始化改为本地回退配置；让 `emotion_analyze_v2.py` 在 `fallback_predictor is None` 时使用 `fallback_selector.predict()`。
 
-- [ ] **5.5 处理昵称占位符。** 在表情标签清洗阶段识别 `player_nickname`，替换为 `[mas_get_player_nickname()]` 后再交给消息队列。
+- [x] **5.5 处理昵称占位符。** 在表情标签清洗阶段识别 `player_nickname`，替换为 `[mas_get_player_nickname()]` 后再交给消息队列。
 
-- [ ] **5.6 运行任务测试并提交。** 运行 `python -m pytest tests/test_v13_contract_runtime.py -q -k "vista or nickname or emotion"`；提交 `fix: retire obsolete emotion route and update vista list`。
+- [x] **5.6 运行任务测试并提交。** 运行 `python -m pytest tests/test_v13_contract_runtime.py -q -k "vista or nickname or emotion"`；实现提交 `64ceac1`，审查修复提交 `bafb16b`。
 
 **验证：** Vista 列举请求为 `/vista/list`，下载路径不变，未知表情不发网络请求，昵称可正常插值。
 
