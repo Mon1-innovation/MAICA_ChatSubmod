@@ -1310,6 +1310,49 @@ def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
     assert "latitude" in screen and "longitude" in screen
 
 
+def test_setting_migration_renames_tristates_and_is_idempotent():
+    import maica_v13_migration
+
+    values = {
+        "sfe_aggressive": False,
+        "mf_sf_access_impl": False,
+        "mf_const_sf_access": True,
+        "mt_concl_memory": 2,
+        "tnd_aggressive": 3,
+    }
+    status = {"sfe_aggressive": True}
+
+    maica_v13_migration.migrate_setting_values(values, status)
+    first = (dict(values), dict(status))
+    maica_v13_migration.migrate_setting_values(values, status)
+
+    assert (values, status) == first
+    assert values["prompt_pname_repl"] is False
+    assert status["prompt_pname_repl"] is True
+    assert values["mf_sf_access_impl"] == 0
+    assert values["mf_const_sf_access"] == 1
+    assert values["mt_concl_memory"] == 2
+    assert values["mf_const_tools"] == 2
+
+
+def test_player_additions_backup_is_created_once_and_filters_utf8_boundaries():
+    import maica_v13_migration
+
+    values = ["ok", "中" * 512, "中" * 513, 7] + ["item-{}".format(i) for i in range(511)]
+    backup = []
+
+    active = maica_v13_migration.backup_and_filter_player_additions(values, backup)
+    original_backup = list(backup)
+    active_again = maica_v13_migration.backup_and_filter_player_additions(values, backup)
+
+    assert backup == original_backup == values
+    assert active == active_again
+    assert len(active) == 512
+    assert active[:2] == ["ok", "中" * 512]
+    assert "中" * 513 not in active
+    assert 7 not in active
+
+
 def test_maica_ai_constructs_version_info(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     assert hasattr(ai, "version_info")
