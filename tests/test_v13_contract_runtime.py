@@ -1253,6 +1253,20 @@ def test_player_nickname_conversion_preserves_mixed_text_and_repeated_placeholde
     )
 
 
+def test_player_nickname_conversion_does_not_replace_literal_internal_text():
+    selector = _emotion_selector()
+    literal = "__MAICA_PLAYER_NICKNAME_PLACEHOLDER__"
+    result = selector.analyze(literal + " [player_nickname]", keep_tags=True)
+    rendered = "".join(piece for _emotion, piece in result)
+    assert rendered == literal + " [mas_get_player_nickname()]"
+
+
+def test_local_fallback_uses_the_configured_emotion_sequence():
+    fallback = emotion_analyze_v2.FallBackEmo()
+    fallback.last = "开心"
+    assert fallback.predict() == "笑"
+
+
 def test_vista_list_uses_list_endpoint_and_download_keeps_content_parameter(monkeypatch):
     manager = maica_vista_files_manager.MAICAVistaFilesManager(
         "https://example.test/api", "token"

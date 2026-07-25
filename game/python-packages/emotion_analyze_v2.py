@@ -39,7 +39,7 @@ class FallBackEmo(object):
     @last.setter
     def last(self, v):
         self._last_known = v
-        self._pending_seq = getattr(self.EMPTY_EMOTE_FALLBACK, v, [])
+        self._pending_seq = list(self.EMPTY_EMOTE_FALLBACK.get(v, []))
 
     def predict(self):
         if len(self._pending_seq) > 1:
@@ -175,8 +175,6 @@ class EmoSelector(object):
         """
 
         import re
-        nickname_placeholder = '__MAICA_PLAYER_NICKNAME_PLACEHOLDER__'
-        message = message.replace('[player_nickname]', nickname_placeholder)
         # 正则表达式模式
         # Filter emojis
         if PY3:
@@ -205,6 +203,9 @@ class EmoSelector(object):
         for index, match in enumerate(matches):
             rawmatch = match
             match = self.emote_translate.get(match, match)
+
+            if match == "player_nickname":
+                continue
 
             # 可能是有句子被套上了
             if get_encoded_len(match) >= 16 and not '[' in match and not ']' in match:
@@ -288,7 +289,7 @@ class EmoSelector(object):
 
         for index, piece in enumerate(message_pieces):
             message_pieces[index] = piece.replace(
-                nickname_placeholder, '[mas_get_player_nickname()]'
+                '[player_nickname]', '[mas_get_player_nickname()]'
             )
 
         emote_codes = []
