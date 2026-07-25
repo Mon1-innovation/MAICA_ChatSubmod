@@ -312,6 +312,13 @@ screen maica_advance_setting():
                     selected persistent.maica_advanced_setting_status.get('sfe_aggressive')
             hbox:
                 spacing 5
+                textbutton "prompt_allow_nickname:[persistent.maica_advanced_setting.get('prompt_allow_nickname', True)]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname"), ToggleDict(persistent.maica_advanced_setting, "prompt_allow_nickname")]
+                    hovered SetField(_tooltip, "value", _("允许模型在消息中使用玩家昵称"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('prompt_allow_nickname')
+            hbox:
+                spacing 5
                 textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
                         ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
@@ -589,7 +596,16 @@ screen maica_location_input(addition="", edittarget=None):
         def verify(position):
             res = store.maica.maica_instance.verify_legality("geolocation", position)
             if res.get("success", False):
-                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功{#maica_location}")) + "\n" + renpy.substitute(_("地区编码: ")) + res.get("content").get("geocode"))
+                content = res.get("content") or {}
+                if not isinstance(content, dict):
+                    content = {}
+                latitude = content.get("latitude", content.get("lat"))
+                longitude = content.get("longitude", content.get("lng", content.get("lon")))
+                if latitude is None or longitude is None:
+                    coordinate_text = renpy.substitute(_("经纬度不可用"))
+                else:
+                    coordinate_text = renpy.substitute(_("纬度: {0}\n经度: {1}")).format(latitude, longitude)
+                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功{#maica_location}")) + "\n" + renpy.substitute(_("地区编码: ")) + str(content.get("geocode", "")) + "\n" + coordinate_text)
             else:
                 renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败")) + "\n" + renpy.substitute(_("失败原因: ")) + res.get("exception"))
 

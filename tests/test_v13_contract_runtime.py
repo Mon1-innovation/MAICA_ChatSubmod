@@ -1214,6 +1214,15 @@ def test_unknown_emotion_without_fallback_predictor_does_not_call_network(
     assert isinstance(result, list)
 
 
+def test_unknown_emotion_uses_local_fallback_even_when_callback_is_configured():
+    def fail_callback(*args, **kwargs):
+        raise AssertionError("unknown emotion must not use remote callback")
+
+    selector = _emotion_selector(fallback_predictor=fail_callback)
+    result = selector.analyze("before[未知]after", keep_tags=True)
+    assert "".join(piece for _emotion, piece in result) == "beforeafter"
+
+
 def test_player_nickname_tag_is_converted_to_mas_macro():
     def fail_fallback(*args, **kwargs):
         raise AssertionError("nickname tag must not use emotion fallback")
@@ -1228,6 +1237,20 @@ def test_player_nickname_tag_is_converted_to_mas_macro():
     rendered = "".join(piece for _emotion, piece in result)
     assert "[mas_get_player_nickname()]" in rendered
     assert "[player_nickname]" not in rendered
+
+
+def test_player_nickname_conversion_preserves_mixed_text_and_repeated_placeholders():
+    def fail_fallback(*args, **kwargs):
+        raise AssertionError("nickname tag must not use emotion fallback")
+
+    selector = _emotion_selector(fallback_predictor=fail_fallback)
+    result = selector.analyze(
+        "Hello [player_nickname], [player_nickname]!", keep_tags=True
+    )
+    rendered = "".join(piece for _emotion, piece in result)
+    assert rendered == (
+        "Hello [mas_get_player_nickname()], [mas_get_player_nickname()]!"
+    )
 
 
 def test_vista_list_uses_list_endpoint_and_download_keeps_content_parameter(monkeypatch):
@@ -1257,6 +1280,20 @@ def test_vista_list_uses_list_endpoint_and_download_keeps_content_parameter(monk
     assert calls[0][0] == "https://example.test/api/vista/list"
     assert calls[1][0] == "https://example.test/api/vista"
     assert calls[1][1]["params"]["content"] == "uuid-1"
+
+
+def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
+    screen = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "screen_subs.rpy"
+    ).read_text(encoding="utf-8")
+    assert 'get("latitude"' in screen and 'get("lat"' in screen
+    assert 'get("longitude"' in screen
+    assert 'get("lng"' in screen and 'get("lon"' in screen
+    assert "latitude" in screen and "longitude" in screen
 
 
 def test_maica_ai_constructs_version_info(isolated_maica_ai_globals):

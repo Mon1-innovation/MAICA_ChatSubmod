@@ -66,7 +66,6 @@ import time
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
-print(ai.get_emotion('add', "你也太可爱了!"))
 #ai.init_connect()
 try:
     if not ai.is_connected():

@@ -231,7 +231,7 @@ class MaicaAi(ChatBotInterface):
         self._serving_status = ""
         self.stat = {}
         self.multi_lock = threading.Lock()
-        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None, self.get_emotion)
+        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
         self.chat_session = 1
@@ -738,36 +738,11 @@ class MaicaAi(ChatBotInterface):
             return {"success": False, "exception": "Get version request failed"}
 
     def get_emotion(self, type, text):
-        import requests
-        import json
-        import traceback
-
-        try:
-            res = requests.get(self.provider_manager.get_api_url() + "/emotion",
-                               params={
-                                   "access_token": self.ciphertext,
-                                   "content": json.dumps({
-                                       "type": type,
-                                       "text": text,
-                                       "target_lang": self.target_lang
-                                   })
-                                }
-                               )
-            try:
-                res_data = res.json()
-                if res_data.get("success", False):
-                    return res_data
-                else:
-                    logger.warning("Emotion analysis failed: {}".format(res_data))
-                    return res_data
-            except Exception:
-                logger.error("Emotion analysis request failed: Server returned {} - {}".format(res.status_code, res.text))
-                return {"success": False, "exception": "Emotion analysis request failed"}
-
-        except Exception as e:
-            error_msg = traceback.format_exc()
-            logger.error("Emotion analysis request encountered an error: {}".format(error_msg))
-            return {"success": False, "exception": "Emotion analysis request failed"}
+        """Return the local emotion fallback for legacy callers."""
+        return {
+            "success": True,
+            "content": [self.MoodStatus.fallback_selector.predict(), 0.0],
+        }
 
     def verify_legality(self, verification_object=None, verification_value=None):
         """
@@ -819,6 +794,12 @@ class MaicaAi(ChatBotInterface):
             try:
                 res_data = res.json()
                 if res_data.get("success", False):
+                    content = res_data.get("content") or {}
+                    if isinstance(content, dict):
+                        latitude = content.get("latitude", content.get("lat"))
+                        longitude = content.get("longitude", content.get("lng", content.get("lon")))
+                        if latitude is not None and longitude is not None:
+                            content["coordinate_text"] = "Latitude: {0}, Longitude: {1}".format(latitude, longitude)
                     logger.debug("Legality verification successful: {}".format(res_data))
                     return res_data
                 else:

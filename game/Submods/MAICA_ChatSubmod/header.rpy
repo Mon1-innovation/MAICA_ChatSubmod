@@ -92,6 +92,7 @@ init 10 python:
         "pre_astp":True,
         "post_astp":False,
         "enforce_lang":True,
+        "prompt_allow_nickname":True,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)

@@ -175,6 +175,8 @@ class EmoSelector(object):
         """
 
         import re
+        nickname_placeholder = '__MAICA_PLAYER_NICKNAME_PLACEHOLDER__'
+        message = message.replace('[player_nickname]', nickname_placeholder)
         # 正则表达式模式
         # Filter emojis
         if PY3:
@@ -257,21 +259,6 @@ class EmoSelector(object):
         for index, match in enumerate(new_matches):
             # rawmatch = new_rawmatches[index]
 
-            if not match in self.selector:
-                temp_match = None
-                result = self.fallback_predictor('norm', match)
-                if result.get('success'):
-                    content = result['content']
-                    if content[1] >= 0.5:
-                        temp_match = content[0]
-
-                if temp_match:
-                    # message = message.replace('[{}]'.format(rawmatch), temp_match)
-                    logger.warning("[Maica::EmoSelector] {} is not in selector, normalized to {}".format(match, temp_match))
-                    if temp_match[0] != '[':
-                        continue
-                    match = new_matches[index] = temp_match.strip('[').strip(']')
-
             if match in self.selector:
                 emote_kw = match
                 # m = 0.7
@@ -298,6 +285,11 @@ class EmoSelector(object):
 
         if len(emote_kws) < len(message_pieces):
             emote_kws.insert(0, self.fallback_selector.predict())
+
+        for index, piece in enumerate(message_pieces):
+            message_pieces[index] = piece.replace(
+                nickname_placeholder, '[mas_get_player_nickname()]'
+            )
 
         emote_codes = []
 
