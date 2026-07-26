@@ -122,3 +122,13 @@
 - `python -m pytest tests/test_backend_v13_compat.py -q -k retired`：`16 passed, 114 deselected`。
 - 完整静态测试：`129 passed, 1 failed`；唯一失败已越过后端版本断言，只因任务 9 门禁要求最终 `maica_ver=1.8.0`，当前仍按计划保持 `1.7.8`。
 - 完整 runtime：`140 passed`；`py_compile` 与 `git diff --check` 通过，仅保留既存 ASCII 图转义警告。
+
+## 任务 9：发布门禁与 `1.8.0`
+
+- 更新版本前全量测试：`270 passed, 1 failed`；唯一失败明确要求最终 `maica_ver=1.8.0`，其余契约全部通过。
+- 最后将 `game/Submods/MAICA_ChatSubmod/api.rpy` 的 `maica_ver` 从 `1.7.8` 更新为 `1.8.0`。
+- 更新版本后 `python -m pytest tests -q`：`271 passed`。
+- `python -m pytest tests/test_backend_v13_compat.py -q -k retired`：`16 passed, 114 deselected`。
+- 指定 Python 模块 `compileall`、`persistent_filter.json` 解析和任务范围 `git diff --check` 均通过。
+- 使用 `E:\Renpy\renpy-6.99.14.3-sdk\renpy.exe <worktree> lint`：进程退出码 `0`，脚本加载完成；日志保留一条既存 `screen_subs.rpy:671` 的 `persistent` global 顺序警告，以及缺少可选 `_renpysteam` 模块提示。Lint 生成的未跟踪 `.rpyc`/`log.txt` 已经 dry-run 核对后清理。
+- 未执行游戏内手工冒烟：当前自动化会话无法安全代替真实 MAS 存档与交互流程。需在合并/发布前用 `1.7.8` 存档副本验证迁移幂等、两轮聊天、MPostal、MSpire、六个 switch、Vista、`-1 session`、昵称和 dev override。
