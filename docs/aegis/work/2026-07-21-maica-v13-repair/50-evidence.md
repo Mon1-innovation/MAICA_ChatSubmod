@@ -107,3 +107,11 @@
 - `python -m pytest tests/test_v13_contract_runtime.py -q -k "not maica_ai_constructs_version_info and not maica_ai_disable_accepts_and_saves_status"`：`138 passed, 2 deselected`。
 - 相关 Python 编译与 `git diff --check` 通过；仅有 `maica.py` ASCII 图既存的 invalid escape `SyntaxWarning`。
 - 剩余失败严格归属后续任务：任务 7 的 `version_info`、`disable(status)`，任务 8 的 `SUPPORT_BACKEND`。
+
+## 任务 7：可访问状态兼容
+
+- `MaicaAi.__init__` 始终初始化 `version_info = {"success": False, "content": {}}`，网络检查失败或开发覆盖跳过网络时也保持字段不变量。
+- `disable(status=None)` 保持无参数关闭行为；传入状态时先保存状态再关闭可访问标记。
+- 被忽略的 `dev_enable.rpy` 已在隔离工作树和用户原始路径同步安全哨兵，并由 `.gitignore` 保持不跟踪。
+- 定向 runtime：`2 passed, 138 deselected`；完整 runtime：`140 passed`。
+- 静态测试（排除任务 8 的后端版本门禁）：`129 passed, 1 deselected`。

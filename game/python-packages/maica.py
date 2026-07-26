@@ -248,6 +248,7 @@ class MaicaAi(ChatBotInterface):
         self.__accessable = False
         self._ignore_accessable = False
         self._serving_status = ""
+        self.version_info = {"success": False, "content": {}}
         self.stat = {}
         self.multi_lock = threading.Lock()
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
@@ -1519,7 +1520,9 @@ class MaicaAi(ChatBotInterface):
         
 
 
-    def disable(self):
+    def disable(self, status=None):
+        if status is not None:
+            self.status = status
         self.__accessable = False
 
 

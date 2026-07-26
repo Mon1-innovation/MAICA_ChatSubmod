@@ -18,11 +18,11 @@
 
 ## TodoCheckpointDraft
 
-- 当前任务：任务 7，修复初始化失败状态、`disable(status)` 与本地开发覆盖。
+- 当前任务：任务 8，更新后端支持版本并完成旧协议退役扫描。
 - 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、任务 1A/1B 契约测试、任务 2 MTrigger、任务 3 session/MSpire、任务 4 WebSocket/完成包、任务 5 Vista/emotion/nickname/legality，以及逐任务规格和质量审查。
-- 待完成：任务 7–9 的实现、逐任务复核、最终全局审查和发布门禁。
+- 待完成：任务 8–9 的实现、逐任务复核、最终全局审查和发布门禁。
 - 阻塞项：无。
-- 下一步：使用现有两个 runtime 红灯最小实现 `version_info` 初始化和 `disable(status=None)`；同步修复被忽略的 `dev_enable.rpy`，不得提前修改发布版本号。
+- 下一步：将 `SUPPORT_BACKEND` 更新为 `1.3.000`，运行完整静态测试和退役扫描；不得提前修改 `maica_ver`。
 
 ## EvidenceBundleDraft
 
@@ -53,6 +53,8 @@
 - 任务 6 定向静态测试：`129 passed, 1 deselected`；定向 runtime：`138 passed, 2 deselected`。
 - 任务 6 编译和 `git diff --check` 通过；仅保留既存 ASCII 图转义警告。
 - 任务 6 修复三态设置、完整改名、幂等迁移、additions 备份/过滤、MPostal `twk_super`、迁移优先级和英文翻译同步。
+- 任务 7 runtime：`140 passed`；静态测试排除任务 8 门禁后 `129 passed, 1 deselected`。
+- 任务 7 已初始化 `version_info`、兼容 `disable(status=None)`，本地 dev override 已修复且保持忽略。
 
 ## DriftCheckDraft
 
@@ -60,7 +62,7 @@
 - 兼容边界：保持 `1.7.8` 存档和现有用户流程。
 - 新增所有者：MTrigger、request/session/MSpire validator、AutoResume 状态机、完成包解析器与本地 `FallBackEmo` 成为各自协议 owner，符合计划；后续纯迁移辅助模块仍未创建。
 - 退役轨：旧字段、状态、cookie、端点和 v1.2 网络分支仍明确退役。
-- 决策：`continue`；任务 6 未修改发布版本号，剩余两个 runtime 红灯归属任务 7，后端版本红灯归属任务 8。
+- 决策：`continue`；任务 7 未修改发布版本号，当前仅剩任务 8 的后端版本门禁和任务 9 发布门禁。
 
 ## ResumeStateHint
 

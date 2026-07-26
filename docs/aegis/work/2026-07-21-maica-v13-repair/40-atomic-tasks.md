@@ -18,7 +18,7 @@
 - [x] 11a. 重建全部 v1.3 设置改名、弃用参数、语言 auto、范围和资产引用。
 - [x] 12. 实现 `1.8.0` 幂等迁移、旧键回滚副本和 `mf_const_tools=3` 降级。
 - [x] 13. 备份并规范化历史 `mas_player_additions`，修复上传前 1536 UTF-8 字节限制。
-- [ ] 14. 初始化 `version_info`、修复 `disable(status)`、修复本地 dev 覆盖。
+- [x] 14. 初始化 `version_info`、修复 `disable(status)`、修复本地 dev 覆盖。
 - [ ] 15. 删除生产路径旧字段/状态/端点，并补齐退役扫描。
 - [ ] 16. 运行全量测试、编译、diff 检查和 Ren'Py lint（若可用）。
 - [ ] 17. 完成旧存档、聊天、MPostal、MSpire、MT、Vista、`-1 session` 和昵称手工冒烟。
