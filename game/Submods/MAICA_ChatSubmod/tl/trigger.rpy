@@ -2,6 +2,9 @@
 
 translate english strings:
 
+    old "gen_quality_chk"
+    new "gen_quality_chk"
+
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:7
     old "内置 | 调整好感, 范围为单次0~3"
     new "Integrated | Adjusting affection within range 0~3 per time"
@@ -103,4 +106,3 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:450
     old "内置 | 聊天劣化提示 (接收器)"
     new "Integrated | Quality review (reciever)"
-

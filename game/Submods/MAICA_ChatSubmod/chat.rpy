@@ -689,7 +689,7 @@ label maica_input_information:
             i = mas_input(
                     _("喜欢.../常去.../有.../..."),
                     default="",
-                    length=50,
+                    length=1536,
                     #screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("我写完了")}
                     screen="maica_input_information_screen"
                 ).strip(' \t\n\r') #mas_input
@@ -697,8 +697,10 @@ label maica_input_information:
             if i == "nevermind":
                 break
             else:
-                renpy.notify(_("MAICA: 已保存输入"))
-            persistent.mas_player_additions.append("[player]{}".format(i))
+                addition = maica_validate_player_addition(i, persistent.mas_player_additions)
+                if addition is not None:
+                    persistent.mas_player_additions.append(addition)
+                    renpy.notify(_("MAICA: 已保存输入"))
     return
 label maica_delete_information:
     python:

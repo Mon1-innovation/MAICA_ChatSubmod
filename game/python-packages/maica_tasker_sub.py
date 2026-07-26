@@ -335,8 +335,8 @@ class MTriggerWsHandler(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        if event.data.status == 'maica_dscl_status':
-            self.logger.debug('[MTriggerWsHandler] received maica_dscl_status')
+        if event.data.status == 'maica_quality_status':
+            self.logger.debug('[MTriggerWsHandler] received maica_quality_status')
             self._trigger_func('dscl', {'value':event.data.content})
             return
         self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(event.data.content))
@@ -348,75 +348,6 @@ class MTriggerWsHandler(MaicaWSTask):
 
     def set_trigger_function(self, func):
         self._trigger_func = func
-
-class MAICAWSCookiesHandler(MaicaWSTask):
-    """
-    WebSocket Cookie处理器。
-
-    监听WebSocket安全Cookie消息，存储服务器下发的Cookie用于后续请求。
-
-    Attributes:
-        _cookie (str|None): 存储的Cookie值
-        _enabled (bool): Cookie是否启用，只有启用时才返回实际的cookie值
-    """
-    _cookie = None
-    _enabled = False
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
-        """
-        初始化Cookie处理器。
-
-        Args:
-            task_type (int): 任务类型
-            name (str): 任务名称
-            manager (MaicaTaskManager): 任务管理器实例
-        """
-        super(MAICAWSCookiesHandler, self).__init__(
-            task_type, name, manager=manager,
-            except_ws_status=except_ws_status
-        )
-
-    def on_received(self, event):
-        """
-        处理Cookie消息。
-
-        提取并存储服务器下发的Cookie。
-
-        Args:
-            event (MaicaTaskEvent): WebSocket事件对象
-        """
-        self.logger.info("[MAICAWSCookiesHandler] received cookie")
-        MAICAWSCookiesHandler._cookie = event.data.content
-    @classmethod
-    @property
-    def cookie(self):
-        """
-        获取存储的Cookie值。
-
-        只有当_enabled为True时才返回实际的cookie值，否则返回None。
-
-        Returns:
-            str|None: Cookie值，如果_enabled为False则返回None
-        """
-        if MAICAWSCookiesHandler._enabled:
-            return MAICAWSCookiesHandler._cookie
-        return None
-
-    def reset(self):
-        """重置Cookie和启用状态。"""
-        super(MAICAWSCookiesHandler, self).reset()
-        MAICAWSCookiesHandler._cookie = None
-        MAICAWSCookiesHandler._enabled = False
-
-    def enable_cookie(self):
-        """启用Cookie返回。"""
-        self.logger.debug("[MAICAWSCookiesHandler] enable cookie")
-        MAICAWSCookiesHandler._enabled = True
-
-    def disable_cookie(self):
-        """禁用Cookie返回。"""
-        self.logger.debug("[MAICAWSCookiesHandler] disable cookie")
-        MAICAWSCookiesHandler._enabled = False
-
 
 import json
 
@@ -455,9 +386,7 @@ class MAICALoginTasker(MaicaWSTask):
         Raises:
             RuntimeError: 如果manager或ws_client为None
         """
-        data = json.dumps({
-            'access_token': token
-        })
+        data = json.dumps({'type': 'auth', 'access_token': token})
         if self.manager is None:
             raise RuntimeError("MAICALoginTasker: manager is None")
         if self.manager.ws_client is None:
@@ -551,8 +480,6 @@ class MAICASessionResetTasker(MaicaWSTask):
             "chat_session": chat_session,
             "reset": True
         }
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data["cookie"] = MAICAWSCookiesHandler._cookie
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
     def on_received(self, event):
@@ -607,8 +534,6 @@ class MAICASettingSendTasker(MaicaWSTask):
         self.logger.debug(
             "[MAICASettingSendTasker] sended: {}".format(request_body)
         )
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            request_body['cookie'] = MAICAWSCookiesHandler._cookie
         request_body['reset']=True
         self.manager.ws_client.send(json.dumps(request_body, ensure_ascii=False))
 
@@ -823,6 +748,13 @@ class AutoResumeTasker(MaicaWSTask):
         self._on_reconnect = False
         self._enabled = False
         self._should_resume_func = self.nothingbuttrue
+        self._generation_started = False
+
+    def on_event(self, event):
+        if event.event_type == MAICATASKEVENT_TYPE_TASK:
+            self.on_received(event)
+            return
+        return super(AutoResumeTasker, self).on_event(event)
 
     def nothingbuttrue(self):
         """
@@ -834,6 +766,10 @@ class AutoResumeTasker(MaicaWSTask):
             bool: 始终返回True
         """
         return True
+
+    def _clear_resume_state(self):
+        self._on_reconnect = False
+        self._generation_started = False
 
     def on_received(self, event):
         """
@@ -852,26 +788,37 @@ class AutoResumeTasker(MaicaWSTask):
             调用父类on_received方法的返回值
         """
         if not self._enabled:
-            return super(AutoResumeTasker, self).on_received(event)
+            return
 
-        if event.data.event_type == MAICATASKEVENT_TYPE_TASK:
+        if event.event_type == MAICATASKEVENT_TYPE_WS:
+            if event.data.status == 'maica_mcore_gen_start':
+                self._generation_started = True
+            elif event.data.status == 'maica_chat_loop_finished':
+                self._clear_resume_state()
+            return
+
+        if event.event_type == MAICATASKEVENT_TYPE_TASK:
             if event.data.name == 'maica_login_successful':
-                if self._on_reconnect:
-                    if not self._should_resume_func():
-                        self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
-                        return
-                    data = {'type': 'reconn'}
-                    if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-                        data['cookie'] = MAICAWSCookiesHandler._cookie
-                    self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
-                    self.logger.info("[AutoResumeTasker] sent resume request")
+                if self._on_reconnect and self._generation_started:
+                    try:
+                        should_resume = self._should_resume_func()
+                        if not should_resume:
+                            self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
+                            return
+                        data = {'type': 'reconn'}
+                        self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
+                        self.logger.info("[AutoResumeTasker] sent resume request")
+                    finally:
+                        self._clear_resume_state()
             elif event.data.name == 'auto_reconnector_start_reconnect':
                 self._on_reconnect = True
                 self.logger.debug("[AutoResumeTasker] marked as reconnecting")
             elif event.data.name == 'websocket_closed':
                 self.reset_on_closed()
+            elif event.data.name == 'maica_login_failed':
+                self._clear_resume_state()
 
-        return super(AutoResumeTasker, self).on_received(event)
+        return None
 
     def reset_on_closed(self):
         """
@@ -879,7 +826,8 @@ class AutoResumeTasker(MaicaWSTask):
 
         将_on_reconnect标志重置为False，准备下一次重连。
         """
-        self._on_reconnect = False
+        if not (self._on_reconnect and self._generation_started):
+            self._clear_resume_state()
         self.logger.debug("[AutoResumeTasker] reset reconnect state")
 
     def enable(self):
@@ -898,6 +846,7 @@ class AutoResumeTasker(MaicaWSTask):
         禁用后，重连成功时不会自动发送恢复会话请求。
         """
         self._enabled = False
+        self._clear_resume_state()
         self.logger.info("[AutoResumeTasker] auto-resume disabled")
 
     def set_should_resume_func(self, func):
@@ -920,6 +869,10 @@ class AutoResumeTasker(MaicaWSTask):
         """
         self._should_resume_func = func
         self.logger.debug("[AutoResumeTasker] set custom should_resume_func")
+
+    def reset(self):
+        super(AutoResumeTasker, self).reset()
+        self._clear_resume_state()
 
 class KeepWsAliveTasker(MaicaWSTask):
     """
@@ -1044,8 +997,6 @@ class KeepWsAliveTasker(MaicaWSTask):
         try:
             import json
             data = {'type': 'sping'}
-            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-                data['cookie'] = MAICAWSCookiesHandler._cookie
 
             self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
             self.logger.debug("[KeepWsAliveTasker] sent silent ping (sping)")
@@ -1075,8 +1026,6 @@ class KeepWsAliveTasker(MaicaWSTask):
 
             # 发送ping
             data = {'type': 'ping'}
-            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-                data['cookie'] = MAICAWSCookiesHandler._cookie
 
             self._ping_sent_time = time.time()
             self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
@@ -1214,69 +1163,87 @@ class StreamingPacketValidator(MaicaWSTask):
         Args:
             wspack (WSResponse): WebSocket响应对象
         """
-        import re
-
         content = wspack.content
         self.logger.debug(
             "[StreamingPacketValidator] received complete message: {}".format(content)
         )
 
-        # 解析格式: "Streaming finished with seed None for {nickname}, {number} packets sent -- your traceray ID is {id}"
-        pattern = r'([^,]+), (\d+) packets sent -- your traceray ID is ([^\s]+)'
-        match = re.search(pattern, content)
-
-        if not match:
-            self.logger.error(
-                "[StreamingPacketValidator] failed to parse complete message: {}".format(content)
-            )
-            self._validation_passed = False
-            return
-
-        nickname = match.group(1)
-        reported_packets = int(match.group(2))
-        traceray_id = match.group(3)
-
-        self.logger.info(
-            "[StreamingPacketValidator] validated: received {} packets, reported {} packets".format(
-                self._packet_count, reported_packets
-            )
-        )
-
-        # 检查数据包数量是否匹配
-        if self._packet_count != reported_packets:
-            self._validation_passed = False
-            self.logger.error(
-                "[StreamingPacketValidator] packet count mismatch! "
-                "Received: {}, Reported: {} (traceray ID: {}) - disconnecting WebSocket".format(
-                    self._packet_count, reported_packets, traceray_id
+        try:
+            reported_packets = self._extract_reported_packets(content)
+            if reported_packets is None:
+                self._validation_passed = False
+                self.logger.error(
+                    "[StreamingPacketValidator] failed to parse complete message: {}".format(content)
                 )
-            )
-            # 创建错误事件用于通知
-            self.manager.create_event(
-                MaicaTaskEvent(
-                    taskowner=self,
-                    event_type=MAICATASKEVENT_TYPE_TASK,
-                    data=maica_tasker_events.GenericData(
-                        name='streaming_packet_mismatch',
-                        content={
-                            'received_count': self._packet_count,
-                            'reported_count': reported_packets,
-                            'traceray_id': traceray_id
-                        }
+                self._close_ws_safely()
+                return
+
+            self._validation_passed = self._packet_count == reported_packets
+            if not self._validation_passed:
+                self.logger.error(
+                    "[StreamingPacketValidator] packet count mismatch! Received: {}, Reported: {} - disconnecting WebSocket".format(
+                        self._packet_count, reported_packets
                     )
                 )
-            )
-            # 断开WebSocket连接
-            if self.manager and self.manager.ws_client:
-                self.manager.close_ws()
-        else:
-            self._validation_passed = True
-            self.logger.info(
-                "[StreamingPacketValidator] packet count verified successfully (traceray ID: {})".format(traceray_id)
+                try:
+                    self.manager.create_event(
+                        MaicaTaskEvent(
+                            taskowner=self,
+                            event_type=MAICATASKEVENT_TYPE_TASK,
+                            data=maica_tasker_events.GenericData(
+                                name='streaming_packet_mismatch',
+                                content={
+                                    'received_count': self._packet_count,
+                                    'reported_count': reported_packets,
+                                }
+                            )
+                        )
+                    )
+                finally:
+                    self._close_ws_safely()
+            else:
+                self.logger.info("[StreamingPacketValidator] packet count verified successfully")
+        finally:
+            self._reset_count()
+
+    def _close_ws_safely(self):
+        if not self.manager or not self.manager.ws_client:
+            return
+        try:
+            self.manager.close_ws()
+        except Exception as error:
+            self.logger.error(
+                "[StreamingPacketValidator] failed to close WebSocket: {}".format(error)
             )
 
-        # 重置计数器，准备下一次聊天
-        self._reset_count()
+    @staticmethod
+    def _extract_reported_packets(content):
+        """Return the integer immediately associated with ``packets sent``."""
+        import re
+        try:
+            string_types = (basestring,)
+        except NameError:
+            string_types = (str, bytes)
+        if not isinstance(content, string_types):
+            return None
+        if isinstance(content, bytes):
+            try:
+                content = content.decode('utf-8')
+            except (UnicodeDecodeError, AttributeError):
+                return None
+        patterns = (
+            r'Streaming finished for user, (0|[1-9]\d*) packets sent\Z',
+            r'MSpire cache finished, (0|[1-9]\d*) packets sent\Z',
+            r'Streaming finished with seed (?:None|-?(?:0|[1-9]\d*)) for [^,\r\n]+, (0|[1-9]\d*) packets sent -- your traceray ID is [^\s]+\Z',
+        )
+        for pattern in patterns:
+            match = re.match(pattern, content)
+            if match:
+                try:
+                    return int(match.group(1))
+                except (TypeError, ValueError):
+                    return None
+        return None
 
     def _reset_count(self):
         """重置数据包计数器。"""
@@ -1299,6 +1266,7 @@ class StreamingPacketValidator(MaicaWSTask):
         禁用后，不会对streaming数据包进行验证。
         """
         self._enabled = False
+        self._reset_count()
         self.logger.info("[StreamingPacketValidator] disabled")
 
     def reset(self):

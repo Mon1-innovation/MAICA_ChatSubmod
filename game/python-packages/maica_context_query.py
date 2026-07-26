@@ -41,7 +41,8 @@ class MAICAContextQueryBuilder(object):
         query = builder.build()
     """
 
-    MAX_LENGTH = 4096
+    MAX_MESSAGES = 10
+    MAX_BYTES = 16 * 1024
 
     def __init__(self):
         self._messages = []
@@ -72,12 +73,18 @@ class MAICAContextQueryBuilder(object):
         return [msg.to_dict() for msg in self._messages]
 
     def get_length(self):
-        """获取序列化后的字符长度"""
-        return len(json.dumps(self.build(), ensure_ascii=False))
+        """获取紧凑 JSON 的 UTF-8 字节数。"""
+        dumped = json.dumps(
+            self.build(), ensure_ascii=False, separators=(",", ":")
+        )
+        if not isinstance(dumped, bytes):
+            dumped = dumped.encode("utf-8")
+        return len(dumped)
 
     def is_within_limit(self):
-        """检查是否在字符限制内"""
-        return self.get_length() <= self.MAX_LENGTH
+        """检查消息数和紧凑 JSON UTF-8 字节数是否均在限制内。"""
+        return (self.message_count() <= self.MAX_MESSAGES and
+                self.get_length() <= self.MAX_BYTES)
 
     def clear(self):
         """清空所有消息"""

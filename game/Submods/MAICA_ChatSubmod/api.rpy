@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.7.8'
+    maica_ver = '1.8.0'
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -629,7 +629,7 @@ init -700 python:
         return num
 
 init 999 python:
-    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-50)
     def maica_migration():
         def migration_1_2_0():
             if renpy.android:
@@ -664,6 +664,6 @@ init 999 python:
             ("1.2.19", m_1_2_19),
             ("1.2.23", m_1_2_23),
             ("1.6.6", migration_1_6_6)
-        ]
+        ] + migration_queue
         migration.migrate()
         persistent._maica_last_version = store.maica_ver

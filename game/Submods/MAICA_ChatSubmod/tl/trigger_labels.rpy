@@ -44,6 +44,9 @@ translate english mtrigger_idle_callback_c13f0eaa:
 
 translate english strings:
 
+    old "gen_quality_chk"
+    new "gen_quality_chk"
+
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:36
     old "你要离开了吗, [player]?{fast}"
     new "Leaving already, [player]?{fast}"
@@ -475,4 +478,3 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:395
     old "MAICA: 若会话质量下降, 请重置session"
     new "MAICA: Please reset session if quality decreases notably"
-

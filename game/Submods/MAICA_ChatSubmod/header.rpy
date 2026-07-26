@@ -22,10 +22,10 @@ default persistent.maica_setting_dict = {
     "keep_alive":True,
     "maica_model":None,
     "use_custom_model_config":False,
-    "sf_extraction":False,
+    "savefile_access":False,
     "chat_session":1,
     "console":True,
-    "dscl_pvn":True,
+    "gen_quality_chk":True,
     "input_lang_detect":True,
     "pprt":True
 }
@@ -46,11 +46,11 @@ init 10 python:
         "enable_mf":True,
         "enable_mt":True,
         "use_custom_model_config":False,
-        "sf_extraction":True,
+        "savefile_access":True,
         "chat_session":1,
         "console":True,
         "console_font":maica_confont,
-        "target_lang":store.maica.maica_instance.MaicaAiLang.zh_cn if config.language == "chinese" else store.maica.maica_instance.MaicaAiLang.en,
+        "target_lang":"auto",
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
@@ -60,7 +60,7 @@ init 10 python:
         "log_level":logging.DEBUG,
         "log_conlevel":logging.INFO,
         "provider_id":1 if renpy.windows else 2,
-        "max_history_token":8192,
+        "session_len_limit":8192,
         "status_update_time":1,
         "strict_mode": False,
         "show_console_when_reply": False,
@@ -68,7 +68,7 @@ init 10 python:
         "42seed":False,
         "use_anim_background": True,
         "tz": 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
-        "dscl_pvn":True,
+        "gen_quality_chk":True,
         "input_lang_detect":True,
         "pprt":True
     }
@@ -81,17 +81,22 @@ init 10 python:
         "frequency_penalty":0.44,
         "presence_penalty":0.34,
         "seed":0,
-        "mf_aggressive":False,
-        "sfe_aggressive":False,
-        "tnd_aggressive":1,
-        "esc_aggressive":True,
+        "mf_llm_concl":False,
+        "prompt_pname_repl":False,
+        "mf_const_tools":1,
+        "esearch_llm_concl":True,
         "nsfw_acceptive":True,
-        "pre_additive":0,
-        "post_additive":1,
-        "amt_aggressive":True,
-        "pre_astp":True,
-        "post_astp":False,
-        "enforce_lang":True,
+        "mf_context_rnds":0,
+        "mt_context_rnds":1,
+        "mf_precheck_mt":True,
+        "mf_disable_loop":True,
+        "mt_disable_loop":True,
+        "gen_enforce_lang":True,
+        "mf_sf_access_impl":1,
+        "mf_const_sf_access":1,
+        "mt_concl_memory":1,
+        "twk_super":False,
+        "prompt_allow_nickname":False,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -160,6 +165,28 @@ init 10 python:
         persistent.mas_player_additions = []
         persistent.maica_setting_dict["mspire_category"] = []
 
+    def maica_clamp_advanced_setting(key, lower, upper):
+        value = int(persistent.maica_advanced_setting.get(key, lower))
+        persistent.maica_advanced_setting[key] = max(lower, min(value, upper))
+
+    def maica_validate_player_addition(raw_addition, additions, edittarget=None):
+        if raw_addition is None or not raw_addition.strip():
+            renpy.notify(_("MAICA: 输入为空"))
+            return None
+        addition = "[player]" + raw_addition.strip()
+        replacing = edittarget in additions
+        if len(additions) >= 512:
+            if not replacing:
+                renpy.notify(_("MAICA: 自定义MFocus信息已达512条上限"))
+                return None
+        if len(addition.encode("utf-8")) > 1536:
+            renpy.notify(_("MAICA: 单条自定义MFocus信息不能超过1536字节"))
+            return None
+        if addition in additions and addition != edittarget:
+            renpy.notify(_("MAICA: 已存在相同内容"))
+            return None
+        return addition
+
     def _maica_verify_token():
         res = store.maica.maica_instance._verify_token()
         if res.get("success"):
@@ -172,8 +199,8 @@ init 10 python:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def _upload_persistent_dict():
-        maxlen = 1000
-        import copy
+        max_bytes = 1536
+        import copy, maica_v13_migration
         d = copy.deepcopy(persistent.__dict__)
         d['_seen_ever'].clear()
         d['_mas_event_init_lockdb'].clear()
@@ -225,8 +252,7 @@ init 10 python:
 
             # check serialization and length
             try:
-                str_val = str(value)
-                if len(str_val) > maxlen:
+                if maica_v13_migration.utf8_byte_length(value) > max_bytes:
                     return "REMOVED|TOO_LONG"
                 
                 # Attempt JSON serialization
@@ -309,7 +335,7 @@ init 10 python:
             persistent.maica_advanced_setting_status["seed"] = False
             persistent.maica_advanced_setting['seed'] = 42
             store.maica.maica_instance.modelconfig.update({"seed":42})
-        store.maica.maica_instance.sf_extraction = persistent.maica_setting_dict["sf_extraction"]
+        store.maica.maica_instance.savefile_access = persistent.maica_setting_dict["savefile_access"]
         store.maica.maica_instance.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica_instance.enable_mf = persistent.maica_setting_dict['enable_mf']
         store.maica.maica_instance.enable_mt = persistent.maica_setting_dict['enable_mt']
@@ -322,14 +348,9 @@ init 10 python:
         store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
         store.maica.maica_instance.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica_instance.provider_id = persistent.maica_setting_dict["provider_id"]
-        store.maica.maica_instance.max_history_token = persistent.maica_setting_dict["max_history_token"]
-        store.maica.maica_instance.enable_strict_mode = persistent.maica_setting_dict["strict_mode"]
-        if store.maica.maica_instance.enable_strict_mode:
-            store.maica.maica_instance.WSCookiesTask.enable_cookie()
-        else:
-            store.maica.maica_instance.WSCookiesTask.disable_cookie()
+        store.maica.maica_instance.max_history_token = min(persistent.maica_setting_dict["session_len_limit"], 28672)
         store.maica.maica_instance.tz = persistent.maica_setting_dict["tz"]
-        store.maica.maica_instance.dscl_pvn = persistent.maica_setting_dict["dscl_pvn"]
+        store.maica.maica_instance.gen_quality_chk = persistent.maica_setting_dict["gen_quality_chk"]
         store.maica.maica_instance.input_lang_detect = persistent.maica_setting_dict["input_lang_detect"]
         store.maica.maica_instance.pprt = persistent.maica_setting_dict["pprt"]
         store.persistent.maica_mtrigger_status = copy.deepcopy(store.maica.maica_instance.mtrigger_manager.output_settings())
@@ -359,7 +380,7 @@ init 10 python:
         else:
             persistent.maica_setting_dict["42seed"] = False
         # maica_discard_advanced_setting()
-        persistent.maica_setting_dict["sf_extraction"] = store.maica.maica_instance.sf_extraction
+        persistent.maica_setting_dict["savefile_access"] = store.maica.maica_instance.savefile_access
         persistent.maica_setting_dict["chat_session"] = store.maica.maica_instance.chat_session
         persistent.maica_setting_dict['enable_mf'] = store.maica.maica_instance.enable_mf
         persistent.maica_setting_dict['enable_mt'] = store.maica.maica_instance.enable_mt
@@ -372,10 +393,9 @@ init 10 python:
         persistent.maica_setting_dict["log_conlevel"] = store.maica.maica_instance.console_logger.level
         persistent.maica_setting_dict["mspire_session"] = store.maica.maica_instance.mspire_session
         persistent.maica_setting_dict["provider_id"] = store.maica.maica_instance.provider_manager._provider_id
-        persistent.maica_setting_dict["max_history_token"] = store.maica.maica_instance.max_history_token
-        persistent.maica_setting_dict["strict_mode"] = store.maica.maica_instance.enable_strict_mode
+        persistent.maica_setting_dict["session_len_limit"] = min(store.maica.maica_instance.max_history_token, 28672)
         persistent.maica_setting_dict["tz"] = store.maica.maica_instance.tz
-        persistent.maica_setting_dict["dscl_pvn"] = store.maica.maica_instance.dscl_pvn
+        persistent.maica_setting_dict["gen_quality_chk"] = store.maica.maica_instance.gen_quality_chk
         persistent.maica_setting_dict["input_lang_detect"] = store.maica.maica_instance.input_lang_detect
         persistent.maica_setting_dict["pprt"] = store.maica.maica_instance.pprt
         store.maica.maica_instance.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
@@ -840,13 +860,13 @@ screen maica_setting():
                                     Function(store.MASEventList.push, "maica_raw_context_example")
                                 ]
                 
-                textbutton "显示maica_dscl_pvn_notify 0.3":
+                textbutton "显示maica_gen_quality_chk_notify 0.3":
                     action Function(store.mtrigger_dscl, prob=0.3)
                 
-                textbutton "显示maica_dscl_pvn_notify 0.6":
+                textbutton "显示maica_gen_quality_chk_notify 0.6":
                     action Function(store.mtrigger_dscl, prob=0.6)
 
-                textbutton "显示maica_dscl_pvn_notify 0.9":
+                textbutton "显示maica_gen_quality_chk_notify 0.9":
                     action Function(store.mtrigger_dscl, prob=0.9)
 
             hbox:
@@ -884,13 +904,6 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("定期发送心跳包保持长连接活跃, 并检测网络延迟"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
-                style_prefix "generic_fancy_check"
-                textbutton _("ws严格模式: [persistent.maica_setting_dict.get('strict_mode')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "strict_mode", True, False)
-                    hovered SetField(_tooltip, "value", _("严格模式下, 将会在每次发送时携带cookie信息"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
-
-            hbox:
                 use divider(_("行为与表现"))
 
             hbox:
@@ -926,8 +939,8 @@ screen maica_setting():
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "dscl_pvn", True, False)
+                textbutton _("会话质量检测: [persistent.maica_setting_dict.get('gen_quality_chk')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "gen_quality_chk", True, False)
                     hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
@@ -980,8 +993,8 @@ screen maica_setting():
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "sf_extraction", True, False)
+                textbutton _("使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"):
+                    action ToggleDict(persistent.maica_setting_dict, "savefile_access", True, False)
                     hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
@@ -996,8 +1009,10 @@ screen maica_setting():
             use num_bar(_("当前会话"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
 
 
-            $ tooltip_session_length = _("会话保留的最大长度. 范围512-20480.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "max_history_token", 512, 20480)
+            $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
+            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "session_len_limit", 512, 28672)
+            textbutton _("重置会话长度"):
+                action SetDict(persistent.maica_setting_dict, "session_len_limit", 8192)
 
 
             hbox:

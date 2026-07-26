@@ -9,8 +9,108 @@ from maica_tasker import *
 from bot_interface import PY2
 import threading
 import json
-from maica_tasker_sub import MAICAWSCookiesHandler
 from cp936_decode import decode_cp936
+
+try:
+    text_types = (basestring,)
+except NameError:
+    text_types = (str,)
+
+try:
+    integer_types = (int, long)
+except NameError:
+    integer_types = (int,)
+
+QUERY_TEXT_MAX_BYTES = 4 * 1024
+RAW_CONTEXT_MAX_MESSAGES = 10
+RAW_CONTEXT_MAX_BYTES = 16 * 1024
+_UNSET = object()
+
+
+def _utf8_bytes(value):
+    if PY2 and isinstance(value, str):
+        try:
+            value.decode("utf-8")
+        except UnicodeError as exc:
+            raise ValueError("text must contain valid UTF-8 bytes: {}".format(exc))
+        return value
+    if isinstance(value, bytes):
+        return value
+    return value.encode("utf-8")
+
+
+def validate_query_text(query):
+    """Validate a normal session query as at most 4 KiB of UTF-8 text."""
+    if not isinstance(query, text_types):
+        raise ValueError("query must be text for a normal session")
+    if len(_utf8_bytes(query)) > QUERY_TEXT_MAX_BYTES:
+        raise ValueError("query exceeds the 4 KiB UTF-8 limit")
+    return query
+
+
+def validate_raw_context(query):
+    """Validate a -1 session list and its compact JSON UTF-8 size."""
+    if not isinstance(query, list):
+        raise ValueError("query must be a list for -1 session")
+    if len(query) > RAW_CONTEXT_MAX_MESSAGES:
+        raise ValueError("raw context cannot contain more than 10 messages")
+    try:
+        dumped = json.dumps(
+            query, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+        )
+        size = len(_utf8_bytes(dumped))
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise ValueError("raw context must be JSON serializable: {}".format(exc))
+    if size > RAW_CONTEXT_MAX_BYTES:
+        raise ValueError("raw context exceeds the 16 KiB compact JSON limit")
+    return query
+
+
+def normalize_mspire_weight(value=10):
+    """Return an MSpire category weight in the inclusive range 1..100."""
+    if isinstance(value, bool) or not isinstance(value, integer_types):
+        raise ValueError("ctg_weight must be an integer from 1 to 100")
+    if value < 1 or value > 100:
+        raise ValueError("ctg_weight must be an integer from 1 to 100")
+    return int(value)
+
+
+def normalize_session(value):
+    """Return a strict MAICA chat session integer from -1 through 9."""
+    if isinstance(value, bool) or not isinstance(value, integer_types):
+        raise ValueError("session must be an integer from -1 to 9")
+    if value < -1 or value > 9:
+        raise ValueError("session must be an integer from -1 to 9")
+    return int(value)
+
+
+def normalize_mspire_session(value):
+    """Return a strict MSpire session integer from 0 through 9."""
+    session = normalize_session(value)
+    if session < 0:
+        raise ValueError("MSpire session must be an integer from 0 to 9")
+    return session
+
+
+def normalize_mspire_categories(category):
+    """Copy and validate an ordered MSpire title list."""
+    if not isinstance(category, list):
+        raise ValueError("category must be a list")
+    categories = list(category)
+    for item in categories:
+        if not isinstance(item, text_types):
+            raise ValueError("each category must be non-empty text")
+        _utf8_bytes(item)
+        if not item.strip():
+            raise ValueError("each category must be non-empty text")
+    return categories
+
+
+def normalize_use_cache(value):
+    """Return an explicit boolean MSpire cache flag."""
+    if not isinstance(value, bool):
+        raise ValueError("use_cache must be a boolean")
+    return value
 
 class ChatLock(object):
     """
@@ -122,7 +222,6 @@ class SessionSenderAndReceiver(MaicaWSTask):
 
     Class Attributes:
         multi_lock (ChatLock): 全局聊天锁，保证串行处理
-        strict_cookie (str|None): 严格模式下使用的Cookie值
 
     Instance Attributes:
         processing (bool): 是否正在处理请求
@@ -252,7 +351,20 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
     用于处理常规的聊天请求，支持触发器和自定义会话。
     """
 
-    def process_request(self, query, session, trigger, taskowner, visions=None, pprt=False):
+    @staticmethod
+    def build_request(query, session, triggers, visions=None, pprt=False):
+        data = {
+            'type': 'query',
+            'chat_session': session,
+            'query': query,
+            'triggers': triggers,
+            'pprt': pprt,
+        }
+        if visions:
+            data['vision'] = visions
+        return data
+
+    def process_request(self, query, session, triggers, taskowner, visions=None, pprt=False):
         """
         处理通用聊天请求。
 
@@ -261,27 +373,17 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
         Args:
             query (str): 聊天查询内容
             session (int): 聊天会话ID
-            trigger: 触发器信息
+            triggers: 触发器信息
             taskowner: 任务所有者（通常是MaicaTaskManager）
             visions (list|None): 视觉列表，可选
             pprt (bool): 是否启用自动断句和实时后处理
         """
-        data = {
-            'type': 'query',
-            'chat_session': session,
-            'query': query,
-            'trigger': trigger,
-            "pprt": pprt
-        }
-        # if trigger:
-        #     data['trigger'] = trigger
-        # else:
-        #     data['trigger'] = []
-        if visions:
-            data['vision'] = visions
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
-
+        session = normalize_session(session)
+        if session == -1:
+            validate_raw_context(query)
+        else:
+            validate_query_text(query)
+        data = self.build_request(query, session, triggers, visions, pprt)
         dumped_data = json.dumps(data, ensure_ascii=False)
         if PY2 and isinstance(dumped_data, str):
             dumped_data = decode_cp936(dumped_data)
@@ -301,8 +403,10 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
 
     mspire_type = "in_fuzzy_all"
     use_cache = False
+    ctg_weight = 10
 
-    def process_request(self, category, session, pprt=False, flush=False):
+    def process_request(self, category, session, pprt=False, flush=False,
+                        ctg_weight=_UNSET, use_cache=_UNSET):
         """
         处理MSpire聊天请求。
 
@@ -313,7 +417,16 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
             session (int): 聊天会话ID
             taskowner: 任务所有者（通常是MaicaTaskManager）
         """
-        import random
+        if ctg_weight is _UNSET:
+            ctg_weight = self.ctg_weight
+        weight = normalize_mspire_weight(ctg_weight)
+        session = normalize_mspire_session(session)
+        categories = normalize_mspire_categories(category)
+        if use_cache is _UNSET:
+            use_cache = self.use_cache
+        cache_enabled = normalize_use_cache(use_cache)
+        if cache_enabled and session != 0:
+            raise ValueError("use_cache is only available for session 0")
 
         if flush and str(session) != '0':
             data = {
@@ -321,23 +434,28 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "chat_session": session,
                 "reset": True
             }
-            if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-                data['cookie'] = MAICAWSCookiesHandler._cookie
             self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
-        data = {
-            "type": "query",
-            "chat_session": session,
-            "inspire": {
-                "type": MAICAMSpireProcessor.mspire_type,
-                "sample": 250,
-                "title": random.choice(category),
-            } if len(category) else True,
-            "use_cache": MAICAMSpireProcessor.use_cache,
-            "pprt": pprt
-        }
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
+        if categories:
+            data = {
+                "type": "query",
+                "chat_session": session,
+                "inspire": {
+                    "type": MAICAMSpireProcessor.mspire_type,
+                    "sample": 250,
+                    "title": categories,
+                    "ctg_weight": weight,
+                    "use_cache": cache_enabled,
+                },
+                "pprt": pprt
+            }
+        else:
+            data = {
+                "type": "query",
+                "chat_session": session,
+                "inspire": {},
+                "pprt": pprt
+            }
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
 
@@ -363,6 +481,9 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
         Args:
             query (str): 聊天内容
         """
+        query = dict(query)
+        query.setdefault('twk_super', True)
+        query.pop('ic_prep', None)
         data = {
             'type': 'query',
             'chat_session': MAICAMPostalProcessor.use_session,
@@ -370,8 +491,6 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
         }
         if visions:
             data['vision'] = visions
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
 
 
@@ -385,10 +504,11 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
     Note:
         - chat_session = -1
         - MFocus 不会介入 (无 trigger)
-        - 受 4096 字符限制
+        - 最多 10 条消息，紧凑 JSON 的 UTF-8 编码不超过 16 KiB
     """
 
-    MAX_CONTEXT_LENGTH = 4096
+    MAX_CONTEXT_MESSAGES = RAW_CONTEXT_MAX_MESSAGES
+    MAX_CONTEXT_BYTES = RAW_CONTEXT_MAX_BYTES
 
     def process_request(self, query, taskowner, visions=None, pprt=False):
         """
@@ -402,10 +522,9 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
             pprt (bool): 是否启用自动断句和实时后处理
 
         Raises:
-            ValueError: 如果 query 不是列表类型
+            ValueError: 如果 query 非列表、超过 10 条、无法序列化或超过 16 KiB
         """
-        if not isinstance(query, list):
-            raise ValueError("query must be a list for -1 session")
+        validate_raw_context(query)
 
         data = {
             'type': 'query',
@@ -415,7 +534,5 @@ class MAICARawContextProcessor(SessionSenderAndReceiver):
         }
         if visions:
             data['vision'] = visions
-        if MAICAWSCookiesHandler._cookie and MAICAWSCookiesHandler._enabled:
-            data['cookie'] = MAICAWSCookiesHandler._cookie
         taskowner.ws_client.send(json.dumps(data, ensure_ascii=False))
 

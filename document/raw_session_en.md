@@ -15,7 +15,7 @@ Traditional MAICA sessions are managed by the server, which handles conversation
 
 ### Limitations
 
-- **Character Limit**: Serialized context cannot exceed 4096 characters
+- **Context Limits**: At most 10 messages; compact JSON must not exceed 16 KiB when UTF-8 encoded
 - **No MFocus Intervention**: MTrigger will not be triggered, and the AI will not automatically adjust affection levels, etc.
 - **Experimental Feature**: API may change at any time
 
@@ -90,8 +90,8 @@ builder = MAICAContextQueryBuilder()
 | `add_user_message(content)` | content: str | self | Add user message |
 | `add_assistant_message(content)` | content: str | self | Add assistant (AI) message |
 | `build()` | - | list | Build message list for sending request |
-| `get_length()` | - | int | Get serialized character length |
-| `is_within_limit()` | - | bool | Check if within 4096 character limit |
+| `get_length()` | - | int | Get the compact JSON UTF-8 byte length |
+| `is_within_limit()` | - | bool | Check the message-count and 16 KiB byte limits |
 | `clear()` | - | self | Clear all messages |
 | `message_count()` | - | int | Get message count |
 
@@ -99,7 +99,8 @@ builder = MAICAContextQueryBuilder()
 
 | Constant | Value | Description |
 |----------|-------|-------------|
-| `MAX_LENGTH` | 4096 | Maximum character limit |
+| `MAX_MESSAGES` | 10 | Maximum message count |
+| `MAX_BYTES` | 16384 | Maximum compact JSON UTF-8 byte length |
 
 #### Method Chaining
 
@@ -148,7 +149,7 @@ maica.start_raw_context(query, pprt=False)
 
 - MAICA is connected and ready (`maica.is_ready_to_input()` returns `True`)
 - query is a valid message list
-- Context length does not exceed 4096 characters
+- At most 10 messages whose compact JSON UTF-8 encoding does not exceed 16 KiB
 
 ---
 

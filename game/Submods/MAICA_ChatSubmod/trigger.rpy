@@ -11,19 +11,19 @@ init 999 python in maica:
         
         def triggered(self, data):
             self.last_triggered = time.time()
-            return self.callback(data.get("affection", 0.1))
+            return self.callback(data.get("alter_value", data.get("affection", 0.1)))
             
         def can_triggered(self):
             return (time.time() - self.last_triggered) >= 600.0
 
-    def aff_callback(affection):
+    def aff_callback(alter_value):
         #from math import ceil
-        affection = float(affection)
+        alter_value = float(alter_value)
         ai.console_logger.debug("<mtrigger> aff_callback called")
-        if affection < 0:
-            pass#store.mas_loseAffection(1, -affection)
-        elif affection > 0:
-            store.mas_gainAffection(1, affection)
+        if alter_value < 0:
+            pass#store.mas_loseAffection(1, -alter_value)
+        elif alter_value > 0:
+            store.mas_gainAffection(1, alter_value)
 
     aff_trigger = AffTrigger(common_affection_template, "alter_affection", callback=aff_callback)
     aff_trigger.condition = aff_trigger.can_triggered
@@ -35,7 +35,7 @@ init 999 python in maica:
         def __init__(self, template, name):
             self.clothes_data = {store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
             self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data[False] = "mas_pick_a_clothes"
+            self.clothes_data["__none__"] = "mas_pick_a_clothes"
             super(ClothesTrigger, self).__init__(template, name, description=_("内置 | 更换衣服"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内服装",
@@ -53,7 +53,7 @@ init 999 python in maica:
             return outfit_name in store.mas_selspr.CLOTH_SEL_MAP and store.mas_selspr.CLOTH_SEL_MAP[outfit_name].unlocked
 
         def triggered(self, data):
-            clothes = data.get("selection", None)
+            clothes = data.get("choice", None)
             if clothes is not None:
                 self.callback(clothes)
 
@@ -76,7 +76,7 @@ init 999 python in maica:
     }
     
     unlocked_games_dict["玩家自行选择"] = "mas_pick_a_game"
-    unlocked_games_dict[False] = "mas_pick_a_game"
+    unlocked_games_dict["__none__"] = "mas_pick_a_game"
     unlocked_games_dict["Pong"] = "game_pong"
     if "NOU" in unlocked_games_dict:
         unlocked_games_dict["UNO"] = unlocked_games_dict["NOU"]
@@ -96,6 +96,7 @@ init 999 python in maica:
             item_name_zh="玩小游戏",
             item_name_en="play minigame",
             item_list=list(unlocked_games_dict.keys()),
+            curr_value="__none__",
         ),
         description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
     )
@@ -260,7 +261,7 @@ init 999 python in maica:
                     item_name_zh="播放音乐",
                     item_name_en="play music",
                     item_list=self.musics,
-                    curr_value=store.songs.current_track,
+                    curr_value=self.current_item(),
                     suggestion=store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
 
                 ),
@@ -271,10 +272,16 @@ init 999 python in maica:
             )
         
         def on_build_pre(self):
-            self.exprop.curr_value=store.songs.current_track
+            self.musics = self.song_list()
+            self.exprop.item_list = self.musics
+            self.exprop.curr_value = self.current_item()
+
+        def current_item(self):
+            current = store.songs.current_track
+            return current if isinstance(current, basestring) and current in self.musics else "__none__"
         
         def song_list(self):
-            m = []
+            m = ["__none__"]
             for s in store.songs.music_choices:
                 m.append(s[0])
             if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
@@ -292,6 +299,8 @@ init 999 python in maica:
             return [x for x in store.songs.music_choices if selection in x][0]
 
         def callback(self, selection):
+            if selection == "__none__":
+                return
             if selection == self.PLAYER_CHOICE:
                 store.renpy.call("mtrigger_music_menu")
                 return
@@ -321,7 +330,7 @@ init 999 python in maica:
         def __init__(self, template, name):
             self.clothes_data = {store.mas_selspr.HAIR_SEL_MAP[key].display_name:key for key in store.mas_selspr.HAIR_SEL_MAP if self.outfit_has_and_unlocked(key)}
             self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data[False] = "mas_pick_a_clothes"
+            self.clothes_data["__none__"] = "mas_pick_a_clothes"
             super(HairTrigger, self).__init__(template, name, description=_("内置 | 更换发型"),callback=self.clothes_callback, 
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内发型",
@@ -334,7 +343,7 @@ init 999 python in maica:
             )
         
         def on_build_pre(self):
-            self.exprop.curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
+            self.exprop.curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name
 
         def outfit_has_and_unlocked(self, outfit_name):
             """
@@ -343,7 +352,7 @@ init 999 python in maica:
             return outfit_name in store.mas_selspr.HAIR_SEL_MAP and store.mas_selspr.HAIR_SEL_MAP[outfit_name].unlocked
 
         def triggered(self, data):
-            clothes = data.get("selection", None)
+            clothes = data.get("choice", None)
             if clothes is not None:
                 self.callback(clothes)
 
@@ -359,95 +368,71 @@ init 999 python in maica:
 
 #################################################################################
 
-    class UnWearTrigger(MTriggerBase):
-        def __init__(self, template, name):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
-                                    for key in store.monika_chr.get_acs()
-                                    if key.name in store.mas_selspr.ACS_SEL_MAP}
-            #ACS_SEL_MAP
-            super(UnWearTrigger, self).__init__(template, name, description=_("内置 | 取下饰品"),callback=self.clothes_callback,
+    class AccessoryTrigger(MTriggerBase):
+        def __init__(self):
+            self.accessory_data = {}
+            self.refresh_accessories()
+            super(AccessoryTrigger, self).__init__(common_switch_template, "accessory", description=_("内置 | 佩戴或取下饰品"), callback=self.accessory_callback,
                 exprop=MTriggerExprop(
-                    item_name_zh = "取下饰品",
-                    item_name_en = "remove accessory",
-                    item_list = list(self.clothes_data.keys()),
+                    item_name_zh = "佩戴或取下游戏内饰品",
+                    item_name_en = "wear or remove an in-game accessory",
+                    item_list = list(self.accessory_data.keys()),
+                    curr_value = "__none__",
                 ),
-                action = MTriggerAction.post,
-                condition = self.condition
-            )
-        def condition(self):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
-                                    for key in store.monika_chr.get_acs()
-                                    if key.name in store.mas_selspr.ACS_SEL_MAP}
-            return len(list(self.clothes_data.keys())) > 0
-        def on_build_pre(self):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key.name].display_name : key
-                                    for key in store.monika_chr.get_acs()
-                                    if key.name in store.mas_selspr.ACS_SEL_MAP}
-            self.exprop.item_list = list(self.clothes_data.keys())
-
-        def triggered(self, data):
-            clothes = data.get("selection", None)
-            if clothes is not None:
-                self.callback(clothes)
-
-        def clothes_callback(self, clothes):
-            if not clothes in self.clothes_data:
-                ai.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid acs".format(clothes))
-                return
-            acs = self.clothes_data[clothes]
-            return store.renpy.call("mtrigger_unwear_acs", acs)
-    unwear = UnWearTrigger(common_switch_template, "unwear_acs")
-    ai.mtrigger_manager.add_trigger(unwear)
-
-
-#################################################################################
-
-    class AcsTrigger(MTriggerBase):
-        def __init__(self, template, name):
-            self.clothes_data = {store.mas_selspr.ACS_SEL_MAP[key].display_name:key for key in store.mas_selspr.ACS_SEL_MAP if self.outfit_has_and_unlocked(key)}
-            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data[False] = "mas_pick_a_clothes"
-            super(AcsTrigger, self).__init__(template, name, description=_("内置 | 更换饰品"),callback=self.clothes_callback, 
-                exprop=MTriggerExprop(
-                    item_name_zh = "更换游戏内饰品(不可用于脱下饰品)",
-                    item_name_en = "change in-game accessory(can't used to unwear accessory)",
-                    item_list = list(self.clothes_data.keys()),
-                ),
-                action = MTriggerAction.post,
+                action=MTriggerAction.post,
                 method=MTriggerMethod.table
             )
+
         def outfit_has_and_unlocked(self, outfit_name):
-            """
-            Returns True if we have the outfit and it's unlocked
-            """
             return outfit_name in store.mas_selspr.ACS_SEL_MAP and store.mas_selspr.ACS_SEL_MAP[outfit_name].unlocked
 
-        def triggered(self, data):
-            clothes = data.get("selection", None)
-            if clothes is not None:
-                self.callback(clothes)
+        def refresh_accessories(self):
+            wear = {
+                "wear|{}".format(store.mas_selspr.ACS_SEL_MAP[key].display_name): ("wear", key)
+                for key in store.mas_selspr.ACS_SEL_MAP
+                if self.outfit_has_and_unlocked(key)
+            }
+            unwear = {
+                "unwear|{}".format(store.mas_selspr.ACS_SEL_MAP[key.name].display_name): ("unwear", key)
+                for key in store.monika_chr.get_acs()
+                if key.name in store.mas_selspr.ACS_SEL_MAP
+            }
+            self.accessory_data = {
+                "__none__": (None, None),
+                "wear|玩家挑选": ("wear", "mas_pick_a_clothes"),
+            }
+            self.accessory_data.update(wear)
+            self.accessory_data.update(unwear)
 
-        def clothes_callback(self, clothes):
-            if not clothes in self.clothes_data:
-                ai.console_logger.warning("<mtrigger> {} is not a vaild acs".format(clothes))
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid acs".format(clothes))
+        def on_build_pre(self):
+            self.refresh_accessories()
+            self.exprop.item_list = list(self.accessory_data.keys())
+
+        def accessory_callback(self, choice):
+            if choice not in self.accessory_data:
+                ai.console_logger.warning("<mtrigger> {} is not a valid accessory".format(choice))
+                store.mas_submod_utils.submod_log.error("maica: {} is not a valid accessory".format(choice))
                 return
-            return store.renpy.call("mtrigger_change_acs", self.clothes_data[clothes])
+            action, accessory = self.accessory_data[choice]
+            if choice == "__none__":
+                return
+            if action == "unwear":
+                return store.renpy.call("mtrigger_unwear_acs", accessory)
+            return store.renpy.call("mtrigger_change_acs", accessory)
 
-    acs_trigger = AcsTrigger(common_switch_template, "acs")
-    ai.mtrigger_manager.add_trigger(acs_trigger)
+    accessory_trigger = AccessoryTrigger()
+    ai.mtrigger_manager.add_trigger(accessory_trigger)
                     
 #################################################################################
 
     def mtrigger_dscl_condition():
-        return None
+        return ai.gen_quality_chk
 
     def mtrigger_dscl_callback(arg):
         if isinstance(arg, (str, unicode)):
             arg = eval(arg)
         if not arg[0]:
-            #store.renpy.show_screen("maica_dscl_pvn_notify", prob = float(arg[1]))
+            # The receiver uses the canonical quality setting and screen.
             # store.renpy.call("mtrigger_dscl", prob = float(arg[1]))
             store.mtrigger_dscl(prob = float(arg[1]))
 

@@ -11,6 +11,7 @@ from logger_manager import get_logger_manager, MultiLoggerWrapper
 
 import websocket
 import maica_mtrigger
+import maica_v13_migration
 from maica_mtrigger import MTriggerAction
 
 # Initialize injection point registration
@@ -35,6 +36,23 @@ _logger_manager.register_injected_reference('maica_provider_manager.logger', mai
 websocket._logging.enableTrace(False)
 import datetime
 
+MAX_SESSION_LEN_LIMIT = 28672
+
+
+def normalize_chat_params(params):
+    normalized = dict(params or {})
+    for legacy_key in maica_v13_migration.SETTING_RENAMES:
+        normalized.pop(legacy_key, None)
+    normalized.pop("mt_extraction", None)
+    maica_v13_migration.normalize_tristate_values(normalized)
+    if normalized.get("mf_const_tools") == 3:
+        normalized["mf_const_tools"] = 2
+    if normalized.get("mf_const_tools", 0) > 2:
+        normalized["mf_const_tools"] = 2
+    if normalized.get("session_len_limit", 0) > MAX_SESSION_LEN_LIMIT:
+        normalized["session_len_limit"] = MAX_SESSION_LEN_LIMIT
+    return normalized
+
 def seconds_to_hms(timestamp_ms):
     # 将毫秒转换为秒
     timestamp_s = timestamp_ms
@@ -43,7 +61,7 @@ def seconds_to_hms(timestamp_ms):
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
-    SUPPORT_BACKEND = "1.2.000.rc10"
+    SUPPORT_BACKEND = "1.3.000"
     ascii_icon = """                                                             
 
     __  ___ ___     ____ ______ ___ 
@@ -54,6 +72,7 @@ class MaicaAi(ChatBotInterface):
                                     
 """
     class MaicaAiLang:
+        auto = "auto"
         zh_cn = "zh"
         en = "en"
     class MaicaMSpiretype:
@@ -229,9 +248,10 @@ class MaicaAi(ChatBotInterface):
         self.__accessable = False
         self._ignore_accessable = False
         self._serving_status = ""
+        self.version_info = {"success": False, "content": {}}
         self.stat = {}
         self.multi_lock = threading.Lock()
-        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None, self.get_emotion)
+        self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
         self.chat_session = 1
@@ -239,7 +259,7 @@ class MaicaAi(ChatBotInterface):
         self.wss_thread = None
         self.enable_mf = True
         self.enable_mt = True
-        self.sf_extraction = False
+        self.savefile_access = False
         self.stream_output = True
         self.content_func = None
         # 待发送消息队列
@@ -255,6 +275,7 @@ class MaicaAi(ChatBotInterface):
         self.mspire_category = []
         self.mspire_session = 0
         self.mspire_sample = 250
+        self.mspire_weight = 10
         self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
         self.pprt=False
         self.in_mas = True
@@ -265,33 +286,39 @@ class MaicaAi(ChatBotInterface):
         self.mspire_use_cache = False
         self.mtrigger_manager = maica_mtrigger.MTriggerManager()
         self.tz = "Asia/Shanghai"
-        self.dscl_pvn = False
-        self.__ws_cookie = ""
-        self._enable_strict_mode = False
+        self.gen_quality_chk = False
         self.default_setting = {
-            "amt_aggressive": True,
             "deformation": False,
             "enable_mf": True,
             "enable_mt": True,
-            "esc_aggressive": True,
+            "esearch_llm_concl": True,
             "frequency_penalty": 0.44,
-            "max_length": 8192,
+            "gen_enforce_lang": True,
+            "gen_quality_chk": True,
             "max_tokens": 1600,
-            "mf_aggressive": False,
-            "mt_extraction": True,
+            "mf_const_sf_access": 1,
+            "mf_const_tools": 1,
+            "mf_context_rnds": 0,
+            "mf_disable_loop": True,
+            "mf_llm_concl": False,
+            "mf_precheck_mt": True,
+            "mf_sf_access_impl": 1,
+            "mt_concl_memory": 1,
+            "mt_context_rnds": 1,
+            "mt_disable_loop": True,
             "nsfw_acceptive": True,
-            "post_additive": 1,
-            "pre_additive": 0,
             "presence_penalty": 0.34,
+            "prompt_allow_nickname": False,
+            "prompt_pname_repl": False,
+            "savefile_access": True,
             "seed": None,
-            "sf_extraction": True,
-            "sfe_aggressive": False,
+            "session_len_limit": 8192,
             "stream_output": True,
-            "target_lang": "zh",
+            "target_lang": "auto",
             "temperature": 0.22,
-            "tnd_aggressive": 1,
             "top_p": 0.7,
-            "tz": None
+            "twk_super": False,
+            "tz": None,
         }
         self.workload_raw = {
             "None":{
@@ -401,7 +428,7 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maicaloop_warn_handler",
             manager=self.task_manager,
-            except_ws_status=['maica_loop_warn_finished']
+            except_ws_status=['maica_loop_warn_reset']
         )
 
         self.HistoryStatus = maica_tasker_sub.HistoryStatusHandler(
@@ -421,17 +448,10 @@ class MaicaAi(ChatBotInterface):
             manager=self.task_manager,
             except_ws_status=[
                 'maica_mtrigger_trigger',
-                'maica_dscl_status'
+                'maica_quality_status'
             ]
         )
         self.MTriggerTasker.set_trigger_function(self.mtrigger_manager.triggered)
-
-        self.WSCookiesTask = maica_tasker_sub.MAICAWSCookiesHandler(
-            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
-            name="maica_ws_cookies_handler",
-            manager=self.task_manager,
-            except_ws_status=['maica_connection_security_cookie']
-        )
 
         self.Loginer = maica_tasker_sub.MAICALoginTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -472,7 +492,7 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mpostal_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_nostream_reply', 'maica_chat_loop_finished']
+            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
         )
         self.MPostalProcessor._external_callback = self.mpostal_callback
         self.RawContextProcessor = maica_tasker_sub_sessionsender.MAICARawContextProcessor(
@@ -495,8 +515,9 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="auto_resume_tasker",
             manager=self.task_manager,
+            except_ws_status=['maica_mcore_gen_start', 'maica_chat_loop_finished'],
         )
-        self.AutoResumeTasker.set_should_resume_func(self._should_resume())
+        self.AutoResumeTasker.set_should_resume_func(self._should_resume)
 
         self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -522,18 +543,6 @@ class MaicaAi(ChatBotInterface):
     @property
     def gen_time(self):
         return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.occupied_time
-
-    @property
-    def enable_strict_mode(self):
-        return self._enable_strict_mode
-
-    @enable_strict_mode.setter
-    def enable_strict_mode(self, value):
-        if value:
-            self.WSCookiesTask.enable_cookie()
-        else:
-            self.WSCookiesTask.disable_cookie()
-        self._enable_strict_mode = value
 
     @property
     def auto_reconnect(self):
@@ -757,36 +766,11 @@ class MaicaAi(ChatBotInterface):
             return {"success": False, "exception": "Get version request failed"}
 
     def get_emotion(self, type, text):
-        import requests
-        import json
-        import traceback
-
-        try:
-            res = requests.get(self.provider_manager.get_api_url() + "/emotion",
-                               params={
-                                   "access_token": self.ciphertext,
-                                   "content": json.dumps({
-                                       "type": type,
-                                       "text": text,
-                                       "target_lang": self.target_lang
-                                   })
-                                }
-                               )
-            try:
-                res_data = res.json()
-                if res_data.get("success", False):
-                    return res_data
-                else:
-                    logger.warning("Emotion analysis failed: {}".format(res_data))
-                    return res_data
-            except Exception:
-                logger.error("Emotion analysis request failed: Server returned {} - {}".format(res.status_code, res.text))
-                return {"success": False, "exception": "Emotion analysis request failed"}
-
-        except Exception as e:
-            error_msg = traceback.format_exc()
-            logger.error("Emotion analysis request encountered an error: {}".format(error_msg))
-            return {"success": False, "exception": "Emotion analysis request failed"}
+        """Return the local emotion fallback for legacy callers."""
+        return {
+            "success": True,
+            "content": [self.MoodStatus.fallback_selector.predict(), 0.0],
+        }
 
     def verify_legality(self, verification_object=None, verification_value=None):
         """
@@ -838,6 +822,12 @@ class MaicaAi(ChatBotInterface):
             try:
                 res_data = res.json()
                 if res_data.get("success", False):
+                    content = res_data.get("content") or {}
+                    if isinstance(content, dict):
+                        latitude = content.get("latitude", content.get("lat"))
+                        longitude = content.get("longitude", content.get("lng", content.get("lon")))
+                        if latitude is not None and longitude is not None:
+                            content["coordinate_text"] = "Latitude: {0}, Longitude: {1}".format(latitude, longitude)
                     logger.debug("Legality verification successful: {}".format(res_data))
                     return res_data
                 else:
@@ -933,7 +923,8 @@ class MaicaAi(ChatBotInterface):
         """返回maica已接收并完成分句的台词数"""
         return self.message_list.size()
     
-    def start_MSpire(self):
+    def start_MSpire(self, ctg_weight=None):
+        """启动 MSpire；分类权重默认为实例配置的 10。"""
         if not self.__accessable:
             return logger.error("Maica server not serving.")
         if not self.is_ready_to_input():
@@ -944,6 +935,8 @@ class MaicaAi(ChatBotInterface):
             category=self.mspire_category,
             session=self.mspire_session,
             pprt=self.pprt,
+            ctg_weight=self.mspire_weight if ctg_weight is None else ctg_weight,
+            use_cache=self.mspire_use_cache,
             flush=self.chat_session != self.mspire_session # Leave the zero detection to later procedure
         )
         self._in_mspire = True
@@ -969,10 +962,29 @@ class MaicaAi(ChatBotInterface):
             "type": "params",
             "chat_params": {}
         }
-        data["chat_params"].update({"enable_mf": self.enable_mf, "enable_mt": self.enable_mt, "sf_extraction":self.sf_extraction, "mt_extraction":True, "stream_output":self.stream_output, "target_lang":self.target_lang, "max_length":self.max_history_token, "tz": self.tz, "dscl_pvn":self.dscl_pvn})
+        data["chat_params"].update({
+            "enable_mf": self.enable_mf,
+            "enable_mt": self.enable_mt,
+            "prompt_pname_repl": self.modelconfig.get("prompt_pname_repl", self.default_setting["prompt_pname_repl"]),
+            "mf_llm_concl": self.modelconfig.get("mf_llm_concl", self.default_setting["mf_llm_concl"]),
+            "mf_const_tools": self.modelconfig.get("mf_const_tools", self.default_setting["mf_const_tools"]),
+            "esearch_llm_concl": self.modelconfig.get("esearch_llm_concl", self.default_setting["esearch_llm_concl"]),
+            "mf_precheck_mt": self.modelconfig.get("mf_precheck_mt", self.default_setting["mf_precheck_mt"]),
+            "mf_context_rnds": self.modelconfig.get("mf_context_rnds", self.default_setting["mf_context_rnds"]),
+            "mt_context_rnds": self.modelconfig.get("mt_context_rnds", self.default_setting["mt_context_rnds"]),
+            "mf_disable_loop": self.modelconfig.get("mf_disable_loop", self.default_setting["mf_disable_loop"]),
+            "mt_disable_loop": self.modelconfig.get("mt_disable_loop", self.default_setting["mt_disable_loop"]),
+            "gen_enforce_lang": self.modelconfig.get("gen_enforce_lang", self.default_setting["gen_enforce_lang"]),
+            "twk_super": self.modelconfig.get("twk_super", self.default_setting["twk_super"]),
+            "savefile_access": self.savefile_access,
+            "stream_output": self.stream_output,
+            "target_lang": self.target_lang,
+            "session_len_limit": self.max_history_token,
+            "tz": self.tz,
+            "gen_quality_chk": self.gen_quality_chk,
+        })
         data['chat_params'].update(self.modelconfig)
-        if self.enable_strict_mode and self.__ws_cookie != "":
-            data['cookie'] = self.__ws_cookie
+        data['chat_params'] = normalize_chat_params(data['chat_params'])
         return data
 
     def send_settings(self):
@@ -1022,7 +1034,7 @@ class MaicaAi(ChatBotInterface):
             processor.reset()
     
     def mpostal_callback(self, processor, event):
-        if event.data.status == "maica_core_nostream_reply":
+        if event.data.status == "maica_core_streaming_continue":
             message = ''.join([i[1] for i in self.MoodStatus.analyze(event.data.content)])
             if len(message) > 0 and message[0] == " ":
                 message = message[1:]
@@ -1037,7 +1049,6 @@ class MaicaAi(ChatBotInterface):
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        self.__ws_cookie = ""
         if self.multi_lock.locked():
             self.multi_lock.release()
         self.task_manager.ws_client.close()
@@ -1054,7 +1065,7 @@ class MaicaAi(ChatBotInterface):
         self.ChatProcessor.start_request(
             query=message,
             session = self.chat_session if session == None else session,
-            trigger = self.mtrigger_manager.build_data(MTriggerMethod.request),
+            triggers = self.mtrigger_manager.build_data(MTriggerMethod.request),
             taskowner = self.task_manager,
             visions = visions,
             pprt = self.pprt
@@ -1074,7 +1085,7 @@ class MaicaAi(ChatBotInterface):
             pprt (bool): 是否启用自动断句和实时后处理
 
         Note:
-            - 受 4096 字符限制
+            - 最多 10 条消息，紧凑 JSON 的 UTF-8 编码不超过 16 KiB
             - MFocus 不会介入 (无 trigger)
         """
         if not self.__accessable:
@@ -1509,7 +1520,9 @@ class MaicaAi(ChatBotInterface):
         
 
 
-    def disable(self):
+    def disable(self, status=None):
+        if status is not None:
+            self.status = status
         self.__accessable = False
 
 
@@ -1517,5 +1530,3 @@ class MaicaAi(ChatBotInterface):
             
 
         
-
-

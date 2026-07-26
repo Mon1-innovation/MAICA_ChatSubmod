@@ -50,11 +50,9 @@ ai.mspire_category = []
 ai.target_lang = ai.MaicaAiLang.zh_cn
 #ai.enable_mf = False
 #ai.enable_mt = False
-ai.enable_strict_mode = True
 ai._ignore_accessable = True
 ai.accessable()
 ai._gen_token("SirrrrrrP", "qwerty", t)
-ai.WSCookiesTask.enable_cookie()
 print(ai.ciphertext)
 print(f"{ai._verify_token()}")
 print("加密完成")
@@ -68,7 +66,6 @@ import time
 data = {}
 sen = {}
 basedir = "e:\GithubKu\MAICA_ChatSubmod"
-print(ai.get_emotion('add', "你也太可爱了!"))
 #ai.init_connect()
 try:
     if not ai.is_connected():

@@ -39,7 +39,7 @@ class FallBackEmo(object):
     @last.setter
     def last(self, v):
         self._last_known = v
-        self._pending_seq = getattr(self.EMPTY_EMOTE_FALLBACK, v, [])
+        self._pending_seq = list(self.EMPTY_EMOTE_FALLBACK.get(v, []))
 
     def predict(self):
         if len(self._pending_seq) > 1:
@@ -204,6 +204,9 @@ class EmoSelector(object):
             rawmatch = match
             match = self.emote_translate.get(match, match)
 
+            if match == "player_nickname":
+                continue
+
             # 可能是有句子被套上了
             if get_encoded_len(match) >= 16 and not '[' in match and not ']' in match:
                 message = message.replace('[{}]'.format(rawmatch), rawmatch)
@@ -257,21 +260,6 @@ class EmoSelector(object):
         for index, match in enumerate(new_matches):
             # rawmatch = new_rawmatches[index]
 
-            if not match in self.selector:
-                temp_match = None
-                result = self.fallback_predictor('norm', match)
-                if result.get('success'):
-                    content = result['content']
-                    if content[1] >= 0.5:
-                        temp_match = content[0]
-
-                if temp_match:
-                    # message = message.replace('[{}]'.format(rawmatch), temp_match)
-                    logger.warning("[Maica::EmoSelector] {} is not in selector, normalized to {}".format(match, temp_match))
-                    if temp_match[0] != '[':
-                        continue
-                    match = new_matches[index] = temp_match.strip('[').strip(']')
-
             if match in self.selector:
                 emote_kw = match
                 # m = 0.7
@@ -298,6 +286,11 @@ class EmoSelector(object):
 
         if len(emote_kws) < len(message_pieces):
             emote_kws.insert(0, self.fallback_selector.predict())
+
+        for index, piece in enumerate(message_pieces):
+            message_pieces[index] = piece.replace(
+                '[player_nickname]', '[mas_get_player_nickname()]'
+            )
 
         emote_codes = []
 

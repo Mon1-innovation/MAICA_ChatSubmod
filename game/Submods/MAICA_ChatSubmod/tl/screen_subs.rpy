@@ -2,6 +2,12 @@
 
 translate english strings:
 
+    old "gen_quality_chk"
+    new "gen_quality_chk"
+
+    old "auto | 自动"
+    new "auto | Auto"
+
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:209
     old "关于这些参数的详细解释, 参见 "
     new "For detailed explainations of these params, refer to "
@@ -291,8 +297,8 @@ translate english strings:
     new "Dismissing in [countdown] seconds..."
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:361
-    old "禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_aggressive"
-    new "Disable MFocus sequential toolchain to save time.\n+ Saves time for most toolcalls, lowers TTFT\n- Risk of missing information\n- Will neutualize mf_aggressive"
+    old "禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_llm_concl"
+    new "Disable MFocus sequential toolchain to save time.\n+ Saves time for most toolcalls, lowers TTFT\n- Risk of missing information\n- Will neutralize mf_llm_concl"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:369
     old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"
@@ -321,4 +327,3 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1262
     old "语言不正确可能导致模型表现下降或意料之外的问题, 请避免输入非目标语言或在会话中途改变语言.\n如果你仍然要这样做, 请在设置中禁用'输入语言检测'."
     new "Language mismatch could impact performance or lead to unexpected issues, please avoid mismatched input or session context.\nIf you want to force proceed, please disable 'Input language detection' in settings."
-

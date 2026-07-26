@@ -15,7 +15,7 @@
 
 ### 限制
 
-- **字符限制**: 序列化后的上下文不能超过 4096 字符
+- **上下文限制**: 最多 10 条消息；紧凑 JSON 的 UTF-8 编码不能超过 16 KiB
 - **无 MFocus 介入**: 不会触发 MTrigger，AI 不会自动调整好感度等
 - **实验性功能**: API 可能随时变更
 
@@ -90,8 +90,8 @@ builder = MAICAContextQueryBuilder()
 | `add_user_message(content)` | content: str | self | 添加用户消息 |
 | `add_assistant_message(content)` | content: str | self | 添加助手（AI）消息 |
 | `build()` | - | list | 构建消息列表，用于发送请求 |
-| `get_length()` | - | int | 获取序列化后的字符长度 |
-| `is_within_limit()` | - | bool | 检查是否在 4096 字符限制内 |
+| `get_length()` | - | int | 获取紧凑 JSON 的 UTF-8 字节数 |
+| `is_within_limit()` | - | bool | 检查消息数和 16 KiB 字节限制 |
 | `clear()` | - | self | 清空所有消息 |
 | `message_count()` | - | int | 获取消息数量 |
 
@@ -99,7 +99,8 @@ builder = MAICAContextQueryBuilder()
 
 | 常量 | 值 | 说明 |
 |------|-----|------|
-| `MAX_LENGTH` | 4096 | 最大字符限制 |
+| `MAX_MESSAGES` | 10 | 最大消息条数 |
+| `MAX_BYTES` | 16384 | 紧凑 JSON 的最大 UTF-8 字节数 |
 
 #### 链式调用
 
@@ -148,7 +149,7 @@ maica.start_raw_context(query, pprt=False)
 
 - MAICA 已连接且可用 (`maica.is_ready_to_input()` 返回 `True`)
 - query 是有效的消息列表
-- 上下文长度不超过 4096 字符
+- 消息不超过 10 条，紧凑 JSON 的 UTF-8 编码不超过 16 KiB
 
 
 ## 完整示例

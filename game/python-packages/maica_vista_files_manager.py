@@ -287,7 +287,7 @@ class MAICAVistaFilesManager(object):
         return result.get('content')
 
     def list_remote(self, force_refresh=False):
-        """获取服务器上可用的图片UUID列表（GET /vista）
+        """获取服务器上可用的图片UUID列表（GET /vista/list）
 
         Args:
             force_refresh: 强制刷新缓存
@@ -299,7 +299,7 @@ class MAICAVistaFilesManager(object):
         if not force_refresh and self.cloud_files and (current_time - self._cloud_files_cache_time) < self._cloud_files_cache_ttl:
             return self.cloud_files
 
-        resp = requests.get(self.base_url + '/vista', params={'access_token': self.access_token})
+        resp = requests.get(self.base_url + '/vista/list', params={'access_token': self.access_token})
         result = resp.json()
         if result.get('success'):
             self.cloud_files = result.get('content')

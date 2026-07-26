@@ -1,7 +1,8 @@
 
-screen maica_dscl_pvn_notify(prob = 1.0):
+screen maica_gen_quality_chk_notify(prob = 1.0):
     modal False
     zorder 100
+    on "show" action If(not persistent.maica_setting_dict["gen_quality_chk"], Hide("maica_gen_quality_chk_notify"))
 
     default countdown = 10
 
@@ -12,7 +13,7 @@ screen maica_dscl_pvn_notify(prob = 1.0):
         yoffset 5
         xsize 400
         ysize 300
-        background "mod_assets/console/dscl_pvn.png"
+        background "mod_assets/console/gen_quality_chk.png"
         padding (15, 15)
 
         vbox:
@@ -60,17 +61,17 @@ screen maica_dscl_pvn_notify(prob = 1.0):
                 style_prefix "confirm"
 
                 textbutton _("清除session"):
-                    action [Function(reset_session), Hide("maica_dscl_pvn_notify")]
+                    action [Function(reset_session), Hide("maica_gen_quality_chk_notify")]
 
                 textbutton _("忽略"):
-                    action Hide("maica_dscl_pvn_notify")
+                    action Hide("maica_gen_quality_chk_notify")
 
             text _("此消息将在 [countdown] 秒后自动隐藏..."):
                 size 10
                 color "#aaaaaa"
                 xalign 0.5
 
-    timer 1.0 repeat True action If(countdown > 0, SetScreenVariable("countdown", countdown - 1), Hide("maica_dscl_pvn_notify"))
+    timer 1.0 repeat True action If(countdown > 0, SetScreenVariable("countdown", countdown - 1), Hide("maica_gen_quality_chk_notify"))
 
 screen maica_log():
     python:
@@ -287,45 +288,52 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "tnd_aggressive":
-                    action ToggleDict(persistent.maica_advanced_setting_status, "tnd_aggressive")
+                textbutton "mf_const_tools":
+                    action [SetDict(persistent.maica_advanced_setting_status, "mf_const_tools", True), Function(maica_clamp_advanced_setting, "mf_const_tools", 0, 2)]
                     hovered SetField(_tooltip, "value", _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                if persistent.maica_advanced_setting_status.get("tnd_aggressive", False):
-                    use num_bar("tnd_aggressive", 200, _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"), "tnd_aggressive", 0, 3, sdict=sdict)
+                if persistent.maica_advanced_setting_status.get("mf_const_tools", False):
+                    use num_bar("mf_const_tools", 200, _("即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"), "mf_const_tools", 0, 2, sdict=sdict)
 
             hbox:
                 spacing 5
-                textbutton "mf_aggressive:[persistent.maica_advanced_setting.get('mf_aggressive', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_aggressive"),
-                        ToggleDict(persistent.maica_advanced_setting, "mf_aggressive")]
-                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化tnd_aggressive"))
+                textbutton "mf_llm_concl:[persistent.maica_advanced_setting.get('mf_llm_concl', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_llm_concl"),
+                        ToggleDict(persistent.maica_advanced_setting, "mf_llm_concl")]
+                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化mf_const_tools"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('mf_aggressive')
+                    selected persistent.maica_advanced_setting_status.get('mf_llm_concl')
             hbox:
                 spacing 5
-                textbutton "sfe_aggressive:[persistent.maica_advanced_setting.get('sfe_aggressive', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "sfe_aggressive"),
-                        ToggleDict(persistent.maica_advanced_setting, "sfe_aggressive")]
+                textbutton "prompt_pname_repl:[persistent.maica_advanced_setting.get('prompt_pname_repl', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "prompt_pname_repl"),
+                        ToggleDict(persistent.maica_advanced_setting, "prompt_pname_repl")]
                     hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('sfe_aggressive')
+                    selected persistent.maica_advanced_setting_status.get('prompt_pname_repl')
             hbox:
                 spacing 5
-                textbutton "esc_aggressive:[persistent.maica_advanced_setting.get('esc_aggressive', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "esc_aggressive"),
-                        ToggleDict(persistent.maica_advanced_setting, "esc_aggressive")]
+                textbutton "prompt_allow_nickname:[persistent.maica_advanced_setting.get('prompt_allow_nickname', False)]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname"), ToggleDict(persistent.maica_advanced_setting, "prompt_allow_nickname")]
+                    hovered SetField(_tooltip, "value", _("允许模型在消息中使用玩家昵称"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('prompt_allow_nickname')
+            hbox:
+                spacing 5
+                textbutton "esearch_llm_concl:[persistent.maica_advanced_setting.get('esearch_llm_concl', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "esearch_llm_concl"),
+                        ToggleDict(persistent.maica_advanced_setting, "esearch_llm_concl")]
                     hovered SetField(_tooltip, "value", _("在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('esc_aggressive')
+                    selected persistent.maica_advanced_setting_status.get('esearch_llm_concl')
             hbox:
                 spacing 5
-                textbutton "amt_aggressive: [persistent.maica_advanced_setting.get('amt_aggressive', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "amt_aggressive"),
-                        ToggleDict(persistent.maica_advanced_setting, "amt_aggressive")]
+                textbutton "mf_precheck_mt: [persistent.maica_advanced_setting.get('mf_precheck_mt', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_precheck_mt"),
+                        ToggleDict(persistent.maica_advanced_setting, "mf_precheck_mt")]
                     hovered SetField(_tooltip, "value", _("当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 比较明显地改善MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏\n* 当对话未使用MTrigger或仅有好感触发器, 此功能不会生效"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('amt_aggressive')
+                    selected persistent.maica_advanced_setting_status.get('mf_precheck_mt')
             hbox:
                 spacing 5
                 textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
@@ -337,47 +345,73 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "pre_additive":
-                    action ToggleDict(persistent.maica_advanced_setting_status, "pre_additive")
+                textbutton "mf_context_rnds":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "mf_context_rnds")
                     hovered SetField(_tooltip, "value", _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                if persistent.maica_advanced_setting_status.get("pre_additive", False):
-                    use num_bar("pre_additive", 200, _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"), "pre_additive", 0, 5, sdict=sdict)
+                if persistent.maica_advanced_setting_status.get("mf_context_rnds", False):
+                    use num_bar("mf_context_rnds", 200, _("在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"), "mf_context_rnds", 0, 5, sdict=sdict)
 
             hbox:
                 spacing 5
-                textbutton "post_additive":
-                    action ToggleDict(persistent.maica_advanced_setting_status, "post_additive")
+                textbutton "mt_context_rnds":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "mt_context_rnds")
                     hovered SetField(_tooltip, "value", _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                if persistent.maica_advanced_setting_status.get("post_additive", False):
-                    use num_bar("post_additive", 200, _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"), "post_additive", 0, 5, sdict=sdict)
+                if persistent.maica_advanced_setting_status.get("mt_context_rnds", False):
+                    use num_bar("mt_context_rnds", 200, _("在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"), "mt_context_rnds", 0, 5, sdict=sdict)
 
             hbox:
                 spacing 5
-                textbutton "pre_astp:[persistent.maica_advanced_setting.get('pre_astp', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "pre_astp"),
-                        ToggleDict(persistent.maica_advanced_setting, "pre_astp")]
-                    hovered SetField(_tooltip, "value", _("禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_aggressive"))
+                textbutton "mf_disable_loop:[persistent.maica_advanced_setting.get('mf_disable_loop', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_disable_loop"),
+                        ToggleDict(persistent.maica_advanced_setting, "mf_disable_loop")]
+                    hovered SetField(_tooltip, "value", _("禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_llm_concl"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('pre_astp')
+                    selected persistent.maica_advanced_setting_status.get('mf_disable_loop')
             hbox:
                 spacing 5
-                textbutton "post_astp:[persistent.maica_advanced_setting.get('post_astp', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "post_astp"),
-                        ToggleDict(persistent.maica_advanced_setting, "post_astp")]
+                textbutton "mt_disable_loop:[persistent.maica_advanced_setting.get('mt_disable_loop', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mt_disable_loop"),
+                        ToggleDict(persistent.maica_advanced_setting, "mt_disable_loop")]
                     hovered SetField(_tooltip, "value", _("禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('post_astp')
+                    selected persistent.maica_advanced_setting_status.get('mt_disable_loop')
 
             hbox:
                 spacing 5
-                textbutton "enforce_lang:[persistent.maica_advanced_setting.get('enforce_lang', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "enforce_lang"),
-                        ToggleDict(persistent.maica_advanced_setting, "enforce_lang")]
+                textbutton "gen_enforce_lang:[persistent.maica_advanced_setting.get('gen_enforce_lang', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang"),
+                        ToggleDict(persistent.maica_advanced_setting, "gen_enforce_lang")]
                     hovered SetField(_tooltip, "value", _("实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答\n* 引导式解码不属于OpenAI规范的一部分, 要求部署实例提供支持, 如使用vllm\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                    selected persistent.maica_advanced_setting_status.get('enforce_lang')
+                    selected persistent.maica_advanced_setting_status.get('gen_enforce_lang')
+
+            hbox:
+                spacing 5
+                textbutton "mf_sf_access_impl":
+                    action [SetDict(persistent.maica_advanced_setting_status, "mf_sf_access_impl", True), Function(maica_clamp_advanced_setting, "mf_sf_access_impl", 0, 2)]
+                if persistent.maica_advanced_setting_status.get("mf_sf_access_impl", False):
+                    use num_bar("mf_sf_access_impl", 200, _("三态设置: 0关闭, 1自动, 2启用"), "mf_sf_access_impl", 0, 2, sdict=sdict)
+
+            hbox:
+                spacing 5
+                textbutton "mf_const_sf_access":
+                    action [SetDict(persistent.maica_advanced_setting_status, "mf_const_sf_access", True), Function(maica_clamp_advanced_setting, "mf_const_sf_access", 0, 2)]
+                if persistent.maica_advanced_setting_status.get("mf_const_sf_access", False):
+                    use num_bar("mf_const_sf_access", 200, _("三态设置: 0关闭, 1自动, 2启用"), "mf_const_sf_access", 0, 2, sdict=sdict)
+
+            hbox:
+                spacing 5
+                textbutton "mt_concl_memory":
+                    action [SetDict(persistent.maica_advanced_setting_status, "mt_concl_memory", True), Function(maica_clamp_advanced_setting, "mt_concl_memory", 0, 2)]
+                if persistent.maica_advanced_setting_status.get("mt_concl_memory", False):
+                    use num_bar("mt_concl_memory", 200, _("三态设置: 0关闭, 1自动, 2启用"), "mt_concl_memory", 0, 2, sdict=sdict)
+
+            hbox:
+                spacing 5
+                textbutton "twk_super:[persistent.maica_advanced_setting.get('twk_super', 'None')]":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "twk_super"), ToggleDict(persistent.maica_advanced_setting, "twk_super")]
 
 
         hbox:
@@ -408,6 +442,9 @@ screen maica_select_language():
         hbox:
             textbutton _("en | English"):
                 action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.en)
+        hbox:
+            textbutton _("auto | 自动"):
+                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.auto)
        
 
 default use_email = True
@@ -495,15 +532,18 @@ screen maica_addition_input(addition="", edittarget=None):
         if persistent._mas_player_addition == None:
             persistent._mas_player_addition = ""
         def apply(edittarget):
-            addition = "[player]" + persistent._mas_player_addition
-            if not persistent._mas_player_addition.strip():
+            addition = maica_validate_player_addition(
+                persistent._mas_player_addition,
+                persistent.mas_player_additions,
+                edittarget
+            )
+            if addition is None:
                 return
-            if addition in persistent.mas_player_additions:
-                return
-            if edittarget:
+            if edittarget in persistent.mas_player_additions:
                 persistent.mas_player_additions[persistent.mas_player_additions.index(edittarget)] = addition
             else:
                 persistent.mas_player_additions.append(addition)
+            renpy.notify(_("MAICA: 已保存输入"))
             del persistent._mas_player_addition
         def paste(content=None):
             if not content:
@@ -589,7 +629,16 @@ screen maica_location_input(addition="", edittarget=None):
         def verify(position):
             res = store.maica.maica_instance.verify_legality("geolocation", position)
             if res.get("success", False):
-                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功{#maica_location}")) + "\n" + renpy.substitute(_("地区编码: ")) + res.get("content").get("geocode"))
+                content = res.get("content") or {}
+                if not isinstance(content, dict):
+                    content = {}
+                latitude = content.get("latitude", content.get("lat"))
+                longitude = content.get("longitude", content.get("lng", content.get("lon")))
+                if latitude is None or longitude is None:
+                    coordinate_text = renpy.substitute(_("经纬度不可用"))
+                else:
+                    coordinate_text = renpy.substitute(_("纬度: {0}\n经度: {1}")).format(latitude, longitude)
+                renpy.show_screen("maica_message", message=renpy.substitute(_("验证成功{#maica_location}")) + "\n" + renpy.substitute(_("地区编码: ")) + str(content.get("geocode", "")) + "\n" + coordinate_text)
             else:
                 renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败")) + "\n" + renpy.substitute(_("失败原因: ")) + res.get("exception"))
 
