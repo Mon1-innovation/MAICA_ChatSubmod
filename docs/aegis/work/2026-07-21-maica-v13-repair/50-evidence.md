@@ -115,3 +115,10 @@
 - 被忽略的 `dev_enable.rpy` 已在隔离工作树和用户原始路径同步安全哨兵，并由 `.gitignore` 保持不跟踪。
 - 定向 runtime：`2 passed, 138 deselected`；完整 runtime：`140 passed`。
 - 静态测试（排除任务 8 的后端版本门禁）：`129 passed, 1 deselected`。
+
+## 任务 8：后端版本与旧协议退役
+
+- `MaicaAi.SUPPORT_BACKEND` 已由 `1.2.000.rc10` 更新为 `1.3.000`。
+- `python -m pytest tests/test_backend_v13_compat.py -q -k retired`：`16 passed, 114 deselected`。
+- 完整静态测试：`129 passed, 1 failed`；唯一失败已越过后端版本断言，只因任务 9 门禁要求最终 `maica_ver=1.8.0`，当前仍按计划保持 `1.7.8`。
+- 完整 runtime：`140 passed`；`py_compile` 与 `git diff --check` 通过，仅保留既存 ASCII 图转义警告。

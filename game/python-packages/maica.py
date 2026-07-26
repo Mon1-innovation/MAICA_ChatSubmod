@@ -61,7 +61,7 @@ def seconds_to_hms(timestamp_ms):
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
-    SUPPORT_BACKEND = "1.2.000.rc10"
+    SUPPORT_BACKEND = "1.3.000"
     ascii_icon = """                                                             
 
     __  ___ ___     ____ ______ ___ 

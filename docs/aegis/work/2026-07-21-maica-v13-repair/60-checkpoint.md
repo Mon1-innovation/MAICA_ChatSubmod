@@ -18,11 +18,11 @@
 
 ## TodoCheckpointDraft
 
-- 当前任务：任务 8，更新后端支持版本并完成旧协议退役扫描。
+- 当前任务：任务 9，执行全量发布门禁并最后更新前端版本。
 - 已完成：隔离 worktree、干净基线测试、中文设计与计划恢复、任务 1A/1B 契约测试、任务 2 MTrigger、任务 3 session/MSpire、任务 4 WebSocket/完成包、任务 5 Vista/emotion/nickname/legality，以及逐任务规格和质量审查。
-- 待完成：任务 8–9 的实现、逐任务复核、最终全局审查和发布门禁。
+- 待完成：任务 9 的全量自动检查、可用 lint、可执行冒烟、最终版本更新与发布证据。
 - 阻塞项：无。
-- 下一步：将 `SUPPORT_BACKEND` 更新为 `1.3.000`，运行完整静态测试和退役扫描；不得提前修改 `maica_ver`。
+- 下一步：先运行全量门禁与环境能力检查；只有门禁满足或剩余人工风险被明确记录后，才把 `maica_ver` 更新为 `1.8.0` 并复跑。
 
 ## EvidenceBundleDraft
 
@@ -55,6 +55,8 @@
 - 任务 6 修复三态设置、完整改名、幂等迁移、additions 备份/过滤、MPostal `twk_super`、迁移优先级和英文翻译同步。
 - 任务 7 runtime：`140 passed`；静态测试排除任务 8 门禁后 `129 passed, 1 deselected`。
 - 任务 7 已初始化 `version_info`、兼容 `disable(status=None)`，本地 dev override 已修复且保持忽略。
+- 任务 8 退役扫描：`16 passed, 114 deselected`；runtime：`140 passed`。
+- 任务 8 完整静态测试仅因最终 `maica_ver` 尚未更新而剩 `1 failed, 129 passed`，符合版本最后切换门禁。
 
 ## DriftCheckDraft
 
@@ -62,7 +64,7 @@
 - 兼容边界：保持 `1.7.8` 存档和现有用户流程。
 - 新增所有者：MTrigger、request/session/MSpire validator、AutoResume 状态机、完成包解析器与本地 `FallBackEmo` 成为各自协议 owner，符合计划；后续纯迁移辅助模块仍未创建。
 - 退役轨：旧字段、状态、cookie、端点和 v1.2 网络分支仍明确退役。
-- 决策：`continue`；任务 7 未修改发布版本号，当前仅剩任务 8 的后端版本门禁和任务 9 发布门禁。
+- 决策：`continue`；任务 8 已完成且未提前修改前端发布版本，进入任务 9。
 
 ## ResumeStateHint
 
