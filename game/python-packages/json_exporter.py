@@ -743,7 +743,6 @@ persistent_filter = [
     "mas_affection",
     "mas_geolocation",
     "mas_player_additions",
-    "mas_sf_hcb",
     "_mas_pm_added_custom_bgm",
     "_mas_pm_religious",
     "_mas_pm_cares_about_dokis",

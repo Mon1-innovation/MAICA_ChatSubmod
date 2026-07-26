@@ -481,6 +481,9 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
         Args:
             query (str): 聊天内容
         """
+        query = dict(query)
+        query.setdefault('twk_super', True)
+        query.pop('ic_prep', None)
         data = {
             'type': 'query',
             'chat_session': MAICAMPostalProcessor.use_session,

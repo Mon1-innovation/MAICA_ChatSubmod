@@ -517,7 +517,9 @@ def ws_status_owner_exists(text, status):
 def quality_reference_exists(text, translated=False):
     tokens = lex_source(text)
     for index, (kind, value) in enumerate(tokens):
-        if value != "gen_quality_chk":
+        if value != "gen_quality_chk" and not (
+            translated and kind == "STRING" and "gen_quality_chk" in value
+        ):
             continue
         previous = tokens[index - 1][1] if index else ""
         following = tokens[index + 1][1] if index + 1 < len(tokens) else ""
@@ -617,13 +619,36 @@ def test_a_dev_override_remains_ignored():
 
 @pytest.mark.parametrize(("old", "new"), RENAMES.items())
 def test_b_migration_rename_map_has_exact_pair(old, new):
-    mapping = literal_dict(source("game/Submods/MAICA_ChatSubmod/migrations.rpy"), "chat_param_renames")
+    mapping = literal_dict(source("game/python-packages/maica_v13_migration.py"), "SETTING_RENAMES")
     assert mapping.get(old) == new, "{} must migrate to {}".format(old, new)
 
 
 def test_b_migration_rename_map_has_no_unreviewed_keys():
-    mapping = literal_dict(source("game/Submods/MAICA_ChatSubmod/migrations.rpy"), "chat_param_renames")
+    mapping = literal_dict(source("game/python-packages/maica_v13_migration.py"), "SETTING_RENAMES")
     assert set(mapping) == set(RENAMES)
+
+
+def test_b_renpy_migration_does_not_duplicate_the_rename_map():
+    migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
+    assert "chat_param_renames" not in migration
+
+
+@pytest.mark.parametrize(
+    "relative",
+    (
+        "game/Submods/MAICA_ChatSubmod/header.rpy",
+        "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
+        "game/Submods/MAICA_ChatSubmod/tl/header.rpy",
+        "game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy",
+    ),
+)
+def test_b_user_visible_setting_text_retires_legacy_names(relative):
+    text = source(relative)
+    for old in RENAMES:
+        assert not re.search(
+            r"(?<![A-Za-z0-9_]){}(?![A-Za-z0-9_])".format(re.escape(old)),
+            text,
+        ), "{} remains in {}".format(old, relative)
 
 
 @pytest.mark.parametrize("new", RENAMES.values())
@@ -868,8 +893,22 @@ def test_b_runtime_owner_analyzes_try_and_loop_else_paths():
 
 def test_c_regular_settings_include_tz_and_auto_language_defaults():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     assert_key_default(header, "tz", r"(?:None|['\"][^'\"]+['\"])")
     assert_key_default(header, "target_lang", r"['\"]auto['\"]")
+    assert re.search(
+        r"SetDict\s*\(\s*persistent\.maica_setting_dict\s*,\s*['\"]target_lang['\"]\s*,[^\n]*MaicaAiLang\.auto",
+        screen,
+    )
+
+
+def test_c_prompt_allow_nickname_uses_backend_default_false():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    runtime = source("game/python-packages/maica.py")
+    assert_key_default(header, "prompt_allow_nickname", r"False\b")
+    assert_key_default(runtime, "prompt_allow_nickname", r"False\b")
+    assert re.search(r"get\s*\(\s*['\"]prompt_allow_nickname['\"]\s*,\s*False\s*\)", screen)
 
 
 def test_c_tz_has_ui_and_outbound_owners():
@@ -892,12 +931,16 @@ def test_c_tool_and_session_limits_are_two_and_28672():
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     assert_key_default(header, "mt_disable_loop", r"True\b")
     assert_key_control(screen, "mf_const_tools", 2)
-    session_context = block_after(header + screen, r"(?:session_len_limit|max_history_token)", 800)
-    assert re.search(r"(?:session_len_limit|max_history_token).{0,500}28672", session_context, re.S)
     normalize = source("game/python-packages/maica.py") + header
     assert_key_has_semantic_upper_bound(normalize, "mf_const_tools", 2)
     session_key = "session_len_limit" if "session_len_limit" in normalize else "max_history_token"
     assert_key_has_semantic_upper_bound(normalize, session_key, 28672)
+
+
+def test_c_session_limit_translation_matches_the_current_source_range():
+    translation = source("game/Submods/MAICA_ChatSubmod/tl/header.rpy")
+    assert re.search(r'^\s*old\s+"会话保留的最大长度\. 范围512-28672\.', translation, re.M)
+    assert re.search(r'^\s*new\s+"Max length each session will preserve, in range of 512-28672\.', translation, re.M)
 
 
 @pytest.mark.parametrize("relative", ("game/python-packages/maica.py", "game/python-packages/maica_tasker_sub_sessionsender.py"))
@@ -981,7 +1024,7 @@ def test_f_emotion_endpoint_is_retired():
 def test_f_nickname_has_default_and_ui_owner():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
-    assert_key_default(header, "prompt_allow_nickname", r"True\b")
+    assert_key_default(header, "prompt_allow_nickname", r"False\b")
     ui = header + screen
     control = block_after(ui, r"(?m)^\s*textbutton[^\n]*prompt_allow_nickname", 650)
     assert re.search(
@@ -1032,6 +1075,11 @@ def test_g_migration_preserves_additions_backup_and_notice():
     migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
     assert "_maica_v18_player_additions_backup" in migration
     assert "_maica_v18_player_additions_notice_seen" in migration
+    migration_body = function_body(migration, r"migration_1_8_0")
+    filtered_branch = conditional_body(migration_body, r"filtered\s*!=\s*additions")
+    assert re.search(r"not\s+persistent\._maica_v18_player_additions_notice_seen", filtered_branch)
+    assert re.search(r"\b(?:notify|show_screen)\b", filtered_branch)
+    assert re.search(r"_maica_v18_player_additions_notice_seen\s*=\s*True", filtered_branch)
 
 
 @pytest.mark.parametrize("relative", ("game/Submods/MAICA_ChatSubmod/header.rpy", "game/Submods/MAICA_ChatSubmod/chat.rpy", "game/Submods/MAICA_ChatSubmod/screen_subs.rpy"))
@@ -1039,11 +1087,44 @@ def test_g_old_1000_character_preprocessor_is_retired(relative):
     assert not re.search(r"(?:maxlen\s*=\s*1000|\[:\s*1000\s*\]|len\s*\([^)]*\)\s*>\s*1000)", source(relative)), relative
 
 
+def test_g_persistent_upload_uses_the_player_addition_byte_limit():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    upload = function_body(header, r"_upload_persistent_dict")
+    assert re.search(r"max_bytes\s*=\s*1536\b", upload)
+    assert re.search(r"maica_v13_migration\.utf8_byte_length\s*\(", upload)
+
+
+def test_g_v18_migration_runs_before_persistent_upload():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+
+    def ch30_preloop_priority(text, function_name):
+        match = re.search(
+            r"@store\.mas_submod_utils\.functionplugin\s*\(\s*['\"]ch30_preloop['\"]"
+            r"(?P<args>[^)]*)\)\s*\n\s*def\s+{}\s*\(".format(function_name),
+            text,
+        )
+        assert match, "{} is not registered for ch30_preloop".format(function_name)
+        priority = re.search(r"\bpriority\s*=\s*(-?\d+)\b", match.group("args"))
+        return int(priority.group(1)) if priority else 0
+
+    migration_priority = ch30_preloop_priority(api, "maica_migration")
+    upload_priority = ch30_preloop_priority(header, "_upload_persistent_dict")
+    assert migration_priority < upload_priority
+
+
+def test_g_chat_addition_input_does_not_keep_the_legacy_50_character_limit():
+    chat = source("game/Submods/MAICA_ChatSubmod/chat.rpy")
+    addition_label = block_after(chat, r"label\s+maica_input_information\s*:", 2200)
+    assert re.search(r"\blength\s*=\s*1536\b", addition_label)
+
+
 QUALITY_FILES = (
     "game/Submods/MAICA_ChatSubmod/header.rpy",
     "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
     "game/Submods/MAICA_ChatSubmod/trigger.rpy",
     "game/Submods/MAICA_ChatSubmod/trigger_labels.rpy",
+    "game/Submods/MAICA_ChatSubmod/tl/header.rpy",
     "game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy",
     "game/Submods/MAICA_ChatSubmod/tl/trigger.rpy",
     "game/Submods/MAICA_ChatSubmod/tl/trigger_labels.rpy",
@@ -1060,6 +1141,15 @@ def test_h_each_quality_runtime_and_translation_reference_is_renamed(relative):
 def test_h_quality_asset_is_replaced():
     assert not (ASSETS / "dscl_pvn.png").exists()
     assert (ASSETS / "gen_quality_chk.png").is_file()
+
+
+def test_h_quality_runtime_uses_the_active_user_setting():
+    trigger = source("game/Submods/MAICA_ChatSubmod/trigger.rpy")
+    labels = source("game/Submods/MAICA_ChatSubmod/trigger_labels.rpy")
+    condition = function_body(trigger, r"mtrigger_dscl_condition")
+    assert re.search(r"\bai\.gen_quality_chk\b", condition)
+    assert re.search(r"\bmaica_instance\.gen_quality_chk\b", labels)
+    assert not re.search(r"default_setting\s*\[\s*['\"]gen_quality_chk['\"]\s*\]", trigger + labels)
 
 
 def test_retired_setting_identifiers_are_not_runtime_owners():

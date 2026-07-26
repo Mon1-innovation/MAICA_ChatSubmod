@@ -96,7 +96,7 @@ init 10 python:
         "mf_const_sf_access":1,
         "mt_concl_memory":1,
         "twk_super":False,
-        "prompt_allow_nickname":True,
+        "prompt_allow_nickname":False,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -169,6 +169,24 @@ init 10 python:
         value = int(persistent.maica_advanced_setting.get(key, lower))
         persistent.maica_advanced_setting[key] = max(lower, min(value, upper))
 
+    def maica_validate_player_addition(raw_addition, additions, edittarget=None):
+        if raw_addition is None or not raw_addition.strip():
+            renpy.notify(_("MAICA: 输入为空"))
+            return None
+        addition = "[player]" + raw_addition.strip()
+        replacing = edittarget in additions
+        if len(additions) >= 512:
+            if not replacing:
+                renpy.notify(_("MAICA: 自定义MFocus信息已达512条上限"))
+                return None
+        if len(addition.encode("utf-8")) > 1536:
+            renpy.notify(_("MAICA: 单条自定义MFocus信息不能超过1536字节"))
+            return None
+        if addition in additions and addition != edittarget:
+            renpy.notify(_("MAICA: 已存在相同内容"))
+            return None
+        return addition
+
     def _maica_verify_token():
         res = store.maica.maica_instance._verify_token()
         if res.get("success"):
@@ -181,8 +199,8 @@ init 10 python:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def _upload_persistent_dict():
-        maxlen = 1000
-        import copy
+        max_bytes = 1536
+        import copy, maica_v13_migration
         d = copy.deepcopy(persistent.__dict__)
         d['_seen_ever'].clear()
         d['_mas_event_init_lockdb'].clear()
@@ -234,8 +252,7 @@ init 10 python:
 
             # check serialization and length
             try:
-                str_val = str(value)
-                if len(str_val) > maxlen:
+                if maica_v13_migration.utf8_byte_length(value) > max_bytes:
                     return "REMOVED|TOO_LONG"
                 
                 # Attempt JSON serialization
@@ -843,13 +860,13 @@ screen maica_setting():
                                     Function(store.MASEventList.push, "maica_raw_context_example")
                                 ]
                 
-                textbutton "显示maica_dscl_pvn_notify 0.3":
+                textbutton "显示maica_gen_quality_chk_notify 0.3":
                     action Function(store.mtrigger_dscl, prob=0.3)
                 
-                textbutton "显示maica_dscl_pvn_notify 0.6":
+                textbutton "显示maica_gen_quality_chk_notify 0.6":
                     action Function(store.mtrigger_dscl, prob=0.6)
 
-                textbutton "显示maica_dscl_pvn_notify 0.9":
+                textbutton "显示maica_gen_quality_chk_notify 0.9":
                     action Function(store.mtrigger_dscl, prob=0.9)
 
             hbox:

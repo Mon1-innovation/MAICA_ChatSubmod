@@ -837,6 +837,19 @@ def test_mspire_accepts_nonnegative_session_boundaries(session):
     assert _last_json(manager)["chat_session"] == session
 
 
+def test_mpostal_uses_v13_twk_super_option():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
+        1, "mpostal", manager
+    )
+
+    processor.process_request({"header": "mail", "content": "hello"})
+
+    postmail = _last_json(manager)["postmail"]
+    assert postmail["twk_super"] is True
+    assert "ic_prep" not in postmail
+
+
 def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     class ProcessorRecorder(object):
         def __init__(self):
@@ -1314,25 +1327,87 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     import maica_v13_migration
 
     values = {
-        "sfe_aggressive": False,
+        "sfe_aggressive": True,
+        "prompt_pname_repl": False,
         "mf_sf_access_impl": False,
         "mf_const_sf_access": True,
         "mt_concl_memory": 2,
         "tnd_aggressive": 3,
+        "mf_const_tools": 1,
+        "max_length": 99999,
+        "session_len_limit": 8192,
     }
-    status = {"sfe_aggressive": True}
+    status = {"sfe_aggressive": True, "prompt_pname_repl": False}
 
     maica_v13_migration.migrate_setting_values(values, status)
     first = (dict(values), dict(status))
     maica_v13_migration.migrate_setting_values(values, status)
 
     assert (values, status) == first
-    assert values["prompt_pname_repl"] is False
+    assert values["prompt_pname_repl"] is True
     assert status["prompt_pname_repl"] is True
     assert values["mf_sf_access_impl"] == 0
     assert values["mf_const_sf_access"] == 1
     assert values["mt_concl_memory"] == 2
     assert values["mf_const_tools"] == 2
+    assert values["session_len_limit"] == 28672
+
+
+def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():
+    import maica_v13_migration
+
+    values = {
+        "mf_sf_access_impl": "invalid",
+        "mf_const_sf_access": None,
+    }
+    warnings = []
+
+    maica_v13_migration.migrate_setting_values(
+        values,
+        warning_callback=warnings.append,
+    )
+
+    assert values["mf_sf_access_impl"] == 1
+    assert values["mf_const_sf_access"] == 1
+    assert values["mt_concl_memory"] == 1
+    assert len(warnings) == 2
+
+
+def test_outbound_settings_normalize_tristates_to_real_integers():
+    import maica_v13_migration
+
+    normalized = maica.normalize_chat_params(
+        {
+            "mf_sf_access_impl": False,
+            "mf_const_sf_access": True,
+            "mt_concl_memory": "invalid",
+        }
+    )
+
+    assert normalized["mf_sf_access_impl"] == 0
+    assert normalized["mf_const_sf_access"] == 1
+    assert normalized["mt_concl_memory"] == 1
+    for key in maica_v13_migration.TRISTATE_SETTINGS:
+        assert type(normalized[key]) is int
+
+
+def test_outbound_settings_drop_retained_legacy_keys():
+    import maica_v13_migration
+
+    params = {old: "legacy" for old in maica_v13_migration.SETTING_RENAMES}
+    params.update(
+        {
+            "mf_const_tools": 1,
+            "session_len_limit": 8192,
+            "mt_extraction": True,
+        }
+    )
+
+    normalized = maica.normalize_chat_params(params)
+
+    for old in maica_v13_migration.SETTING_RENAMES:
+        assert old not in normalized
+    assert "mt_extraction" not in normalized
 
 
 def test_player_additions_backup_is_created_once_and_filters_utf8_boundaries():
@@ -1351,6 +1426,34 @@ def test_player_additions_backup_is_created_once_and_filters_utf8_boundaries():
     assert active[:2] == ["ok", "中" * 512]
     assert "中" * 513 not in active
     assert 7 not in active
+
+
+def test_player_additions_backup_preserves_but_filters_unencodable_text():
+    import maica_v13_migration
+
+    invalid = "\udcff"
+    backup = []
+    active = maica_v13_migration.backup_and_filter_player_additions(
+        ["ok", invalid],
+        backup,
+    )
+
+    assert backup == ["ok", invalid]
+    assert active == ["ok"]
+
+
+def test_player_additions_does_not_replace_an_initialized_empty_backup():
+    import maica_v13_migration
+
+    backup = []
+    active = maica_v13_migration.backup_and_filter_player_additions(
+        ["added-after-migration"],
+        backup,
+        backup_initialized=True,
+    )
+
+    assert active == ["added-after-migration"]
+    assert backup == []
 
 
 def test_maica_ai_constructs_version_info(isolated_maica_ai_globals):

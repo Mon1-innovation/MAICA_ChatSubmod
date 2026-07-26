@@ -1,7 +1,8 @@
 
-screen maica_dscl_pvn_notify(prob = 1.0):
+screen maica_gen_quality_chk_notify(prob = 1.0):
     modal False
     zorder 100
+    on "show" action If(not persistent.maica_setting_dict["gen_quality_chk"], Hide("maica_gen_quality_chk_notify"))
 
     default countdown = 10
 
@@ -12,7 +13,7 @@ screen maica_dscl_pvn_notify(prob = 1.0):
         yoffset 5
         xsize 400
         ysize 300
-        background "mod_assets/console/dscl_pvn.png"
+        background "mod_assets/console/gen_quality_chk.png"
         padding (15, 15)
 
         vbox:
@@ -60,17 +61,17 @@ screen maica_dscl_pvn_notify(prob = 1.0):
                 style_prefix "confirm"
 
                 textbutton _("清除session"):
-                    action [Function(reset_session), Hide("maica_dscl_pvn_notify")]
+                    action [Function(reset_session), Hide("maica_gen_quality_chk_notify")]
 
                 textbutton _("忽略"):
-                    action Hide("maica_dscl_pvn_notify")
+                    action Hide("maica_gen_quality_chk_notify")
 
             text _("此消息将在 [countdown] 秒后自动隐藏..."):
                 size 10
                 color "#aaaaaa"
                 xalign 0.5
 
-    timer 1.0 repeat True action If(countdown > 0, SetScreenVariable("countdown", countdown - 1), Hide("maica_dscl_pvn_notify"))
+    timer 1.0 repeat True action If(countdown > 0, SetScreenVariable("countdown", countdown - 1), Hide("maica_gen_quality_chk_notify"))
 
 screen maica_log():
     python:
@@ -299,7 +300,7 @@ screen maica_advance_setting():
                 textbutton "mf_llm_concl:[persistent.maica_advanced_setting.get('mf_llm_concl', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_llm_concl"),
                         ToggleDict(persistent.maica_advanced_setting, "mf_llm_concl")]
-                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化tnd_aggressive"))
+                    hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化mf_const_tools"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_llm_concl')
             hbox:
@@ -312,7 +313,7 @@ screen maica_advance_setting():
                     selected persistent.maica_advanced_setting_status.get('prompt_pname_repl')
             hbox:
                 spacing 5
-                textbutton "prompt_allow_nickname:[persistent.maica_advanced_setting.get('prompt_allow_nickname', True)]":
+                textbutton "prompt_allow_nickname:[persistent.maica_advanced_setting.get('prompt_allow_nickname', False)]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname"), ToggleDict(persistent.maica_advanced_setting, "prompt_allow_nickname")]
                     hovered SetField(_tooltip, "value", _("允许模型在消息中使用玩家昵称"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -365,7 +366,7 @@ screen maica_advance_setting():
                 textbutton "mf_disable_loop:[persistent.maica_advanced_setting.get('mf_disable_loop', 'None')]":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_disable_loop"),
                         ToggleDict(persistent.maica_advanced_setting, "mf_disable_loop")]
-                    hovered SetField(_tooltip, "value", _("禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_aggressive"))
+                    hovered SetField(_tooltip, "value", _("禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_llm_concl"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_disable_loop')
             hbox:
@@ -441,6 +442,9 @@ screen maica_select_language():
         hbox:
             textbutton _("en | English"):
                 action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.en)
+        hbox:
+            textbutton _("auto | 自动"):
+                action SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.auto)
        
 
 default use_email = True
@@ -528,15 +532,18 @@ screen maica_addition_input(addition="", edittarget=None):
         if persistent._mas_player_addition == None:
             persistent._mas_player_addition = ""
         def apply(edittarget):
-            addition = "[player]" + persistent._mas_player_addition
-            if not persistent._mas_player_addition.strip():
+            addition = maica_validate_player_addition(
+                persistent._mas_player_addition,
+                persistent.mas_player_additions,
+                edittarget
+            )
+            if addition is None:
                 return
-            if addition in persistent.mas_player_additions:
-                return
-            if edittarget:
+            if edittarget in persistent.mas_player_additions:
                 persistent.mas_player_additions[persistent.mas_player_additions.index(edittarget)] = addition
             else:
                 persistent.mas_player_additions.append(addition)
+            renpy.notify(_("MAICA: 已保存输入"))
             del persistent._mas_player_addition
         def paste(content=None):
             if not content:

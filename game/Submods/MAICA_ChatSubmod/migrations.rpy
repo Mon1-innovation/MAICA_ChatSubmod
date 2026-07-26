@@ -5,30 +5,15 @@ init 998 python:
     import copy
     import maica_v13_migration
 
-    chat_param_renames = {
-        "sfe_aggressive": "prompt_pname_repl",
-        "mf_aggressive": "mf_llm_concl",
-        "tnd_aggressive": "mf_const_tools",
-        "esc_aggressive": "esearch_llm_concl",
-        "amt_aggressive": "mf_precheck_mt",
-        "pre_additive": "mf_context_rnds",
-        "post_additive": "mt_context_rnds",
-        "dscl_pvn": "gen_quality_chk",
-        "pre_astp": "mf_disable_loop",
-        "post_astp": "mt_disable_loop",
-        "enforce_lang": "gen_enforce_lang",
-        "sf_extraction": "savefile_access",
-        "max_length": "session_len_limit",
-        "ic_prep": "twk_super",
-    }
-
     def migration_1_8_0():
         maica_v13_migration.migrate_setting_values(
-            persistent.maica_setting_dict
+            persistent.maica_setting_dict,
+            warning_callback=store.mas_submod_utils.submod_log.warning
         )
         maica_v13_migration.migrate_setting_values(
             persistent.maica_advanced_setting,
-            persistent.maica_advanced_setting_status
+            persistent.maica_advanced_setting_status,
+            warning_callback=store.mas_submod_utils.submod_log.warning
         )
 
         additions = list(persistent.mas_player_additions or [])
@@ -36,10 +21,13 @@ init 998 python:
             persistent._maica_v18_player_additions_backup = copy.deepcopy(additions)
         filtered = maica_v13_migration.backup_and_filter_player_additions(
             additions,
-            persistent._maica_v18_player_additions_backup
+            persistent._maica_v18_player_additions_backup,
+            backup_initialized=True
         )
         if filtered != additions:
-            persistent._maica_v18_player_additions_notice_seen = False
+            if not persistent._maica_v18_player_additions_notice_seen:
+                renpy.notify(_("MAICA: 部分自定义MFocus信息超过v1.3限制，完整内容已备份"))
+                persistent._maica_v18_player_additions_notice_seen = True
         persistent.mas_player_additions = filtered
 
     migration_queue = [

@@ -99,8 +99,8 @@ translate english strings:
     new "Flush options"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:238
-    old "使用存档数据: [persistent.maica_setting_dict.get('sf_extraction')]"
-    new "Use persistent file: [persistent.maica_setting_dict.get('sf_extraction')]"
+    old "使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"
+    new "Use persistent file: [persistent.maica_setting_dict.get('savefile_access')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:240
     old "关闭时, 模型将不会使用存档数据\n在开启前请务必先上传存档"
@@ -299,7 +299,7 @@ translate english strings:
     new "Higher Presence penalty prevents model from repeating the input, enhances the possibility of topic switching."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:358
-    old "0时只调用MFocus直接选择的工具. 当其为1时总是会调用时间与节日工具. 当其为2时还会额外调用日期工具.\n为2时, 且mas_geolocation存在, tnd_aggressive还会额外调用当前天气工具.\n可能补偿MFocus命中率低下的问题, 但也可能会干扰模型对部分问题的判断."
+    old "0时只调用MFocus直接选择的工具. 当其为1时总是会调用时间与节日工具. 当其为2时还会额外调用日期工具.\n为2时, 且mas_geolocation存在, mf_const_tools还会额外调用当前天气工具.\n可能补偿MFocus命中率低下的问题, 但也可能会干扰模型对部分问题的判断."
     new "Set 0 for no MFocus enforcing. Set 1 for enforcing time and events. Set 2 for enforcing time, date, events and weather(if possible). May offset low MFocus hit rate but may also cause misunderstanding of queries."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:372
@@ -307,11 +307,11 @@ translate english strings:
     new "Set true for always using MFocus final answer instead of combined instructs if possible. May improve capability of concluding information but may also result in confusion in personality and response format."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:377
-    old "指定sfe_aggressive为true将总是以用户的真名替代prompt中的[[player]字段. \n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"
+    old "指定prompt_pname_repl为true将总是以用户的真名替代prompt中的[[player]字段. \n启用此功能可能有利于模型理解玩家的姓名, 但也可能会造成总体拟合能力的下降和信息编造"
     new "Set true for always using player name in place of [[player]s in prompts. May help model understanding player's name but may also result in overall performance decline and information makeups."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:382
-    old "当esc_aggressive为true时会调用agent模型对MFocus联网搜集的信息整理一次.\n 启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."
+    old "当esearch_llm_concl为true时会调用agent模型对MFocus联网搜集的信息整理一次.\n 启用此功能会改善模型对联网检索信息的专注能力, 但也会降低涉及联网搜索query的响应速度."
     new "Set true for concluding internet information gathered by AgentLM again. Helps model focusing on search results but will lag specific responses."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:470
@@ -528,15 +528,15 @@ translate english strings:
     new "{size=-10}================Preferences================"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:678
-    old "相当于pre_additive数值轮次的历史对话将被加入MFocus.\n此功能强度越高, 越可能提高MFocus在自然对话中的触发率, 但也越可能干扰MFocus的判断或导致其表现异常."
-    new "Rounds equal to pre_additive value will be added for MFocus to analyze.\nMay improve MFocus accuracy performance, but may also result in misbehavior."
+    old "相当于mf_context_rnds数值轮次的历史对话将被加入MFocus.\n此功能强度越高, 越可能提高MFocus在自然对话中的触发率, 但也越可能干扰MFocus的判断或导致其表现异常."
+    new "Rounds equal to mf_context_rnds value will be added for MFocus to analyze.\nMay improve MFocus accuracy performance, but may also result in misbehavior."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:689
-    old "相当于post_additive数值轮次的历史对话将被加入MTrigger.\n此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."
-    new "Rounds equal to post_additive value will be added for MTrigger to analyze.\nMay improve MTrigger accuracy performance, but may also result in misbehavior."
+    old "相当于mt_context_rnds数值轮次的历史对话将被加入MTrigger.\n此功能强度越高, 越可能提高MTrigger在自然对话中的触发率, 但也越可能干扰MTrigger的判断或导致其表现异常."
+    new "Rounds equal to mt_context_rnds value will be added for MTrigger to analyze.\nMay improve MTrigger accuracy performance, but may also result in misbehavior."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:701
-    old "当amt_aggressive为true时会要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."
+    old "当mf_precheck_mt为true时会要求MFocus预检MTrigger内容(若存在), 以告知核心模型要求是否可以完成. \n启用此功能会改善MTrigger与核心模型的表现失步问题, 但也会降低涉及MTrigger对话的响应速度.\n当对话未使用MTrigger或仅有好感触发器, 此功能不会生效."
     new "Set to true to pre-analyze MTrigger items by MFocus(if both exists) to inform core model if request could be done. \nMay improve synchronousity of MTrigger, but also increases delay."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:786
@@ -604,7 +604,7 @@ translate english strings:
     new "Higher Presence penalty prevents model from repeating the input, enhances the possibility of topic switching."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:653
-    old "当其为0时只调用MFocus直接选择的工具. 为1时总是会调用时间与节日工具. 为2时还会额外调用日期工具.\n当其为2且mas_geolocation存在时, tnd_aggressive还会额外调用当前天气工具.\n越高越可能补偿MFocus命中率低下的问题, 但也越可能会干扰模型对部分问题的判断."
+    old "当其为0时只调用MFocus直接选择的工具. 为1时总是会调用时间与节日工具. 为2时还会额外调用日期工具.\n当其为2且mas_geolocation存在时, mf_const_tools还会额外调用当前天气工具.\n越高越可能补偿MFocus命中率低下的问题, 但也越可能会干扰模型对部分问题的判断."
     new "Set 0 for no MFocus enforcing. Set 1 for enforcing time and events.\nSet 2 for enforcing time, date, events and weather(if possible).\nMay offset low MFocus hit rate but may also cause misunderstanding of queries."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:665
@@ -959,8 +959,8 @@ translate english strings:
     new "Acquire some information even if not called explicitly.\n+ Higher: keen and less hallucination\n- Higher: higher likeability of distraction and misfocusing"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1245
-    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化tnd_aggressive"
-    new "Require agent model to generate guidance instead of default MFocus mechanism.\n+ Higher information density and naturalness\n- Heavily depends on agent instruction following behavior\n- Will likely neutralize tnd_aggressive"
+    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化mf_const_tools"
+    new "Require agent model to generate guidance instead of default MFocus mechanism.\n+ Higher information density and naturalness\n- Heavily depends on agent instruction following behavior\n- Will likely neutralize mf_const_tools"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1250
     old "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"
@@ -1013,8 +1013,8 @@ translate english strings:
     new "Each session stores and applies history context independently.\n* Set to 0 to disable context (single round conversation)"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1514
-    old "会话保留的最大长度. 范围512-20480.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"
-    new "Max length each session will preserve, in range of 512-20480.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues"
+    old "会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"
+    new "Max length each session will preserve, in range of 512-28672.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1579
     old "启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"
@@ -1277,8 +1277,8 @@ translate english strings:
     new "Send ping packets timely to keep connection alive and calculate lag"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:841
-    old "会话劣化检测: [persistent.maica_setting_dict.get('dscl_pvn')]"
-    new "Session quality review: [persistent.maica_setting_dict.get('dscl_pvn')]"
+    old "会话质量检测: [persistent.maica_setting_dict.get('gen_quality_chk')]"
+    new "Session quality review: [persistent.maica_setting_dict.get('gen_quality_chk')]"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:843
     old "对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"

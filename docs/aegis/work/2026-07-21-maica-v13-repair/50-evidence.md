@@ -95,3 +95,15 @@
 - legality：显示 `latitude/longitude`，兼容 `lat/lng/lon` 别名。
 - 规格审查：通过；任务 5 的修复轨、退役轨和兼容边界均有测试映射。
 - 最终质量审查：Approved，无 Critical/Important/Minor；审查发现的两个问题已按 TDD 修复并加入回归。
+
+## 任务 6：设置、迁移与玩家补充信息
+
+- 三个高级设置统一为真实整数三态；非法值回退后端默认值并记录警告，出站参数会剔除全部旧设置键及已弃用的 `mt_extraction`。
+- 完整实现 v1.3 设置改名、`target_lang=auto`、`mf_const_tools<=2`、会话长度上限 `28672`、质量设置当前值和资源重命名。
+- `1.8.0` 迁移具有幂等标记，旧键仅保留作回滚数据；迁移优先级改为 `-50`，保证晚于 MAICA 初始化、早于 priority `0` 的持久化上传。
+- 玩家补充信息首次迁移时完整备份；活动列表按 `1536` UTF-8 字节过滤，不可编码 Unicode 只留在备份；空备份已初始化状态不会被后续内容覆盖。
+- MPostal 出站对象显式补充 `twk_super: true` 并删除旧 `ic_prep`；英文会话长度翻译同步为 `512-28672`。
+- `python -m pytest tests/test_backend_v13_compat.py -q -k "not backend_and_release_versions_are_final"`：`129 passed, 1 deselected`。
+- `python -m pytest tests/test_v13_contract_runtime.py -q -k "not maica_ai_constructs_version_info and not maica_ai_disable_accepts_and_saves_status"`：`138 passed, 2 deselected`。
+- 相关 Python 编译与 `git diff --check` 通过；仅有 `maica.py` ASCII 图既存的 invalid escape `SyntaxWarning`。
+- 剩余失败严格归属后续任务：任务 7 的 `version_info`、`disable(status)`，任务 8 的 `SUPPORT_BACKEND`。

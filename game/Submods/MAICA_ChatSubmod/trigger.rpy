@@ -426,13 +426,13 @@ init 999 python in maica:
 #################################################################################
 
     def mtrigger_dscl_condition():
-        return None
+        return ai.gen_quality_chk
 
     def mtrigger_dscl_callback(arg):
         if isinstance(arg, (str, unicode)):
             arg = eval(arg)
         if not arg[0]:
-            #store.renpy.show_screen("maica_dscl_pvn_notify", prob = float(arg[1]))
+            # The receiver uses the canonical quality setting and screen.
             # store.renpy.call("mtrigger_dscl", prob = float(arg[1]))
             store.mtrigger_dscl(prob = float(arg[1]))
 

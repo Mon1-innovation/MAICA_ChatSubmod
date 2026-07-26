@@ -401,12 +401,14 @@ label mtrigger_backup:
     return
 
 label mtrigger_dscl(prob=1.0):
+    if not store.maica.maica_instance.gen_quality_chk:
+        return
     if prob < 0.5:
         return
     elif prob < 0.8:
         $ renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
     else:
-        show screen maica_dscl_pvn_notify(prob)
+        show screen maica_gen_quality_chk_notify(prob)
         $ behind_bg = MAS_BACKGROUND_Z - 1
         show chibi_peek zorder behind_bg with moveinleft
         pause 5.0
@@ -416,6 +418,8 @@ label mtrigger_dscl(prob=1.0):
 init python:
 
     def mtrigger_dscl(prob=1.0):
+        if not store.maica.maica_instance.gen_quality_chk:
+            return
         if prob < 0.5:
             return
 
@@ -427,7 +431,7 @@ init python:
 
     def _mtrigger_dscl_anim(prob):
 
-        renpy.show_screen("maica_dscl_pvn_notify", prob)
+        renpy.show_screen("maica_gen_quality_chk_notify", prob)
 
         behind_bg = MAS_BACKGROUND_Z - 1
         renpy.show(

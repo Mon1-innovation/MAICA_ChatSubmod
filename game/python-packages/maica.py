@@ -11,6 +11,7 @@ from logger_manager import get_logger_manager, MultiLoggerWrapper
 
 import websocket
 import maica_mtrigger
+import maica_v13_migration
 from maica_mtrigger import MTriggerAction
 
 # Initialize injection point registration
@@ -40,6 +41,10 @@ MAX_SESSION_LEN_LIMIT = 28672
 
 def normalize_chat_params(params):
     normalized = dict(params or {})
+    for legacy_key in maica_v13_migration.SETTING_RENAMES:
+        normalized.pop(legacy_key, None)
+    normalized.pop("mt_extraction", None)
+    maica_v13_migration.normalize_tristate_values(normalized)
     if normalized.get("mf_const_tools") == 3:
         normalized["mf_const_tools"] = 2
     if normalized.get("mf_const_tools", 0) > 2:
@@ -302,7 +307,7 @@ class MaicaAi(ChatBotInterface):
             "mt_disable_loop": True,
             "nsfw_acceptive": True,
             "presence_penalty": 0.34,
-            "prompt_allow_nickname": True,
+            "prompt_allow_nickname": False,
             "prompt_pname_repl": False,
             "savefile_access": True,
             "seed": None,

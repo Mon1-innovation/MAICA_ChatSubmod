@@ -629,7 +629,7 @@ init -700 python:
         return num
 
 init 999 python:
-    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=0)
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-50)
     def maica_migration():
         def migration_1_2_0():
             if renpy.android:
