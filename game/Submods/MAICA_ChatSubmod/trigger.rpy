@@ -438,7 +438,8 @@ init 999 python in maica:
         memory_template,
         "write_memory",
         callback=mtrigger_write_memory_callback,
-        method=MTriggerMethod.request
+        method=MTriggerMethod.request,
+        description = _("内置 | 记忆写入")
     )
     ai.mtrigger_manager.add_trigger(memory_trigger)
 
