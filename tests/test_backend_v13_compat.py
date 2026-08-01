@@ -514,19 +514,14 @@ def ws_status_owner_exists(text, status):
     return False
 
 
-def quality_reference_exists(text, translated=False):
+def quality_reference_exists(text):
     tokens = lex_source(text)
     for index, (kind, value) in enumerate(tokens):
-        if value != "gen_quality_chk" and not (
-            translated and kind == "STRING" and "gen_quality_chk" in value
-        ):
+        if value != "gen_quality_chk":
             continue
         previous = tokens[index - 1][1] if index else ""
         following = tokens[index + 1][1] if index + 1 < len(tokens) else ""
-        if translated:
-            if kind == "STRING" and previous in ("old", "new"):
-                return True
-        elif kind == "NAME" or (kind == "STRING" and (previous in ("[", "(", ",") or following in ("]", ")", ":", ","))):
+        if kind == "NAME" or (kind == "STRING" and (previous in ("[", "(", ",") or following in ("]", ")", ":", ","))):
             return True
     return False
 
@@ -996,7 +991,11 @@ def test_d_ws_status_helper_ignores_comment_only_presence():
 def test_e_mtrigger_mspire_mpostal_and_temporary_trigger_payloads():
     trigger = source("game/python-packages/maica_mtrigger.py")
     sender = source("game/python-packages/maica_tasker_sub_sessionsender.py")
-    assert "alter_value" in trigger and "alter_affection" not in runtime_identifiers("game/python-packages/maica_mtrigger.py")
+    assert "alter_value" in trigger
+    assert re.search(
+        r"common_affection_template\.name\s*:\s*['\"]alter_affection['\"]",
+        trigger,
+    )
     inspire = block_after(sender, r"class\s+MAICAMSpireProcessor", 3500)
     assert re.search(r"['\"]inspire['\"]\s*:\s*\{[^}]*ctg_weight", inspire, re.S)
     assert re.search(r"['\"]inspire['\"]\s*:\s*\{[^}]*use_cache", inspire, re.S)
@@ -1005,6 +1004,34 @@ def test_e_mtrigger_mspire_mpostal_and_temporary_trigger_payloads():
     assert "twk_super" in postal and "ic_prep" not in runtime_identifiers("game/python-packages/maica_tasker_sub_sessionsender.py")
     assert re.search(r"['\"]triggers['\"]\s*:", sender)
     assert not re.search(r"['\"]trigger['\"]\s*:", sender)
+
+
+def test_e_memory_template_preserves_backend_player_name_placeholder():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    trigger = source("game/Submods/MAICA_ChatSubmod/trigger.rpy")
+
+    assert re.search(
+        r"def\s+maica_validate_player_addition\([^)]*prefix_player\s*=\s*True",
+        header,
+    )
+    assert re.search(
+        r"addition\s*=\s*\(['\"]\[player\]['\"]\s*\+\s*raw_addition\.strip\(\)\s*if\s+prefix_player\s+else\s+raw_addition\.strip\(\)\)",
+        header,
+    )
+    assert re.search(
+        r"MTriggerBase\(\s*memory_template\s*,\s*['\"]write_memory['\"]",
+        trigger,
+    )
+    assert re.search(
+        r"maica_validate_player_addition\([^)]*prefix_player\s*=\s*False",
+        trigger,
+        re.S,
+    )
+    assert re.search(
+        r"if\s+addition\s+is\s+not\s+None\s*:\s*(?:store\.)?persistent\.mas_player_additions\.append\(addition\)",
+        trigger,
+        re.S,
+    )
 
 
 def test_f_vista_list_and_download_routes_are_distinct():
@@ -1119,11 +1146,14 @@ def test_g_chat_addition_input_does_not_keep_the_legacy_50_character_limit():
     assert re.search(r"\blength\s*=\s*1536\b", addition_label)
 
 
-QUALITY_FILES = (
+QUALITY_RUNTIME_FILES = (
     "game/Submods/MAICA_ChatSubmod/header.rpy",
     "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
     "game/Submods/MAICA_ChatSubmod/trigger.rpy",
     "game/Submods/MAICA_ChatSubmod/trigger_labels.rpy",
+)
+
+QUALITY_TRANSLATION_FILES = (
     "game/Submods/MAICA_ChatSubmod/tl/header.rpy",
     "game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy",
     "game/Submods/MAICA_ChatSubmod/tl/trigger.rpy",
@@ -1131,11 +1161,16 @@ QUALITY_FILES = (
 )
 
 
-@pytest.mark.parametrize("relative", QUALITY_FILES)
-def test_h_each_quality_runtime_and_translation_reference_is_renamed(relative):
+@pytest.mark.parametrize("relative", QUALITY_RUNTIME_FILES)
+def test_h_each_quality_runtime_reference_is_renamed(relative):
     text = source(relative)
-    assert quality_reference_exists(text, "/tl/" in relative), "new quality owner missing in {}".format(relative)
+    assert quality_reference_exists(text), "new quality owner missing in {}".format(relative)
     assert "dscl_pvn" not in runtime_identifiers(relative), "old quality runtime owner remains in {}".format(relative)
+
+
+@pytest.mark.parametrize("relative", QUALITY_TRANSLATION_FILES)
+def test_h_each_quality_translation_retires_the_old_identifier(relative):
+    assert "dscl_pvn" not in runtime_identifiers(relative), "old quality translation remains in {}".format(relative)
 
 
 def test_h_quality_asset_is_replaced():
@@ -1150,6 +1185,12 @@ def test_h_quality_runtime_uses_the_active_user_setting():
     assert re.search(r"\bai\.gen_quality_chk\b", condition)
     assert re.search(r"\bmaica_instance\.gen_quality_chk\b", labels)
     assert not re.search(r"default_setting\s*\[\s*['\"]gen_quality_chk['\"]\s*\]", trigger + labels)
+
+
+def test_h_internal_quality_key_is_not_registered_as_an_english_translation():
+    for path in (SUBMOD / "tl").rglob("*.rpy"):
+        text = path.read_text(encoding="utf-8")
+        assert not re.search(r'^\s*old\s+"gen_quality_chk"\s*$', text, re.M), str(path.relative_to(ROOT))
 
 
 def test_retired_setting_identifiers_are_not_runtime_owners():

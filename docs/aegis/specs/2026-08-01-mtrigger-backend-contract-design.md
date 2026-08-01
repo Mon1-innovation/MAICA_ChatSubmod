@@ -31,7 +31,7 @@
 
 - `common_affection_template` 的本地固定名称为现有的 `alter_affection`。
 - `memory_template` 的本地固定名称为 `write_memory`。
-- 固定名称模板仍以本地名称参与管理器注册和返回路由，但请求 payload 不包含 `name`。
+- 固定名称模板仍以本地名称参与管理器注册和返回路由，请求 payload 必须包含后端规定的固定 `name`。
 - 其他模板继续要求并发送调用方提供的 `name`。
 
 ### 记忆模板
@@ -40,7 +40,8 @@
 
 ```json
 {
-  "template": "memory_template"
+  "template": "memory_template",
+  "name": "write_memory"
 }
 ```
 
@@ -71,8 +72,8 @@ WebSocket 层不得直接修改 `persistent.mas_player_additions`，避免协议
 - 新 envelope 恰好分发一次，空 arguments 可用。
 - 旧映射 envelope 不再分发。
 - 畸形 envelope 不分发。
-- 两个固定名称模板拒绝其他名称，并在请求中省略 name。
-- memory_template 请求严格等于 `{"template": "memory_template"}`。
+- 两个固定名称模板拒绝其他名称，并在请求中发送固定 name。
+- memory_template 请求严格等于 `{"template": "memory_template", "name": "write_memory"}`。
 - memory_template 总数上限为一。
 - write_memory 提取 memory_item，经现有校验后写入；重复项和非法项不写入。
 - 完整 MTrigger 与 v13 契约回归通过。

@@ -89,10 +89,15 @@ def _build_exprop(template):
 def _build_trigger_batch(template, count):
     manager = maica_mtrigger.MTriggerManager()
     for index in range(count):
+        fixed_names = {
+            maica_mtrigger.common_affection_template: "alter_affection",
+        }
+        if hasattr(maica_mtrigger, "memory_template"):
+            fixed_names[maica_mtrigger.memory_template] = "write_memory"
         manager.add_trigger(
             _build_trigger(
                 template,
-                name="trigger_{}".format(index),
+                name=fixed_names.get(template, "trigger_{}".format(index)),
                 exprop=_build_exprop(template),
             )
         )
@@ -122,6 +127,16 @@ def _new_validator(monkeypatch):
 def _send_streaming_packets(validator, count):
     for _index in range(count):
         validator.on_received(EventStub("maica_core_streaming_continue"))
+
+
+def _new_mtrigger_handler(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    return maica_tasker_sub.MTriggerWsHandler(
+        task_type=1,
+        name="mtrigger_ws_handler",
+        manager=ManagerStub(),
+        except_ws_status=["maica_mtrigger"],
+    )
 
 
 def _copy_injected_references(registry):
@@ -210,11 +225,52 @@ def test_common_switch_template_uses_choice_datakey():
     assert maica_mtrigger.common_switch_template.datakey == "choice"
 
 
+def test_mtrigger_ws_handler_dispatches_named_arguments_payload(monkeypatch):
+    handler = _new_mtrigger_handler(monkeypatch)
+    received = []
+    handler.set_trigger_function(lambda name, arguments: received.append((name, arguments)))
+
+    handler.on_received(
+        EventStub("maica_mtrigger", {"name": "idle", "arguments": {}})
+    )
+
+    assert received == [("idle", {})]
+
+
+def test_mtrigger_ws_handler_does_not_accept_legacy_mapping_payload(monkeypatch):
+    handler = _new_mtrigger_handler(monkeypatch)
+    received = []
+    handler.set_trigger_function(lambda name, arguments: received.append((name, arguments)))
+
+    handler.on_received(EventStub("maica_mtrigger", {"idle": {}}))
+
+    assert received == []
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        None,
+        {"name": "idle"},
+        {"name": 42, "arguments": {}},
+        {"name": "idle", "arguments": []},
+    ],
+)
+def test_mtrigger_ws_handler_rejects_malformed_payload(content, monkeypatch):
+    handler = _new_mtrigger_handler(monkeypatch)
+    received = []
+    handler.set_trigger_function(lambda name, arguments: received.append((name, arguments)))
+
+    handler.on_received(EventStub("maica_mtrigger", content))
+
+    assert received == []
+
+
 def test_common_affection_template_uses_alter_value_and_accepts_legacy_input():
     received = []
     trigger = maica_mtrigger.MTriggerBase(
         maica_mtrigger.common_affection_template,
-        "affection",
+        "alter_affection",
         callback=received.append,
     )
 
@@ -222,6 +278,58 @@ def test_common_affection_template_uses_alter_value_and_accepts_legacy_input():
     trigger.triggered({"alter_value": 1.5})
     trigger.triggered({"affection": 0.5})
     assert received == [1.5, 0.5]
+
+
+def test_fixed_name_templates_send_canonical_name_in_request_payload():
+    affection = _build_trigger(
+        maica_mtrigger.common_affection_template,
+        name="alter_affection",
+    )
+    memory = _build_trigger(
+        maica_mtrigger.memory_template,
+        name="write_memory",
+    )
+
+    assert affection.build() == {
+        "template": "common_affection_template",
+        "name": "alter_affection",
+    }
+    assert memory.build() == {
+        "template": "memory_template",
+        "name": "write_memory",
+    }
+
+
+@pytest.mark.parametrize(
+    ("template_name", "invalid_name"),
+    [
+        ("common_affection_template", "custom_affection"),
+        ("memory_template", "custom_memory"),
+    ],
+)
+def test_fixed_name_templates_reject_custom_names(template_name, invalid_name):
+    template = getattr(maica_mtrigger, template_name)
+    with pytest.raises(ValueError):
+        _build_trigger(template, name=invalid_name).build()
+
+
+def test_memory_template_extracts_memory_item():
+    received = []
+    trigger = maica_mtrigger.MTriggerBase(
+        maica_mtrigger.memory_template,
+        "write_memory",
+        callback=received.append,
+    )
+
+    trigger.triggered({"memory_item": "{player_name} likes chocolate"})
+
+    assert received == ["{player_name} likes chocolate"]
+
+
+def test_memory_template_allows_only_one_trigger():
+    assert len(_build_trigger_batch(maica_mtrigger.memory_template, 1)) == 1
+    with pytest.raises(ValueError):
+        _build_trigger_batch(maica_mtrigger.memory_template, 2)
 
 
 def test_switch_build_uses_curr_item_instead_of_curr_value():
@@ -261,25 +369,41 @@ def test_mtrigger_rejects_invalid_switch_items_before_sending(item_list):
 
 
 def test_mtrigger_accepts_one_character_name():
-    data = _build_trigger(maica_mtrigger.common_affection_template, name="a").build()
+    data = _build_trigger(
+        maica_mtrigger.customize_template,
+        name="a",
+        exprop=_build_exprop(maica_mtrigger.customize_template),
+    ).build()
     assert data["name"] == "a"
 
 
 @pytest.mark.parametrize("name", ["n" * 64, "valid_name", "valid-name"])
 def test_mtrigger_accepts_valid_name_boundaries(name):
-    data = _build_trigger(maica_mtrigger.common_affection_template, name=name).build()
+    data = _build_trigger(
+        maica_mtrigger.customize_template,
+        name=name,
+        exprop=_build_exprop(maica_mtrigger.customize_template),
+    ).build()
     assert data["name"] == name
 
 
 @pytest.mark.parametrize("name", ["bad name", "n" * 65])
 def test_mtrigger_rejects_invalid_names(name):
     with pytest.raises(ValueError):
-        _build_trigger(maica_mtrigger.common_affection_template, name=name).build()
+        _build_trigger(
+            maica_mtrigger.customize_template,
+            name=name,
+            exprop=_build_exprop(maica_mtrigger.customize_template),
+        ).build()
 
 
 def test_mtrigger_rejects_empty_name():
     with pytest.raises(ValueError):
-        _build_trigger(maica_mtrigger.common_affection_template, name="").build()
+        _build_trigger(
+            maica_mtrigger.customize_template,
+            name="",
+            exprop=_build_exprop(maica_mtrigger.customize_template),
+        ).build()
 
 
 def test_mtrigger_accepts_256_character_bilingual_names_and_switch_items():
@@ -384,6 +508,7 @@ def test_meter_number_types_are_python2_compatible_and_accept_large_integers():
         maica_mtrigger.common_switch_template,
         maica_mtrigger.common_meter_template,
         maica_mtrigger.customize_template,
+        maica_mtrigger.memory_template,
     ],
 )
 def test_mtrigger_accepts_equivalent_canonical_template_clones(canonical):
@@ -402,6 +527,7 @@ def test_mtrigger_accepts_equivalent_canonical_template_clones(canonical):
     )
     assert _build_trigger(
         clone,
+        name=maica_mtrigger.FIXED_TEMPLATE_NAMES.get(canonical.name, "trigger"),
         exprop=_build_exprop(canonical),
     ).build()["template"] == canonical.name
 
@@ -522,6 +648,28 @@ def test_maica_chat_calls_general_processor_with_triggers_keyword():
 
     assert "triggers =" in chat_block
     assert "trigger =" not in chat_block
+
+
+def test_general_chat_preserves_unicode_until_websocket_serialization():
+    root = Path(__file__).resolve().parents[1]
+    maica_source = (root / "game" / "python-packages" / "maica.py").read_text(
+        encoding="utf-8"
+    )
+    chat_block = maica_source.split("    def chat(self,", 1)[1].split(
+        "    def start_raw_context", 1
+    )[0]
+    sender_source = (
+        root
+        / "game"
+        / "python-packages"
+        / "maica_tasker_sub_sessionsender.py"
+    ).read_text(encoding="utf-8")
+    process_block = sender_source.split(
+        "    def process_request(self, query, session, triggers, taskowner", 1
+    )[1].split("class MAICAMSpireProcessor", 1)[0]
+
+    assert "message = str(message)" not in chat_block
+    assert "decode_cp936" not in process_block
 
 
 def test_builtin_switches_are_six_and_accessory_keeps_wear_and_unwear_actions():
@@ -891,6 +1039,54 @@ def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatc
     )
     assert validator.validation_passed is True
     assert validator.packet_count == 0
+
+
+def test_streaming_completion_accepts_account_name_without_tracker_id(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+
+    validator.on_received(
+        EventStub(
+            "maica_core_complete",
+            "Streaming finished for SirrrrrrrrrrrrrP, 2 packets sent",
+        )
+    )
+
+    assert validator.validation_passed is True
+    assert validator.packet_count == 0
+    assert validator.manager.closed is False
+
+
+def test_streaming_completion_tolerates_transport_whitespace(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+
+    validator.on_received(
+        EventStub(
+            "maica_core_complete",
+            " \tStreaming finished for SirrrrrrrrrrrrrP, 2 packets sent\r\n",
+        )
+    )
+
+    assert validator.validation_passed is True
+    assert validator.packet_count == 0
+    assert validator.manager.closed is False
+
+
+def test_streaming_completion_accepts_numeric_trace_suffix(monkeypatch):
+    validator = _new_validator(monkeypatch)
+    _send_streaming_packets(validator, 2)
+
+    validator.on_received(
+        EventStub(
+            "maica_core_complete",
+            "Streaming finished for SirrrrrrrrrrrrrP, 2 packets sent <9285727781>",
+        )
+    )
+
+    assert validator.validation_passed is True
+    assert validator.packet_count == 0
+    assert validator.manager.closed is False
 
 
 def test_login_payload_explicitly_identifies_auth_request(monkeypatch):

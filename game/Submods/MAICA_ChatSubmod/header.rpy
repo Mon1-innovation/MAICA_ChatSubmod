@@ -169,11 +169,11 @@ init 10 python:
         value = int(persistent.maica_advanced_setting.get(key, lower))
         persistent.maica_advanced_setting[key] = max(lower, min(value, upper))
 
-    def maica_validate_player_addition(raw_addition, additions, edittarget=None):
-        if raw_addition is None or not raw_addition.strip():
+    def maica_validate_player_addition(raw_addition, additions, edittarget=None, prefix_player=True):
+        if not isinstance(raw_addition, (str, unicode)) or not raw_addition.strip():
             renpy.notify(_("MAICA: 输入为空"))
             return None
-        addition = "[player]" + raw_addition.strip()
+        addition = ("[player]" + raw_addition.strip() if prefix_player else raw_addition.strip())
         replacing = edittarget in additions
         if len(additions) >= 512:
             if not replacing:

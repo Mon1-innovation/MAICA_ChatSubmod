@@ -425,6 +425,25 @@ init 999 python in maica:
                     
 #################################################################################
 
+    def mtrigger_write_memory_callback(memory_item):
+        addition = store.maica_validate_player_addition(
+            memory_item,
+            store.persistent.mas_player_additions,
+            prefix_player=False
+        )
+        if addition is not None:
+            store.persistent.mas_player_additions.append(addition)
+
+    memory_trigger = MTriggerBase(
+        memory_template,
+        "write_memory",
+        callback=mtrigger_write_memory_callback,
+        method=MTriggerMethod.request
+    )
+    ai.mtrigger_manager.add_trigger(memory_trigger)
+
+#################################################################################
+
     def mtrigger_dscl_condition():
         return ai.gen_quality_chk
 

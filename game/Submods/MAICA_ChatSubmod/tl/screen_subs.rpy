@@ -2,9 +2,6 @@
 
 translate english strings:
 
-    old "gen_quality_chk"
-    new "gen_quality_chk"
-
     old "auto | 自动"
     new "auto | Auto"
 

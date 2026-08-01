@@ -81,6 +81,12 @@ common_affection_template = MTriggerTemplate("common_affection_template", "alter
 common_switch_template = MTriggerTemplate("common_switch_template", "choice", exprop=MTriggerExprop(True, True, True, False, True, True))
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False))
 customize_template = MTriggerTemplate("customized", None, exprop=MTriggerExprop(True, True, False, False, False, False))
+memory_template = MTriggerTemplate("memory_template", "memory_item", exprop=MTriggerExprop(False, False, False, False, False, False))
+
+FIXED_TEMPLATE_NAMES = {
+    common_affection_template.name: "alter_affection",
+    memory_template.name: "write_memory",
+}
 
 TEMPLATE_EXPROP_FIELDS = (
     "item_name_zh",
@@ -104,6 +110,7 @@ CANONICAL_TEMPLATE_SPECS = {
         common_switch_template,
         common_meter_template,
         customize_template,
+        memory_template,
     )
 }
 
@@ -113,6 +120,7 @@ class MTriggerManager(object):
         common_switch_template.name: 6,
         common_meter_template.name: 6,
         customize_template.name: 20,
+        memory_template.name: 1,
     }
     SIZE_LIMIT = {
         MTriggerMethod.all : 100000,
@@ -245,8 +253,8 @@ class MTriggerBase(object):
         self.perf_suggestion = perf_suggestion
         self.priority = priority
 
-        if self.template.name != common_affection_template.name and exprop.item_name_zh == "":
-            raise ValueError("Non affection template must have exprop.item_name_zh.")
+        if self.template.name not in FIXED_TEMPLATE_NAMES and exprop.item_name_zh == "":
+            raise ValueError("Customizable template must have exprop.item_name_zh.")
     def on_build_pre(self):
         pass
 
@@ -277,6 +285,9 @@ class MTriggerBase(object):
         self.validate_template()
         if not isinstance(self.name, basestring) or fullmatch(r"[A-Za-z0-9_-]{1,64}", self.name) is None:
             raise ValueError("Trigger name must match [A-Za-z0-9_-]{1,64}.")
+        fixed_name = FIXED_TEMPLATE_NAMES.get(self.template.name)
+        if fixed_name is not None and self.name != fixed_name:
+            raise ValueError("Trigger name for {} must be {}.".format(self.template.name, fixed_name))
         self._validate_display_string(self.description, "description")
 
         if self.template.exprop.item_name_zh:

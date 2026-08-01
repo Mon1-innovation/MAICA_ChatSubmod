@@ -339,12 +339,24 @@ class MTriggerWsHandler(MaicaWSTask):
             self.logger.debug('[MTriggerWsHandler] received maica_quality_status')
             self._trigger_func('dscl', {'value':event.data.content})
             return
-        self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(event.data.content))
-        for item in list(event.data.content.keys()):
-            try:
-                self._trigger_func(item, event.data.content[item])
-            except Exception as e:
-                self.logger.error("[MTriggerWsHandler] Error processing trigger {}: {}".format(item, e))
+        content = event.data.content
+        self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(content))
+        if not isinstance(content, dict):
+            self.logger.error('[MTriggerWsHandler] trigger payload is not a dict')
+            return
+        name = content.get('name')
+        arguments = content.get('arguments')
+        try:
+            string_types = (basestring,)
+        except NameError:
+            string_types = (str,)
+        if not isinstance(name, string_types) or not isinstance(arguments, dict):
+            self.logger.error('[MTriggerWsHandler] invalid trigger payload: {}'.format(content))
+            return
+        try:
+            self._trigger_func(name, arguments)
+        except Exception as e:
+            self.logger.error("[MTriggerWsHandler] Error processing trigger {}: {}".format(name, e))
 
     def set_trigger_function(self, func):
         self._trigger_func = func
@@ -1165,7 +1177,9 @@ class StreamingPacketValidator(MaicaWSTask):
         """
         content = wspack.content
         self.logger.debug(
-            "[StreamingPacketValidator] received complete message: {}".format(content)
+            "[StreamingPacketValidator] received complete message: {!r} ({})".format(
+                content, type(content).__name__
+            )
         )
 
         try:
@@ -1173,7 +1187,9 @@ class StreamingPacketValidator(MaicaWSTask):
             if reported_packets is None:
                 self._validation_passed = False
                 self.logger.error(
-                    "[StreamingPacketValidator] failed to parse complete message: {}".format(content)
+                    "[StreamingPacketValidator] failed to parse complete message: {!r} ({})".format(
+                        content, type(content).__name__
+                    )
                 )
                 self._close_ws_safely()
                 return
@@ -1231,8 +1247,9 @@ class StreamingPacketValidator(MaicaWSTask):
                 content = content.decode('utf-8')
             except (UnicodeDecodeError, AttributeError):
                 return None
+        content = content.strip()
         patterns = (
-            r'Streaming finished for user, (0|[1-9]\d*) packets sent\Z',
+            r'Streaming finished for [^,\r\n]+, (0|[1-9]\d*) packets sent(?: <\d+>)?\Z',
             r'MSpire cache finished, (0|[1-9]\d*) packets sent\Z',
             r'Streaming finished with seed (?:None|-?(?:0|[1-9]\d*)) for [^,\r\n]+, (0|[1-9]\d*) packets sent -- your traceray ID is [^\s]+\Z',
         )

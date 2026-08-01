@@ -1061,7 +1061,6 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica is not serving")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
-        message = str(message)
         self.ChatProcessor.start_request(
             query=message,
             session = self.chat_session if session == None else session,

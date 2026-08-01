@@ -9,7 +9,6 @@ from maica_tasker import *
 from bot_interface import PY2
 import threading
 import json
-from cp936_decode import decode_cp936
 
 try:
     text_types = (basestring,)
@@ -385,9 +384,6 @@ class MAICAGeneralChatProcessor(SessionSenderAndReceiver):
             validate_query_text(query)
         data = self.build_request(query, session, triggers, visions, pprt)
         dumped_data = json.dumps(data, ensure_ascii=False)
-        if PY2 and isinstance(dumped_data, str):
-            dumped_data = decode_cp936(dumped_data)
-
         taskowner.ws_client.send(dumped_data)
 
 class MAICAMSpireProcessor(SessionSenderAndReceiver):
