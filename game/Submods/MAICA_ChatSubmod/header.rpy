@@ -928,16 +928,6 @@ screen maica_setting():
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
-                style_prefix "maica_check"
-                textbutton _("时区设置: [persistent.maica_setting_dict.get('tz')]"):
-                    action Show("maica_tz_setting")
-            
-            hbox:
-                style_prefix "maica_check"
-                textbutton _("地理位置: [persistent.mas_geolocation]"):
-                    action Show("maica_location_input", addition = persistent.mas_geolocation)
-
-            hbox:
                 style_prefix "generic_fancy_check"
                 textbutton _("会话质量检测: [persistent.maica_setting_dict.get('gen_quality_chk')]"):
                     action ToggleDict(persistent.maica_setting_dict, "gen_quality_chk", True, False)
@@ -1014,6 +1004,15 @@ screen maica_setting():
             textbutton _("重置会话长度"):
                 action SetDict(persistent.maica_setting_dict, "session_len_limit", 8192)
 
+            hbox:
+                style_prefix "maica_check"
+                textbutton _("时区设置: [persistent.maica_setting_dict.get('tz')]"):
+                    action Show("maica_tz_setting")
+            
+            hbox:
+                style_prefix "maica_check"
+                textbutton _("地理位置: [persistent.mas_geolocation]"):
+                    action Show("maica_location_input", addition = persistent.mas_geolocation)
 
             hbox:
                 frame:
