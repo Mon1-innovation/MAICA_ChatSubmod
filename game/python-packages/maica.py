@@ -44,6 +44,7 @@ def normalize_chat_params(params):
     for legacy_key in maica_v13_migration.SETTING_RENAMES:
         normalized.pop(legacy_key, None)
     normalized.pop("mt_extraction", None)
+    maica_v13_migration.remove_retired_persistent_settings(normalized)
     maica_v13_migration.normalize_tristate_values(normalized)
     if normalized.get("mf_const_tools") == 3:
         normalized["mf_const_tools"] = 2
@@ -259,7 +260,7 @@ class MaicaAi(ChatBotInterface):
         self.wss_thread = None
         self.enable_mf = True
         self.enable_mt = True
-        self.savefile_access = False
+        self.savefile_access = True
         self.stream_output = True
         self.content_func = None
         # 待发送消息队列
@@ -308,16 +309,15 @@ class MaicaAi(ChatBotInterface):
             "mt_disable_loop": True,
             "nsfw_acceptive": True,
             "presence_penalty": 0.34,
-            "prompt_allow_nickname": False,
+            "prompt_allow_nickname": True,
             "prompt_pname_repl": False,
             "savefile_access": True,
             "seed": None,
             "session_len_limit": 8192,
             "stream_output": True,
-            "target_lang": "auto",
+            "target_lang": "zh",
             "temperature": 0.22,
             "top_p": 0.7,
-            "twk_super": False,
             "tz": None,
         }
         self.workload_raw = {
@@ -975,7 +975,6 @@ class MaicaAi(ChatBotInterface):
             "mf_disable_loop": self.modelconfig.get("mf_disable_loop", self.default_setting["mf_disable_loop"]),
             "mt_disable_loop": self.modelconfig.get("mt_disable_loop", self.default_setting["mt_disable_loop"]),
             "gen_enforce_lang": self.modelconfig.get("gen_enforce_lang", self.default_setting["gen_enforce_lang"]),
-            "twk_super": self.modelconfig.get("twk_super", self.default_setting["twk_super"]),
             "savefile_access": self.savefile_access,
             "stream_output": self.stream_output,
             "target_lang": self.target_lang,

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAICA Backend Reference"
+  short_description: "Verify MAICA backend APIs and contracts"
+  default_prompt: "Use $maica-backend-reference to verify this project against the current MAICA backend API."

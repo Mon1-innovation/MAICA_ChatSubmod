@@ -30,8 +30,9 @@ RENAMES = {
     "enforce_lang": "gen_enforce_lang",
     "sf_extraction": "savefile_access",
     "max_length": "session_len_limit",
-    "ic_prep": "twk_super",
 }
+PERSISTENT_SETTINGS = tuple(sorted(set(RENAMES.values())))
+RETIRED_PERSISTENT_SETTINGS = {"ic_prep", "twk_super"}
 
 
 def path_for(relative):
@@ -75,6 +76,16 @@ def literal_dict(text, name):
             if depth == 0:
                 return ast.literal_eval(text[start:index + 1])
     assert False, "dictionary {!r} is not closed".format(name)
+
+
+def literal_assignment(text, name):
+    tree = ast.parse(text)
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if any(isinstance(target, ast.Name) and target.id == name for target in node.targets):
+            return ast.literal_eval(node.value)
+    assert False, "assignment {!r} is missing".format(name)
 
 
 def lex_source(text):
@@ -623,6 +634,14 @@ def test_b_migration_rename_map_has_no_unreviewed_keys():
     assert set(mapping) == set(RENAMES)
 
 
+def test_b_retired_persistent_settings_are_explicit():
+    retired = set(literal_assignment(
+        source("game/python-packages/maica_v13_migration.py"),
+        "RETIRED_PERSISTENT_SETTINGS",
+    ))
+    assert retired == RETIRED_PERSISTENT_SETTINGS
+
+
 def test_b_renpy_migration_does_not_duplicate_the_rename_map():
     migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
     assert "chat_param_renames" not in migration
@@ -646,20 +665,20 @@ def test_b_user_visible_setting_text_retires_legacy_names(relative):
         ), "{} remains in {}".format(old, relative)
 
 
-@pytest.mark.parametrize("new", RENAMES.values())
+@pytest.mark.parametrize("new", PERSISTENT_SETTINGS)
 def test_b_canonical_default_owner_exists(new):
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     assert default_owner_exists(header, new), "default owner missing: {}".format(new)
 
 
-@pytest.mark.parametrize("new", RENAMES.values())
+@pytest.mark.parametrize("new", PERSISTENT_SETTINGS)
 def test_b_canonical_ui_owner_exists(new):
     ui = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     ui += "\n".join(screen_blocks(source("game/Submods/MAICA_ChatSubmod/header.rpy")))
     assert ui_owner_exists(ui, new), "UI owner missing: {}".format(new)
 
 
-@pytest.mark.parametrize("new", RENAMES.values())
+@pytest.mark.parametrize("new", PERSISTENT_SETTINGS)
 def test_b_canonical_runtime_upload_owner_exists(new):
     runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub_sessionsender.py")
     assert runtime_owner_exists(runtime, new), "runtime owner missing: {}".format(new)
@@ -886,24 +905,40 @@ def test_b_runtime_owner_analyzes_try_and_loop_else_paths():
     assert runtime_owner_exists(loop_else, "prompt_pname_repl")
 
 
-def test_c_regular_settings_include_tz_and_auto_language_defaults():
+def test_c_regular_settings_use_renpy_language_and_system_timezone_defaults():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
-    assert_key_default(header, "tz", r"(?:None|['\"][^'\"]+['\"])")
-    assert_key_default(header, "target_lang", r"['\"]auto['\"]")
+    target_default = function_body(header, r"maica_get_default_target_lang")
+    assert re.search(r"['\"]chinese['\"]\s*:\s*['\"]zh['\"]", target_default)
+    assert re.search(r"['\"]english['\"]\s*:\s*['\"]en['\"]", target_default)
+    assert re.search(r"\.get\s*\([^,]+,\s*['\"]auto['\"]\s*\)", target_default)
+    assert re.search(r"['\"]target_lang['\"]\s*:\s*maica_get_default_target_lang\s*\(\s*\)", header)
+    assert re.search(r"['\"]tz['\"]\s*:\s*maica_get_system_timezone\s*\(\s*\)", header)
+    assert 'persistent._maica_target_lang_mode == "renpy"' in header
+    assert 'persistent._maica_tz_mode == "system"' in header
+    assert "current_tz = store.maica_get_system_timezone()" in screen
     assert re.search(
         r"SetDict\s*\(\s*persistent\.maica_setting_dict\s*,\s*['\"]target_lang['\"]\s*,[^\n]*MaicaAiLang\.auto",
         screen,
     )
+    assert re.search(r"SetField\s*\(\s*persistent\s*,\s*['\"]_maica_target_lang_mode['\"]\s*,\s*['\"]manual['\"]", screen)
+    assert re.search(r"SetField\s*\(\s*persistent\s*,\s*['\"]_maica_tz_mode['\"]\s*,\s*['\"]system['\"]", screen)
 
 
-def test_c_prompt_allow_nickname_uses_backend_default_false():
+def test_c_prompt_allow_nickname_uses_backend_default_true():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     runtime = source("game/python-packages/maica.py")
-    assert_key_default(header, "prompt_allow_nickname", r"False\b")
-    assert_key_default(runtime, "prompt_allow_nickname", r"False\b")
-    assert re.search(r"get\s*\(\s*['\"]prompt_allow_nickname['\"]\s*,\s*False\s*\)", screen)
+    assert_key_default(header, "prompt_allow_nickname", r"True\b")
+    assert_key_default(runtime, "prompt_allow_nickname", r"True\b")
+    assert re.search(r"get\s*\(\s*['\"]prompt_allow_nickname['\"]\s*,\s*True\s*\)", screen)
+
+
+def test_c_savefile_access_defaults_to_enabled():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    runtime = source("game/python-packages/maica.py")
+    assert_key_default(header, "savefile_access", r"True\b")
+    assert re.search(r"self\.savefile_access\s*=\s*True\b", runtime)
 
 
 def test_c_tz_has_ui_and_outbound_owners():
@@ -1006,6 +1041,52 @@ def test_e_mtrigger_mspire_mpostal_and_temporary_trigger_payloads():
     assert not re.search(r"['\"]trigger['\"]\s*:", sender)
 
 
+def test_e_twk_super_is_temporary_not_persistent():
+    runtime = source("game/python-packages/maica.py")
+    settings_builder = block_after(runtime, r"def\s+build_setting_config", 1800)
+    assert "twk_super" not in settings_builder
+    assert "remove_retired_persistent_settings(normalized)" in runtime
+
+    ui = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    ui += source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    assert not ui_owner_exists(ui, "twk_super")
+    assert ".pop(\"twk_super\"" not in ui
+
+
+def test_e_advanced_setting_screen_matches_backend_document_order():
+    ui = block_after(
+        source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
+        r"screen\s+maica_advance_setting",
+        30000,
+    )
+    expected = (
+        "max_tokens",
+        "seed",
+        "top_p",
+        "temperature",
+        "frequency_penalty",
+        "presence_penalty",
+        "prompt_pname_repl",
+        "prompt_allow_nickname",
+        "mf_llm_concl",
+        "mf_sf_access_impl",
+        "mf_const_sf_access",
+        "mf_const_tools",
+        "esearch_llm_concl",
+        "mf_precheck_mt",
+        "mt_concl_memory",
+        "nsfw_acceptive",
+        "mf_context_rnds",
+        "mt_context_rnds",
+        "mf_disable_loop",
+        "mt_disable_loop",
+        "gen_enforce_lang",
+    )
+    positions = [ui.index('textbutton "{}'.format(name)) for name in expected]
+    assert positions == sorted(positions)
+    assert "twk_super" not in ui
+
+
 def test_e_memory_template_preserves_backend_player_name_placeholder():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     trigger = source("game/Submods/MAICA_ChatSubmod/trigger.rpy")
@@ -1051,7 +1132,7 @@ def test_f_emotion_endpoint_is_retired():
 def test_f_nickname_has_default_and_ui_owner():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
-    assert_key_default(header, "prompt_allow_nickname", r"False\b")
+    assert_key_default(header, "prompt_allow_nickname", r"True\b")
     ui = header + screen
     control = block_after(ui, r"(?m)^\s*textbutton[^\n]*prompt_allow_nickname", 650)
     assert re.search(

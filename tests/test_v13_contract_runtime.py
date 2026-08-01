@@ -1532,8 +1532,15 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
         "mf_const_tools": 1,
         "max_length": 99999,
         "session_len_limit": 8192,
+        "ic_prep": True,
+        "twk_super": True,
     }
-    status = {"sfe_aggressive": True, "prompt_pname_repl": False}
+    status = {
+        "sfe_aggressive": True,
+        "prompt_pname_repl": False,
+        "ic_prep": True,
+        "twk_super": True,
+    }
 
     maica_v13_migration.migrate_setting_values(values, status)
     first = (dict(values), dict(status))
@@ -1547,6 +1554,9 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     assert values["mt_concl_memory"] == 2
     assert values["mf_const_tools"] == 2
     assert values["session_len_limit"] == 28672
+    for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
+        assert key not in values
+        assert key not in status
 
 
 def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():
@@ -1596,6 +1606,8 @@ def test_outbound_settings_drop_retained_legacy_keys():
             "mf_const_tools": 1,
             "session_len_limit": 8192,
             "mt_extraction": True,
+            "ic_prep": True,
+            "twk_super": True,
         }
     )
 
@@ -1604,6 +1616,8 @@ def test_outbound_settings_drop_retained_legacy_keys():
     for old in maica_v13_migration.SETTING_RENAMES:
         assert old not in normalized
     assert "mt_extraction" not in normalized
+    for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
+        assert key not in normalized
 
 
 def test_player_additions_backup_is_created_once_and_filters_utf8_boundaries():

@@ -271,8 +271,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:280
-    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt#L81}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
-    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt#L81}{i}{u}Official document of MAICA API{/i}{/u}{/a}"
+    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}Official document of MAICA API{/i}{/u}{/a}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:282
     old "{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/i}{/u}{/a}"
@@ -508,8 +508,8 @@ translate english strings:
     new "※ Trigger condition not satisfied"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:555
-    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
-    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Document.txt}{i}{u}MAICA Official API references{/i}{/u}{/a}"
+    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA Official API references{/i}{/u}{/a}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:559
     old "{size=-10}注意: 只有已被勾选(标记了X)的高级设置才会被使用, 未使用的设置将使用服务端的默认设置"
@@ -955,32 +955,32 @@ translate english strings:
     new "Token presence penalty. Higher this value, less likely appeared tokens appear again, usually resulting in more jumping generation"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1233
-    old "即使MFocus未调用工具, 也提供一些工具的结果.\n+ 其值越高, 越能避免信息缺乏导致的幻觉, 并产生灵活体贴的表现\n- 其值越高, 越有可能产生注意力涣散和专注混乱"
-    new "Acquire some information even if not called explicitly.\n+ Higher: keen and less hallucination\n- Higher: higher likeability of distraction and misfocusing"
+    old "即使MFocus未调用工具, 也提供一些工具的结果.\n* 0: 关闭\n* 1: 提供当前时间和节日\n* 2: 还提供当前日期, 还尝试提供本地天气\n+ 能缓解信息缺乏导致的幻觉, 产生更灵活体贴的表现\n- 有可能产生注意力涣散和混乱"
+    new "Provide some tool results even when MFocus does not call a tool.\n* 0: Disabled\n* 1: Provide the current time and holidays\n* 2: Also provide the current date and attempt to provide local weather\n+ Mitigates hallucinations caused by missing information and enables more flexible, considerate responses\n- May cause distraction and confusion"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1245
-    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型自身的能力\n- 启用时一般会无效化mf_const_tools"
-    new "Require agent model to generate guidance instead of default MFocus mechanism.\n+ Higher information density and naturalness\n- Heavily depends on agent instruction following behavior\n- Will likely neutralize mf_const_tools"
+    old "要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型的指令服从能力, 容易起反作用\n- 启用时一般会无效化mf_const_tools"
+    new "Require the agent model to generate final guidance instead of the default MFocus guidance.\n+ Higher information density and more natural language\n- Depends heavily on the agent model's instruction-following ability and can be counterproductive\n- Usually neutralizes mf_const_tools when enabled"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1250
-    old "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 明显更容易发生表现离群和专注混乱"
-    new "Replace [[player] in prompt with player's real name.\n+ Model has real understanding of player's name\n- Significantly higher likeability of performance offset and degration"
+    old "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 更容易发生表现离群和混乱"
+    new "Replace [[player] in prompts and guidance with the player's real name.\n+ Gives the model a concrete understanding of the player's name\n- Increases the risk of inconsistent or confused behavior"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1255
-    old "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 更容易维持语言自然\n- 涉及互联网搜索时生成速度更慢"
-    new "Require MFocus to sort internet search results.\n+ Higher information density and naturalness in most cases\n- Higher time consumption when query involves searching internet"
+    old "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 表现更稳定\n- 涉及互联网搜索时生成速度更慢\n- 可能会对核心模型的回答方式产生误导"
+    new "Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1261
-    old "当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 比较明显地改善MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏\n* 当对话未使用MTrigger或仅有好感触发器, 此功能不会生效"
-    new "Require MFocus to precheck query for MTrigger.\n+ Significantly reduces MTrigger desync\n- Seldom negative impact on naturalness\n* Only works with MTrigger enabled"
+    old "当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 从原理上缓解MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏"
+    new "Require MFocus to precheck the player's request and provide guidance when MTrigger is present.\n+ Mitigates MTrigger desynchronization in principle\n- May make the language less natural in rare cases"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1268
-    old "要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 在少数情况下造成意料之外的问题"
-    new "Require model to handle toxic content positively and pardonly.\n+ (Suprisingly) benefits overall performance in most cases\n- May lead to unexpected problems in rare cases"
+    old "要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 这可能会造成意料之外的问题, 虽然目前为止没见过"
+    new "Ask the model to treat toxic content tolerantly and positively.\n+ Surprisingly improves model behavior in most situations, even without toxic content\n- May cause unexpected issues, although none have been observed so far"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1275
-    old "在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 明显更容易破坏MFocus的应答模式"
-    new "Provide history context for MFocus, in range of 0-5 rounds.\n+ Improves MFocus' understanding to serial conversation\n- Significant risk of breaking MFocus reply pattern"
+    old "在MFocus介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MFocus对连贯对话的理解能力\n- 更容易破坏MFocus的应答模式"
+    new "Provide extra context for analysis when MFocus intervenes. Range: 0-5.\n+ Improves MFocus's understanding of coherent conversations\n- Increases the risk of disrupting MFocus's response pattern"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1286
     old "在MTrigger介入时, 额外提供上下文以供分析. 范围0-5.\n+ 改善MTrigger对连贯对话的理解能力\n- 更容易破坏MTrigger的应答模式"
@@ -989,8 +989,8 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1464
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1479
-    old "目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"
-    new "Target generation language. Supports \"zh\" or \"en\".\n* Does not 100% guarantee generation language\n* This setting also affects default timezone, festivals, culture and more\n* Up to when this was written, MAICA official deployment's English performance is still weaker than Chinese"
+    old "目标生成语言. 支持\"zh\", \"en\"或\"auto\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* auto代表通过prompt让模型自行选择语言回答, 效果不等同于指定对应语言\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"
+    new "Target generation language. Supports \"zh\", \"en\", and \"auto\".\n* This setting cannot guarantee the generated language\n* It also affects the default timezone, holidays, culture, and more; using your actual native language is recommended\n* auto asks the model to choose a response language through the prompt and is not equivalent to selecting that language explicitly\n* At the time of writing, MAICA's official deployment remains less capable in English than in Chinese"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1484
     old "使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"

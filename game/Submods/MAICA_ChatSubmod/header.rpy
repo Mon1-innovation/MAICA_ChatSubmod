@@ -22,7 +22,7 @@ default persistent.maica_setting_dict = {
     "keep_alive":True,
     "maica_model":None,
     "use_custom_model_config":False,
-    "savefile_access":False,
+    "savefile_access":True,
     "chat_session":1,
     "console":True,
     "gen_quality_chk":True,
@@ -34,11 +34,109 @@ default persistent.maica_advanced_setting_status = {}
 default persistent.maica_player_additions_status = {}
 default persistent.mas_player_additions = []
 default persistent._maica_reseted = False
+default persistent._maica_target_lang_mode = None
+default persistent._maica_tz_mode = None
 
 define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     import logging
+
+    maica_timezone_dict = {
+        -12: "Etc/GMT+12",
+        -11: "Pacific/Midway",
+        -10: "Pacific/Honolulu",
+        -9: "America/Anchorage",
+        -8: "America/Los_Angeles",
+        -7: "America/Denver",
+        -6: "America/Chicago",
+        -5: "America/New_York",
+        -4: "America/Indiana/Vincennes",
+        -3: "America/Argentina/Buenos_Aires",
+        -2: "Atlantic/South_Georgia",
+        -1: "Atlantic/Azores",
+        0: "Europe/London",
+        1: "Europe/Berlin",
+        2: "Europe/Kaliningrad",
+        3: "Europe/Moscow",
+        4: "Asia/Dubai",
+        5: "Asia/Karachi",
+        6: "Asia/Dhaka",
+        7: "Asia/Bangkok",
+        8: "Asia/Shanghai",
+        9: "Asia/Tokyo",
+        10: "Australia/Sydney",
+        11: "Pacific/Noumea",
+        12: "Pacific/Auckland",
+        13: "Pacific/Tongatapu",
+        14: "Pacific/Kiritimati",
+    }
+
+    def maica_get_default_target_lang():
+        return {
+            "chinese": "zh",
+            "english": "en",
+        }.get(config.language, "auto")
+
+    def maica_get_system_timezone():
+        import os
+        import time
+
+        timezone = os.environ.get("TZ")
+        if timezone and "/" in timezone and not timezone.startswith(":"):
+            return timezone
+
+        for timezone_file in ("/etc/timezone", "/etc/TZ"):
+            try:
+                with open(timezone_file, "r") as timezone_stream:
+                    timezone = timezone_stream.read().strip()
+                if timezone and "/" in timezone:
+                    return timezone
+            except (IOError, OSError):
+                pass
+
+        try:
+            localtime_path = os.path.realpath("/etc/localtime")
+            marker = "zoneinfo" + os.sep
+            if marker in localtime_path:
+                return localtime_path.split(marker, 1)[1].replace(os.sep, "/")
+        except (AttributeError, OSError):
+            pass
+
+        is_dst = time.localtime().tm_isdst > 0
+        offset_seconds = -(time.altzone if is_dst and time.daylight else time.timezone)
+        offset_minutes = int(offset_seconds // 60)
+        # Python 2 has no cross-platform IANA lookup, so use representative zones by offset.
+        fractional_timezones = {
+            -570: "Pacific/Marquesas",
+            -210: "America/St_Johns",
+            -150: "America/St_Johns",
+            210: "Asia/Tehran",
+            270: "Asia/Kabul",
+            330: "Asia/Kolkata",
+            345: "Asia/Kathmandu",
+            390: "Asia/Yangon",
+            525: "Australia/Eucla",
+            570: "Australia/Darwin",
+            630: "Australia/Adelaide",
+            765: "Pacific/Chatham",
+            825: "Pacific/Chatham",
+        }
+        if offset_minutes in fractional_timezones:
+            return fractional_timezones[offset_minutes]
+        if offset_minutes % 60 == 0:
+            return maica_timezone_dict.get(offset_minutes // 60)
+        return None
+
+    if persistent._maica_target_lang_mode is None:
+        persistent._maica_target_lang_mode = (
+            "manual" if "target_lang" in persistent.maica_setting_dict else "renpy"
+        )
+    if persistent._maica_tz_mode is None:
+        persistent._maica_tz_mode = (
+            "manual" if "tz" in persistent.maica_setting_dict else "system"
+        )
+
     maica_default_dict = {
         "auto_reconnect":False,
         "auto_resume":False,
@@ -50,7 +148,7 @@ init 10 python:
         "chat_session":1,
         "console":True,
         "console_font":maica_confont,
-        "target_lang":"auto",
+        "target_lang":maica_get_default_target_lang(),
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
@@ -67,7 +165,7 @@ init 10 python:
         "mpostal_default_reply_time": 360,
         "42seed":False,
         "use_anim_background": True,
-        "tz": 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes',
+        "tz":maica_get_system_timezone(),
         "gen_quality_chk":True,
         "input_lang_detect":True,
         "pprt":True
@@ -95,13 +193,16 @@ init 10 python:
         "mf_sf_access_impl":1,
         "mf_const_sf_access":1,
         "mt_concl_memory":1,
-        "twk_super":False,
-        "prompt_allow_nickname":False,
+        "prompt_allow_nickname":True,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     maica_default_dict.update(persistent.maica_setting_dict)
     maica_advanced_setting.update(persistent.maica_advanced_setting)
     maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
+    if persistent._maica_target_lang_mode == "renpy":
+        maica_default_dict["target_lang"] = maica_get_default_target_lang()
+    if persistent._maica_tz_mode == "system":
+        maica_default_dict["tz"] = maica_get_system_timezone()
 
     persistent.maica_setting_dict = maica_default_dict.copy()
     persistent.maica_advanced_setting = maica_advanced_setting.copy()
@@ -924,7 +1025,7 @@ screen maica_setting():
                 style_prefix "maica_check"
                 textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
                     action Show("maica_select_language")
-                    hovered SetField(_tooltip, "value", _("目标生成语言. 仅支持\"zh\"或\"en\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
+                    hovered SetField(_tooltip, "value", _("目标生成语言. 支持\"zh\", \"en\"或\"auto\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* auto代表通过prompt让模型自行选择语言回答, 效果不等同于指定对应语言\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:

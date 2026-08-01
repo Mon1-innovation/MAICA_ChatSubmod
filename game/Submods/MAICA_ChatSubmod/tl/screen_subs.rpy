@@ -298,16 +298,28 @@ translate english strings:
     new "Disable MFocus sequential toolchain to save time.\n+ Saves time for most toolcalls, lowers TTFT\n- Risk of missing information\n- Will neutralize mf_llm_concl"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:369
-    old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 明显更容易缺漏调用"
-    new "Disable MTrigger sequential toolchain to save time.\n+ Saves time for most toolcalls\n- Significant risk of missing triggers"
+    old "禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 有可能缺漏调用"
+    new "Disable the MTrigger toolchain loop to save time.\n+ Saves time for most trigger calls\n- May miss calls"
 
 # TODO: Translation updated at 2025-12-19 17:00
 
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:378
-    old "实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答\n* 引导式解码不属于OpenAI规范的一部分, 要求部署实例提供支持, 如使用vllm\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"
-    new "Experimental, enforce output language through LLM guided decoding(guided_regex).\n* Only effectively applies to target language 'en'\n* Guided decoding is not part of standard OpenAI protocol, only functionable with supporting deployments like vllm\n* This could possibly impact performance or lead to unexpected issues"
+    old "实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 截至文档编纂时为止, 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答\n* 不同解码后端对regex引导的支持性不同, 可能导致表达式失效或工作异常\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"
+    new "Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is effective only for the target language en; with zh, it cannot prevent incorrect English responses\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues"
+
+    old "实验性功能, 在prompt中允许模型生成[[player_nickname]占位符.\n+ 更符合MAS的对话风格\n- 需要一些额外的前端设计\n- 这可能会造成意料之外的问题"
+    new "Experimental: allow the model to generate the [[player_nickname] placeholder in prompts.\n+ Better matches MAS's dialogue style\n- Requires additional frontend handling\n- May cause unexpected issues"
+
+    old "实验性功能, 从设定集(存档)中快速提取信息的方式, 并替代传统MFocus实现.\n* 0: (传统)纯LLM实现\n* 1: RAG+Reranker实现\n* 2: 纯RAG实现\n+ 会快很多\n+ 仅不为0时可以启用mf_const_sf_access\n- 纯RAG不会检索query携带的存档内容\n- 精度显著低于传统实现, 考验核心模型的抗干扰能力\n- 如果后端没有实现对应的可选要求, 会回退到0"
+    new "Experimental: quickly extract information from the setting set (savefile), replacing the traditional MFocus implementation.\n* 0: Traditional LLM-only implementation\n* 1: RAG + reranker implementation\n* 2: RAG-only implementation\n+ Much faster\n+ mf_const_sf_access can be enabled only when this is nonzero\n- RAG-only mode does not retrieve savefile content supplied with the query\n- Significantly less precise than the traditional implementation and tests the core model's resistance to distractions\n- Falls back to 0 if the backend does not implement the optional requirements"
+
+    old "实验性功能, 即使MFocus未调用信息提取, 也提供信息提取的结果.\n* 0: (传统)仅MFocus工具\n* 1: 预检索+工具\n* 2: 仅预检索\n+ 显著提高设定数据的干预积极性\n- 容易引入干扰信息, 考验核心模型的抗干扰能力\n- 效果偏弱, 在大多数情况下可能只是在浪费时间"
+    new "Experimental: provide extracted information even when MFocus does not call information retrieval.\n* 0: Traditional MFocus tool only\n* 1: Pre-retrieval + tool\n* 2: Pre-retrieval only\n+ Makes setting data much more likely to influence the response\n- Can introduce distracting information and tests the core model's resistance to distractions\n- Has a limited effect and may only waste time in most cases"
+
+    old "实验性功能, 在session归档/清除时, 生成记忆概要用于保留有效信息.\n* 0: 关闭\n* 1: 仅在session超长并自动裁剪时轮转概要\n* 2: 在session自动裁剪或手动清除时轮转概要\n+ 能从对话中保留持久性信息, 终于不用再全靠手填了\n- 触发生成概要的操作会变慢很多\n- 可能导致注意力涣散, 考验核心模型的抗干扰能力"
+    new "Experimental: generate a memory summary when a session is archived or cleared to preserve useful information.\n* 0: Disabled\n* 1: Rotate the summary only when an overlong session is automatically trimmed\n* 2: Rotate the summary when a session is automatically trimmed or manually cleared\n+ Preserves persistent information from conversations instead of relying entirely on manual entries\n- Operations that generate a summary become much slower\n- May cause distraction and tests the core model's resistance to distractions"
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1252
     old "输入语言警告"

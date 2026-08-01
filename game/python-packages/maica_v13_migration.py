@@ -15,8 +15,12 @@ SETTING_RENAMES = {
     "enforce_lang": "gen_enforce_lang",
     "sf_extraction": "savefile_access",
     "max_length": "session_len_limit",
-    "ic_prep": "twk_super",
 }
+
+RETIRED_PERSISTENT_SETTINGS = (
+    "ic_prep",
+    "twk_super",
+)
 
 TRISTATE_SETTINGS = (
     "mf_sf_access_impl",
@@ -49,6 +53,14 @@ def _rename_values(values):
             values[new] = values[old]
 
 
+def remove_retired_persistent_settings(values, status=None):
+    for key in RETIRED_PERSISTENT_SETTINGS:
+        values.pop(key, None)
+        if status is not None:
+            status.pop(key, None)
+    return values
+
+
 def normalize_tristate_values(values, warning_callback=None):
     for key in TRISTATE_SETTINGS:
         existed = key in values
@@ -70,6 +82,7 @@ def migrate_setting_values(values, status=None, warning_callback=None):
     if status is not None:
         _rename_values(status)
 
+    remove_retired_persistent_settings(values, status)
     normalize_tristate_values(values, warning_callback)
 
     if values.get("mf_const_tools") == 3:
