@@ -999,6 +999,19 @@ screen maica_setting():
                 use divider(_("行为与表现"))
 
             hbox:
+                style_prefix "maica_check"
+                textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
+                    action Show("maica_select_language")
+                    hovered SetField(_tooltip, "value", _("目标生成语言. 支持\"zh\", \"en\"或\"auto\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* auto代表通过prompt让模型自行选择语言回答, 效果不等同于指定对应语言\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+
+
+
+            hbox:
+                style_prefix "maica_check_nohover"
+                text _("本节中的剩余条目均由预设管理.\n! 如果你不清楚这些条目的具体作用, 请不要手动修改")
+
+            hbox:
                 style_prefix "generic_fancy_check"
                 textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
                     action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
@@ -1010,13 +1023,6 @@ screen maica_setting():
                 textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
                     action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
                     hovered SetField(_tooltip, "value", _("一个agent模型后于核心模型接收本轮的输入输出, 并调用工具以指示前端作出角色行为.\n* MTrigger是MAICA的重要功能之一, 一般不建议禁用"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
-
-            hbox:
-                style_prefix "maica_check"
-                textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
-                    action Show("maica_select_language")
-                    hovered SetField(_tooltip, "value", _("目标生成语言. 支持\"zh\", \"en\"或\"auto\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* auto代表通过prompt让模型自行选择语言回答, 效果不等同于指定对应语言\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
