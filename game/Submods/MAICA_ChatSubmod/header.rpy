@@ -163,7 +163,6 @@ init 10 python:
         "strict_mode": False,
         "show_console_when_reply": False,
         "mpostal_default_reply_time": 360,
-        "42seed":False,
         "use_anim_background": True,
         "tz":maica_get_system_timezone(),
         "gen_quality_chk":True,
@@ -196,6 +195,7 @@ init 10 python:
         "prompt_allow_nickname":True,
     }
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
+    persistent.maica_setting_dict.pop("42seed", None)
     maica_default_dict.update(persistent.maica_setting_dict)
     maica_advanced_setting.update(persistent.maica_advanced_setting)
     maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
@@ -436,10 +436,6 @@ init 10 python:
         else:
             store.maica.maica_instance.modelconfig = {}
         
-        if persistent.maica_setting_dict["42seed"]:
-            persistent.maica_advanced_setting_status["seed"] = False
-            persistent.maica_advanced_setting['seed'] = 42
-            store.maica.maica_instance.modelconfig.update({"seed":42})
         store.maica.maica_instance.savefile_access = persistent.maica_setting_dict["savefile_access"]
         store.maica.maica_instance.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica_instance.enable_mf = persistent.maica_setting_dict['enable_mf']
@@ -476,15 +472,6 @@ init 10 python:
         persistent.maica_setting_dict["auto_resume"] = store.maica.maica_instance.auto_resume
         persistent.maica_setting_dict["keep_alive"] = store.maica.maica_instance.keep_alive
 
-        # 没开42 但是相关设置改变了 证明之前开了42
-        if not persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica_instance.modelconfig):
-            persistent.maica_setting_dict["42seed"] = True
-        # 正常情况
-        elif persistent.maica_setting_dict["42seed"] and (not persistent.maica_advanced_setting_status["seed"] and 'seed' in store.maica.maica_instance.modelconfig):
-            persistent.maica_setting_dict["42seed"] = True
-        else:
-            persistent.maica_setting_dict["42seed"] = False
-        # maica_discard_advanced_setting()
         persistent.maica_setting_dict["savefile_access"] = store.maica.maica_instance.savefile_access
         persistent.maica_setting_dict["chat_session"] = store.maica.maica_instance.chat_session
         persistent.maica_setting_dict['enable_mf'] = store.maica.maica_instance.enable_mf
@@ -1076,13 +1063,6 @@ screen maica_setting():
                             textbutton _("设置高级参数"):
                                 style "maica_check_button_disabled"
                                 action Show("maica_advance_setting")
-                    hbox:
-                        style_prefix "generic_fancy_check"
-                        textbutton _("锁定最佳实践"):
-                            action ToggleDict(persistent.maica_setting_dict, "42seed", True, False)
-                            hovered SetField(_tooltip, "value", _("锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"))
-                            unhovered SetField(_tooltip, "value", _tooltip.default)
-
             hbox:
                 use divider(_("会话与数据"))
 
@@ -1205,7 +1185,7 @@ screen maica_setting():
                             style_prefix "generic_fancy_check"
                             textbutton _("MSpire使用缓存"):
                                 action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数并固定最佳实践"))
+                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
                     else:
                         hbox:

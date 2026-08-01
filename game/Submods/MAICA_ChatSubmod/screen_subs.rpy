@@ -199,19 +199,12 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                if not persistent.maica_setting_dict.get('42seed'):
-                    textbutton "seed":
-                        action ToggleDict(persistent.maica_advanced_setting_status, "seed")
-                        hovered SetField(_tooltip, "value", _("生成种子. 一般而言影响很小且随机"))
-                        unhovered SetField(_tooltip, "value", _tooltip.default)
-                    if persistent.maica_advanced_setting_status.get("seed", False):
-                        use num_bar("seed", 200, _("生成种子. 一般而言影响很小且随机"), "seed", -2147483648, 2147483647, sdict=sdict)
-                else:
-                    textbutton "seed ":
-                        action NullAction()
-                        hovered SetField(_tooltip, "value", _("! 最佳实践已启用, 种子锁定为42"))
-                        unhovered SetField(_tooltip, "value", _tooltip.default)
-                        selected persistent.maica_advanced_setting_status.get('seed', False)
+                textbutton "seed":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "seed")
+                    hovered SetField(_tooltip, "value", _("生成种子. 一般而言影响很小且随机"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                if persistent.maica_advanced_setting_status.get("seed", False):
+                    use num_bar("seed", 200, _("生成种子. 一般而言影响很小且随机"), "seed", -2147483648, 2147483647, sdict=sdict)
 
             hbox:
                 spacing 5

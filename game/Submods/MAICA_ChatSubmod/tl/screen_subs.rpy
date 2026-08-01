@@ -33,10 +33,6 @@ translate english strings:
     old "生成种子. 一般而言影响很小且随机"
     new "Generation seed. Normally a minor and random factor"
 
-    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:283
-    old "! 最佳实践已启用, 种子锁定为42"
-    new "! Best practice enforced, seed locked to 42"
-
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:287
     old "高级设置"
     new "Advanced settings"

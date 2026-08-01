@@ -837,25 +837,9 @@ translate english strings:
 
 translate english strings:
 
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1086
-    old "!已启用42seed"
-    new "!Seed locked to 42"
-
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1341
-    old "锁定最佳实践"
-    new "Enforce best practice"
-
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1343
-    old "锁定seed为42, 该设置覆盖高级参数中的seed\n启用会完全排除生成中的随机性, 在统计学上稳定性更佳"
-    new "Set seed to 42 and override the corresponding advanced section.\nThis removes the randomness in generation completely and performs better statistically."
-
     # game/Submods/MAICA_ChatSubmod/header.rpy:1426
     old "MSpire使用缓存"
     new "Use cache for MSpire"
-
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1428
-    old "启用MSpire缓存, 且使用默认高级参数并固定种子为42\n"
-    new "Enable MSpire cache, disable advanced settings and set seed to 42 for MSpire.\n"
 
 # TODO: Translation updated at 2025-05-04 21:00
 
@@ -880,10 +864,6 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:432
     old "> 向 MAICA 捐赠"
     new "> Donate to MAICA"
-
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1173
-    old "!已启用最佳实践"
-    new "!Best practice enabled"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1568
     old "动态的天堂树林"
@@ -1003,10 +983,6 @@ translate english strings:
     old "高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"
     new "Advanced parameters could significantly affect the model's performance.\n* The default is already the best field-tested config, so it's not suggested to enable this"
 
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1494
-    old "锁定seed为42, 该设置覆盖高级参数中的seed.\n* 启用会完全排除生成中的随机性, 在统计学上稳定性更佳, 且更易于复现"
-    new "Designate seed to 42, which overrides seed in advanced parameters.\n* Removes randomness in generation, makes performance more stable and reproducable."
-
     # game/Submods/MAICA_ChatSubmod/header.rpy:1500
     old "关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"
     new "Model will ignore savefile data if this is disabled.\n* MAICA Blessland uploads savefile on each restart automatically"
@@ -1018,10 +994,6 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1514
     old "会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题"
     new "Max length each session will preserve, in range of 512-28672.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues"
-
-    # game/Submods/MAICA_ChatSubmod/header.rpy:1579
-    old "启用MSpire缓存.\n* 会强制使用默认高级参数并固定最佳实践"
-    new "Enable MSpire cache.\n* Forces default super params and best practice"
 
 # TODO: Translation updated at 2025-09-23 23:29
 
@@ -1368,8 +1340,8 @@ translate english strings:
     new "! Current main session is set to same as MSpire session which may cause unexpected issues.\n! Please avoid setting these the same value (except 0) unless you literally understand what you're doing."
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1069
-    old "启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数并固定最佳实践"
-    new "Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Forces default super params and best practice"
+    old "启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数"
+    new "Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Enforces default super params"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1076
     old "启用MSpire缓存.\n! MSpire会话不为0, MSpire缓存不会生效"
