@@ -417,6 +417,25 @@ screen maica_select_language():
                 ]
        
 
+screen maica_select_preset(preset_type):
+    modal True
+    zorder 92
+
+    $ presets, setting_keys, advanced_keys = store._maica_preset_definition(preset_type)
+    $ preset_title = _("行为预设") if preset_type == "behavior" else _("超参数预设")
+    $ _tooltip = store._tooltip
+
+    use maica_setter_small_frame(title=preset_title, ok_action=Hide("maica_select_preset")):
+        style_prefix "generic_fancy_check"
+        for preset in presets:
+            hbox:
+                textbutton _(preset["name"]):
+                    action Function(store.maica_apply_preset, preset_type, preset)
+                    hovered SetField(_tooltip, "value", _(preset["description"]))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected store.maica_preset_matches(preset_type, preset)
+
+
 default use_email = True
 screen maica_login():
     modal True

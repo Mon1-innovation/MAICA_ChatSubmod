@@ -194,6 +194,226 @@ init 10 python:
         "mt_concl_memory":1,
         "prompt_allow_nickname":True,
     }
+    maica_advanced_default_setting = copy.deepcopy(maica_advanced_setting)
+
+    maica_hyperparameter_setting_keys = (
+        "max_tokens",
+        "seed",
+        "top_p",
+        "temperature",
+        "frequency_penalty",
+        "presence_penalty",
+    )
+    maica_behavior_setting_keys = (
+        "enable_mf",
+        "enable_mt",
+        "gen_quality_chk",
+        "input_lang_detect",
+        "pprt",
+        "use_custom_model_config",
+    )
+    maica_behavior_advanced_setting_keys = tuple(
+        key for key in maica_advanced_default_setting
+        if key not in maica_hyperparameter_setting_keys
+    )
+
+    # behavior:
+        # "enable_mf",
+        # "enable_mt",
+        # "gen_quality_chk",
+        # "input_lang_detect",
+        # "pprt",
+        # "use_custom_model_config",
+        # "mf_llm_concl":False,
+        # "prompt_pname_repl":False,
+        # "mf_const_tools":1,
+        # "esearch_llm_concl":True,
+        # "nsfw_acceptive":True,
+        # "mf_context_rnds":0,
+        # "mt_context_rnds":1,
+        # "mf_precheck_mt":True,
+        # "mf_disable_loop":True,
+        # "mt_disable_loop":True,
+        # "gen_enforce_lang":True,
+        # "mf_sf_access_impl":1,
+        # "mf_const_sf_access":1,
+        # "mt_concl_memory":1,
+        # "prompt_allow_nickname":True,
+
+    # super:
+        # "top_p":0.7,
+        # "temperature":0.22,
+        # "max_tokens":1600,
+        # "frequency_penalty":0.44,
+        # "presence_penalty":0.34,
+        # "seed":0,
+
+    # Preset settings use the existing flat setting names. Advanced entries are
+    # enabled when declared; omitted entries are reset to their defaults.
+    maica_behavior_presets = [
+        {
+            "name": "纯粹",
+            "description": "最大程度缩减prompt, 几乎不启用任何工具, 只保留核心纠错.\n+ 速度最快, TTFT接近最短\n- 几乎没有感知能力, 不能调用游戏内操作",
+            "settings": {
+                "enable_mf": False,
+                "enable_mt": False,
+                "gen_quality_chk": False,
+                "use_custom_model_config": True,
+                "mf_const_tools": 0,
+                "nsfw_acceptive": False,
+                "gen_enforce_lang": False,
+                "mf_const_sf_access": 0,
+                "mt_concl_memory": 0,
+                "prompt_allow_nickname": False,
+            },
+        },
+        {
+            "name": "流利",
+            "description": "不让常规LLM介入前生成阶段, 仅依靠常态工具, 优先压低TTFT. 适当减少其余工具.\n+ 速度较快, TTFT接近最短\n* 有较弱感知能力, 能调用游戏内操作",
+            "settings": {
+                "enable_mf": False,
+                "use_custom_model_config": True,
+                "mt_context_rnds": 0,
+                "mf_precheck_mt": False,
+                "mf_sf_access_impl": 2,
+            },
+        },
+        {
+            "name": "灵活",
+            "description": "在默认行为基础上采用偏激进的调校, 牺牲稳定性和不常用的功能, 换取平均速度.\n+ 速度较快, TTFT较短\n+ 有正常感知能力, 能调用游戏内操作",
+            "settings": {
+                "gen_quality_chk": False,
+                "use_custom_model_config": True,
+                "mf_const_tools": 2,
+                "esearch_llm_concl": False,
+                "mt_context_rnds": 0,
+                "mf_precheck_mt": False,
+                "mf_sf_access_impl": 2,
+            },
+        },
+        {
+            "name": "均衡(默认)",
+            "description": "MAICA的默认行为. 久经考验的平衡调校, 在绝大多数情况下表现最佳.\n* 速度中等, TTFT中等\n+ 有正常感知能力, 能调用游戏内操作",
+            "settings": {},
+        },
+        {
+            "name": "完全",
+            "description": "几乎完整启用生成辅助功能集. 在极端情况下可能表现更好, 但一般都是浪费时间.\n- 速度最慢, TTFT最长\n+ 有正常感知能力, 能调用游戏内操作",
+            "settings": {
+                "use_custom_model_config": True,
+                "mf_llm_concl": True,
+                "mf_context_rnds": 1,
+                "mf_disable_loop": False,
+                "mt_disable_loop": False,
+            },
+        },
+    ]
+    maica_hyperparameter_presets = [
+        {
+            "name": "贪婪",
+            "description": "固定种子, 贪婪采样.\n! 非特殊情况不推荐",
+            "settings": {
+                "temperature": 0.0,
+                "seed": 42,
+            },
+        },
+        {
+            "name": "胆怯",
+            "description": "较低的温度.\n! 非特殊情况不推荐",
+            "settings": {
+                "temperature": 0.15,
+            },
+        },
+        {
+            "name": "标准(默认)",
+            "description": "MAICA的默认超参数. 久经考验的平衡调校, 在绝大多数情况下表现最佳.",
+            "settings": {},
+        },
+        {
+            "name": "冒进",
+            "description": "较高的温度和采样范围.\n! 非特殊情况不推荐",
+            "settings": {
+                "temperature": 0.35,
+                "top_p": 0.8,
+            },
+        },
+    ]
+
+    def _maica_preset_definition(preset_type):
+        if preset_type == "behavior":
+            return (
+                maica_behavior_presets,
+                maica_behavior_setting_keys,
+                maica_behavior_advanced_setting_keys,
+            )
+        if preset_type == "hyperparameter":
+            return (
+                maica_hyperparameter_presets,
+                (),
+                maica_hyperparameter_setting_keys,
+            )
+        raise ValueError("Unknown MAICA preset type: {}".format(preset_type))
+
+    def _maica_validate_presets():
+        for preset_type in ("behavior", "hyperparameter"):
+            presets, setting_keys, advanced_keys = _maica_preset_definition(preset_type)
+            allowed_keys = set(setting_keys + advanced_keys)
+            for preset in presets:
+                missing_fields = set(("name", "description", "settings")) - set(preset)
+                if missing_fields:
+                    raise ValueError("MAICA preset is missing fields: {}".format(sorted(missing_fields)))
+                if not isinstance(preset["settings"], dict):
+                    raise ValueError("MAICA preset settings must be a dictionary")
+                unknown_keys = set(preset["settings"]) - allowed_keys
+                if unknown_keys:
+                    raise ValueError("MAICA preset contains unsupported settings: {}".format(sorted(unknown_keys)))
+
+    def maica_apply_preset(preset_type, preset):
+        presets, setting_keys, advanced_keys = _maica_preset_definition(preset_type)
+        preset_settings = preset["settings"]
+
+        for key in setting_keys:
+            persistent.maica_setting_dict[key] = copy.deepcopy(mdef_setting[key])
+        for key in advanced_keys:
+            persistent.maica_advanced_setting[key] = copy.deepcopy(maica_advanced_default_setting[key])
+            persistent.maica_advanced_setting_status[key] = False
+
+        for key, value in preset_settings.items():
+            if key in setting_keys:
+                persistent.maica_setting_dict[key] = copy.deepcopy(value)
+            else:
+                persistent.maica_advanced_setting[key] = copy.deepcopy(value)
+                persistent.maica_advanced_setting_status[key] = True
+
+    def maica_preset_matches(preset_type, preset):
+        presets, setting_keys, advanced_keys = _maica_preset_definition(preset_type)
+        preset_settings = preset["settings"]
+
+        for key in setting_keys:
+            expected = preset_settings.get(key, mdef_setting[key])
+            if persistent.maica_setting_dict.get(key) != expected:
+                return False
+        for key in advanced_keys:
+            expected = preset_settings.get(key, maica_advanced_default_setting[key])
+            expected_enabled = key in preset_settings
+            if persistent.maica_advanced_setting.get(key) != expected:
+                return False
+            if persistent.maica_advanced_setting_status.get(key, False) != expected_enabled:
+                return False
+        return True
+
+    def maica_get_matching_preset(preset_type):
+        presets, setting_keys, advanced_keys = _maica_preset_definition(preset_type)
+        for preset in presets:
+            if maica_preset_matches(preset_type, preset):
+                return preset
+        return None
+
+    def maica_get_preset_name(preset_type):
+        preset = maica_get_matching_preset(preset_type)
+        return _(preset["name"]) if preset else _("自定义")
+
+    _maica_validate_presets()
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     persistent.maica_setting_dict.pop("42seed", None)
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -1005,7 +1225,19 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("目标生成语言. 支持\"zh\", \"en\"或\"auto\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* auto代表通过prompt让模型自行选择语言回答, 效果不等同于指定对应语言\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
+            hbox:
+                style_prefix "maica_check"
+                textbutton _("行为预设: [maica_get_preset_name('behavior')]"):
+                    action Show("maica_select_preset", preset_type="behavior")
+                    hovered SetField(_tooltip, "value", _("这些设置影响MAICA的模型与工具协作行为.\n* 你选择的预设会影响模型的工具, 辅助, 提示词, 以及这些环节消耗的时间\n! 如果你不清楚其具体作用, 请不要修改"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
+            hbox:
+                style_prefix "maica_check"
+                textbutton _("超参数预设: [maica_get_preset_name('hyperparameter')]"):
+                    action Show("maica_select_preset", preset_type="hyperparameter")
+                    hovered SetField(_tooltip, "value", _("这些设置影响MAICA核心模型的推理表现.\n* 你选择的预设直接影响核心模型的推理和采样\n! 如果你不清楚其具体作用, 请不要修改"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "maica_check_nohover"

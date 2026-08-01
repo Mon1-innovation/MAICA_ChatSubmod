@@ -332,3 +332,9 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:1262
     old "语言不正确可能导致模型表现下降或意料之外的问题, 请避免输入非目标语言或在会话中途改变语言.\n如果你仍然要这样做, 请在设置中禁用'输入语言检测'."
     new "Language mismatch could impact performance or lead to unexpected issues, please avoid mismatched input or session context.\nIf you want to force proceed, please disable 'Input language detection' in settings."
+
+    old "行为预设"
+    new "Behavior preset"
+
+    old "超参数预设"
+    new "Hyperparameter preset"

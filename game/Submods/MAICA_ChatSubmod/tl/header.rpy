@@ -1358,3 +1358,77 @@ translate english strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:1087
     old "MSpire会话"
     new "MSpire session"
+
+translate english strings:
+
+    old "行为预设: [maica_get_preset_name('behavior')]"
+    new "Behavior preset: [maica_get_preset_name('behavior')]"
+
+    old "超参数预设: [maica_get_preset_name('hyperparameter')]"
+    new "Hyperparameter preset: [maica_get_preset_name('hyperparameter')]"
+
+    old "这些设置影响MAICA的模型与工具协作行为.\n* 你选择的预设会影响模型的工具, 辅助, 提示词, 以及这些环节消耗的时间\n! 如果你不清楚其具体作用, 请不要修改"
+    new "These settings affect model and tool co-working behavior of MAICA.\n* Changing this preset will affect tools, enhancements and prompts around core model, together with time consumation\n! Do not modify unless you know what they exactly mean"
+
+    old "这些设置影响MAICA核心模型的推理表现.\n* 你选择的预设直接影响核心模型的推理和采样\n! 如果你不清楚其具体作用, 请不要修改"
+    new "These settings affect core model's performance.\n* Changing this preset will directly affect core model's inference and sampling procedure\n! Do not modify unless you know what they exactly mean"
+
+    old "本节中的剩余条目均由预设管理.\n! 如果你不清楚这些条目的具体作用, 请不要手动修改"
+    new "The remaining settings in this section are managed by presets.\n! Do not modify manually unless you know what they exactly mean"
+
+    old "自定义"
+    new "Custom"
+
+    old "纯粹"
+    new "Pure"
+
+    old "最大程度缩减prompt, 几乎不启用任何工具, 只保留核心纠错.\n+ 速度最快, TTFT接近最短\n- 几乎没有感知能力, 不能调用游戏内操作"
+    new "Reduce prompt text to minimum, use almost no tool, only retain critical correction.\n+ Fastest, nearly shortest TTFT\n- Almost no external sense, no in-game action ability"
+
+    old "流利"
+    new "Fluent"
+
+    old "不让常规LLM介入前生成阶段, 仅依靠常态工具, 优先压低TTFT. 适当减少其余工具.\n+ 速度较快, TTFT接近最短\n* 有较弱感知能力, 能调用游戏内操作"
+    new "No LLM intervention in pre-generation phase, use constant tools instead to reduce TTFT. Also reduced other tools.\n+ Relatively fast, nearly shortest TTFT\n* Limited external sense, has in-game action ability"
+
+    old "灵活"
+    new "Dexterous"
+
+    old "在默认行为基础上采用偏激进的调校, 牺牲稳定性和不常用的功能, 换取平均速度.\n+ 速度较快, TTFT较短\n+ 有正常感知能力, 能调用游戏内操作"
+    new "Aggressive tending calibration based on default, exchanges stability and rarely used functions for average speed.\n+ Relatively fast, relatively short TTFT\n+ Normal external sense, has in-game action ability"
+
+    old "均衡(默认)"
+    new "Balanced (default)"
+
+    old "MAICA的默认行为. 久经考验的平衡调校, 在绝大多数情况下表现最佳.\n* 速度中等, TTFT中等\n+ 有正常感知能力, 能调用游戏内操作"
+    new "Default behavior of MAICA. Field-tested balanced calibration, performs best overall in most cases.\n* Decent speed, decent TTFT\n+ Normal external sense, has in-game action ability"
+
+    old "完全"
+    new "Complete"
+
+    old "几乎完整启用生成辅助功能集. 在极端情况下可能表现更好, 但一般都是浪费时间.\n- 速度最慢, TTFT最长\n+ 有正常感知能力, 能调用游戏内操作"
+    new "Almost complete feature set of generation assistance enabled. May perform better under extreme circumstances, but normally just wasting time.\n- Slowest, longest TTFT\n+ Normal external sense, has in-game action ability"
+
+    old "贪婪"
+    new "Eager"
+
+    old "固定种子, 贪婪采样.\n! 非特殊情况不推荐"
+    new "Fixed seed, eager sampling.\n! Not recommended for normal cases"
+
+    old "胆怯"
+    new "Cautious"
+
+    old "较低的温度.\n! 非特殊情况不推荐"
+    new "Lower temperature.\n! Not recommended for normal cases"
+
+    old "标准(默认)"
+    new "Standard (default)"
+
+    old "MAICA的默认超参数. 久经考验的平衡调校, 在绝大多数情况下表现最佳."
+    new "Default super params of MAICA. Field-tested balanced calibration, performs best overall in most cases."
+
+    old "冒进"
+    new "Aggressive"
+
+    old "较高的温度和采样范围.\n! 非特殊情况不推荐"
+    new "Higher temperature.\n! Not recommended for normal cases"
