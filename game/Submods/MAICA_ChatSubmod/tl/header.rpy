@@ -102,6 +102,9 @@ translate english strings:
     old "使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"
     new "Use persistent file: [persistent.maica_setting_dict.get('savefile_access')]"
 
+    old "关闭时, 模型将不会使用存档数据.\n! savefile_access标记文件不存在, 存档数据不会上传或应用"
+    new "Model will ignore savefile data if this is disabled.\n! savefile_access marker does not exist, savefile will not be uploaded or applied"
+
     # game/Submods/MAICA_ChatSubmod/header.rpy:240
     old "关闭时, 模型将不会使用存档数据\n在开启前请务必先上传存档"
     new "Decides if use uploaded savefile or not\nMust have savefile uploaded if set to on"

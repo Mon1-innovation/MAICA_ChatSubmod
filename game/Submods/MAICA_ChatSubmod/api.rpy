@@ -195,7 +195,11 @@ init 5 python in maica:
         "log_screen_installed": False,
         "is_zhcn": True,
         "donation_exists": False,
+        "savefile_access_exists": False,
     }
+
+    def savefile_access_marker_exists():
+        return maica.savefile_access_marker_exists()
 
     def validate_version(force=False):
         global _maica_version_check_cache
@@ -239,6 +243,7 @@ init 5 python in maica:
             "log_screen_installed": store.mas_submod_utils.isSubmodInstalled("Log Screen"),
             "is_zhcn": is_zhcn,
             "donation_exists": os.path.exists(donation_path),
+            "savefile_access_exists": savefile_access_marker_exists(),
         }
 
         return maica_setting_pane_cache

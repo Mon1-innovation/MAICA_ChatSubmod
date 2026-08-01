@@ -300,6 +300,10 @@ init 10 python:
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def _upload_persistent_dict():
+        if not store.maica.savefile_access_marker_exists():
+            store.mas_submod_utils.submod_log.info("MAICA: Skip savefile upload because savefile_access marker is missing")
+            return
+
         max_bytes = 1536
         import copy, maica_v13_migration
         d = copy.deepcopy(persistent.__dict__)
@@ -1084,10 +1088,17 @@ screen maica_setting():
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"):
-                    action ToggleDict(persistent.maica_setting_dict, "savefile_access", True, False)
-                    hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
-                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                if store.maica.savefile_access_marker_exists():
+                    textbutton _("使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"):
+                        action ToggleDict(persistent.maica_setting_dict, "savefile_access", True, False)
+                        hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
+                else:
+                    textbutton _("使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"):
+                        style "generic_fancy_check_button_disabled"
+                        action ToggleDict(persistent.maica_setting_dict, "savefile_access", True, False)
+                        hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n! savefile_access标记文件不存在, 存档数据不会上传或应用"))
+                        unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if persistent.maica_setting_dict['mspire_session'] != 0 and persistent.maica_setting_dict['chat_session'] == persistent.maica_setting_dict['mspire_session']:
                 $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)\n! 当前session与MSpire会话相同, 可能导致迷惑性的表现")

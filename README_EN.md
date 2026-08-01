@@ -59,3 +59,4 @@ This repository introduction is very brief. If this is your first contact with M
 4. English/Chinese are fully supported, but expect performance reduction and higher possibility of functional issues using English.
 5. Does not support system http(s)/socks proxy. Turn it off.
 6. You can delete `game\Submods\MAICA_ChatSubmod\donation` to hide donation link.
+7. You can delete `game\Submods\MAICA_ChatSubmod\savefile_access` to prevent savefile uploading and neutralize `savefile_access`.

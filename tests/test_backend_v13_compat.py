@@ -939,6 +939,19 @@ def test_c_savefile_access_defaults_to_enabled():
     runtime = source("game/python-packages/maica.py")
     assert_key_default(header, "savefile_access", r"True\b")
     assert re.search(r"self\.savefile_access\s*=\s*True\b", runtime)
+    assert "savefile_access_marker_exists" in header
+    assert "savefile_access_marker_exists" in runtime
+    assert (ROOT / "game/Submods/MAICA_ChatSubmod/savefile_access").is_file()
+    upload = function_body(header, r"_upload_persistent_dict")
+    assert upload.index("savefile_access_marker_exists") < upload.index("copy.deepcopy")
+    apply_settings = function_body(header, r"maica_apply_setting")
+    discard_settings = function_body(header, r"maica_discard_setting")
+    assert "savefile_access_marker_exists" not in apply_settings
+    assert "savefile_access_marker_exists" not in discard_settings
+    assert re.search(
+        r"maica_instance\.savefile_access\s*=\s*persistent\.maica_setting_dict\[['\"]savefile_access['\"]\]",
+        apply_settings,
+    )
 
 
 def test_c_tz_has_ui_and_outbound_owners():

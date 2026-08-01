@@ -1198,6 +1198,28 @@ def test_maica_runtime_has_no_websocket_cookie_owner(isolated_maica_ai_globals):
     assert not hasattr(ai, "enable_strict_mode")
 
 
+def test_savefile_access_marker_is_a_final_outbound_gate(
+    isolated_maica_ai_globals, monkeypatch, tmp_path
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.savefile_access = True
+    ai.modelconfig["savefile_access"] = True
+    monkeypatch.setattr(maica, "basedir", str(tmp_path), raising=False)
+
+    assert ai.build_setting_config()["chat_params"]["savefile_access"] is False
+    assert ai.savefile_access is True
+    assert ai.upload_save({}) == {
+        "success": False,
+        "exception": "savefile_access marker is missing",
+    }
+
+    (tmp_path / "savefile_access").write_text("enabled", encoding="utf-8")
+    assert ai.build_setting_config()["chat_params"]["savefile_access"] is True
+
+    ai.savefile_access = False
+    assert ai.build_setting_config()["chat_params"]["savefile_access"] is False
+
+
 def test_manual_maica_example_has_no_retired_cookie_or_strict_owner():
     source = (PACKAGE_ROOT / "test_maica.py").read_text(encoding="utf-8")
     assert "enable_strict_mode" not in source

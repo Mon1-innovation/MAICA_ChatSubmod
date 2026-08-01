@@ -12,6 +12,7 @@ from logger_manager import get_logger_manager, MultiLoggerWrapper
 import websocket
 import maica_mtrigger
 import maica_v13_migration
+import os
 from maica_mtrigger import MTriggerAction
 
 # Initialize injection point registration
@@ -37,6 +38,14 @@ websocket._logging.enableTrace(False)
 import datetime
 
 MAX_SESSION_LEN_LIMIT = 28672
+
+
+def savefile_access_marker_exists():
+    marker_root = globals().get("basedir")
+    return bool(
+        marker_root
+        and os.path.isfile(os.path.join(marker_root, "savefile_access"))
+    )
 
 
 def normalize_chat_params(params):
@@ -984,6 +993,9 @@ class MaicaAi(ChatBotInterface):
         })
         data['chat_params'].update(self.modelconfig)
         data['chat_params'] = normalize_chat_params(data['chat_params'])
+        data['chat_params']['savefile_access'] = bool(
+            self.savefile_access and savefile_access_marker_exists()
+        )
         return data
 
     def send_settings(self):
@@ -1118,6 +1130,12 @@ class MaicaAi(ChatBotInterface):
         
         """
 
+        if not savefile_access_marker_exists():
+            logger.info("upload_save:: savefile_access marker is missing")
+            return {
+                "success": False,
+                "exception": "savefile_access marker is missing"
+            }
         if not self.__accessable:
             logger.error("upload_save::Maica is not serving")
             return {}
