@@ -138,6 +138,8 @@ label maica_talking.asking:
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             return_code = "mtrigger_triggering"
             store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
+            for quality_reasonable, quality_confidence in ai.consume_quality_statuses():
+                store.maica_handle_quality_status(quality_reasonable, quality_confidence)
             ai.console_logger.debug("<chat_action> {}".format(store.action))
             if store.action['stop']:
                 return_code = "canceled"

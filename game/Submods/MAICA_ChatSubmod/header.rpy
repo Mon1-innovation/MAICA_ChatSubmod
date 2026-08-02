@@ -1173,13 +1173,13 @@ screen maica_setting():
                                 ]
                 
                 textbutton "显示maica_gen_quality_chk_notify 0.3":
-                    action Function(store.mtrigger_dscl, prob=0.3)
-                
+                    action Function(store.maica_handle_quality_status, False, 0.3)
+
                 textbutton "显示maica_gen_quality_chk_notify 0.6":
-                    action Function(store.mtrigger_dscl, prob=0.6)
+                    action Function(store.maica_handle_quality_status, False, 0.6)
 
                 textbutton "显示maica_gen_quality_chk_notify 0.9":
-                    action Function(store.mtrigger_dscl, prob=0.9)
+                    action Function(store.maica_handle_quality_status, False, 0.9)
 
             hbox:
                 use divider(_("连接与安全"))

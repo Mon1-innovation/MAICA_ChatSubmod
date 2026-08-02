@@ -335,10 +335,6 @@ class MTriggerWsHandler(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        if event.data.status == 'maica_quality_status':
-            self.logger.debug('[MTriggerWsHandler] received maica_quality_status')
-            self._trigger_func('dscl', {'value':event.data.content})
-            return
         content = event.data.content
         self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(content))
         if not isinstance(content, dict):
@@ -360,6 +356,64 @@ class MTriggerWsHandler(MaicaWSTask):
 
     def set_trigger_function(self, func):
         self._trigger_func = func
+
+
+class QualityStatusWsHandler(MaicaWSTask):
+    """Receive post-core quality results without treating them as triggers."""
+
+    def __init__(self, task_type, name, manager, except_ws_status=[]):
+        super(QualityStatusWsHandler, self).__init__(
+            task_type, name, manager=manager,
+            except_ws_status=except_ws_status
+        )
+        self._pending = []
+        self._pending_lock = threading.Lock()
+
+    def on_received(self, event):
+        content = event.data.content
+        if not isinstance(content, (list, tuple)) or len(content) != 2:
+            self.logger.error(
+                '[QualityStatusWsHandler] invalid quality payload: {}'.format(content)
+            )
+            return
+
+        reasonable, confidence = content
+        try:
+            number_types = (int, long, float)
+        except NameError:
+            number_types = (int, float)
+
+        if (
+            not isinstance(reasonable, bool)
+            or isinstance(confidence, bool)
+            or not isinstance(confidence, number_types)
+            or not 0.0 <= confidence <= 1.0
+        ):
+            self.logger.error(
+                '[QualityStatusWsHandler] invalid quality payload: {}'.format(content)
+            )
+            return
+
+        result = (reasonable, float(confidence))
+        with self._pending_lock:
+            self._pending.append(result)
+        self.logger.debug(
+            '[QualityStatusWsHandler] received quality status {}'.format(result)
+        )
+
+    def drain(self):
+        with self._pending_lock:
+            pending = list(self._pending)
+            self._pending = []
+        return pending
+
+    def clear(self):
+        with self._pending_lock:
+            self._pending = []
+
+    def reset(self):
+        super(QualityStatusWsHandler, self).reset()
+        self.clear()
 
 import json
 

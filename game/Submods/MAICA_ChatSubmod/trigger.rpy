@@ -442,21 +442,3 @@ init 999 python in maica:
         description = _("内置 | 记忆写入")
     )
     ai.mtrigger_manager.add_trigger(memory_trigger)
-
-#################################################################################
-
-    def mtrigger_dscl_condition():
-        return ai.gen_quality_chk
-
-    def mtrigger_dscl_callback(arg):
-        if isinstance(arg, (str, unicode)):
-            arg = eval(arg)
-        if not arg[0]:
-            # The receiver uses the canonical quality setting and screen.
-            # store.renpy.call("mtrigger_dscl", prob = float(arg[1]))
-            store.mtrigger_dscl(prob = float(arg[1]))
-
-    dscl_trigger = MTriggerBase(common_meter_template, "dscl", condition=mtrigger_dscl_condition, callback=mtrigger_dscl_callback,
-        description = _("内置 | 聊天劣化提示 (接收器)"), method=MTriggerMethod.table,
-        exprop=MTriggerExprop(item_name_zh="sth", item_name_en=""))
-    ai.mtrigger_manager.add_trigger(dscl_trigger)

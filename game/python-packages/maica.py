@@ -455,12 +455,16 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mtrigger_ws_handler",
             manager=self.task_manager,
-            except_ws_status=[
-                'maica_mtrigger_trigger',
-                'maica_quality_status'
-            ]
+            except_ws_status=['maica_mtrigger_trigger']
         )
         self.MTriggerTasker.set_trigger_function(self.mtrigger_manager.triggered)
+
+        self.QualityStatusTasker = maica_tasker_sub.QualityStatusWsHandler(
+            task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+            name="quality_status_ws_handler",
+            manager=self.task_manager,
+            except_ws_status=['maica_quality_status']
+        )
 
         self.Loginer = maica_tasker_sub.MAICALoginTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -938,6 +942,7 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica server not serving.")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
+        self.QualityStatusTasker.clear()
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
         self.MSpireProcessor.start_request(
@@ -955,6 +960,7 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica server not serving.")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
+        self.QualityStatusTasker.clear()
         self.stat['mpostal_count'] += 1
         self.MPostalProcessor.start_request(
             query = {
@@ -1072,6 +1078,7 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica is not serving")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
+        self.QualityStatusTasker.clear()
         self.ChatProcessor.start_request(
             query=message,
             session = self.chat_session if session == None else session,
@@ -1102,6 +1109,7 @@ class MaicaAi(ChatBotInterface):
             return logger.error("Maica is not serving")
         if not self.is_ready_to_input():
             return logger.error("Maica is not ready to input")
+        self.QualityStatusTasker.clear()
         self.RawContextProcessor.start_request(
             query=query,
             taskowner=self.task_manager,
@@ -1109,6 +1117,10 @@ class MaicaAi(ChatBotInterface):
             pprt=self.pprt
         )
         self.stat['message_count'] += 1
+
+    def consume_quality_statuses(self):
+        """Return and clear quality results received for the current response."""
+        return self.QualityStatusTasker.drain()
 
     def _append_to_message_list(self, emote, message, extend=False):
         if len(message) == 0:

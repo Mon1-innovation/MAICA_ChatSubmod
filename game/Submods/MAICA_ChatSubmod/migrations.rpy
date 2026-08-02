@@ -16,6 +16,10 @@ init 998 python:
             warning_callback=store.mas_submod_utils.submod_log.warning
         )
 
+        # "dscl" was a local quality-status receiver, never a backend trigger.
+        persistent.maica_mtrigger_status.pop("dscl", None)
+        store.maica.maica_instance.mtrigger_manager.enable_map.pop("dscl", None)
+
         additions = list(persistent.mas_player_additions or [])
         if persistent._maica_v18_player_additions_backup is None:
             persistent._maica_v18_player_additions_backup = copy.deepcopy(additions)

@@ -1,8 +1,35 @@
+init python:
+
+    def maica_hide_quality_chibi():
+        renpy.hide("chibi_peek", transition=moveoutleft)
+
+    def maica_handle_quality_status(reasonable, confidence):
+        if reasonable or not store.maica.maica_instance.gen_quality_chk:
+            return
+        if confidence < 0.5:
+            return
+        if confidence < 0.8:
+            renpy.notify(_("MAICA: 若会话质量下降, 请重置session"))
+            return
+
+        renpy.show_screen("maica_gen_quality_chk_notify", confidence)
+        renpy.show(
+            "chibi_peek",
+            zorder=MAS_BACKGROUND_Z - 1,
+            at_list=[],
+            layer="master",
+            what=None,
+            transform=None,
+            tag=None,
+            transition=moveinleft
+        )
+
 
 screen maica_gen_quality_chk_notify(prob = 1.0):
     modal False
     zorder 100
     on "show" action If(not persistent.maica_setting_dict["gen_quality_chk"], Hide("maica_gen_quality_chk_notify"))
+    on "hide" action Function(maica_hide_quality_chibi)
 
     default countdown = 10
 
@@ -72,6 +99,7 @@ screen maica_gen_quality_chk_notify(prob = 1.0):
                 xalign 0.5
 
     timer 1.0 repeat True action If(countdown > 0, SetScreenVariable("countdown", countdown - 1), Hide("maica_gen_quality_chk_notify"))
+    timer 5.0 action Function(maica_hide_quality_chibi)
 
 screen maica_log():
     python:

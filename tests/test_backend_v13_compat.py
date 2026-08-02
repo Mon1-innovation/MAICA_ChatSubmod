@@ -1243,8 +1243,7 @@ def test_g_chat_addition_input_does_not_keep_the_legacy_50_character_limit():
 QUALITY_RUNTIME_FILES = (
     "game/Submods/MAICA_ChatSubmod/header.rpy",
     "game/Submods/MAICA_ChatSubmod/screen_subs.rpy",
-    "game/Submods/MAICA_ChatSubmod/trigger.rpy",
-    "game/Submods/MAICA_ChatSubmod/trigger_labels.rpy",
+    "game/python-packages/maica.py",
 )
 
 QUALITY_TRANSLATION_FILES = (
@@ -1273,12 +1272,53 @@ def test_h_quality_asset_is_replaced():
 
 
 def test_h_quality_runtime_uses_the_active_user_setting():
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    handler = function_body(screen, r"maica_handle_quality_status")
+    assert re.search(r"\bmaica_instance\.gen_quality_chk\b", handler)
+    assert not re.search(r"default_setting\s*\[\s*['\"]gen_quality_chk['\"]\s*\]", handler)
+
+
+def test_h_quality_status_is_not_registered_or_uploaded_as_a_trigger():
     trigger = source("game/Submods/MAICA_ChatSubmod/trigger.rpy")
+    tasker = source("game/python-packages/maica_tasker_sub.py")
+    assert "dscl_trigger" not in trigger
+    assert "mtrigger_dscl" not in trigger
+    assert not re.search(r"_trigger_func\s*\(\s*['\"]dscl['\"]", tasker)
+
+
+def test_h_quality_status_has_a_separate_listener_and_post_response_consumer():
+    runtime = source("game/python-packages/maica.py")
+    main = source("game/Submods/MAICA_ChatSubmod/main.rpy")
+    assert re.search(
+        r"QualityStatusTasker\s*=\s*maica_tasker_sub\.QualityStatusWsHandler",
+        runtime,
+    )
+    trigger_run = main.index("ai.mtrigger_manager.run_trigger")
+    quality_consume = main.index("ai.consume_quality_statuses")
+    stop_check = main.index("if store.action['stop']")
+    assert trigger_run < quality_consume < stop_check
+
+
+def test_h_quality_ui_never_runs_display_calls_in_a_background_thread():
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     labels = source("game/Submods/MAICA_ChatSubmod/trigger_labels.rpy")
-    condition = function_body(trigger, r"mtrigger_dscl_condition")
-    assert re.search(r"\bai\.gen_quality_chk\b", condition)
-    assert re.search(r"\bmaica_instance\.gen_quality_chk\b", labels)
-    assert not re.search(r"default_setting\s*\[\s*['\"]gen_quality_chk['\"]\s*\]", trigger + labels)
+    assert "invoke_in_thread" not in screen + labels
+    assert "timer 5.0 action Function(maica_hide_quality_chibi)" in screen
+
+
+def test_h_legacy_quality_receiver_status_is_removed_by_latest_migration():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
+    migration_body = function_body(migration, r"migration_1_8_0")
+    assert "maica_mtrigger_status.pop" not in api
+    assert re.search(
+        r"maica_mtrigger_status\.pop\s*\(\s*['\"]dscl['\"]\s*,\s*None\s*\)",
+        migration_body,
+    )
+    assert re.search(
+        r"mtrigger_manager\.enable_map\.pop\s*\(\s*['\"]dscl['\"]\s*,\s*None\s*\)",
+        migration_body,
+    )
 
 
 def test_h_internal_quality_key_is_not_registered_as_an_english_translation():

@@ -139,6 +139,16 @@ def _new_mtrigger_handler(monkeypatch):
     )
 
 
+def _new_quality_handler(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    return maica_tasker_sub.QualityStatusWsHandler(
+        task_type=1,
+        name="quality_status_ws_handler",
+        manager=ManagerStub(),
+        except_ws_status=["maica_quality_status"],
+    )
+
+
 def _copy_injected_references(registry):
     return {
         name: dict(reference) if isinstance(reference, dict) else reference
@@ -264,6 +274,48 @@ def test_mtrigger_ws_handler_rejects_malformed_payload(content, monkeypatch):
     handler.on_received(EventStub("maica_mtrigger", content))
 
     assert received == []
+
+
+def test_quality_status_handler_queues_and_atomically_drains_results(monkeypatch):
+    handler = _new_quality_handler(monkeypatch)
+
+    handler.on_received(EventStub("maica_quality_status", [False, 0.9]))
+    handler.on_received(EventStub("maica_quality_status", [True, 0]))
+
+    assert handler.drain() == [(False, 0.9), (True, 0.0)]
+    assert handler.drain() == []
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        None,
+        {},
+        [False],
+        [False, 0.5, "extra"],
+        [0, 0.5],
+        [False, True],
+        [False, -0.1],
+        [False, 1.1],
+        [False, float("nan")],
+        [False, float("inf")],
+    ],
+)
+def test_quality_status_handler_rejects_malformed_payloads(content, monkeypatch):
+    handler = _new_quality_handler(monkeypatch)
+
+    handler.on_received(EventStub("maica_quality_status", content))
+
+    assert handler.drain() == []
+
+
+def test_quality_status_handler_reset_discards_stale_results(monkeypatch):
+    handler = _new_quality_handler(monkeypatch)
+    handler.on_received(EventStub("maica_quality_status", [False, 0.9]))
+
+    handler.reset()
+
+    assert handler.drain() == []
 
 
 def test_common_affection_template_uses_alter_value_and_accepts_legacy_input():
@@ -1006,12 +1058,20 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
         def start_request(self, **kwargs):
             self.kwargs = kwargs
 
+    class QualityStatusRecorder(object):
+        def __init__(self):
+            self.clear_count = 0
+
+        def clear(self):
+            self.clear_count += 1
+
     ai = object.__new__(maica.MaicaAi)
     ai._MaicaAi__accessable = True
     ai.is_ready_to_input = lambda: True
     ai.stat = {"mspire_count": 0}
     ai.MaicaAiStatus = maica.MaicaAi.MaicaAiStatus
     ai.MSpireProcessor = ProcessorRecorder()
+    ai.QualityStatusTasker = QualityStatusRecorder()
     ai.mspire_category = ["science"]
     ai.mspire_session = 0
     ai.chat_session = 1
@@ -1024,6 +1084,7 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
 
     assert ai.MSpireProcessor.kwargs["ctg_weight"] == 25
     assert ai.MSpireProcessor.kwargs["use_cache"] is True
+    assert ai.QualityStatusTasker.clear_count == 1
 
 
 def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatch):
@@ -1186,7 +1247,8 @@ def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_gl
         "maica_core_streaming_continue",
         "maica_chat_loop_finished",
     ]
-    assert "maica_quality_status" in ai.MTriggerTasker.except_ws_status
+    assert ai.MTriggerTasker.except_ws_status == ["maica_mtrigger_trigger"]
+    assert ai.QualityStatusTasker.except_ws_status == ["maica_quality_status"]
     loop_task = ai.task_manager.get_task("maicaloop_warn_handler")
     assert loop_task.except_ws_status == ["maica_loop_warn_reset"]
 
