@@ -161,8 +161,8 @@ label maica_talking.end:
     call maica_hide_console
     if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":    
         $ store.mas_ptod.clear_console()
-    if mspire_user_responsed:
-        $ maica_apply_setting(True)
+    # if mspire_user_responsed:
+    #     $ maica_apply_setting(True)
     return return_code
 label maica_talking.ask_mspire_continue:
     m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
@@ -171,9 +171,6 @@ label maica_talking.ask_mspire_continue:
         "嗯...我们要接着这个话题聊聊吗?{fast}"
         "好啊":
             $ mspire_user_responsed = True
-            $ new_mf_context_rnds = max(min(int(persistent.maica_advanced_setting['mf_context_rnds']) + 1, 5), 0)
-            $ store.maica.maica_instance.modelconfig.update({"mf_context_rnds": new_mf_context_rnds})
-            $ store.maica.maica_instance.send_settings()
             jump maica_talking.asking
             
         "算了":
