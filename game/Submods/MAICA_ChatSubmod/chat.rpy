@@ -707,7 +707,7 @@ label maica_delete_information:
         items = []
         for i in persistent.mas_player_additions:
             items.append([
-                i, i, False, False, True 
+                maica_escape_display_text(i), i, False, False, True
             ])
 
     call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("删除选择项"), return_all=True)

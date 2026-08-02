@@ -31,7 +31,6 @@ default persistent.maica_setting_dict = {
 }
 default persistent.maica_advanced_setting = {}
 default persistent.maica_advanced_setting_status = {}
-default persistent.maica_player_additions_status = {}
 default persistent.mas_player_additions = []
 default persistent._maica_reseted = False
 default persistent._maica_target_lang_mode = None
@@ -490,11 +489,26 @@ init 10 python:
         value = int(persistent.maica_advanced_setting.get(key, lower))
         persistent.maica_advanced_setting[key] = max(lower, min(value, upper))
 
+    def maica_escape_display_text(text):
+        return text.replace("[", "[[").replace("{", "{{")
+
+    def maica_selected_item(items, selected_indices):
+        if len(selected_indices) != 1:
+            return None
+        index = next(iter(selected_indices))
+        if index < 0 or index >= len(items):
+            return None
+        return items[index]
+
+    def maica_delete_selected_items(items, selected_indices):
+        items[:] = [item for index, item in enumerate(items) if index not in selected_indices]
+        selected_indices.clear()
+
     def maica_validate_player_addition(raw_addition, additions, edittarget=None, prefix_player=True):
         if not isinstance(raw_addition, (str, unicode)) or not raw_addition.strip():
             renpy.notify(_("MAICA: 输入为空"))
             return None
-        addition = ("[player]" + raw_addition.strip() if prefix_player else raw_addition.strip())
+        addition = ("{player_name}" + raw_addition.strip() if prefix_player else raw_addition.strip())
         replacing = edittarget in additions
         if len(additions) >= 512:
             if not replacing:

@@ -546,13 +546,14 @@ screen maica_login_input(message, returnto, ok_action = Hide("maica_login_input"
 
 screen maica_addition_input(addition="", edittarget=None):
     python:
-        if persistent._mas_player_addition == None:
-            persistent._mas_player_addition = ""
+        if persistent._mas_player_addition is None:
+            persistent._mas_player_addition = addition
         def apply(edittarget):
             addition = maica_validate_player_addition(
                 persistent._mas_player_addition,
                 persistent.mas_player_additions,
-                edittarget
+                edittarget,
+                prefix_player=edittarget is None
             )
             if addition is None:
                 return
@@ -573,7 +574,7 @@ screen maica_addition_input(addition="", edittarget=None):
     modal True
     zorder 92
 
-    use maica_setter_medium_frame(title=renpy.substitute(_("请输入MFocus信息")), ok_action=[Function(apply, edittarget), SetField(persistent ,"selectbool", None), Hide("maica_addition_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_addition_input")]):
+    use maica_setter_medium_frame(title=renpy.substitute(_("请输入MFocus信息")), ok_action=[Function(apply, edittarget), Hide("maica_addition_input")], cancel_action=[SetField(persistent, "_mas_player_addition", None), Hide("maica_addition_input")]):
         hbox:
             xfill True
             hbox:
@@ -593,8 +594,8 @@ screen maica_addition_input(addition="", edittarget=None):
 
 screen maica_mspire_input(addition="", edittarget=None):
     python:
-        if persistent._mas_player_addition == None:
-            persistent._mas_player_addition = ""
+        if persistent._mas_player_addition is None:
+            persistent._mas_player_addition = addition
         def apply(edittarget):
             addition = persistent._mas_player_addition
             if not persistent._mas_player_addition.strip:
@@ -617,7 +618,7 @@ screen maica_mspire_input(addition="", edittarget=None):
     modal True
     zorder 92
 
-    use maica_setter_medium_frame(title=_("请输入MSpire话题"), ok_action=[Function(apply, edittarget), SetField(persistent, "selectbool", None), Hide("maica_mspire_input")], cancel_action=[SetField(persistent ,"selectbool", None), Hide("maica_mspire_input")]):
+    use maica_setter_medium_frame(title=_("请输入MSpire话题"), ok_action=[Function(apply, edittarget), Hide("maica_mspire_input")], cancel_action=[SetField(persistent, "_mas_player_addition", None), Hide("maica_mspire_input")]):
         hbox:
             xfill True
             hbox:
@@ -677,135 +678,79 @@ screen maica_location_input(addition="", edittarget=None):
                     action Function(verify, persistent.mas_geolocation)
 
 screen maica_addition_setting():
-    $ _tooltip = store._tooltip
-    python:
-        isinit = False
-        if persistent.selectbool == None:
-            persistent.selectbool = {}
-            isinit = True
-        def build_dict():
-            persistent.selectbool = {}
-            global persistent
-            for item in persistent.mas_player_additions:
-                persistent.selectbool[item] = False
-
-        if isinit:
-            build_dict()
-        def delete_seleted():
-            global persistent
-            persistent.mas_player_additions = [i for i in persistent.mas_player_additions if not persistent.selectbool[i]]
-
-        def selected_one():
-            global persistent
-            toggled = [k for k, v in iterize(persistent.selectbool) if v]
-            if len(toggled) == 1:
-                return toggled[0]
-            else:
-                return False
-        
-        def selected_count_tf(num=1):
-            global persistent
-            toggled = [k for k, v in iterize(persistent.selectbool) if v]
-            if len(toggled) == num:
-                return True
-            else:
-                return False
-
-        def maica_addition_setting_close():
-            global persistent
-            persistent.selectbool = None
+    default selected_indices = set()
+    $ additions = persistent.mas_player_additions
+    $ selected_item = maica_selected_item(additions, selected_indices)
 
     modal True
     zorder 92
-    on "show" action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
-            for item in persistent.selectbool:
+            for index, item in enumerate(additions):
                 hbox:
-                    textbutton item:
-                        action ToggleDict(persistent.selectbool, item)
+                    textbutton maica_escape_display_text(item):
+                        action ToggleSetMembership(selected_indices, index)
                     
         hbox:
             xpos 10
             style_prefix "confirm"
             textbutton _("删除条目"):
-                action [SensitiveIf(not selected_count_tf(0)), Function(delete_seleted), Function(build_dict)]
+                action [
+                    SensitiveIf(bool(selected_indices)),
+                    Function(maica_delete_selected_items, additions, selected_indices)
+                ]
 
             textbutton _("编辑条目"):
-                action [SensitiveIf(selected_count_tf()), Show("maica_addition_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
+                action [
+                    SensitiveIf(selected_item is not None),
+                    SetScreenVariable("selected_indices", set()),
+                    Show("maica_addition_input", addition=selected_item, edittarget=selected_item)
+                ]
 
             textbutton _("添加条目"):
-                action [Show("maica_addition_input")]
+                action [SetScreenVariable("selected_indices", set()), Show("maica_addition_input")]
             
             textbutton _("关闭"):
-                action [Function(maica_addition_setting_close), Hide("maica_addition_setting")]
+                action Hide("maica_addition_setting")
 
 
 screen maica_mspire_category_setting():
-    $ _tooltip = store._tooltip
-    python:
-        isinit = False
-        if persistent.selectbool == None:
-            persistent.selectbool = {}
-            isinit = True
-        def build_dict():
-            persistent.selectbool = {}
-            global persistent
-            for item in persistent.maica_setting_dict["mspire_category"]:
-                persistent.selectbool[item] = False
-
-        if isinit:
-            build_dict()
-        def delete_seleted():
-            global persistent
-            persistent.maica_setting_dict["mspire_category"] = [i for i in persistent.maica_setting_dict["mspire_category"] if not persistent.selectbool[i]]
-
-        def selected_one():
-            global persistent
-            toggled = [k for k, v in iterize(persistent.selectbool) if v]
-            if len(toggled) == 1:
-                return toggled[0]
-            else:
-                return False
-
-        def selected_count_tf(num=1):
-            global persistent
-            toggled = [k for k, v in iterize(persistent.selectbool) if v]
-            if len(toggled) == num:
-                return True
-            else:
-                return False
-
-        def maica_mspire_setting():
-            global persistent
-            persistent.selectbool = None
+    default selected_indices = set()
+    $ categories = persistent.maica_setting_dict["mspire_category"]
+    $ selected_item = maica_selected_item(categories, selected_indices)
 
     modal True
     zorder 92
-    on "show" action Function(build_dict)
     use maica_common_outer_frame():
         use maica_common_inner_frame():
             style_prefix "generic_fancy_check"
-            for item in persistent.selectbool:
+            for index, item in enumerate(categories):
                 hbox:
-                    textbutton item:
-                        action ToggleDict(persistent.selectbool, item)
+                    textbutton maica_escape_display_text(item):
+                        action ToggleSetMembership(selected_indices, index)
         
         hbox:
             xpos 10
             style_prefix "confirm"
             textbutton _("删除条目"):
-                action [SensitiveIf(not selected_count_tf(0)), Function(delete_seleted), SetField(persistent ,"selectbool", None)]
+                action [
+                    SensitiveIf(bool(selected_indices)),
+                    Function(maica_delete_selected_items, categories, selected_indices)
+                ]
 
             textbutton _("编辑条目"):
-                action [SensitiveIf(selected_count_tf()), Show("maica_mspire_input", addition=selected_one(), edittarget=selected_one()), SetField(persistent ,"selectbool", None)]
+                action [
+                    SensitiveIf(selected_item is not None),
+                    SetScreenVariable("selected_indices", set()),
+                    Show("maica_mspire_input", addition=selected_item, edittarget=selected_item)
+                ]
 
             textbutton _("添加条目"):
-                action [Show("maica_mspire_input"),SetField(persistent ,"selectbool", None)]
+                action [SetScreenVariable("selected_indices", set()), Show("maica_mspire_input")]
             
             textbutton _("关闭"):
-                action [Function(maica_mspire_setting), Hide("maica_mspire_category_setting")]
+                action Hide("maica_mspire_category_setting")
 
 
 screen maica_node_setting():

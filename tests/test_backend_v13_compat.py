@@ -151,6 +151,14 @@ def screen_blocks(text):
     return re.findall(r"(?ms)^screen\s+\w+[^\n]*:.*?(?=^(?:screen|label|init)\b|\Z)", text)
 
 
+def named_screen(text, name):
+    marker = re.compile(r"(?m)^screen\s+{}\b".format(re.escape(name)))
+    for block in screen_blocks(text):
+        if marker.search(block):
+            return block
+    assert False, "screen is missing: {}".format(name)
+
+
 def default_owner_exists(text, key):
     tokens = lex_source(text)
     canonical = {"maica_default_dict", "maica_advanced_setting"}
@@ -1109,7 +1117,7 @@ def test_e_memory_template_preserves_backend_player_name_placeholder():
         header,
     )
     assert re.search(
-        r"addition\s*=\s*\(['\"]\[player\]['\"]\s*\+\s*raw_addition\.strip\(\)\s*if\s+prefix_player\s+else\s+raw_addition\.strip\(\)\)",
+        r"addition\s*=\s*\(['\"]\{player_name\}['\"]\s*\+\s*raw_addition\.strip\(\)\s*if\s+prefix_player\s+else\s+raw_addition\.strip\(\)\)",
         header,
     )
     assert re.search(
@@ -1126,6 +1134,53 @@ def test_e_memory_template_preserves_backend_player_name_placeholder():
         trigger,
         re.S,
     )
+
+    addition_input = named_screen(
+        source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
+        "maica_addition_input",
+    )
+    assert re.search(
+        r"if\s+persistent\._mas_player_addition\s+is\s+None\s*:\s*"
+        r"persistent\._mas_player_addition\s*=\s*addition",
+        addition_input,
+    )
+    assert re.search(r"prefix_player\s*=\s*edittarget\s+is\s+None", addition_input)
+
+
+def test_e_player_addition_ui_escapes_markup_without_changing_values():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    chat = source("game/Submods/MAICA_ChatSubmod/chat.rpy")
+
+    escape_helper = function_body(header, r"maica_escape_display_text")
+    assert re.search(r"\.replace\(\s*['\"]\[['\"]\s*,\s*['\"]\[\[['\"]\s*\)", escape_helper)
+    assert re.search(r"\.replace\(\s*['\"]\{['\"]\s*,\s*['\"]\{\{['\"]\s*\)", escape_helper)
+
+    addition_screen = named_screen(screen, "maica_addition_setting")
+    assert re.search(r"textbutton\s+maica_escape_display_text\s*\(\s*item\s*\)", addition_screen)
+
+    delete_label = block_after(chat, r"label\s+maica_delete_information", 900)
+    assert re.search(
+        r"items\.append\s*\(\s*\[\s*maica_escape_display_text\s*\(\s*i\s*\)\s*,\s*i\s*,",
+        delete_label,
+        re.S,
+    )
+
+
+def test_e_list_setting_selection_is_screen_local_and_index_based():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    chat = source("game/Submods/MAICA_ChatSubmod/chat.rpy")
+
+    assert "persistent.selectbool" not in header + screen + chat
+    assert "default persistent.maica_player_additions_status" not in header
+
+    for name in ("maica_addition_setting", "maica_mspire_category_setting"):
+        setting_screen = named_screen(screen, name)
+        assert re.search(r"default\s+selected_indices\s*=\s*set\s*\(\s*\)", setting_screen)
+        assert re.search(r"for\s+index\s*,\s*item\s+in\s+enumerate\s*\(", setting_screen)
+        assert re.search(r"ToggleSetMembership\s*\(\s*selected_indices\s*,\s*index\s*\)", setting_screen)
+        assert re.search(r"Function\s*\(\s*maica_delete_selected_items\s*,", setting_screen)
 
 
 def test_f_vista_list_and_download_routes_are_distinct():
