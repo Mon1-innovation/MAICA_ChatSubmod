@@ -261,7 +261,6 @@ init 10 python:
                 "mf_const_tools": 0,
                 "nsfw_acceptive": False,
                 "gen_enforce_lang": False,
-                "mf_const_sf_access": 0,
                 "mt_concl_memory": 0,
                 "prompt_allow_nickname": False,
             },
@@ -275,6 +274,7 @@ init 10 python:
                 "mt_context_rnds": 0,
                 "mf_precheck_mt": False,
                 "mf_sf_access_impl": 2,
+                "mf_const_sf_access": 1,
             },
         },
         {
@@ -288,6 +288,7 @@ init 10 python:
                 "mt_context_rnds": 0,
                 "mf_precheck_mt": False,
                 "mf_sf_access_impl": 2,
+                "mf_const_sf_access": 1,
             },
         },
         {
@@ -304,6 +305,7 @@ init 10 python:
                 "mf_context_rnds": 1,
                 "mf_disable_loop": False,
                 "mt_disable_loop": False,
+                "mf_const_sf_access": 1,
             },
         },
     ]
