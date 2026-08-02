@@ -321,7 +321,7 @@ init 10 python:
             "name": "胆怯",
             "description": "较低的温度.\n! 非特殊情况不推荐",
             "settings": {
-                "temperature": 0.15,
+                "temperature": 0.10,
             },
         },
         {
