@@ -28,6 +28,12 @@ TRISTATE_SETTINGS = (
     "mt_concl_memory",
 )
 
+TRISTATE_DEFAULTS = {
+    "mf_sf_access_impl": 1,
+    "mf_const_sf_access": 0,
+    "mt_concl_memory": 1,
+}
+
 try:
     TEXT_TYPES = (basestring,)
 except NameError:
@@ -64,15 +70,18 @@ def remove_retired_persistent_settings(values, status=None):
 def normalize_tristate_values(values, warning_callback=None):
     for key in TRISTATE_SETTINGS:
         existed = key in values
-        value = values.get(key, 1)
+        default = TRISTATE_DEFAULTS[key]
+        value = values.get(key, default)
         if isinstance(value, bool):
             value = int(value)
         elif not isinstance(value, INTEGER_TYPES) or value not in (0, 1, 2):
             if existed and warning_callback is not None:
                 warning_callback(
-                    "MAICA: invalid persisted value for {}; reset to 1".format(key)
+                    "MAICA: invalid persisted value for {}; reset to {}".format(
+                        key, default
+                    )
                 )
-            value = 1
+            value = default
         values[key] = value
     return values
 

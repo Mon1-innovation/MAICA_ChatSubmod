@@ -1646,6 +1646,14 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
 def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():
     import maica_v13_migration
 
+    missing_values = {}
+    maica_v13_migration.migrate_setting_values(missing_values)
+    assert missing_values == {
+        "mf_sf_access_impl": 1,
+        "mf_const_sf_access": 0,
+        "mt_concl_memory": 1,
+    }
+
     values = {
         "mf_sf_access_impl": "invalid",
         "mf_const_sf_access": None,
@@ -1658,9 +1666,10 @@ def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings(
     )
 
     assert values["mf_sf_access_impl"] == 1
-    assert values["mf_const_sf_access"] == 1
+    assert values["mf_const_sf_access"] == 0
     assert values["mt_concl_memory"] == 1
     assert len(warnings) == 2
+    assert "reset to 0" in warnings[1]
 
 
 def test_outbound_settings_normalize_tristates_to_real_integers():

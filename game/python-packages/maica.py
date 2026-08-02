@@ -306,7 +306,7 @@ class MaicaAi(ChatBotInterface):
             "gen_enforce_lang": True,
             "gen_quality_chk": True,
             "max_tokens": 1600,
-            "mf_const_sf_access": 1,
+            "mf_const_sf_access": 0,
             "mf_const_tools": 1,
             "mf_context_rnds": 0,
             "mf_disable_loop": True,

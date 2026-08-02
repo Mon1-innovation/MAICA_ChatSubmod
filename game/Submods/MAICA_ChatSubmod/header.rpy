@@ -189,7 +189,7 @@ init 10 python:
         "mt_disable_loop":True,
         "gen_enforce_lang":True,
         "mf_sf_access_impl":1,
-        "mf_const_sf_access":1,
+        "mf_const_sf_access":0,
         "mt_concl_memory":1,
         "prompt_allow_nickname":True,
     }
@@ -235,7 +235,7 @@ init 10 python:
         # "mt_disable_loop":True,
         # "gen_enforce_lang":True,
         # "mf_sf_access_impl":1,
-        # "mf_const_sf_access":1,
+        # "mf_const_sf_access":0,
         # "mt_concl_memory":1,
         # "prompt_allow_nickname":True,
 

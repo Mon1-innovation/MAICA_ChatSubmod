@@ -969,11 +969,16 @@ def test_c_tz_has_ui_and_outbound_owners():
     assert re.search(r"maica_setting_dict[^\n]*['\"]tz['\"]", header)
 
 
-@pytest.mark.parametrize("key", ("mf_sf_access_impl", "mf_const_sf_access", "mt_concl_memory"))
-def test_c_tristate_default_and_control_are_integer_zero_to_two(key):
+@pytest.mark.parametrize(
+    ("key", "default"),
+    (("mf_sf_access_impl", 1), ("mf_const_sf_access", 0), ("mt_concl_memory", 1)),
+)
+def test_c_tristate_default_and_control_are_integer_zero_to_two(key, default):
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    runtime = source("game/python-packages/maica.py")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
-    assert_key_default(header, key, r"1\b")
+    assert_key_default(header, key, r"{}\b".format(default))
+    assert_key_default(runtime, key, r"{}\b".format(default))
     assert_key_control(screen, key, 2)
 
 
