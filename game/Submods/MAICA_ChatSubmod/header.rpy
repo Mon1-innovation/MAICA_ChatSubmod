@@ -17,8 +17,8 @@ init -989 python:
         )
 
 default persistent.maica_setting_dict = {
-    "auto_reconnect":False,
-    "auto_resume":False,
+    "auto_reconnect":True,
+    "auto_resume":True,
     "keep_alive":True,
     "maica_model":None,
     "use_custom_model_config":False,
@@ -40,6 +40,7 @@ define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     import logging
+    import maica_v13_migration
 
     maica_timezone_dict = {
         -12: "Etc/GMT+12",
@@ -137,8 +138,8 @@ init 10 python:
         )
 
     maica_default_dict = {
-        "auto_reconnect":False,
-        "auto_resume":False,
+        "auto_reconnect":True,
+        "auto_resume":True,
         "keep_alive":True,
         "enable_mf":True,
         "enable_mt":True,
@@ -415,6 +416,8 @@ init 10 python:
         return _(preset["name"]) if preset else _("Custom")
 
     _maica_validate_presets()
+    if set(maica_advanced_default_setting) != set(maica_v13_migration.ADVANCED_SETTING_KEYS):
+        raise ValueError("MAICA advanced setting defaults do not match the outbound allowlist")
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
     persistent.maica_setting_dict.pop("42seed", None)
     maica_default_dict.update(persistent.maica_setting_dict)
@@ -490,6 +493,24 @@ init 10 python:
     def maica_clamp_advanced_setting(key, lower, upper):
         value = int(persistent.maica_advanced_setting.get(key, lower))
         persistent.maica_advanced_setting[key] = max(lower, min(value, upper))
+
+    def maica_get_advanced_default(key):
+        value = store.maica.maica_instance.default_setting.get(
+            key,
+            maica_advanced_default_setting[key]
+        )
+        if key == "seed" and value is None:
+            value = 0
+        return copy.deepcopy(value)
+
+    def maica_reset_advanced_setting():
+        maica_v13_migration.cleanup_advanced_settings(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status
+        )
+        for key in maica_v13_migration.ADVANCED_SETTING_KEYS:
+            persistent.maica_advanced_setting[key] = maica_get_advanced_default(key)
+            persistent.maica_advanced_setting_status[key] = False
 
     def maica_escape_display_text(text):
         return text.replace("[", "[[").replace("{", "{{")
@@ -732,21 +753,27 @@ init 10 python:
 
 
     def maica_apply_advanced_setting():
-        settings_dict = {}
-        for k, v in persistent.maica_advanced_setting_status.items():
-            if v:
-                settings_dict[k] = persistent.maica_advanced_setting[k]
-        store.maica.maica_instance.modelconfig.update(settings_dict)
+        settings_dict = maica_v13_migration.filter_advanced_settings(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status
+        )
+        store.maica.maica_instance.modelconfig = settings_dict
         store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
 
     def maica_discard_advanced_setting():
-        settings_dict = {}
-        for k, v in persistent.maica_advanced_setting_status.items():
-            persistent.maica_advanced_setting_status[k] = k in store.maica.maica_instance.modelconfig
-            if k in store.maica.maica_instance.modelconfig:
-                persistent.maica_advanced_setting[k] = store.maica.maica_instance.modelconfig[k]
-            elif k in store.maica.maica_instance.default_setting:
-                persistent.maica_advanced_setting[k] = store.maica.maica_instance.default_setting[k]
+        settings_dict = maica_v13_migration.filter_advanced_settings(
+            store.maica.maica_instance.modelconfig
+        )
+        maica_v13_migration.cleanup_advanced_settings(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status
+        )
+        for key in maica_v13_migration.ADVANCED_SETTING_KEYS:
+            persistent.maica_advanced_setting_status[key] = key in settings_dict
+            if key in settings_dict:
+                persistent.maica_advanced_setting[key] = copy.deepcopy(settings_dict[key])
+            else:
+                persistent.maica_advanced_setting[key] = maica_get_advanced_default(key)
 
 
     def sync_provider_id(pid, reconnect=True):
@@ -958,6 +985,12 @@ screen maica_setting_pane():
             text "":
                 size 0
 
+            if store.maica_is_dev:
+                hbox:
+
+                    text _("> Warning: this is a {color=#ff0000}development build{/color} copy. {color=#ff0000}Stop using immediately{/color} if you're not MAICA official staff"):
+                        style "main_menu_version_l"
+
             if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
                 hbox:
 
@@ -1094,14 +1127,6 @@ screen maica_setting():
             store._tooltip = submods_screen.scope.get("tooltip", None)
         else:
             store._tooltip = None
-
-        def reset_adv_to_default():
-            for item in store.maica.maica_instance.default_setting:
-                if item == 'seed':
-                    store.maica.maica_instance.default_setting[item] = 0
-                if item in persistent.maica_advanced_setting:
-                    persistent.maica_advanced_setting[item] = store.maica.maica_instance.default_setting[item]
-                    persistent.maica_advanced_setting_status[item] = False
 
     $ _tooltip = store._tooltip
 
@@ -1599,7 +1624,7 @@ screen maica_setting():
                         ]
             textbutton _("Reset defaults"):
                 action [
-                        Function(reset_adv_to_default),
+                        Function(store.maica_reset_advanced_setting),
                         Function(store.maica_reset_setting),
                         Function(store.maica_apply_setting, ininit = True),
                         Function(renpy.notify, _("MAICA: Settings reset")),

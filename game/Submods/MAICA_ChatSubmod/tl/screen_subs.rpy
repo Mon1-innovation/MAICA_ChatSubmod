@@ -31,6 +31,10 @@ translate chinese strings:
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:367
     old "MAICA: Advanced settings saved"
     new "MAICA: 已保存高级设置"
+    old "Discard changes"
+    new "放弃修改"
+    old "MAICA: Advanced setting changes discarded"
+    new "MAICA: 已放弃高级设置修改"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:372
     old "MAICA: Advanced settings reset"
     new "MAICA: 已重置高级设置"

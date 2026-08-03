@@ -17,6 +17,30 @@ SETTING_RENAMES = {
     "max_length": "session_len_limit",
 }
 
+ADVANCED_SETTING_KEYS = (
+    "max_tokens",
+    "seed",
+    "top_p",
+    "temperature",
+    "frequency_penalty",
+    "presence_penalty",
+    "prompt_pname_repl",
+    "prompt_allow_nickname",
+    "mf_llm_concl",
+    "mf_sf_access_impl",
+    "mf_const_sf_access",
+    "mf_const_tools",
+    "esearch_llm_concl",
+    "mf_precheck_mt",
+    "mt_concl_memory",
+    "nsfw_acceptive",
+    "mf_context_rnds",
+    "mt_context_rnds",
+    "mf_disable_loop",
+    "mt_disable_loop",
+    "gen_enforce_lang",
+)
+
 RETIRED_PERSISTENT_SETTINGS = (
     "ic_prep",
     "twk_super",
@@ -57,6 +81,32 @@ def _rename_values(values):
     for old, new in SETTING_RENAMES.items():
         if old in values:
             values[new] = values[old]
+            values.pop(old, None)
+
+
+def filter_advanced_settings(values, status=None):
+    if not isinstance(values, dict):
+        return {}
+
+    filtered = {}
+    for key in ADVANCED_SETTING_KEYS:
+        if key not in values:
+            continue
+        if status is not None and not status.get(key, False):
+            continue
+        filtered[key] = values[key]
+    return filtered
+
+
+def cleanup_advanced_settings(values, status):
+    allowed = set(ADVANCED_SETTING_KEYS)
+    for key in list(values):
+        if key not in allowed:
+            values.pop(key, None)
+    for key in list(status):
+        if key not in allowed:
+            status.pop(key, None)
+    return values
 
 
 def remove_retired_persistent_settings(values, status=None):
@@ -67,8 +117,10 @@ def remove_retired_persistent_settings(values, status=None):
     return values
 
 
-def normalize_tristate_values(values, warning_callback=None):
+def normalize_tristate_values(values, warning_callback=None, fill_missing=True):
     for key in TRISTATE_SETTINGS:
+        if key not in values and not fill_missing:
+            continue
         existed = key in values
         default = TRISTATE_DEFAULTS[key]
         value = values.get(key, default)
@@ -86,13 +138,22 @@ def normalize_tristate_values(values, warning_callback=None):
     return values
 
 
-def migrate_setting_values(values, status=None, warning_callback=None):
+def migrate_setting_values(
+    values,
+    status=None,
+    warning_callback=None,
+    fill_missing_tristates=True,
+):
     _rename_values(values)
     if status is not None:
         _rename_values(status)
 
     remove_retired_persistent_settings(values, status)
-    normalize_tristate_values(values, warning_callback)
+    normalize_tristate_values(
+        values,
+        warning_callback,
+        fill_missing=fill_missing_tristates,
+    )
 
     if values.get("mf_const_tools") == 3:
         values["mf_const_tools"] = 2

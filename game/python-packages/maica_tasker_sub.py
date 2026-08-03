@@ -72,7 +72,7 @@ class GeneralWsConsoleLogger(MaicaWSTask):
     def __init__(self, task_type, name, manager, except_ws_status=[], console_logger=None):
         super(GeneralWsConsoleLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.console_logger = console_logger
-        self.ovr_welcomemessage = False
+        self.ui_lang_zh = False
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             ws = event.data
@@ -90,8 +90,12 @@ class GeneralWsConsoleLogger(MaicaWSTask):
             return
         if event.data.status in ['maica_core_streaming_continue']:
             return
-        if event.data.status == 'maica_connection_initiated' and self.ovr_welcomemessage:
-            event.data.content = 'Websocket connection initiated'
+        if event.data.status == 'maica_connection_initiated':
+            try:
+                welcome_zh, welcome_en = event.data.content.split("|", 1)
+                event.data.content = welcome_zh if self.ui_lang_zh else welcome_en
+            except Exception:
+                pass
         else:
             wspack = event.data
             if self.console_logger:
@@ -680,7 +684,9 @@ class AutoReconnector(MaicaWSTask):
     Attributes:
         _reconnect_func (callable|None): 重连回调函数
         _enabled (bool): 自动重连是否启用
-        _reconnect_delay (float): 重连延迟时间（秒）
+        _reconnect_delay (float): 首次重连延迟时间（秒）
+        _max_reconnect_delay (float): 指数退避的最大延迟时间（秒）
+        _max_reconnect_attempts (int): 连续重连次数上限
         _login_successful (bool): 是否已成功登录，用于防止在登录失败后重连
     """
     def __init__(self, task_type, name, manager=None, except_ws_status=[]):
@@ -697,7 +703,14 @@ class AutoReconnector(MaicaWSTask):
         self._reconnect_func = None
         self._enabled = False
         self._reconnect_delay = 2.0
+        self._max_reconnect_delay = 30.0
+        self._max_reconnect_attempts = 8
+        self._reconnect_attempts = 0
+        self._reconnect_thread = None
+        self._reconnect_cancel = threading.Event()
+        self._reconnect_lock = threading.Lock()
         self._login_successful = False
+
     def on_event(self, event):
         """
         处理任务事件。
@@ -710,7 +723,16 @@ class AutoReconnector(MaicaWSTask):
         """
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
             if event.data.name == 'maica_login_successful':
-                self._login_successful = True
+                with self._reconnect_lock:
+                    self._login_successful = True
+                    self._reconnect_attempts = 0
+                return
+            if event.data.name == 'maica_login_failed':
+                with self._reconnect_lock:
+                    self._login_successful = False
+                    self._enabled = False
+                    self._reconnect_cancel.set()
+                self.logger.warning("[AutoReconnector] reconnect disabled after login failure")
                 return
             if event.data.name == 'websocket_closed':
                 if not self._enabled:
@@ -718,18 +740,20 @@ class AutoReconnector(MaicaWSTask):
                 if not self._login_successful:
                     self.logger.debug("[AutoReconnector] skipping reconnect: login not successful")
                     return
-                self.reconnect()
-                self.manager.create_event(
-                    MaicaTaskEvent(
-                        taskowner=self,
-                        event_type=MAICATASKEVENT_TYPE_TASK,
-                        data=maica_tasker_events.GenericData(
-                            name='auto_reconnector_start_reconnect',
-                            content={}
-                        )
-                    )
-                )
-                self.logger.info("[AutoReconnector] reconnecting...")
+                if self.reconnect():
+                    self._emit_task_event('auto_reconnector_start_reconnect')
+                    self.logger.info("[AutoReconnector] reconnect scheduled")
+
+    def _emit_task_event(self, name):
+        if not self.manager:
+            return
+        self.manager.create_event(
+            MaicaTaskEvent(
+                taskowner=self,
+                event_type=MAICATASKEVENT_TYPE_TASK,
+                data=maica_tasker_events.GenericData(name=name, content={})
+            )
+        )
 
 
     def set_reconnect_func(self, func):
@@ -747,16 +771,56 @@ class AutoReconnector(MaicaWSTask):
 
         调用预设的重连回调函数进行重连。
 
+        Returns:
+            bool: 是否成功安排了新的重连任务
+
         Raises:
             RuntimeError: 如果未设置重连函数
         """
-        if self._reconnect_func:
-            def _delayed_reconnect():
-                time.sleep(self._reconnect_delay)
-                self._reconnect_func()
-            threading.Thread(target=_delayed_reconnect).start()
-        else:
+        if not self._reconnect_func:
             raise RuntimeError("No reconnect function set.")
+
+        give_up = False
+        with self._reconnect_lock:
+            if not self._enabled:
+                return False
+            if self._reconnect_thread and self._reconnect_thread.is_alive():
+                self.logger.debug("[AutoReconnector] reconnect already pending")
+                return False
+            if self._reconnect_attempts >= self._max_reconnect_attempts:
+                self._enabled = False
+                self._reconnect_cancel.set()
+                give_up = True
+            else:
+                attempt_index = self._reconnect_attempts
+                self._reconnect_attempts += 1
+                delay = min(
+                    self._reconnect_delay * (2 ** attempt_index),
+                    self._max_reconnect_delay
+                )
+                cancel_event = self._reconnect_cancel
+
+                def _delayed_reconnect():
+                    if cancel_event.wait(delay):
+                        return
+                    with self._reconnect_lock:
+                        if not self._enabled or cancel_event is not self._reconnect_cancel:
+                            return
+                    self._reconnect_func()
+
+                self._reconnect_thread = threading.Thread(target=_delayed_reconnect)
+                self._reconnect_thread.daemon = True
+                self._reconnect_thread.start()
+
+        if give_up:
+            self.logger.warning(
+                "[AutoReconnector] giving up after {} attempts".format(
+                    self._max_reconnect_attempts
+                )
+            )
+            self._emit_task_event('auto_reconnector_give_up')
+            return False
+        return True
 
     def enable(self):
         """
@@ -764,7 +828,11 @@ class AutoReconnector(MaicaWSTask):
 
         启用后，当WebSocket连接关闭时会自动触发重连。
         """
-        self._enabled = True
+        with self._reconnect_lock:
+            if not self._enabled:
+                self._enabled = True
+                self._reconnect_attempts = 0
+                self._reconnect_cancel = threading.Event()
         self.logger.info("[AutoReconnector] auto-reconnect enabled")
 
     def disable(self):
@@ -773,13 +841,18 @@ class AutoReconnector(MaicaWSTask):
 
         禁用后，WebSocket连接关闭时不会自动重连。
         """
-        self._enabled = False
+        with self._reconnect_lock:
+            was_enabled = self._enabled
+            self._enabled = False
+            self._reconnect_cancel.set()
+        if was_enabled:
+            self._emit_task_event('auto_reconnector_stopped')
         self.logger.info("[AutoReconnector] auto-reconnect disabled")
 
     def reset(self):
         super(AutoReconnector, self).reset()
-        # NOTE: Do NOT reset _login_successful flag
-        # Once login succeeds, we want to remember it for the session lifetime
+        # Connection errors reset tasks before the close event is delivered.
+        # Keep login/retry state until a definitive login result changes it.
 
 
 class AutoResumeTasker(MaicaWSTask):
@@ -791,14 +864,14 @@ class AutoResumeTasker(MaicaWSTask):
 
     工作流程：
     1. 监听 'auto_reconnector_start_reconnect' 事件，标记进入重连状态
-    2. 监听 'maica_login_successful' 事件，在重连状态下检查是否应该恢复
-    3. 调用 _should_resume_func() 判断是否发送恢复请求
-    4. 监听 'websocket_closed' 事件，重置重连状态
+    2. 监听 'maica_mcore_gen_start' 事件，标记生成已受续传保护
+    3. 监听 'maica_login_successful' 事件，在重连状态下发送恢复请求
+    4. 监听终止和失败事件，清理恢复状态
 
     Attributes:
         _on_reconnect (bool): 是否处于重连状态
         _enabled (bool): 自动恢复功能是否启用
-        _should_resume_func (callable): 判断是否应该恢复会话的回调函数，返回True表示应该恢复
+        _generation_started (bool): 后端是否已发送生成开始标记
     """
     def __init__(self, task_type, name, manager=None, except_ws_status=[]):
         """
@@ -813,7 +886,6 @@ class AutoResumeTasker(MaicaWSTask):
         super(AutoResumeTasker, self).__init__(task_type, name, manager, except_ws_status)
         self._on_reconnect = False
         self._enabled = False
-        self._should_resume_func = self.nothingbuttrue
         self._generation_started = False
 
     def on_event(self, event):
@@ -821,17 +893,6 @@ class AutoResumeTasker(MaicaWSTask):
             self.on_received(event)
             return
         return super(AutoResumeTasker, self).on_event(event)
-
-    def nothingbuttrue(self):
-        """
-        默认的恢复判断函数。
-
-        始终返回True，表示总是允许恢复会话。
-
-        Returns:
-            bool: 始终返回True
-        """
-        return True
 
     def _clear_resume_state(self):
         self._on_reconnect = False
@@ -842,8 +903,7 @@ class AutoResumeTasker(MaicaWSTask):
         处理接收到的任务事件。
 
         根据不同的事件类型执行相应操作：
-        - maica_login_successful: 登录成功后，如果处于重连状态且功能已启用，
-          调用_should_resume_func()判断后发送恢复会话请求
+        - maica_login_successful: 登录成功后，如果重连前生成已经开始，发送恢复请求
         - auto_reconnector_start_reconnect: 标记进入重连状态
         - websocket_closed: 重置重连状态
 
@@ -867,10 +927,6 @@ class AutoResumeTasker(MaicaWSTask):
             if event.data.name == 'maica_login_successful':
                 if self._on_reconnect and self._generation_started:
                     try:
-                        should_resume = self._should_resume_func()
-                        if not should_resume:
-                            self.logger.debug("[AutoResumeTasker] should_resume_func returns false, skipping resume request")
-                            return
                         data = {'type': 'reconn'}
                         self.manager.ws_client.send(json.dumps(data, ensure_ascii=False))
                         self.logger.info("[AutoResumeTasker] sent resume request")
@@ -882,6 +938,8 @@ class AutoResumeTasker(MaicaWSTask):
             elif event.data.name == 'websocket_closed':
                 self.reset_on_closed()
             elif event.data.name == 'maica_login_failed':
+                self._clear_resume_state()
+            elif event.data.name in ('auto_reconnector_give_up', 'auto_reconnector_stopped'):
                 self._clear_resume_state()
 
         return None
@@ -915,30 +973,11 @@ class AutoResumeTasker(MaicaWSTask):
         self._clear_resume_state()
         self.logger.info("[AutoResumeTasker] auto-resume disabled")
 
-    def set_should_resume_func(self, func):
-        """
-        设置判断是否应该恢复会话的回调函数。
-
-        该函数会在重连成功后被调用，用于决定是否发送恢复会话请求。
-        如果函数返回False，则跳过本次恢复操作。
-
-        Args:
-            func (callable): 回调函数，无参数，返回bool值。
-                           返回True表示应该恢复会话，False表示跳过恢复。
-
-        Example:
-            def my_resume_check():
-                # 自定义逻辑判断是否应该恢复
-                return some_condition
-
-            tasker.set_should_resume_func(my_resume_check)
-        """
-        self._should_resume_func = func
-        self.logger.debug("[AutoResumeTasker] set custom should_resume_func")
-
     def reset(self):
         super(AutoResumeTasker, self).reset()
-        self._clear_resume_state()
+        # WebSocket errors reset tasks before the close event marks a reconnect.
+        if not (self._enabled and self._generation_started):
+            self._clear_resume_state()
 
 class KeepWsAliveTasker(MaicaWSTask):
     """

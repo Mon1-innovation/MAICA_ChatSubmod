@@ -20,6 +20,56 @@ import maica_tasker
 import maica_tasker_sub
 import maica_tasker_sub_sessionsender
 import maica_vista_files_manager
+import maica_v13_migration
+import migrations
+
+
+def test_development_migration_force_current_is_repeatable():
+    calls = []
+    migration = migrations.migration_instance(
+        "1.8.0", "1.8.0", force_current=True
+    )
+    migration.migration_queue = [
+        ("1.7.9", lambda: calls.append("old")),
+        ("1.8.0", lambda: calls.append("current")),
+    ]
+
+    migration.migrate()
+    migration.migrate()
+
+    assert calls == ["current", "current"]
+
+
+def test_migration_default_and_development_upgrade_paths_do_not_duplicate():
+    calls = []
+    unchanged = migrations.migration_instance("1.8.0", "1.8.0")
+    unchanged.migration_queue = [("1.8.0", lambda: calls.append("unchanged"))]
+    assert unchanged.migrate() == (True, "Version unchanged")
+
+    upgrading = migrations.migration_instance(
+        "1.7.9", "1.8.0", force_current=True
+    )
+    upgrading.migration_queue = [
+        ("1.8.0", lambda: calls.append("upgrade")),
+    ]
+    upgrading.migrate()
+
+    assert calls == ["upgrade"]
+
+
+def test_development_migration_runs_after_switching_back_from_newer_version():
+    calls = []
+    migration = migrations.migration_instance(
+        "1.9.0", "1.8.0", force_current=True
+    )
+    migration.migration_queue = [
+        ("1.8.0", lambda: calls.append("current")),
+        ("1.9.0", lambda: calls.append("newer")),
+    ]
+
+    migration.migrate()
+
+    assert calls == ["current"]
 
 
 class NullLogger:
@@ -107,6 +157,17 @@ def _build_trigger_batch(template, count):
 def _last_json(manager):
     assert manager.ws_client.sent
     return json.loads(manager.ws_client.sent[-1])
+
+
+def _task_event(name):
+    return type(
+        "TaskEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
+            "data": type("Data", (), {"name": name})(),
+        },
+    )()
 
 
 def _new_validator(monkeypatch):
@@ -1282,6 +1343,41 @@ def test_savefile_access_marker_is_a_final_outbound_gate(
     assert ai.build_setting_config()["chat_params"]["savefile_access"] is False
 
 
+def test_setting_payload_only_contains_allowlisted_selected_advanced_settings(
+    isolated_maica_ai_globals, monkeypatch, tmp_path
+):
+    ai = maica.MaicaAi("account", "password")
+    monkeypatch.setattr(maica, "basedir", str(tmp_path), raising=False)
+    ai.modelconfig = {
+        "temperature": 0.35,
+        "unknown_legacy_setting": "must-not-leak",
+        "mf_aggressive": True,
+    }
+
+    payload = ai.build_setting_config()
+    advanced = set(payload["chat_params"]).intersection(
+        maica_v13_migration.ADVANCED_SETTING_KEYS
+    )
+
+    assert payload["reset"] is True
+    assert advanced == {"temperature"}
+    assert payload["chat_params"]["temperature"] == 0.35
+    assert "unknown_legacy_setting" not in payload["chat_params"]
+    assert "mf_aggressive" not in payload["chat_params"]
+
+
+def test_setting_payload_does_not_inject_advanced_defaults(
+    isolated_maica_ai_globals, monkeypatch, tmp_path
+):
+    ai = maica.MaicaAi("account", "password")
+    monkeypatch.setattr(maica, "basedir", str(tmp_path), raising=False)
+    ai.modelconfig = {}
+
+    params = ai.build_setting_config()["chat_params"]
+
+    assert set(params).isdisjoint(maica_v13_migration.ADVANCED_SETTING_KEYS)
+
+
 def test_manual_maica_example_has_no_retired_cookie_or_strict_owner():
     source = (PACKAGE_ROOT / "test_maica.py").read_text(encoding="utf-8")
     assert "enable_strict_mode" not in source
@@ -1299,7 +1395,6 @@ def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monk
         except_ws_status=["maica_mcore_gen_start", "maica_chat_loop_finished"],
     )
     tasker.enable()
-    tasker.set_should_resume_func(lambda: True)
 
     def ws_event(status):
         return type(
@@ -1348,6 +1443,166 @@ def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monk
     tasker.on_event(task_event("auto_reconnector_start_reconnect"))
     tasker.on_event(task_event("maica_login_successful"))
     assert manager.ws_client.sent == []
+
+
+def test_auto_reconnector_deduplicates_pending_retry_and_disable_cancels_it(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoReconnector(1, "reconnect", manager)
+    reconnect_calls = []
+    tasker.set_reconnect_func(lambda: reconnect_calls.append(True))
+    tasker._reconnect_delay = 0.2
+    tasker.enable()
+    tasker.on_event(_task_event("maica_login_successful"))
+
+    tasker.on_event(_task_event("websocket_closed"))
+    pending_thread = tasker._reconnect_thread
+    tasker.on_event(_task_event("websocket_closed"))
+
+    assert tasker._reconnect_thread is pending_thread
+    assert tasker._reconnect_attempts == 1
+    tasker.disable()
+    pending_thread.join(1.0)
+    assert not pending_thread.is_alive()
+    assert reconnect_calls == []
+
+
+def test_auto_reconnector_stops_after_retry_limit_and_resets_on_login(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoReconnector(1, "reconnect-limit", manager)
+    reconnect_calls = []
+    tasker.set_reconnect_func(lambda: reconnect_calls.append(True))
+    tasker._reconnect_delay = 0.0
+    tasker._max_reconnect_attempts = 2
+    tasker.enable()
+    tasker.on_event(_task_event("maica_login_successful"))
+
+    for _index in range(2):
+        tasker.on_event(_task_event("websocket_closed"))
+        tasker._reconnect_thread.join(1.0)
+
+    tasker.on_event(_task_event("websocket_closed"))
+    assert reconnect_calls == [True, True]
+    assert tasker._enabled is False
+    assert any(
+        getattr(getattr(event, "data", None), "name", None)
+        == "auto_reconnector_give_up"
+        for event in manager.events
+    )
+
+    tasker.enable()
+    tasker._reconnect_attempts = 1
+    tasker.on_event(_task_event("maica_login_successful"))
+    assert tasker._reconnect_attempts == 0
+
+
+def test_auto_reconnector_login_failure_cancels_pending_retry(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    tasker = maica_tasker_sub.AutoReconnector(1, "reconnect-auth", ManagerStub())
+    reconnect_calls = []
+    tasker.set_reconnect_func(lambda: reconnect_calls.append(True))
+    tasker._reconnect_delay = 0.2
+    tasker.enable()
+    tasker.on_event(_task_event("maica_login_successful"))
+    tasker.on_event(_task_event("websocket_closed"))
+    pending_thread = tasker._reconnect_thread
+
+    tasker.on_event(_task_event("maica_login_failed"))
+    pending_thread.join(1.0)
+
+    assert reconnect_calls == []
+    assert tasker._enabled is False
+    assert tasker._login_successful is False
+
+
+def test_auto_resume_survives_error_reset_before_close(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoResumeTasker(
+        1,
+        "resume-error-close",
+        manager,
+        except_ws_status=["maica_mcore_gen_start", "maica_chat_loop_finished"],
+    )
+    tasker.enable()
+    generation_event = type(
+        "WsEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+            "data": type("Data", (), {"status": "maica_mcore_gen_start"})(),
+        },
+    )()
+
+    tasker.on_event(generation_event)
+    tasker.reset()  # MaicaTaskManager._ws_onerror
+    tasker.on_event(_task_event("auto_reconnector_start_reconnect"))
+    tasker.on_event(_task_event("websocket_closed"))
+    tasker.reset()  # MaicaAi._init_connect
+    tasker.on_event(_task_event("maica_login_successful"))
+
+    assert [json.loads(payload) for payload in manager.ws_client.sent] == [
+        {"type": "reconn"}
+    ]
+
+
+def test_auto_resume_has_no_redundant_predicate_api(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    assert not hasattr(ai, "_should_resume")
+    assert not hasattr(ai.AutoResumeTasker, "set_should_resume_func")
+    assert not hasattr(ai.AutoResumeTasker, "_should_resume_func")
+
+
+def test_init_connect_does_not_run_or_release_an_existing_connection_lock(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class ExistingClient:
+        def __init__(self, url):
+            self.url = url
+            self.run_calls = 0
+
+        def run_forever(self):
+            self.run_calls += 1
+
+    existing_client = ExistingClient(ai.provider_manager.get_wssurl())
+    ai.task_manager.ws_client = existing_client
+    ai.multi_lock.acquire()
+    try:
+        ai._init_connect()
+        assert existing_client.run_calls == 0
+        assert ai.multi_lock.locked()
+    finally:
+        if ai.multi_lock.locked():
+            ai.multi_lock.release()
+
+
+def test_on_close_leaves_connection_lock_for_driver_finally(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class ClosingClient:
+        def __init__(self):
+            self.close_calls = 0
+
+        def close(self):
+            self.close_calls += 1
+
+    client = ClosingClient()
+    ai.multi_lock.acquire()
+    try:
+        ai._on_close(client, 1006, "network lost")
+        assert client.close_calls == 1
+        assert ai.multi_lock.locked()
+    finally:
+        if ai.multi_lock.locked():
+            ai.multi_lock.release()
 
 
 def test_auto_resume_disabled_ignores_generation_marker(monkeypatch):
@@ -1404,7 +1659,6 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
     manager = ManagerStub()
     tasker = maica_tasker_sub.AutoResumeTasker(1, "resume-send-failure", manager)
     tasker.enable()
-    tasker.set_should_resume_func(lambda: True)
     tasker._generation_started = True
     tasker._on_reconnect = True
 
@@ -1425,33 +1679,6 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
     assert tasker._generation_started is False
     assert tasker._on_reconnect is False
 
-
-def test_auto_resume_should_resume_failure_clears_flags_without_retry(monkeypatch):
-    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
-    manager = ManagerStub()
-    tasker = maica_tasker_sub.AutoResumeTasker(1, "resume-check-failure", manager)
-    tasker.enable()
-    tasker._generation_started = True
-    tasker._on_reconnect = True
-
-    def fail_check():
-        raise RuntimeError("resume check failed")
-
-    tasker.set_should_resume_func(fail_check)
-    login_event = type(
-        "TaskEvent",
-        (),
-        {
-            "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
-            "data": type("Data", (), {"name": "maica_login_successful"})(),
-        },
-    )()
-    with pytest.raises(RuntimeError, match="resume check failed"):
-        tasker.on_event(login_event)
-    assert tasker._generation_started is False
-    assert tasker._on_reconnect is False
-    tasker.on_event(login_event)
-    assert manager.ws_client.sent == []
 
 @pytest.mark.parametrize(
     "content",
@@ -1604,8 +1831,6 @@ def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
 
 
 def test_setting_migration_renames_tristates_and_is_idempotent():
-    import maica_v13_migration
-
     values = {
         "sfe_aggressive": True,
         "prompt_pname_repl": False,
@@ -1638,14 +1863,15 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     assert values["mt_concl_memory"] == 2
     assert values["mf_const_tools"] == 2
     assert values["session_len_limit"] == 28672
+    for old in maica_v13_migration.SETTING_RENAMES:
+        assert old not in values
+        assert old not in status
     for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
         assert key not in values
         assert key not in status
 
 
 def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():
-    import maica_v13_migration
-
     missing_values = {}
     maica_v13_migration.migrate_setting_values(missing_values)
     assert missing_values == {
@@ -1673,8 +1899,6 @@ def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings(
 
 
 def test_outbound_settings_normalize_tristates_to_real_integers():
-    import maica_v13_migration
-
     normalized = maica.normalize_chat_params(
         {
             "mf_sf_access_impl": False,
@@ -1691,8 +1915,6 @@ def test_outbound_settings_normalize_tristates_to_real_integers():
 
 
 def test_outbound_settings_drop_retained_legacy_keys():
-    import maica_v13_migration
-
     params = {old: "legacy" for old in maica_v13_migration.SETTING_RENAMES}
     params.update(
         {
@@ -1711,6 +1933,57 @@ def test_outbound_settings_drop_retained_legacy_keys():
     assert "mt_extraction" not in normalized
     for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
         assert key not in normalized
+
+
+def test_outbound_normalization_does_not_create_missing_tristates():
+    normalized = maica.normalize_chat_params({"temperature": 0.22})
+
+    assert normalized == {"temperature": 0.22}
+
+
+def test_advanced_setting_cleanup_removes_unknown_values_and_statuses():
+    values = {
+        "temperature": 0.35,
+        "unknown_legacy_setting": "obsolete",
+    }
+    status = {
+        "temperature": True,
+        "unknown_legacy_setting": True,
+        "orphan_status": True,
+    }
+
+    maica_v13_migration.cleanup_advanced_settings(values, status)
+
+    assert values == {"temperature": 0.35}
+    assert status == {"temperature": True}
+
+
+def test_advanced_setting_filter_requires_a_local_enable_flag():
+    values = {
+        "temperature": 0.35,
+        "top_p": 0.8,
+        "unknown_legacy_setting": "obsolete",
+    }
+    status = {
+        "temperature": False,
+        "top_p": True,
+        "unknown_legacy_setting": True,
+    }
+
+    filtered = maica_v13_migration.filter_advanced_settings(values, status)
+
+    assert filtered == {"top_p": 0.8}
+
+
+def test_general_setting_migration_does_not_inject_advanced_tristates():
+    values = {"enable_mf": True}
+
+    maica_v13_migration.migrate_setting_values(
+        values,
+        fill_missing_tristates=False,
+    )
+
+    assert values == {"enable_mf": True}
 
 
 def test_player_additions_backup_is_created_once_and_filters_utf8_boundaries():

@@ -22,12 +22,28 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Extract version from api.rpy
+    - name: Extract build configuration from api.rpy
       id: get_version
       run: |
-        version=$(grep "maica_ver = '" game/Submods/MAICA_ChatSubmod/api.rpy | cut -d\' -f2)
+        api_path="game/Submods/MAICA_ChatSubmod/api.rpy"
+        version=$(sed -nE "s/^[[:space:]]*maica_ver[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"][[:space:]]*$/\1/p" "$api_path")
+        development=$(sed -nE "s/^[[:space:]]*maica_is_dev[[:space:]]*=[[:space:]]*(True|False)[[:space:]]*$/\1/p" "$api_path")
+        if [ -z "$version" ] || [ "$(printf '%s\n' "$version" | wc -l)" -ne 1 ]; then
+          echo "Expected exactly one maica_ver assignment" >&2
+          exit 1
+        fi
+        if [ "$development" != "True" ] && [ "$development" != "False" ]; then
+          echo "maica_is_dev must be assigned exactly once to True or False" >&2
+          exit 1
+        fi
         echo "Extracted version: $version"
+        echo "Development build: $development"
         echo "version=$version" >> $GITHUB_OUTPUT
+        if [ "$development" = "True" ]; then
+          echo "is_development=true" >> $GITHUB_OUTPUT
+        else
+          echo "is_development=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Use provided or extracted version
       id: set_version
@@ -41,6 +57,7 @@ jobs:
 
     - name: Check if release exists
       id: check_release
+      if: steps.get_version.outputs.is_development == 'false'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -57,13 +74,13 @@ jobs:
         fi
 
     - name: Create release version file
-      if: steps.check_release.outputs.create_release == 'true'
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
         mkdir -p game/Submods/MAICA_ChatSubmod
         echo "${{ steps.set_version.outputs.version }}" > game/python-packages/maica_release_version
 
     - name: Create zip package
-      if: steps.check_release.outputs.create_release == 'true'
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
         zip -r MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip . \
           -x '.git*' \
@@ -76,7 +93,7 @@ jobs:
 
     - name: Generate Release Notes
       id: generate_release_notes
-      if: steps.check_release.outputs.create_release == 'true'
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
         # Extract release notes from the latest commit message or a predefined template
         release_notes=$(git log -1 --pretty=%B)
@@ -87,7 +104,7 @@ jobs:
         echo "RELEASE_NOTES_PATH=release_notes.md" >> $GITHUB_OUTPUT
 
     - name: Create Release
-      if: steps.check_release.outputs.create_release == 'true'
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.set_version.outputs.version }}
@@ -98,12 +115,17 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Skip release if already exists
-      if: steps.check_release.outputs.create_release == 'false'
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'false'
       run: |
         echo "Release ${{ steps.set_version.outputs.version }} already exists. Skipping release creation."
 
+    - name: Skip development build
+      if: steps.get_version.outputs.is_development == 'true'
+      run: |
+        echo "Development build ${{ steps.set_version.outputs.version }} is not eligible for release."
+
     - name: Upload artifact
-      if: always()
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: release-files

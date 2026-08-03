@@ -1,7 +1,13 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.7.8'
+    maica_ver = '1.8.0'
+    maica_is_dev = True
+    # 如果是开发版本:
+    # - workflow不会自动发布release
+    # - 对应migration总是会执行
+    # - 会显示一条警告
+
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -662,7 +668,11 @@ init 999 python:
                 sync_provider_id(persistent.maica_setting_dict['provider_id'])
 
         import migrations
-        migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
+        migration = migrations.migration_instance(
+            persistent._maica_last_version,
+            store.maica_ver,
+            force_current=store.maica_is_dev
+        )
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
             ("1.2.8", migration_1_2_8),
@@ -671,4 +681,18 @@ init 999 python:
             ("1.6.6", migration_1_6_6)
         ] + migration_queue
         migration.migrate()
+        import maica_v13_migration
+        maica_v13_migration.migrate_setting_values(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status,
+            warning_callback=store.mas_submod_utils.submod_log.warning
+        )
+        maica_v13_migration.cleanup_advanced_settings(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status
+        )
+        if persistent.maica_setting_dict.get("use_custom_model_config", False):
+            store.maica_apply_advanced_setting()
+        else:
+            store.maica.maica_instance.modelconfig = {}
         persistent._maica_last_version = store.maica_ver

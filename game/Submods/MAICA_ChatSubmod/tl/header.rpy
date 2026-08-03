@@ -1049,6 +1049,9 @@ translate chinese strings:
 
 translate chinese strings:
 
+    old "> Warning: this is a {color=#ff0000}development build{/color} copy. {color=#ff0000}Stop using immediately{/color} if you're not MAICA official staff"
+    new "> 警告: 该副本是{color=#ff0000}开发版本{/color}. 如果你不是MAICA官方人员, 请{color=#ff0000}立刻停止使用{/color}"
+
     old "Behavior preset: [maica_get_preset_name('behavior')]"
     new "行为预设: [maica_get_preset_name('behavior')]"
     old "Hyperparameter preset: [maica_get_preset_name('hyperparameter')]"

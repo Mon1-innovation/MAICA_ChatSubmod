@@ -54,7 +54,10 @@ def normalize_chat_params(params):
         normalized.pop(legacy_key, None)
     normalized.pop("mt_extraction", None)
     maica_v13_migration.remove_retired_persistent_settings(normalized)
-    maica_v13_migration.normalize_tristate_values(normalized)
+    maica_v13_migration.normalize_tristate_values(
+        normalized,
+        fill_missing=False,
+    )
     if normalized.get("mf_const_tools") == 3:
         normalized["mf_const_tools"] = 2
     if normalized.get("mf_const_tools", 0) > 2:
@@ -530,7 +533,6 @@ class MaicaAi(ChatBotInterface):
             manager=self.task_manager,
             except_ws_status=['maica_mcore_gen_start', 'maica_chat_loop_finished'],
         )
-        self.AutoResumeTasker.set_should_resume_func(self._should_resume)
 
         self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -545,9 +547,6 @@ class MaicaAi(ChatBotInterface):
             manager=self.task_manager,
             except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
         )
-
-    def _should_resume(self):
-        return len(self.TalkSpilter.sentence_present) or len(self.message_list)
 
     @property
     def user_acc(self):
@@ -858,32 +857,43 @@ class MaicaAi(ChatBotInterface):
 
     def init_connect(self):
         import threading
-        threading.Thread(target=self._init_connect).start()
+        self.wss_thread = threading.Thread(target=self._init_connect)
+        self.wss_thread.start()
         
     def _init_ws_client(self):
-        if self.task_manager.ws_client:
-            if self.task_manager.ws_client.url == self.provider_manager.get_wssurl():
-                return
         if not self.__accessable:
-            return logger.error("Maica server not serving.")
-        if self.multi_lock.locked():
-            return logger.warning("Maica::_init_connect try to create multi connection")
-        self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
-        self.multi_lock.acquire()
-        import websocket
-        url = self.provider_manager.get_wssurl()
-        self.vista_manager.base_url = self.provider_manager.get_api_url()
-        self.vista_manager.access_token = self.ciphertext
-        logger.debug("_init_connect to {}".format(url))
-        self.task_manager.ws_client = websocket.WebSocketApp(url, on_message=self.task_manager._ws_onmessage, on_error=self._on_error
-                                                  , on_close=self._on_close)
-        self.wss_session = self.task_manager.ws_client
-        self.wss_session.ping_payload = "PING"
-        self.WSConsoleLogger.ovr_welcomemessage = self.target_lang == self.MaicaAiLang.en
-        return True
+            logger.error("Maica server not serving.")
+            return False
+        if not self.multi_lock.acquire(False):
+            logger.warning("Maica::_init_connect try to create multi connection")
+            return False
+        try:
+            self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
+            import websocket
+            url = self.provider_manager.get_wssurl()
+            self.vista_manager.base_url = self.provider_manager.get_api_url()
+            self.vista_manager.access_token = self.ciphertext
+            logger.debug("_init_connect to {}".format(url))
+            if not self.task_manager.ws_client or self.task_manager.ws_client.url != url:
+                self.task_manager.ws_client = websocket.WebSocketApp(
+                    url,
+                    on_message=self.task_manager._ws_onmessage,
+                    on_error=self._on_error,
+                    on_close=self._on_close
+                )
+            self.wss_session = self.task_manager.ws_client
+            self.wss_session.ping_payload = "PING"
+            import renpy
+            self.WSConsoleLogger.ui_lang_zh = renpy.config.language == "chinese"
+            return True
+        except Exception:
+            if self.multi_lock.locked():
+                self.multi_lock.release()
+            raise
 
     def _init_connect(self):
-        self._init_ws_client()
+        if not self._init_ws_client():
+            return
         self.Loginer.set_token(self.ciphertext)
         self.task_manager.reset_all_task()
         if self.auto_reconnect:
@@ -975,21 +985,12 @@ class MaicaAi(ChatBotInterface):
     def build_setting_config(self):
         data = {
             "type": "params",
-            "chat_params": {}
+            "chat_params": {},
+            "reset": True,
         }
         data["chat_params"].update({
             "enable_mf": self.enable_mf,
             "enable_mt": self.enable_mt,
-            "prompt_pname_repl": self.modelconfig.get("prompt_pname_repl", self.default_setting["prompt_pname_repl"]),
-            "mf_llm_concl": self.modelconfig.get("mf_llm_concl", self.default_setting["mf_llm_concl"]),
-            "mf_const_tools": self.modelconfig.get("mf_const_tools", self.default_setting["mf_const_tools"]),
-            "esearch_llm_concl": self.modelconfig.get("esearch_llm_concl", self.default_setting["esearch_llm_concl"]),
-            "mf_precheck_mt": self.modelconfig.get("mf_precheck_mt", self.default_setting["mf_precheck_mt"]),
-            "mf_context_rnds": self.modelconfig.get("mf_context_rnds", self.default_setting["mf_context_rnds"]),
-            "mt_context_rnds": self.modelconfig.get("mt_context_rnds", self.default_setting["mt_context_rnds"]),
-            "mf_disable_loop": self.modelconfig.get("mf_disable_loop", self.default_setting["mf_disable_loop"]),
-            "mt_disable_loop": self.modelconfig.get("mt_disable_loop", self.default_setting["mt_disable_loop"]),
-            "gen_enforce_lang": self.modelconfig.get("gen_enforce_lang", self.default_setting["gen_enforce_lang"]),
             "savefile_access": self.savefile_access,
             "stream_output": self.stream_output,
             "target_lang": self.target_lang,
@@ -997,7 +998,9 @@ class MaicaAi(ChatBotInterface):
             "tz": self.tz,
             "gen_quality_chk": self.gen_quality_chk,
         })
-        data['chat_params'].update(self.modelconfig)
+        data['chat_params'].update(
+            maica_v13_migration.filter_advanced_settings(self.modelconfig)
+        )
         data['chat_params'] = normalize_chat_params(data['chat_params'])
         data['chat_params']['savefile_access'] = bool(
             self.savefile_access and savefile_access_marker_exists()
@@ -1009,10 +1012,8 @@ class MaicaAi(ChatBotInterface):
         import json
         data = self.build_setting_config()
         if self.is_connected() and self.Loginer.success:
-            logger.debug("send_settings: {}".format(json.dumps(self.build_setting_config())))
-            self.SettingSender.start_event(
-                self.build_setting_config()
-            )
+            logger.debug("send_settings: {}".format(json.dumps(data)))
+            self.SettingSender.start_event(data)
             return data
         else:
             logger.warning("You should connected to send settings")
@@ -1062,13 +1063,13 @@ class MaicaAi(ChatBotInterface):
 
     def _on_error(self, wsapp, error):
         self.task_manager._ws_onerror(wsapp, error)
-        self.task_manager.ws_client.close()
+        if wsapp:
+            wsapp.close()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        if self.multi_lock.locked():
-            self.multi_lock.release()
-        self.task_manager.ws_client.close()
+        if wsapp:
+            wsapp.close()
         self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         

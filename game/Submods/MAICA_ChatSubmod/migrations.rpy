@@ -8,7 +8,8 @@ init 998 python:
     def migration_1_8_0():
         maica_v13_migration.migrate_setting_values(
             persistent.maica_setting_dict,
-            warning_callback=store.mas_submod_utils.submod_log.warning
+            warning_callback=store.mas_submod_utils.submod_log.warning,
+            fill_missing_tristates=False
         )
         maica_v13_migration.migrate_setting_values(
             persistent.maica_advanced_setting,
