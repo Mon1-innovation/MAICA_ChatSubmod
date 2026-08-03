@@ -1120,6 +1120,9 @@ screen maica_setting():
 
     default tooltip = Tooltip("")
 
+    on "show" action Show("maica_setting_tooltip", tooltip=tooltip)
+    on "hide" action Hide("maica_setting_tooltip")
+
     python:
         submods_screen = store.renpy.get_screen("maica_setting", "screens")
 
@@ -1630,6 +1633,9 @@ screen maica_setting():
                         Function(renpy.notify, _("MAICA: Settings reset")),
                         Hide("maica_setting")
                     ]
+
+screen maica_setting_tooltip(tooltip):
+    zorder 110
 
     if tooltip.value:
         frame:
