@@ -49,7 +49,7 @@ screen maica_upload_image_android():
             if imageselector.image_path:
                 textbutton _("Upload"):
                     action Function(maica_upload_image_android_submit, imageselector.image_path)
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action [Hide("maica_upload_image_android"), NullAction()]
 
 screen maica_vista_filelist(selecting=False):
@@ -191,6 +191,6 @@ screen maica_vista_filelist(selecting=False):
                 textbutton _("Upload new image (login required)")
 
 
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_vista_filelist")
 

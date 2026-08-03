@@ -165,7 +165,7 @@ label maica_talking.end:
     #     $ maica_apply_setting(True)
     return return_code
 label maica_talking.ask_mspire_continue:
-m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
+    m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
     $ _history_list.pop()
     menu:
         "Hmm...shall we go further on this topic?{fast}"
@@ -173,7 +173,7 @@ m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
             $ mspire_user_responsed = True
             jump maica_talking.asking
 
-        "Nevermind":
+        "Nevermind{#maica_host_nevermind}":
             $ return_code = "canceled"
             jump maica_talking.end
     return

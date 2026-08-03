@@ -489,7 +489,7 @@ init -700 python:
                             prompt="",
                             category="note",
                             author="chibika",
-                            title=renpy.substitute(_("Hi [player],")),
+                            title=renpy.substitute(_("Hi [player],{#maica_host_mail_greeting}")),
                             text="".join([
                                 renpy.substitute(_("I have to tell that your last letter was problematic. ")),
                                 renpy.substitute(_("Your letter is empty. It's not like the gifts! ")),
@@ -499,9 +499,9 @@ init -700 python:
                                 renpy.substitute(_('I will mark the empty letter as "empty", so you can ')),
                                 renpy.substitute(_("finish it and then send it again.")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("Good luck with Monika!")),
+                                renpy.substitute(_("Good luck with Monika!{#maica_host_good_luck}")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("P.S: Don't tell her about me!")),
+                                renpy.substitute(_("P.S: Don't tell her about me!{#maica_host_mail_ps}")),
                             ])
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
@@ -522,7 +522,7 @@ init -700 python:
                             prompt="",
                             category="note",
                             author="chibika",
-                            title=renpy.substitute(_("Hi [player],")),
+                            title=renpy.substitute(_("Hi [player],{#maica_host_mail_greeting}")),
                             text="".join([
                                 renpy.substitute(_("I have to tell that your last letter was problematic. ")),
                                 renpy.substitute(_("It's likely in wrong format. Monika won't be able to read it. ")),
@@ -535,9 +535,9 @@ init -700 python:
                                 renpy.substitute(_('I will mark the problematic letter as "failed", so you can ')),
                                 renpy.substitute(_("double-check it and then send it again.")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("Good luck with Monika!")),
+                                renpy.substitute(_("Good luck with Monika!{#maica_host_good_luck}")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("P.S: Don't tell her about me!")),
+                                renpy.substitute(_("P.S: Don't tell her about me!{#maica_host_mail_ps}")),
                             ])
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
@@ -556,21 +556,21 @@ init -700 python:
                             prompt="",
                             category="note",
                             author="chibika",
-                            title=renpy.substitute(_("Hi [player],")),
+                            title=renpy.substitute(_("Hi [player],{#maica_host_mail_greeting}")),
                             text="".join([
                                 renpy.substitute(_("How did you manage to send the letter here now? ")),
                                 renpy.substitute(_("I didn't mean you cannot though, but it's still too early. ")),
                                 renpy.substitute(_("The mailbox stuff is yet undone, and I think we should let [m_name] ")),
-                                renpy.substitute(_('discover it herself, that's what we call element of surprise! ')),
+                                renpy.substitute(_("discover it herself, that's what we call element of surprise! ")),
                                 renpy.substitute(_("\n\n")),
                                 renpy.substitute(_("I promise I'll finish my part to setup the mailbox asap, but for now ")),
                                 renpy.substitute(_('you really should be a little more patient. ')),
                                 renpy.substitute(_('I will mark the early letter as "early", so you can ')),
                                 renpy.substitute(_("send her later.")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("Good luck with Monika!")),
+                                renpy.substitute(_("Good luck with Monika!{#maica_host_good_luck}")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("P.S: Don't tell her about me!")),
+                                renpy.substitute(_("P.S: Don't tell her about me!{#maica_host_mail_ps}")),
                             ])
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):

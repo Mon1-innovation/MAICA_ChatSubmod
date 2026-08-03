@@ -1,6 +1,6 @@
 label text_split:
     call maica_show_console
-m "What do you want me to talk about?"
+    m "What do you want me to talk about?"
     $ text = mas_input("Go on, [player]",default="",length=9999,screen="maica_input_screen").strip(' \t\n\r')
     python:
         def stupid_print(s):

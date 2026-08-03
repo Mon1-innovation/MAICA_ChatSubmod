@@ -1627,11 +1627,11 @@ screen maica_input_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("Quit"):
+            textbutton _("Quit{#maica_host_quit}"):
                 selected False
                 action Return("nevermind")
 
-            textbutton _("Paste"):
+            textbutton _("Paste{#maica_host_paste}"):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
             if persistent._maica_vista_enabled:
@@ -1675,11 +1675,11 @@ screen maica_input_information_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("Quit"):
+            textbutton _("Quit{#maica_host_quit}"):
                 selected False
                 action Return("nevermind")
 
-            textbutton _("Paste"):
+            textbutton _("Paste{#maica_host_paste}"):
                 selected False
                 action [Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
 

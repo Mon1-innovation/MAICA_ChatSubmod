@@ -6,9 +6,35 @@ ROOT = Path(__file__).resolve().parents[1]
 SUBMOD = ROOT / "game" / "Submods" / "MAICA_ChatSubmod"
 TL = SUBMOD / "tl"
 NON_RUNTIME_TEXT_FILES = {"raw_session_example.rpy"}
+KNOWN_HOST_TRANSLATION_KEYS = {
+    "Actually...",
+    "Add",
+    "Cancel",
+    "Close",
+    "Good luck with Monika!",
+    "Hi [player],",
+    "Ignore",
+    "It's about [_gtext].",
+    "It's me.",
+    "It's nothing to worry about.",
+    "Knock.",
+    "Listen.",
+    "Nevermind",
+    "No",
+    "Not yet",
+    "Okay.",
+    "Open the door.",
+    "P.S: Don't tell her about me!",
+    "Paste",
+    "Quit",
+    "Submods",
+    "Yes",
+    "[_opendoor_text]",
+}
 
 TRANSLATE_ENGLISH_RE = re.compile(r"(?m)^\s*translate\s+english(?:\s+\S+)?\s*:")
 TRANSLATE_CHINESE_ID_RE = re.compile(r"(?m)^\s*translate\s+chinese\s+(?!strings\b)(?P<id>\S+)\s*:")
+TRANSLATE_CHINESE_HEADER_RE = re.compile(r"^translate\s+chinese\s+(?!strings\b)\S+\s*:\s*$")
 STRING_PAIR_RE = re.compile(
     r'^\s*old\s+(["\'])(?P<old>.*?)(?<!\\)\1\s*\r?\n'
     r'^\s*new\s+(["\'])(?P<new>.*?)(?<!\\)\3\s*$',
@@ -121,6 +147,34 @@ def test_chinese_translation_ids_are_unique():
     assert not duplicates, "duplicate Chinese translation IDs:\n{}".format("\n".join(duplicates))
 
 
+def test_chinese_translation_headers_are_separate_and_blocks_are_indented():
+    malformed = []
+    for path in rpy_files(TL):
+        lines = read(path).splitlines()
+        for index, line in enumerate(lines):
+            if "translate chinese" in line and not line.startswith("translate chinese"):
+                malformed.append("{}:{} translation header is joined to another statement".format(
+                    path.relative_to(ROOT), index + 1
+                ))
+
+            if not TRANSLATE_CHINESE_HEADER_RE.match(line):
+                continue
+
+            body_index = index + 1
+            while body_index < len(lines):
+                body = lines[body_index]
+                if body.strip() and not body.lstrip().startswith("#"):
+                    break
+                body_index += 1
+
+            if body_index >= len(lines) or not lines[body_index].startswith((" ", "\t")):
+                malformed.append("{}:{} translation block has no indented statement".format(
+                    path.relative_to(ROOT), index + 1
+                ))
+
+    assert not malformed, "malformed Chinese translation blocks:\n{}".format("\n".join(malformed))
+
+
 def test_duplicate_chinese_string_keys_have_one_translation():
     translations = {}
     conflicts = []
@@ -133,3 +187,34 @@ def test_duplicate_chinese_string_keys_have_one_translation():
             translations[old] = new
 
     assert not conflicts, "conflicting Chinese string translations:\n{}".format("\n".join(conflicts))
+
+
+def test_chinese_string_keys_do_not_conflict_with_known_host_translations():
+    conflicts = []
+    for path in rpy_files(TL):
+        for match in STRING_PAIR_RE.finditer(read(path)):
+            if match.group("old") in KNOWN_HOST_TRANSLATION_KEYS:
+                conflicts.append("{}: {}".format(path.relative_to(ROOT), match.group("old")))
+
+    assert not conflicts, "Chinese string keys conflict with host translations:\n{}".format(
+        "\n".join(conflicts)
+    )
+
+
+def test_maica_description_status_and_event_overrides_are_chinese():
+    source = read(TL / "maica_description.rpy")
+    expected_snippets = [
+        'MaicaAiStatus.NOT_READY: u"等待账号设置"',
+        'MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA已准备好接收询问"',
+        'MaicaAiStatus.TOKEN_FAILED: u"Token验证失败"',
+        'MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版"',
+        'MaicaAiStatus.NO_INTERTENT: u"检测到子模组离线',
+        'prompt="我们去天堂树林吧", category=["你", "我们", "模组", "MAICA"]',
+        'prompt="关于\'MVista\'", category=["你", "我们", "模组", "MAICA"]',
+    ]
+
+    missing = [snippet for snippet in expected_snippets if snippet not in source]
+
+    assert not missing, "missing Chinese MAICA description overrides:\n{}".format(
+        "\n".join(missing)
+    )

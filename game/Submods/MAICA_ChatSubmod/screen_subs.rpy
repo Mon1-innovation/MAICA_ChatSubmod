@@ -90,7 +90,7 @@ screen maica_gen_quality_chk_notify(prob = 1.0):
                 textbutton _("Reset session"):
                     action [Function(reset_session), Hide("maica_gen_quality_chk_notify")]
 
-                textbutton _("Ignore"):
+                textbutton _("Ignore{#maica_host_ignore}"):
                     action Hide("maica_gen_quality_chk_notify")
 
             text _("Dismissing in [countdown] seconds..."):
@@ -129,7 +129,7 @@ screen maica_log():
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_log")
 
 screen maica_tz_setting():
@@ -173,7 +173,7 @@ screen maica_tz_setting():
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_tz_setting")
 
 
@@ -584,7 +584,7 @@ screen maica_addition_input(addition="", edittarget=None):
                 xalign 0.9
                 yalign 0.5
                 if not persistent._mas_player_addition:
-                    textbutton _("Paste"):
+                    textbutton _("Paste{#maica_host_paste}"):
                         style "mas_button_simple"
                         action Function(paste)
                 else:
@@ -628,7 +628,7 @@ screen maica_mspire_input(addition="", edittarget=None):
                 xalign 0.9
                 yalign 0.5
                 if not persistent._mas_player_addition:
-                    textbutton _("Paste"):
+                    textbutton _("Paste{#maica_host_paste}"):
                         style "mas_button_simple"
                         action Function(paste)
                 else:
@@ -711,7 +711,7 @@ screen maica_addition_setting():
             textbutton _("Add item"):
                 action [SetScreenVariable("selected_indices", set()), Show("maica_addition_input")]
 
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_addition_setting")
 
 
@@ -749,7 +749,7 @@ screen maica_mspire_category_setting():
             textbutton _("Add item"):
                 action [SetScreenVariable("selected_indices", set()), Show("maica_mspire_input")]
 
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_mspire_category_setting")
 
 
@@ -802,7 +802,7 @@ screen maica_node_setting():
             textbutton _("Refresh servers list"):
                 action Function(store.maica.maica_instance.provider_manager.get_provider)
 
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_node_setting")
 
             textbutton _("Test current node avaliability"):
@@ -847,7 +847,7 @@ screen maica_mspire_setting():
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_mspire_setting")
 
                 # textbutton _("当前方式: [persistent.maica_setting_dict.get('mspire_search_type', 'None')]")
@@ -965,7 +965,7 @@ screen maica_triggers():
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_triggers")
 
 screen maica_mpostals():
@@ -1070,7 +1070,7 @@ screen maica_mpostals():
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("Close"):
+            textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_mpostals")
 
 screen maica_support():

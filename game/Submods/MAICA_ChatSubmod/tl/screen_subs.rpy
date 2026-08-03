@@ -217,7 +217,7 @@ translate chinese strings:
     old "Reset session"
     new "清除session"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:65
-    old "Ignore"
+    old "Ignore{#maica_host_ignore}"
     new "忽略"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:68
     old "Dismissing in [countdown] seconds..."

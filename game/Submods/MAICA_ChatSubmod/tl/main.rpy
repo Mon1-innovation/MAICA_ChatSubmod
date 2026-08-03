@@ -1,47 +1,44 @@
-﻿# TODO: Translation updated at 2024-07-07 20:52
+# TODO: Translation updated at 2026-08-03 15:52
 
-translate chinese strings:
+# game/Submods/MAICA_ChatSubmod/main.rpy:168
 
-    # game/Submods/MAICA_ChatSubmod/main.rpy:11
-    old "Go on, [player]"
-    new "说吧, [player]"
-    # game/Submods/MAICA_ChatSubmod/main.rpy:35
-    old "A connection issue happend, maybe try again in a few minutes?"
-    new "似乎连接出了问题, 一会再试试吧~"
+translate chinese maica_talking_ask_mspire_continue_e4353add:
+    # m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
+    m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
+
 # TODO: Translation updated at 2024-07-09 18:46
 
 translate chinese strings:
 
-    # game/Submods/MAICA_ChatSubmod/main.rpy:75
-    old "Something may went wrong..."
-    new "好像出了什么问题..."
+    old "Go on, [player]"
+    new "说吧, [player]"
+    old "A connection issue happend, maybe try again in a few minutes?"
+    new "似乎连接出了问题, 一会再试试吧~"
+
 # TODO: Translation updated at 2024-08-04 13:15
 
 translate chinese strings:
 
-    # game/Submods/MAICA_ChatSubmod/main.rpy:49
-    old "I'm done"
-    new "就这样吧"
+    old "Something may went wrong..."
+    new "好像出了什么问题..."
+
 # TODO: Translation updated at 2025-02-17 12:47
 
 translate chinese strings:
 
-    # game/Submods/MAICA_ChatSubmod/main.rpy:237
-    old "Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"
-    new "无法回复信件, 查看submod_log以获取详细原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"
-    # game/Submods/MAICA_ChatSubmod/main.rpy:254
-    old "Failed replying mail. Not retrying because failure count limit reached"
-    new "无法回复信件, 尝试失败次数已达上限"
+    old "I'm done"
+    new "就这样吧"
+
 # TODO: Translation updated at 2026-01-30 23:25
-
-# game/Submods/MAICA_ChatSubmod/main.rpy:158
-translate chinese maica_talking_ask_mspire_continue_d7c52385:
-
-    # m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
-    m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
 
 translate chinese strings:
 
-    # game/Submods/MAICA_ChatSubmod/main.rpy:160
+    old "Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"
+    new "无法回复信件, 查看submod_log以获取详细原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"
+    old "Failed replying mail. Not retrying because failure count limit reached"
+    new "无法回复信件, 尝试失败次数已达上限"
+
+translate chinese strings:
+
     old "Hmm...shall we go further on this topic?{fast}"
     new "嗯...我们要接着这个话题聊聊吗?{fast}"

@@ -253,7 +253,7 @@ init -1:
                     if ok_action:
                         textbutton _("OK") action ok_action
                     if cancel_action:
-                        textbutton _("Cancel") action cancel_action
+                        textbutton _("Cancel{#maica_host_cancel}") action cancel_action
 
     screen maica_setter_small_frame(title=None, ok_action=None, cancel_action=None):
         frame:
@@ -276,7 +276,7 @@ init -1:
                     if ok_action:
                         textbutton _("OK") action ok_action
                     if cancel_action:
-                        textbutton _("Cancel") action cancel_action
+                        textbutton _("Cancel{#maica_host_cancel}") action cancel_action
 
     screen maica_setter_medium_frame(title=None, ok_action=None, cancel_action=None):
         frame:
@@ -302,7 +302,7 @@ init -1:
                     if ok_action:
                         textbutton _("OK") action ok_action
                     if cancel_action:
-                        textbutton _("Cancel") action cancel_action
+                        textbutton _("Cancel{#maica_host_cancel}") action cancel_action
 
     screen maica_common_outer_frame(w=1000, h=500, x=0.5, y=0.3):
         frame:

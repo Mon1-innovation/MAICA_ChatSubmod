@@ -1,4 +1,4 @@
-﻿# TODO: Translation updated at 2024-07-07 20:52
+# TODO: Translation updated at 2024-07-07 20:52
 
 translate chinese strings:
 
@@ -134,7 +134,7 @@ translate chinese strings:
     old "Generate token"
     new "生成MAICA令牌"
     # game/Submods/MAICA_ChatSubmod/header.rpy:318
-    old "Cancel"
+    old "Cancel{#maica_host_cancel}"
     new "取消"
 # TODO: Translation updated at 2024-07-09 18:46
 
@@ -321,7 +321,7 @@ translate chinese strings:
     old "Refresh providers list"
     new "更新节点列表"
     # game/Submods/MAICA_ChatSubmod/header.rpy:376
-    old "Close"
+    old "Close{#maica_host_close}"
     new "关闭"
     # game/Submods/MAICA_ChatSubmod/header.rpy:520
     old "Enabling may improve performance in particular occasion.\nBut also may result in overall performance decrease."
@@ -367,10 +367,10 @@ translate chinese strings:
     old "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
     new "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:950
-    old "Nevermind"
+    old "Nevermind{#maica_host_nevermind}"
     new "算了"
     # game/Submods/MAICA_ChatSubmod/header.rpy:954
-    old "Paste"
+    old "Paste{#maica_host_paste}"
     new "粘贴"
 # TODO: Translation updated at 2024-11-22 18:00
 
@@ -1012,7 +1012,7 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:1167
-    old "Quit"
+    old "Quit{#maica_host_quit}"
     new "退出"
 # TODO: Translation updated at 2026-01-08 02:22
 
@@ -1045,7 +1045,9 @@ translate chinese strings:
     new "MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! MSpire每次生成前将自动清空该session"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1087
     old "MSpire session"
-    new "MSpire会话"translate chinese strings:
+    new "MSpire会话"
+
+translate chinese strings:
 
     old "Behavior preset: [maica_get_preset_name('behavior')]"
     new "行为预设: [maica_get_preset_name('behavior')]"

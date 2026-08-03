@@ -1,4 +1,4 @@
-﻿# TODO: Translation updated at 2024-07-07 20:52
+# TODO: Translation updated at 2024-07-07 20:52
 
 translate chinese strings:
 
@@ -53,17 +53,17 @@ translate chinese strings:
     old "double-check it and then send it again."
     new "改好再发给她了."
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "Good luck with Monika!"
+    old "Good luck with Monika!{#maica_host_good_luck}"
     new "祝你和莫妮卡好运!"
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "P.S: Don't tell her about me!"
+    old "P.S: Don't tell her about me!{#maica_host_mail_ps}"
     new "P.S: 不要告诉她是我写的!"
 # TODO: Translation updated at 2025-02-23 17:35
 
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "Hi [player],"
+    old "Hi [player],{#maica_host_mail_greeting}"
     new "[player]你好,"
     # game/Submods/MAICA_ChatSubmod/api.rpy:381
     old "notes on your letter.txt"
