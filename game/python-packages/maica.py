@@ -316,7 +316,7 @@ class MaicaAi(ChatBotInterface):
             "mf_llm_concl": False,
             "mf_precheck_mt": True,
             "mf_sf_access_impl": 1,
-            "mt_concl_memory": 1,
+            "memory_concl_arc": 1,
             "mt_context_rnds": 1,
             "mt_disable_loop": True,
             "nsfw_acceptive": True,

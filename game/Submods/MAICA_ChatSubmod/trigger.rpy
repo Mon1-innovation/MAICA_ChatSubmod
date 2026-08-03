@@ -435,7 +435,7 @@ init 999 python in maica:
             store.persistent.mas_player_additions.append(addition)
 
     memory_trigger = MTriggerBase(
-        memory_template,
+        memory_writeback_template,
         "write_memory",
         callback=mtrigger_write_memory_callback,
         method=MTriggerMethod.request,

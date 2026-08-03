@@ -392,7 +392,7 @@ def test_emotion_endpoint_is_not_called(monkeypatch):
 - 迁移函数和队列目标保持 `1.8.0`，但 `maica_ver` 在任务 9 发布门禁通过前仍保持 `1.7.8`。
 - `mf_const_sf_access` 默认整数 `0`，其余两个三态设置默认整数 `1`，UI 改用数值控件。
 - 完整实现以下改名：`sfe_aggressive→prompt_pname_repl`、`mf_aggressive→mf_llm_concl`、`tnd_aggressive→mf_const_tools`、`esc_aggressive→esearch_llm_concl`、`amt_aggressive→mf_precheck_mt`、`pre_additive→mf_context_rnds`、`post_additive→mt_context_rnds`、`dscl_pvn→gen_quality_chk`、`pre_astp→mf_disable_loop`、`post_astp→mt_disable_loop`、`enforce_lang→gen_enforce_lang`、`sf_extraction→savefile_access`、`max_length→session_len_limit`、`ic_prep→twk_super`。
-- 添加 `prompt_allow_nickname`、`mf_sf_access_impl`、`mf_const_sf_access`、`mt_concl_memory` 和语言 `auto`；`mt_disable_loop` 默认 `True`，`session_len_limit` 上限 `28672`，`mf_const_tools` 最大值 `2`。
+- 添加 `prompt_allow_nickname`、`mf_sf_access_impl`、`mf_const_sf_access`、`memory_concl_arc` 和语言 `auto`；`mt_disable_loop` 默认 `True`，`session_len_limit` 上限 `28672`，`mf_const_tools` 最大值 `2`。
 - 从持久化上传白名单移除 `mas_sf_hcb`，从出站参数移除 `mt_extraction`，将 `tz` 保持为常规设置。
 - 同步 `gen_quality_chk` 的 screen、trigger label、翻译和图片资产名。
 - 迁移保留旧键、删除废弃出站键，并将 `mf_const_tools == 3` 降为 `2`。

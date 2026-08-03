@@ -191,7 +191,7 @@ init 10 python:
         "gen_enforce_lang":True,
         "mf_sf_access_impl":1,
         "mf_const_sf_access":0,
-        "mt_concl_memory":1,
+        "memory_concl_arc":1,
         "prompt_allow_nickname":True,
     }
     maica_advanced_default_setting = copy.deepcopy(maica_advanced_setting)
@@ -237,7 +237,7 @@ init 10 python:
         # "gen_enforce_lang":True,
         # "mf_sf_access_impl":1,
         # "mf_const_sf_access":0,
-        # "mt_concl_memory":1,
+        # "memory_concl_arc":1,
         # "prompt_allow_nickname":True,
 
     # super:
@@ -262,7 +262,7 @@ init 10 python:
                 "mf_const_tools": 0,
                 "nsfw_acceptive": False,
                 "gen_enforce_lang": False,
-                "mt_concl_memory": 0,
+                "memory_concl_arc": 0,
                 "prompt_allow_nickname": False,
             },
         },

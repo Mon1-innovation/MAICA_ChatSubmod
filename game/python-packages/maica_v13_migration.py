@@ -32,7 +32,7 @@ ADVANCED_SETTING_KEYS = (
     "mf_const_tools",
     "esearch_llm_concl",
     "mf_precheck_mt",
-    "mt_concl_memory",
+    "memory_concl_arc",
     "nsfw_acceptive",
     "mf_context_rnds",
     "mt_context_rnds",
@@ -49,13 +49,13 @@ RETIRED_PERSISTENT_SETTINGS = (
 TRISTATE_SETTINGS = (
     "mf_sf_access_impl",
     "mf_const_sf_access",
-    "mt_concl_memory",
+    "memory_concl_arc",
 )
 
 TRISTATE_DEFAULTS = {
     "mf_sf_access_impl": 1,
     "mf_const_sf_access": 0,
-    "mt_concl_memory": 1,
+    "memory_concl_arc": 1,
 }
 
 try:

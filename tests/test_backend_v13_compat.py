@@ -48,7 +48,7 @@ ADVANCED_SETTING_KEYS = (
     "mf_const_tools",
     "esearch_llm_concl",
     "mf_precheck_mt",
-    "mt_concl_memory",
+    "memory_concl_arc",
     "nsfw_acceptive",
     "mf_context_rnds",
     "mt_context_rnds",
@@ -1043,7 +1043,7 @@ def test_c_tz_has_ui_and_outbound_owners():
 
 @pytest.mark.parametrize(
     ("key", "default"),
-    (("mf_sf_access_impl", 1), ("mf_const_sf_access", 0), ("mt_concl_memory", 1)),
+    (("mf_sf_access_impl", 1), ("mf_const_sf_access", 0), ("memory_concl_arc", 1)),
 )
 def test_c_tristate_default_and_control_are_integer_zero_to_two(key, default):
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
@@ -1173,7 +1173,7 @@ def test_e_advanced_setting_screen_supports_discard_and_independent_local_switch
     translation = source("game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy")
     assert 'old "MAICA: Advanced setting changes discarded"' in translation
     assert 'new "MAICA: 已放弃高级设置修改"' in translation
-    for key in ("mf_sf_access_impl", "mf_const_sf_access", "mf_const_tools", "mt_concl_memory"):
+    for key in ("mf_sf_access_impl", "mf_const_sf_access", "mf_const_tools", "memory_concl_arc"):
         assert re.search(
             r"ToggleDict\s*\(\s*persistent\.maica_advanced_setting_status\s*,\s*['\"]{}['\"]".format(key),
             screen,
@@ -1205,7 +1205,7 @@ def test_e_memory_template_preserves_backend_player_name_placeholder():
         header,
     )
     assert re.search(
-        r"MTriggerBase\(\s*memory_template\s*,\s*['\"]write_memory['\"]",
+        r"MTriggerBase\(\s*memory_writeback_template\s*,\s*['\"]write_memory['\"]",
         trigger,
     )
     assert re.search(

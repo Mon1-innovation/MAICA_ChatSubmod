@@ -119,7 +119,7 @@
 
 只有在其余修复分片全部通过测试后，版本常量才更新为 `1.8.0`。迁移注册版本保持 `1.8.0`，并且迁移必须幂等。
 
-对于 `mf_sf_access_impl`、`mf_const_sf_access` 和 `mt_concl_memory`：
+对于 `mf_sf_access_impl`、`mf_const_sf_access` 和 `memory_concl_arc`：
 
 - 新增或缺失的 `mf_const_sf_access` 默认为整数 `0`；其余两个字段默认为整数 `1`，与后端一致。
 - 既有布尔值 `False` 迁移为整数 `0`，`True` 迁移为整数 `1`，保留此前界面展示给用户的状态。

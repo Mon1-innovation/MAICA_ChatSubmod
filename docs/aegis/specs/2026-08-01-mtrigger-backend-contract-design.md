@@ -10,7 +10,7 @@
 
 - 后端返回 `{"name": "idle", "arguments": {}}`，前端却把 `name` 和 `arguments` 当作两个触发器名称。
 - `common_affection_template` 仍允许调用方提供任意名称，而后端已将其名称固定。
-- 前端尚无 `memory_template`，无法请求或消费 `write_memory` 输出。
+- 前端尚无 `memory_writeback_template`，无法请求或消费 `write_memory` 输出。
 
 ## 契约
 
@@ -30,7 +30,7 @@
 ### 固定名称模板
 
 - `common_affection_template` 的本地固定名称为现有的 `alter_affection`。
-- `memory_template` 的本地固定名称为 `write_memory`。
+- `memory_writeback_template` 的本地固定名称为 `write_memory`。
 - 固定名称模板仍以本地名称参与管理器注册和返回路由，请求 payload 必须包含后端规定的固定 `name`。
 - 其他模板继续要求并发送调用方提供的 `name`。
 
@@ -40,7 +40,7 @@
 
 ```json
 {
-  "template": "memory_template",
+  "template": "memory_writeback_template",
   "name": "write_memory"
 }
 ```
@@ -73,17 +73,17 @@ WebSocket 层不得直接修改 `persistent.mas_player_additions`，避免协议
 - 旧映射 envelope 不再分发。
 - 畸形 envelope 不分发。
 - 两个固定名称模板拒绝其他名称，并在请求中发送固定 name。
-- memory_template 请求严格等于 `{"template": "memory_template", "name": "write_memory"}`。
-- memory_template 总数上限为一。
+- memory_writeback_template 请求严格等于 `{"template": "memory_writeback_template", "name": "write_memory"}`。
+- memory_writeback_template 总数上限为一。
 - write_memory 提取 memory_item，经现有校验后写入；重复项和非法项不写入。
 - 完整 MTrigger 与 v13 契约回归通过。
 
 ## 兼容与退役
 
-退役旧 MTrigger 返回映射解析逻辑，不保留 fallback。既有非固定名称模板、`maica_quality_status` 特殊路径和 `mt_concl_memory` 设置不在本次变更范围内。
+退役旧 MTrigger 返回映射解析逻辑，不保留 fallback。既有非固定名称模板、`maica_quality_status` 特殊路径和 `memory_concl_arc` 设置不在本次变更范围内。
 
 ## 工作草案
 
-- TaskIntentDraft：同步后端 MTrigger envelope、固定名称规则与 memory_template；风险集中在请求契约和持久化写入。
+- TaskIntentDraft：同步后端 MTrigger envelope、固定名称规则与 memory_writeback_template；风险集中在请求契约和持久化写入。
 - BaselineReadSetHint：`maica_mtrigger.py`、`maica_tasker_sub.py`、`trigger.rpy`、`header.rpy` 及两个 v13 契约测试文件。
-- ImpactStatementDraft：影响协议适配、模板构建、触发器注册和玩家补充信息写入；不改变服务器、UI、历史数据或 mt_concl_memory。
+- ImpactStatementDraft：影响协议适配、模板构建、触发器注册和玩家补充信息写入；不改变服务器、UI、历史数据或 memory_concl_arc。

@@ -346,12 +346,12 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "mt_concl_memory":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "mt_concl_memory"), Function(maica_clamp_advanced_setting, "mt_concl_memory", 0, 2)]
+                textbutton "memory_concl_arc":
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "memory_concl_arc"), Function(maica_clamp_advanced_setting, "memory_concl_arc", 0, 2)]
                     hovered SetField(_tooltip, "value", _("Experimental: generate a memory summary when a session is archived or cleared to preserve useful information.\n* 0: Disabled\n* 1: Rotate the summary only when an overlong session is automatically trimmed\n* 2: Rotate the summary when a session is automatically trimmed or manually cleared\n+ Preserves persistent information from conversations instead of relying entirely on manual entries\n- Operations that generate a summary become much slower\n- May cause distraction and tests the core model's resistance to distractions"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
-                if persistent.maica_advanced_setting_status.get("mt_concl_memory", False):
-                    use num_bar("mt_concl_memory", 200, _("Experimental: generate a memory summary when a session is archived or cleared to preserve useful information.\n* 0: Disabled\n* 1: Rotate the summary only when an overlong session is automatically trimmed\n* 2: Rotate the summary when a session is automatically trimmed or manually cleared\n+ Preserves persistent information from conversations instead of relying entirely on manual entries\n- Operations that generate a summary become much slower\n- May cause distraction and tests the core model's resistance to distractions"), "mt_concl_memory", 0, 2, sdict=sdict)
+                if persistent.maica_advanced_setting_status.get("memory_concl_arc", False):
+                    use num_bar("memory_concl_arc", 200, _("Experimental: generate a memory summary when a session is archived or cleared to preserve useful information.\n* 0: Disabled\n* 1: Rotate the summary only when an overlong session is automatically trimmed\n* 2: Rotate the summary when a session is automatically trimmed or manually cleared\n+ Preserves persistent information from conversations instead of relying entirely on manual entries\n- Operations that generate a summary become much slower\n- May cause distraction and tests the core model's resistance to distractions"), "memory_concl_arc", 0, 2, sdict=sdict)
 
             hbox:
                 spacing 5

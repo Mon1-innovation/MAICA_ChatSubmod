@@ -142,8 +142,8 @@ def _build_trigger_batch(template, count):
         fixed_names = {
             maica_mtrigger.common_affection_template: "alter_affection",
         }
-        if hasattr(maica_mtrigger, "memory_template"):
-            fixed_names[maica_mtrigger.memory_template] = "write_memory"
+        if hasattr(maica_mtrigger, "memory_writeback_template"):
+            fixed_names[maica_mtrigger.memory_writeback_template] = "write_memory"
         manager.add_trigger(
             _build_trigger(
                 template,
@@ -399,7 +399,7 @@ def test_fixed_name_templates_send_canonical_name_in_request_payload():
         name="alter_affection",
     )
     memory = _build_trigger(
-        maica_mtrigger.memory_template,
+        maica_mtrigger.memory_writeback_template,
         name="write_memory",
     )
 
@@ -408,7 +408,7 @@ def test_fixed_name_templates_send_canonical_name_in_request_payload():
         "name": "alter_affection",
     }
     assert memory.build() == {
-        "template": "memory_template",
+        "template": "memory_writeback_template",
         "name": "write_memory",
     }
 
@@ -417,7 +417,7 @@ def test_fixed_name_templates_send_canonical_name_in_request_payload():
     ("template_name", "invalid_name"),
     [
         ("common_affection_template", "custom_affection"),
-        ("memory_template", "custom_memory"),
+        ("memory_writeback_template", "custom_memory"),
     ],
 )
 def test_fixed_name_templates_reject_custom_names(template_name, invalid_name):
@@ -429,7 +429,7 @@ def test_fixed_name_templates_reject_custom_names(template_name, invalid_name):
 def test_memory_template_extracts_memory_item():
     received = []
     trigger = maica_mtrigger.MTriggerBase(
-        maica_mtrigger.memory_template,
+        maica_mtrigger.memory_writeback_template,
         "write_memory",
         callback=received.append,
     )
@@ -440,9 +440,9 @@ def test_memory_template_extracts_memory_item():
 
 
 def test_memory_template_allows_only_one_trigger():
-    assert len(_build_trigger_batch(maica_mtrigger.memory_template, 1)) == 1
+    assert len(_build_trigger_batch(maica_mtrigger.memory_writeback_template, 1)) == 1
     with pytest.raises(ValueError):
-        _build_trigger_batch(maica_mtrigger.memory_template, 2)
+        _build_trigger_batch(maica_mtrigger.memory_writeback_template, 2)
 
 
 def test_switch_build_uses_curr_item_instead_of_curr_value():
@@ -621,7 +621,7 @@ def test_meter_number_types_are_python2_compatible_and_accept_large_integers():
         maica_mtrigger.common_switch_template,
         maica_mtrigger.common_meter_template,
         maica_mtrigger.customize_template,
-        maica_mtrigger.memory_template,
+        maica_mtrigger.memory_writeback_template,
     ],
 )
 def test_mtrigger_accepts_equivalent_canonical_template_clones(canonical):
@@ -1836,7 +1836,7 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
         "prompt_pname_repl": False,
         "mf_sf_access_impl": False,
         "mf_const_sf_access": True,
-        "mt_concl_memory": 2,
+        "memory_concl_arc": 2,
         "tnd_aggressive": 3,
         "mf_const_tools": 1,
         "max_length": 99999,
@@ -1860,7 +1860,7 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     assert status["prompt_pname_repl"] is True
     assert values["mf_sf_access_impl"] == 0
     assert values["mf_const_sf_access"] == 1
-    assert values["mt_concl_memory"] == 2
+    assert values["memory_concl_arc"] == 2
     assert values["mf_const_tools"] == 2
     assert values["session_len_limit"] == 28672
     for old in maica_v13_migration.SETTING_RENAMES:
@@ -1877,7 +1877,7 @@ def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings(
     assert missing_values == {
         "mf_sf_access_impl": 1,
         "mf_const_sf_access": 0,
-        "mt_concl_memory": 1,
+        "memory_concl_arc": 1,
     }
 
     values = {
@@ -1893,7 +1893,7 @@ def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings(
 
     assert values["mf_sf_access_impl"] == 1
     assert values["mf_const_sf_access"] == 0
-    assert values["mt_concl_memory"] == 1
+    assert values["memory_concl_arc"] == 1
     assert len(warnings) == 2
     assert "reset to 0" in warnings[1]
 
@@ -1903,13 +1903,13 @@ def test_outbound_settings_normalize_tristates_to_real_integers():
         {
             "mf_sf_access_impl": False,
             "mf_const_sf_access": True,
-            "mt_concl_memory": "invalid",
+            "memory_concl_arc": "invalid",
         }
     )
 
     assert normalized["mf_sf_access_impl"] == 0
     assert normalized["mf_const_sf_access"] == 1
-    assert normalized["mt_concl_memory"] == 1
+    assert normalized["memory_concl_arc"] == 1
     for key in maica_v13_migration.TRISTATE_SETTINGS:
         assert type(normalized[key]) is int
 

@@ -81,11 +81,11 @@ common_affection_template = MTriggerTemplate("common_affection_template", "alter
 common_switch_template = MTriggerTemplate("common_switch_template", "choice", exprop=MTriggerExprop(True, True, True, False, True, True))
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False))
 customize_template = MTriggerTemplate("customized", None, exprop=MTriggerExprop(True, True, False, False, False, False))
-memory_template = MTriggerTemplate("memory_template", "memory_item", exprop=MTriggerExprop(False, False, False, False, False, False))
+memory_writeback_template = MTriggerTemplate("memory_writeback_template", "memory_item", exprop=MTriggerExprop(False, False, False, False, False, False))
 
 FIXED_TEMPLATE_NAMES = {
     common_affection_template.name: "alter_affection",
-    memory_template.name: "write_memory",
+    memory_writeback_template.name: "write_memory",
 }
 
 TEMPLATE_EXPROP_FIELDS = (
@@ -110,7 +110,7 @@ CANONICAL_TEMPLATE_SPECS = {
         common_switch_template,
         common_meter_template,
         customize_template,
-        memory_template,
+        memory_writeback_template,
     )
 }
 
@@ -120,7 +120,7 @@ class MTriggerManager(object):
         common_switch_template.name: 6,
         common_meter_template.name: 6,
         customize_template.name: 20,
-        memory_template.name: 1,
+        memory_writeback_template.name: 1,
     }
     SIZE_LIMIT = {
         MTriggerMethod.all : 100000,
