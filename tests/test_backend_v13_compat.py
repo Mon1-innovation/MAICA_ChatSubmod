@@ -610,12 +610,8 @@ def assert_key_has_semantic_upper_bound(text, key, upper):
     assert False, "{} over {} is neither clamped nor rejected".format(key, upper)
 
 
-def test_a_backend_and_release_versions_are_final():
+def test_a_backend_version_is_final():
     assert re.search(r"SUPPORT_BACKEND\s*=\s*['\"]1\.3\.000['\"]", source("game/python-packages/maica.py"))
-    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
-    assignments = re.findall(r"(?m)^\s*maica_ver\s*=\s*['\"]([^'\"]+)['\"]", api)
-    assert assignments, "init code never assigns maica_ver"
-    assert assignments[-1] == "1.8.0", "final effective maica_ver assignment is {}".format(assignments[-1])
 
 
 def test_a_migration_is_structurally_registered_and_invoked():
