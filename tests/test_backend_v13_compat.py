@@ -33,6 +33,29 @@ RENAMES = {
 }
 PERSISTENT_SETTINGS = tuple(sorted(set(RENAMES.values())))
 RETIRED_PERSISTENT_SETTINGS = {"ic_prep", "twk_super"}
+ADVANCED_SETTING_KEYS = (
+    "max_tokens",
+    "seed",
+    "top_p",
+    "temperature",
+    "frequency_penalty",
+    "presence_penalty",
+    "prompt_pname_repl",
+    "prompt_allow_nickname",
+    "mf_llm_concl",
+    "mf_sf_access_impl",
+    "mf_const_sf_access",
+    "mf_const_tools",
+    "esearch_llm_concl",
+    "mf_precheck_mt",
+    "mt_concl_memory",
+    "nsfw_acceptive",
+    "mf_context_rnds",
+    "mt_context_rnds",
+    "mf_disable_loop",
+    "mt_disable_loop",
+    "gen_enforce_lang",
+)
 
 
 def path_for(relative):
@@ -552,7 +575,10 @@ def assert_key_default(text, key, value_pattern):
 def assert_key_control(text, key, upper):
     context = block_after(text, r"(?:textbutton|use\s+\w+)[^\n]*{}|{}[^\n]*(?:textbutton|use\s+\w+)".format(key, key), 500)
     assert re.search(r"\b0\s*,\s*{}\b|(?:max|upper|maximum)\s*=\s*{}\b".format(upper, upper), context)
-    assert "ToggleDict" not in context
+    assert not re.search(
+        r"ToggleDict\s*\(\s*persistent\.maica_advanced_setting\s*,\s*['\"]{}['\"]".format(key),
+        context,
+    )
 
 
 def function_body(text, name_pattern):
@@ -688,8 +714,25 @@ def test_b_canonical_ui_owner_exists(new):
 
 @pytest.mark.parametrize("new", PERSISTENT_SETTINGS)
 def test_b_canonical_runtime_upload_owner_exists(new):
-    runtime = source("game/python-packages/maica.py") + source("game/python-packages/maica_tasker_sub_sessionsender.py")
-    assert runtime_owner_exists(runtime, new), "runtime owner missing: {}".format(new)
+    runtime = source("game/python-packages/maica.py")
+    if new in ADVANCED_SETTING_KEYS:
+        allowlist = literal_assignment(
+            source("game/python-packages/maica_v13_migration.py"),
+            "ADVANCED_SETTING_KEYS",
+        )
+        assert new in allowlist
+        assert "filter_advanced_settings(self.modelconfig)" in runtime
+    else:
+        runtime += source("game/python-packages/maica_tasker_sub_sessionsender.py")
+        assert runtime_owner_exists(runtime, new), "runtime owner missing: {}".format(new)
+
+
+def test_b_advanced_setting_allowlist_matches_the_supported_ui_contract():
+    allowlist = literal_assignment(
+        source("game/python-packages/maica_v13_migration.py"),
+        "ADVANCED_SETTING_KEYS",
+    )
+    assert allowlist == ADVANCED_SETTING_KEYS
 
 
 def test_b_owner_helpers_reject_default_only_synthetic_source():
@@ -1085,32 +1128,36 @@ def test_e_advanced_setting_screen_matches_backend_document_order():
         r"screen\s+maica_advance_setting",
         30000,
     )
-    expected = (
-        "max_tokens",
-        "seed",
-        "top_p",
-        "temperature",
-        "frequency_penalty",
-        "presence_penalty",
-        "prompt_pname_repl",
-        "prompt_allow_nickname",
-        "mf_llm_concl",
-        "mf_sf_access_impl",
-        "mf_const_sf_access",
-        "mf_const_tools",
-        "esearch_llm_concl",
-        "mf_precheck_mt",
-        "mt_concl_memory",
-        "nsfw_acceptive",
-        "mf_context_rnds",
-        "mt_context_rnds",
-        "mf_disable_loop",
-        "mt_disable_loop",
-        "gen_enforce_lang",
-    )
+    expected = ADVANCED_SETTING_KEYS
     positions = [ui.index('textbutton "{}'.format(name)) for name in expected]
     assert positions == sorted(positions)
     assert "twk_super" not in ui
+
+
+def test_e_advanced_setting_screen_supports_discard_and_independent_local_switches():
+    screen = named_screen(
+        source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
+        "maica_advance_setting",
+    )
+    assert "Function(store.maica_discard_advanced_setting)" in screen
+    assert "MAICA: 已放弃高级设置修改" in screen
+    for key in ("mf_sf_access_impl", "mf_const_sf_access", "mf_const_tools", "mt_concl_memory"):
+        assert re.search(
+            r"ToggleDict\s*\(\s*persistent\.maica_advanced_setting_status\s*,\s*['\"]{}['\"]".format(key),
+            screen,
+        )
+        assert not re.search(
+            r"SetDict\s*\(\s*persistent\.maica_advanced_setting_status\s*,\s*['\"]{}['\"]\s*,\s*True".format(key),
+            screen,
+        )
+
+
+def test_e_advanced_setting_apply_replaces_the_runtime_snapshot():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    apply_body = function_body(header, r"maica_apply_advanced_setting")
+    assert "filter_advanced_settings" in apply_body
+    assert re.search(r"modelconfig\s*=\s*settings_dict", apply_body)
+    assert not re.search(r"modelconfig\.update\s*\(", apply_body)
 
 
 def test_e_memory_template_preserves_backend_player_name_placeholder():
@@ -1207,7 +1254,7 @@ def test_f_nickname_has_default_and_ui_owner():
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     assert_key_default(header, "prompt_allow_nickname", r"True\b")
     ui = header + screen
-    control = block_after(ui, r"(?m)^\s*textbutton[^\n]*prompt_allow_nickname", 650)
+    control = block_after(ui, r"(?m)^\s*textbutton[^\n]*prompt_allow_nickname", 1000)
     assert re.search(
         r"action[^\n]*(?:ToggleDict|SetDict)\s*\(\s*persistent\.maica_advanced_setting\s*,\s*['\"]prompt_allow_nickname['\"]",
         control,
@@ -1278,6 +1325,10 @@ def test_g_persistent_upload_uses_the_player_addition_byte_limit():
 def test_g_v18_migration_runs_before_persistent_upload():
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    migration_body = function_body(api, r"maica_migration")
+    assert "cleanup_advanced_settings" in migration_body
+    assert "store.maica_apply_advanced_setting()" in migration_body
+    assert re.search(r"modelconfig\s*=\s*\{\s*\}", migration_body)
 
     def ch30_preloop_priority(text, function_name):
         match = re.search(

@@ -20,6 +20,7 @@ import maica_tasker
 import maica_tasker_sub
 import maica_tasker_sub_sessionsender
 import maica_vista_files_manager
+import maica_v13_migration
 
 
 class NullLogger:
@@ -1282,6 +1283,41 @@ def test_savefile_access_marker_is_a_final_outbound_gate(
     assert ai.build_setting_config()["chat_params"]["savefile_access"] is False
 
 
+def test_setting_payload_only_contains_allowlisted_selected_advanced_settings(
+    isolated_maica_ai_globals, monkeypatch, tmp_path
+):
+    ai = maica.MaicaAi("account", "password")
+    monkeypatch.setattr(maica, "basedir", str(tmp_path), raising=False)
+    ai.modelconfig = {
+        "temperature": 0.35,
+        "unknown_legacy_setting": "must-not-leak",
+        "mf_aggressive": True,
+    }
+
+    payload = ai.build_setting_config()
+    advanced = set(payload["chat_params"]).intersection(
+        maica_v13_migration.ADVANCED_SETTING_KEYS
+    )
+
+    assert payload["reset"] is True
+    assert advanced == {"temperature"}
+    assert payload["chat_params"]["temperature"] == 0.35
+    assert "unknown_legacy_setting" not in payload["chat_params"]
+    assert "mf_aggressive" not in payload["chat_params"]
+
+
+def test_setting_payload_does_not_inject_advanced_defaults(
+    isolated_maica_ai_globals, monkeypatch, tmp_path
+):
+    ai = maica.MaicaAi("account", "password")
+    monkeypatch.setattr(maica, "basedir", str(tmp_path), raising=False)
+    ai.modelconfig = {}
+
+    params = ai.build_setting_config()["chat_params"]
+
+    assert set(params).isdisjoint(maica_v13_migration.ADVANCED_SETTING_KEYS)
+
+
 def test_manual_maica_example_has_no_retired_cookie_or_strict_owner():
     source = (PACKAGE_ROOT / "test_maica.py").read_text(encoding="utf-8")
     assert "enable_strict_mode" not in source
@@ -1604,8 +1640,6 @@ def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
 
 
 def test_setting_migration_renames_tristates_and_is_idempotent():
-    import maica_v13_migration
-
     values = {
         "sfe_aggressive": True,
         "prompt_pname_repl": False,
@@ -1638,14 +1672,15 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     assert values["mt_concl_memory"] == 2
     assert values["mf_const_tools"] == 2
     assert values["session_len_limit"] == 28672
+    for old in maica_v13_migration.SETTING_RENAMES:
+        assert old not in values
+        assert old not in status
     for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
         assert key not in values
         assert key not in status
 
 
 def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():
-    import maica_v13_migration
-
     missing_values = {}
     maica_v13_migration.migrate_setting_values(missing_values)
     assert missing_values == {
@@ -1673,8 +1708,6 @@ def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings(
 
 
 def test_outbound_settings_normalize_tristates_to_real_integers():
-    import maica_v13_migration
-
     normalized = maica.normalize_chat_params(
         {
             "mf_sf_access_impl": False,
@@ -1691,8 +1724,6 @@ def test_outbound_settings_normalize_tristates_to_real_integers():
 
 
 def test_outbound_settings_drop_retained_legacy_keys():
-    import maica_v13_migration
-
     params = {old: "legacy" for old in maica_v13_migration.SETTING_RENAMES}
     params.update(
         {
@@ -1711,6 +1742,57 @@ def test_outbound_settings_drop_retained_legacy_keys():
     assert "mt_extraction" not in normalized
     for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
         assert key not in normalized
+
+
+def test_outbound_normalization_does_not_create_missing_tristates():
+    normalized = maica.normalize_chat_params({"temperature": 0.22})
+
+    assert normalized == {"temperature": 0.22}
+
+
+def test_advanced_setting_cleanup_removes_unknown_values_and_statuses():
+    values = {
+        "temperature": 0.35,
+        "unknown_legacy_setting": "obsolete",
+    }
+    status = {
+        "temperature": True,
+        "unknown_legacy_setting": True,
+        "orphan_status": True,
+    }
+
+    maica_v13_migration.cleanup_advanced_settings(values, status)
+
+    assert values == {"temperature": 0.35}
+    assert status == {"temperature": True}
+
+
+def test_advanced_setting_filter_requires_a_local_enable_flag():
+    values = {
+        "temperature": 0.35,
+        "top_p": 0.8,
+        "unknown_legacy_setting": "obsolete",
+    }
+    status = {
+        "temperature": False,
+        "top_p": True,
+        "unknown_legacy_setting": True,
+    }
+
+    filtered = maica_v13_migration.filter_advanced_settings(values, status)
+
+    assert filtered == {"top_p": 0.8}
+
+
+def test_general_setting_migration_does_not_inject_advanced_tristates():
+    values = {"enable_mf": True}
+
+    maica_v13_migration.migrate_setting_values(
+        values,
+        fill_missing_tristates=False,
+    )
+
+    assert values == {"enable_mf": True}
 
 
 def test_player_additions_backup_is_created_once_and_filters_utf8_boundaries():

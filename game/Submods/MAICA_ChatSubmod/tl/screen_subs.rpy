@@ -41,6 +41,9 @@ translate english strings:
     old "MAICA: 已保存高级设置"
     new "MAICA: Advanced settings saved"
 
+    old "MAICA: 已放弃高级设置修改"
+    new "MAICA: Advanced setting changes discarded"
+
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:372
     old "MAICA: 已重置高级设置"
     new "MAICA: Advanced settings reset"

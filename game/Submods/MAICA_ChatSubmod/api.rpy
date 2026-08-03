@@ -671,4 +671,18 @@ init 999 python:
             ("1.6.6", migration_1_6_6)
         ] + migration_queue
         migration.migrate()
+        import maica_v13_migration
+        maica_v13_migration.migrate_setting_values(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status,
+            warning_callback=store.mas_submod_utils.submod_log.warning
+        )
+        maica_v13_migration.cleanup_advanced_settings(
+            persistent.maica_advanced_setting,
+            persistent.maica_advanced_setting_status
+        )
+        if persistent.maica_setting_dict.get("use_custom_model_config", False):
+            store.maica_apply_advanced_setting()
+        else:
+            store.maica.maica_instance.modelconfig = {}
         persistent._maica_last_version = store.maica_ver

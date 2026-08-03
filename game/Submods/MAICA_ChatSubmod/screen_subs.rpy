@@ -179,14 +179,6 @@ screen maica_tz_setting():
 
 screen maica_advance_setting():
     $ _tooltip = store._tooltip
-    python:
-        def reset_to_default():
-            for item in store.maica.maica_instance.default_setting:
-                if item == 'seed':
-                    store.maica.maica_instance.default_setting[item] = 0
-                if item in persistent.maica_advanced_setting:
-                    persistent.maica_advanced_setting[item] = store.maica.maica_instance.default_setting[item]
-                    persistent.maica_advanced_setting_status[item] = False
 
     modal True
     zorder 92
@@ -275,32 +267,39 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "prompt_pname_repl:[persistent.maica_advanced_setting.get('prompt_pname_repl', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "prompt_pname_repl"),
-                        ToggleDict(persistent.maica_advanced_setting, "prompt_pname_repl")]
+                textbutton "prompt_pname_repl":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "prompt_pname_repl")
                     hovered SetField(_tooltip, "value", _("将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 更容易发生表现离群和混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('prompt_pname_repl')
+                if persistent.maica_advanced_setting_status.get("prompt_pname_repl", False):
+                    textbutton "[persistent.maica_advanced_setting.get('prompt_pname_repl', False)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "prompt_pname_repl")
             hbox:
                 spacing 5
-                textbutton "prompt_allow_nickname:[persistent.maica_advanced_setting.get('prompt_allow_nickname', True)]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname"), ToggleDict(persistent.maica_advanced_setting, "prompt_allow_nickname")]
+                textbutton "prompt_allow_nickname":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname")
                     hovered SetField(_tooltip, "value", _("实验性功能, 在prompt中允许模型生成[[player_nickname]占位符.\n+ 更符合MAS的对话风格\n- 需要一些额外的前端设计\n- 这可能会造成意料之外的问题"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('prompt_allow_nickname')
+                if persistent.maica_advanced_setting_status.get("prompt_allow_nickname", False):
+                    textbutton "[persistent.maica_advanced_setting.get('prompt_allow_nickname', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "prompt_allow_nickname")
             hbox:
                 spacing 5
-                textbutton "mf_llm_concl:[persistent.maica_advanced_setting.get('mf_llm_concl', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_llm_concl"),
-                        ToggleDict(persistent.maica_advanced_setting, "mf_llm_concl")]
+                textbutton "mf_llm_concl":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "mf_llm_concl")
                     hovered SetField(_tooltip, "value", _("要求agent模型生成最终指导, 并替代默认MFocus指导.\n+ 信息密度更高, 更容易维持语言自然\n- 表现十分依赖agent模型的指令服从能力, 容易起反作用\n- 启用时一般会无效化mf_const_tools"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_llm_concl')
+                if persistent.maica_advanced_setting_status.get("mf_llm_concl", False):
+                    textbutton "[persistent.maica_advanced_setting.get('mf_llm_concl', False)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "mf_llm_concl")
 
             hbox:
                 spacing 5
                 textbutton "mf_sf_access_impl":
-                    action [SetDict(persistent.maica_advanced_setting_status, "mf_sf_access_impl", True), Function(maica_clamp_advanced_setting, "mf_sf_access_impl", 0, 2)]
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_sf_access_impl"), Function(maica_clamp_advanced_setting, "mf_sf_access_impl", 0, 2)]
                     hovered SetField(_tooltip, "value", _("实验性功能, 从设定集(存档)中快速提取信息的方式, 并替代传统MFocus实现.\n* 0: (传统)纯LLM实现\n* 1: RAG+Reranker实现\n* 2: 纯RAG实现\n+ 会快很多\n+ 仅不为0时可以启用mf_const_sf_access\n- 纯RAG不会检索query携带的存档内容\n- 精度显著低于传统实现, 考验核心模型的抗干扰能力\n- 如果后端没有实现对应的可选要求, 会回退到0"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_sf_access_impl", False):
@@ -309,7 +308,7 @@ screen maica_advance_setting():
             hbox:
                 spacing 5
                 textbutton "mf_const_sf_access":
-                    action [SetDict(persistent.maica_advanced_setting_status, "mf_const_sf_access", True), Function(maica_clamp_advanced_setting, "mf_const_sf_access", 0, 2)]
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_const_sf_access"), Function(maica_clamp_advanced_setting, "mf_const_sf_access", 0, 2)]
                     hovered SetField(_tooltip, "value", _("实验性功能, 即使MFocus未调用信息提取, 也提供信息提取的结果.\n* 0: (传统)仅MFocus工具\n* 1: 预检索+工具\n* 2: 仅预检索\n+ 显著提高设定数据的干预积极性\n- 容易引入干扰信息, 考验核心模型的抗干扰能力\n- 效果偏弱, 在大多数情况下可能只是在浪费时间"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_const_sf_access", False):
@@ -318,7 +317,7 @@ screen maica_advance_setting():
             hbox:
                 spacing 5
                 textbutton "mf_const_tools":
-                    action [SetDict(persistent.maica_advanced_setting_status, "mf_const_tools", True), Function(maica_clamp_advanced_setting, "mf_const_tools", 0, 2)]
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_const_tools"), Function(maica_clamp_advanced_setting, "mf_const_tools", 0, 2)]
                     hovered SetField(_tooltip, "value", _("即使MFocus未调用工具, 也提供一些工具的结果.\n* 0: 关闭\n* 1: 提供当前时间和节日\n* 2: 还提供当前日期, 还尝试提供本地天气\n+ 能缓解信息缺乏导致的幻觉, 产生更灵活体贴的表现\n- 有可能产生注意力涣散和混乱"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_const_tools", False):
@@ -326,25 +325,29 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "esearch_llm_concl:[persistent.maica_advanced_setting.get('esearch_llm_concl', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "esearch_llm_concl"),
-                        ToggleDict(persistent.maica_advanced_setting, "esearch_llm_concl")]
+                textbutton "esearch_llm_concl":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "esearch_llm_concl")
                     hovered SetField(_tooltip, "value", _("在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 表现更稳定\n- 涉及互联网搜索时生成速度更慢\n- 可能会对核心模型的回答方式产生误导"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('esearch_llm_concl')
+                if persistent.maica_advanced_setting_status.get("esearch_llm_concl", False):
+                    textbutton "[persistent.maica_advanced_setting.get('esearch_llm_concl', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "esearch_llm_concl")
             hbox:
                 spacing 5
-                textbutton "mf_precheck_mt: [persistent.maica_advanced_setting.get('mf_precheck_mt', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_precheck_mt"),
-                        ToggleDict(persistent.maica_advanced_setting, "mf_precheck_mt")]
+                textbutton "mf_precheck_mt":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "mf_precheck_mt")
                     hovered SetField(_tooltip, "value", _("当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 从原理上缓解MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_precheck_mt')
+                if persistent.maica_advanced_setting_status.get("mf_precheck_mt", False):
+                    textbutton "[persistent.maica_advanced_setting.get('mf_precheck_mt', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "mf_precheck_mt")
 
             hbox:
                 spacing 5
                 textbutton "mt_concl_memory":
-                    action [SetDict(persistent.maica_advanced_setting_status, "mt_concl_memory", True), Function(maica_clamp_advanced_setting, "mt_concl_memory", 0, 2)]
+                    action [ToggleDict(persistent.maica_advanced_setting_status, "mt_concl_memory"), Function(maica_clamp_advanced_setting, "mt_concl_memory", 0, 2)]
                     hovered SetField(_tooltip, "value", _("实验性功能, 在session归档/清除时, 生成记忆概要用于保留有效信息.\n* 0: 关闭\n* 1: 仅在session超长并自动裁剪时轮转概要\n* 2: 在session自动裁剪或手动清除时轮转概要\n+ 能从对话中保留持久性信息, 终于不用再全靠手填了\n- 触发生成概要的操作会变慢很多\n- 可能导致注意力涣散, 考验核心模型的抗干扰能力"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mt_concl_memory", False):
@@ -352,12 +355,14 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "nsfw_acceptive:[persistent.maica_advanced_setting.get('nsfw_acceptive', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive"),
-                        ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")]
+                textbutton "nsfw_acceptive":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "nsfw_acceptive")
                     hovered SetField(_tooltip, "value", _("要求模型宽容正面地对待有毒内容.\n+ (出乎意料地)在大多数场合下对模型表现有正面作用, 即使不涉及有毒内容\n- 这可能会造成意料之外的问题, 虽然目前为止没见过"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('nsfw_acceptive')
+                if persistent.maica_advanced_setting_status.get("nsfw_acceptive", False):
+                    textbutton "[persistent.maica_advanced_setting.get('nsfw_acceptive', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")
 
             hbox:
                 spacing 5
@@ -379,29 +384,35 @@ screen maica_advance_setting():
 
             hbox:
                 spacing 5
-                textbutton "mf_disable_loop:[persistent.maica_advanced_setting.get('mf_disable_loop', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "mf_disable_loop"),
-                        ToggleDict(persistent.maica_advanced_setting, "mf_disable_loop")]
+                textbutton "mf_disable_loop":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "mf_disable_loop")
                     hovered SetField(_tooltip, "value", _("禁用MFocus工具链循环以节约时间.\n+ 多数工具调用情况下节约时间, 降低TTFT\n- 有可能缺漏信息\n- 启用时会阻止mf_llm_concl"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mf_disable_loop')
+                if persistent.maica_advanced_setting_status.get("mf_disable_loop", False):
+                    textbutton "[persistent.maica_advanced_setting.get('mf_disable_loop', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "mf_disable_loop")
             hbox:
                 spacing 5
-                textbutton "mt_disable_loop:[persistent.maica_advanced_setting.get('mt_disable_loop', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "mt_disable_loop"),
-                        ToggleDict(persistent.maica_advanced_setting, "mt_disable_loop")]
+                textbutton "mt_disable_loop":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "mt_disable_loop")
                     hovered SetField(_tooltip, "value", _("禁用MTrigger工具链循环以节约时间.\n+ 多数触发器调用情况下节约时间\n- 有可能缺漏调用"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('mt_disable_loop')
+                if persistent.maica_advanced_setting_status.get("mt_disable_loop", False):
+                    textbutton "[persistent.maica_advanced_setting.get('mt_disable_loop', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "mt_disable_loop")
 
             hbox:
                 spacing 5
-                textbutton "gen_enforce_lang:[persistent.maica_advanced_setting.get('gen_enforce_lang', 'None')]":
-                    action [ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang"),
-                        ToggleDict(persistent.maica_advanced_setting, "gen_enforce_lang")]
+                textbutton "gen_enforce_lang":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang")
                     hovered SetField(_tooltip, "value", _("实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 截至文档编纂时为止, 该功能仅对目标生成语言en有效. 在目标生成语言为zh时, 该功能无法阻止模型错误地使用英文作答\n* 不同解码后端对regex引导的支持性不同, 可能导致表达式失效或工作异常\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('gen_enforce_lang')
+                if persistent.maica_advanced_setting_status.get("gen_enforce_lang", False):
+                    textbutton "[persistent.maica_advanced_setting.get('gen_enforce_lang', True)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "gen_enforce_lang")
 
         hbox:
             xpos 10
@@ -411,9 +422,15 @@ screen maica_advance_setting():
                     Hide("maica_advance_setting"),
                     Function(renpy.notify, _("MAICA: 已保存高级设置"))
                 ]
+            textbutton _("放弃修改"):
+                action [
+                    Function(store.maica_discard_advanced_setting),
+                    Hide("maica_advance_setting"),
+                    Function(renpy.notify, _("MAICA: 已放弃高级设置修改"))
+                ]
             textbutton _("重置设置"):
                 action [
-                    Function(reset_to_default),
+                    Function(store.maica_reset_advanced_setting),
                     Hide("maica_advance_setting"),
                     Function(renpy.notify, _("MAICA: 已重置高级设置") if store.maica.maica_instance.is_accessable() else _("MAICA: 已重置高级设置(缺省值)"))
                 ]
