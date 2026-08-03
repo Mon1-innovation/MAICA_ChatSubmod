@@ -1,7 +1,8 @@
 class migration_instance(object):
 
-    def __init__(self, last_ver, curr_ver):
+    def __init__(self, last_ver, curr_ver, force_current=False):
         self.last_ver, self.curr_ver = last_ver, curr_ver
+        self.force_current = force_current
         # Must be lined in sequence!
         self.migration_queue = [
             ("1.1.20", self.migration_1_1_20),
@@ -36,16 +37,19 @@ class migration_instance(object):
             # 2 second larger
             return cmp
         signal = compare_vers(self.last_ver, self.curr_ver)
-        if signal == 0:
+        if signal == 0 and not self.force_current:
             return True, 'Version unchanged'
-        elif signal == 1:
+        elif signal == 1 and not self.force_current:
             return False, 'Trying to revert version, denying'
-        elif signal == -1:
+        elif signal == -1 and not self.force_current:
             return False, 'Version schemas incompatable'
-        elif signal == 2:
+        elif signal == 2 or self.force_current:
             for p in self.migration_queue:
-                c1 = compare_vers(p[0], self.last_ver) == 1; c2 = compare_vers(p[0], self.curr_ver)
-                if c1 == 1 and (c2 == 2 or c2 == 0):
+                c1 = compare_vers(p[0], self.last_ver) == 1
+                c2 = compare_vers(p[0], self.curr_ver)
+                is_pending = signal == 2 and c1 == 1 and (c2 == 2 or c2 == 0)
+                is_current = self.force_current and c2 == 0
+                if is_pending or is_current:
                     p[1]()
 
     def migration_1_1_20(self):

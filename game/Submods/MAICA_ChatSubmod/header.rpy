@@ -985,6 +985,12 @@ screen maica_setting_pane():
             text "":
                 size 0
 
+            if store.maica_is_dev:
+                hbox:
+
+                    text _("> 警告: 该副本是{color=#ff0000}开发版本{/color}. 如果你不是MAICA官方人员, 请{color=#ff0000}立刻停止使用{/color}"):
+                        style "main_menu_version_l"
+
             if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
                 hbox:
 
@@ -1020,7 +1026,7 @@ screen maica_setting_pane():
                 if res is None:
                     hbox:
 
-                        text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"):
+                        text _("> 警告: 未检测到MAICA库版本信息. 请{color=#ff0000}从Release{/color}下载安装MAICA, {color=#ff0000}而不是源代码{/color}"):
                             style "main_menu_version_l"
                 elif res != 0:
                     hbox:

@@ -21,6 +21,55 @@ import maica_tasker_sub
 import maica_tasker_sub_sessionsender
 import maica_vista_files_manager
 import maica_v13_migration
+import migrations
+
+
+def test_development_migration_force_current_is_repeatable():
+    calls = []
+    migration = migrations.migration_instance(
+        "1.8.0", "1.8.0", force_current=True
+    )
+    migration.migration_queue = [
+        ("1.7.9", lambda: calls.append("old")),
+        ("1.8.0", lambda: calls.append("current")),
+    ]
+
+    migration.migrate()
+    migration.migrate()
+
+    assert calls == ["current", "current"]
+
+
+def test_migration_default_and_development_upgrade_paths_do_not_duplicate():
+    calls = []
+    unchanged = migrations.migration_instance("1.8.0", "1.8.0")
+    unchanged.migration_queue = [("1.8.0", lambda: calls.append("unchanged"))]
+    assert unchanged.migrate() == (True, "Version unchanged")
+
+    upgrading = migrations.migration_instance(
+        "1.7.9", "1.8.0", force_current=True
+    )
+    upgrading.migration_queue = [
+        ("1.8.0", lambda: calls.append("upgrade")),
+    ]
+    upgrading.migrate()
+
+    assert calls == ["upgrade"]
+
+
+def test_development_migration_runs_after_switching_back_from_newer_version():
+    calls = []
+    migration = migrations.migration_instance(
+        "1.9.0", "1.8.0", force_current=True
+    )
+    migration.migration_queue = [
+        ("1.8.0", lambda: calls.append("current")),
+        ("1.9.0", lambda: calls.append("newer")),
+    ]
+
+    migration.migrate()
+
+    assert calls == ["current"]
 
 
 class NullLogger:

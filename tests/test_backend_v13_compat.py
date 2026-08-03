@@ -644,6 +644,21 @@ def test_a_backend_and_release_versions_are_final():
     assert assignments[-1] == "1.8.0", "final effective maica_ver assignment is {}".format(assignments[-1])
 
 
+def test_a_development_build_contract():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    translation = source("game/Submods/MAICA_ChatSubmod/tl/header.rpy")
+    workflow = source(".github/workflows/release.yml")
+
+    assert re.search(r"(?m)^\s*maica_is_dev\s*=\s*True\s*$", api)
+    assert re.search(r"force_current\s*=\s*store\.maica_is_dev", api)
+    assert "if store.maica_is_dev:" in header
+    assert "开发版本" in header
+    assert "development build" in translation
+    assert "steps.get_version.outputs.is_development == 'false'" in workflow
+    assert "steps.get_version.outputs.is_development == 'true'" in workflow
+
+
 def test_a_migration_is_structurally_registered_and_invoked():
     migration = source("game/Submods/MAICA_ChatSubmod/migrations.rpy")
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")

@@ -1224,8 +1224,8 @@ translate english strings:
 translate english strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:543
-    old "> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"
-    new "> Warning: MAICA Libs version not found. Please install from Release, {color=#ff0000}NOT source code{/color}"
+    old "> 警告: 未检测到MAICA库版本信息. 请{color=#ff0000}从Release{/color}下载安装MAICA, {color=#ff0000}而不是源代码{/color}"
+    new "> Warning: MAICA Libs version not found. Please install {color=#ff0000}from Release{/color}, {color=#ff0000}NOT source code{/color}"
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:548
     old "> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请{color=#ff0000}从Release{/color}完整地更新MAICA"
@@ -1360,6 +1360,9 @@ translate english strings:
     new "MSpire session"
 
 translate english strings:
+
+    old "> 警告: 该副本是{color=#ff0000}开发版本{/color}. 如果你不是MAICA官方人员, 请{color=#ff0000}立刻停止使用{/color}"
+    new "> Warning: this is a {color=#ff0000}development build{/color} copy. {color=#ff0000}Stop using immediately{/color} if you're not MAICA official staff"
 
     old "行为预设: [maica_get_preset_name('behavior')]"
     new "Behavior preset: [maica_get_preset_name('behavior')]"

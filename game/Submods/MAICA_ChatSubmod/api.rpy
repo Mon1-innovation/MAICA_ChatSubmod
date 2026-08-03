@@ -1,7 +1,8 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.7.8'
+    maica_ver = '1.8.0'
+    maica_is_dev = True
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
@@ -662,7 +663,11 @@ init 999 python:
                 sync_provider_id(persistent.maica_setting_dict['provider_id'])
 
         import migrations
-        migration = migrations.migration_instance(persistent._maica_last_version, store.maica_ver)
+        migration = migrations.migration_instance(
+            persistent._maica_last_version,
+            store.maica_ver,
+            force_current=store.maica_is_dev
+        )
         migration.migration_queue = [
             ("1.2.0", migration_1_2_0),
             ("1.2.8", migration_1_2_8),
