@@ -883,7 +883,8 @@ class MaicaAi(ChatBotInterface):
                 )
             self.wss_session = self.task_manager.ws_client
             self.wss_session.ping_payload = "PING"
-            self.WSConsoleLogger.ovr_welcomemessage = self.target_lang == self.MaicaAiLang.en
+            import renpy
+            self.WSConsoleLogger.ui_lang_zh = renpy.config.language == "chinese"
             return True
         except Exception:
             if self.multi_lock.locked():

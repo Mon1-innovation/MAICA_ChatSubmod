@@ -72,7 +72,7 @@ class GeneralWsConsoleLogger(MaicaWSTask):
     def __init__(self, task_type, name, manager, except_ws_status=[], console_logger=None):
         super(GeneralWsConsoleLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.console_logger = console_logger
-        self.ovr_welcomemessage = False
+        self.ui_lang_zh = False
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             ws = event.data
@@ -90,8 +90,12 @@ class GeneralWsConsoleLogger(MaicaWSTask):
             return
         if event.data.status in ['maica_core_streaming_continue']:
             return
-        if event.data.status == 'maica_connection_initiated' and self.ovr_welcomemessage:
-            event.data.content = 'Websocket connection initiated'
+        if event.data.status == 'maica_connection_initiated':
+            try:
+                welcome_zh, welcome_en = event.data.content.split("|", 1)
+                event.data.content = welcome_zh if self.ui_lang_zh else welcome_en
+            except Exception:
+                pass
         else:
             wspack = event.data
             if self.console_logger:
