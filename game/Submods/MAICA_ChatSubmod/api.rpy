@@ -3,6 +3,11 @@ init -1500 python:
         config.language = "english"
     maica_ver = '1.8.0'
     maica_is_dev = True
+    # 如果是开发版本:
+    # - workflow不会自动发布release
+    # - 对应migration总是会执行
+    # - 会显示一条警告
+
     try:
         import maica_rss_provider
         maica_rss_provider.set_ua(maica_ver)
