@@ -1635,7 +1635,7 @@ screen maica_setting():
                     ]
 
 screen maica_setting_tooltip(tooltip):
-    zorder 110
+    zorder 95
 
     if tooltip.value:
         frame:
