@@ -17,8 +17,8 @@ init -989 python:
         )
 
 default persistent.maica_setting_dict = {
-    "auto_reconnect":False,
-    "auto_resume":False,
+    "auto_reconnect":True,
+    "auto_resume":True,
     "keep_alive":True,
     "maica_model":None,
     "use_custom_model_config":False,
@@ -138,8 +138,8 @@ init 10 python:
         )
 
     maica_default_dict = {
-        "auto_reconnect":False,
-        "auto_resume":False,
+        "auto_reconnect":True,
+        "auto_resume":True,
         "keep_alive":True,
         "enable_mf":True,
         "enable_mt":True,

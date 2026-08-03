@@ -533,7 +533,6 @@ class MaicaAi(ChatBotInterface):
             manager=self.task_manager,
             except_ws_status=['maica_mcore_gen_start', 'maica_chat_loop_finished'],
         )
-        self.AutoResumeTasker.set_should_resume_func(self._should_resume)
 
         self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -548,9 +547,6 @@ class MaicaAi(ChatBotInterface):
             manager=self.task_manager,
             except_ws_status=['maica_core_streaming_continue', 'maica_core_complete']
         )
-
-    def _should_resume(self):
-        return len(self.TalkSpilter.sentence_present) or len(self.message_list)
 
     @property
     def user_acc(self):
@@ -861,32 +857,42 @@ class MaicaAi(ChatBotInterface):
 
     def init_connect(self):
         import threading
-        threading.Thread(target=self._init_connect).start()
+        self.wss_thread = threading.Thread(target=self._init_connect)
+        self.wss_thread.start()
         
     def _init_ws_client(self):
-        if self.task_manager.ws_client:
-            if self.task_manager.ws_client.url == self.provider_manager.get_wssurl():
-                return
         if not self.__accessable:
-            return logger.error("Maica server not serving.")
-        if self.multi_lock.locked():
-            return logger.warning("Maica::_init_connect try to create multi connection")
-        self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
-        self.multi_lock.acquire()
-        import websocket
-        url = self.provider_manager.get_wssurl()
-        self.vista_manager.base_url = self.provider_manager.get_api_url()
-        self.vista_manager.access_token = self.ciphertext
-        logger.debug("_init_connect to {}".format(url))
-        self.task_manager.ws_client = websocket.WebSocketApp(url, on_message=self.task_manager._ws_onmessage, on_error=self._on_error
-                                                  , on_close=self._on_close)
-        self.wss_session = self.task_manager.ws_client
-        self.wss_session.ping_payload = "PING"
-        self.WSConsoleLogger.ovr_welcomemessage = self.target_lang == self.MaicaAiLang.en
-        return True
+            logger.error("Maica server not serving.")
+            return False
+        if not self.multi_lock.acquire(False):
+            logger.warning("Maica::_init_connect try to create multi connection")
+            return False
+        try:
+            self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
+            import websocket
+            url = self.provider_manager.get_wssurl()
+            self.vista_manager.base_url = self.provider_manager.get_api_url()
+            self.vista_manager.access_token = self.ciphertext
+            logger.debug("_init_connect to {}".format(url))
+            if not self.task_manager.ws_client or self.task_manager.ws_client.url != url:
+                self.task_manager.ws_client = websocket.WebSocketApp(
+                    url,
+                    on_message=self.task_manager._ws_onmessage,
+                    on_error=self._on_error,
+                    on_close=self._on_close
+                )
+            self.wss_session = self.task_manager.ws_client
+            self.wss_session.ping_payload = "PING"
+            self.WSConsoleLogger.ovr_welcomemessage = self.target_lang == self.MaicaAiLang.en
+            return True
+        except Exception:
+            if self.multi_lock.locked():
+                self.multi_lock.release()
+            raise
 
     def _init_connect(self):
-        self._init_ws_client()
+        if not self._init_ws_client():
+            return
         self.Loginer.set_token(self.ciphertext)
         self.task_manager.reset_all_task()
         if self.auto_reconnect:
@@ -1056,13 +1062,13 @@ class MaicaAi(ChatBotInterface):
 
     def _on_error(self, wsapp, error):
         self.task_manager._ws_onerror(wsapp, error)
-        self.task_manager.ws_client.close()
+        if wsapp:
+            wsapp.close()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        if self.multi_lock.locked():
-            self.multi_lock.release()
-        self.task_manager.ws_client.close()
+        if wsapp:
+            wsapp.close()
         self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
 
         

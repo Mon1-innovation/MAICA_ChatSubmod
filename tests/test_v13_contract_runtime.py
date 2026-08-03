@@ -159,6 +159,17 @@ def _last_json(manager):
     return json.loads(manager.ws_client.sent[-1])
 
 
+def _task_event(name):
+    return type(
+        "TaskEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
+            "data": type("Data", (), {"name": name})(),
+        },
+    )()
+
+
 def _new_validator(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     manager = ManagerStub()
@@ -1384,7 +1395,6 @@ def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monk
         except_ws_status=["maica_mcore_gen_start", "maica_chat_loop_finished"],
     )
     tasker.enable()
-    tasker.set_should_resume_func(lambda: True)
 
     def ws_event(status):
         return type(
@@ -1433,6 +1443,166 @@ def test_auto_resume_uses_generation_marker_and_clears_after_terminal_event(monk
     tasker.on_event(task_event("auto_reconnector_start_reconnect"))
     tasker.on_event(task_event("maica_login_successful"))
     assert manager.ws_client.sent == []
+
+
+def test_auto_reconnector_deduplicates_pending_retry_and_disable_cancels_it(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoReconnector(1, "reconnect", manager)
+    reconnect_calls = []
+    tasker.set_reconnect_func(lambda: reconnect_calls.append(True))
+    tasker._reconnect_delay = 0.2
+    tasker.enable()
+    tasker.on_event(_task_event("maica_login_successful"))
+
+    tasker.on_event(_task_event("websocket_closed"))
+    pending_thread = tasker._reconnect_thread
+    tasker.on_event(_task_event("websocket_closed"))
+
+    assert tasker._reconnect_thread is pending_thread
+    assert tasker._reconnect_attempts == 1
+    tasker.disable()
+    pending_thread.join(1.0)
+    assert not pending_thread.is_alive()
+    assert reconnect_calls == []
+
+
+def test_auto_reconnector_stops_after_retry_limit_and_resets_on_login(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoReconnector(1, "reconnect-limit", manager)
+    reconnect_calls = []
+    tasker.set_reconnect_func(lambda: reconnect_calls.append(True))
+    tasker._reconnect_delay = 0.0
+    tasker._max_reconnect_attempts = 2
+    tasker.enable()
+    tasker.on_event(_task_event("maica_login_successful"))
+
+    for _index in range(2):
+        tasker.on_event(_task_event("websocket_closed"))
+        tasker._reconnect_thread.join(1.0)
+
+    tasker.on_event(_task_event("websocket_closed"))
+    assert reconnect_calls == [True, True]
+    assert tasker._enabled is False
+    assert any(
+        getattr(getattr(event, "data", None), "name", None)
+        == "auto_reconnector_give_up"
+        for event in manager.events
+    )
+
+    tasker.enable()
+    tasker._reconnect_attempts = 1
+    tasker.on_event(_task_event("maica_login_successful"))
+    assert tasker._reconnect_attempts == 0
+
+
+def test_auto_reconnector_login_failure_cancels_pending_retry(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    tasker = maica_tasker_sub.AutoReconnector(1, "reconnect-auth", ManagerStub())
+    reconnect_calls = []
+    tasker.set_reconnect_func(lambda: reconnect_calls.append(True))
+    tasker._reconnect_delay = 0.2
+    tasker.enable()
+    tasker.on_event(_task_event("maica_login_successful"))
+    tasker.on_event(_task_event("websocket_closed"))
+    pending_thread = tasker._reconnect_thread
+
+    tasker.on_event(_task_event("maica_login_failed"))
+    pending_thread.join(1.0)
+
+    assert reconnect_calls == []
+    assert tasker._enabled is False
+    assert tasker._login_successful is False
+
+
+def test_auto_resume_survives_error_reset_before_close(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.AutoResumeTasker(
+        1,
+        "resume-error-close",
+        manager,
+        except_ws_status=["maica_mcore_gen_start", "maica_chat_loop_finished"],
+    )
+    tasker.enable()
+    generation_event = type(
+        "WsEvent",
+        (),
+        {
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+            "data": type("Data", (), {"status": "maica_mcore_gen_start"})(),
+        },
+    )()
+
+    tasker.on_event(generation_event)
+    tasker.reset()  # MaicaTaskManager._ws_onerror
+    tasker.on_event(_task_event("auto_reconnector_start_reconnect"))
+    tasker.on_event(_task_event("websocket_closed"))
+    tasker.reset()  # MaicaAi._init_connect
+    tasker.on_event(_task_event("maica_login_successful"))
+
+    assert [json.loads(payload) for payload in manager.ws_client.sent] == [
+        {"type": "reconn"}
+    ]
+
+
+def test_auto_resume_has_no_redundant_predicate_api(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    assert not hasattr(ai, "_should_resume")
+    assert not hasattr(ai.AutoResumeTasker, "set_should_resume_func")
+    assert not hasattr(ai.AutoResumeTasker, "_should_resume_func")
+
+
+def test_init_connect_does_not_run_or_release_an_existing_connection_lock(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class ExistingClient:
+        def __init__(self, url):
+            self.url = url
+            self.run_calls = 0
+
+        def run_forever(self):
+            self.run_calls += 1
+
+    existing_client = ExistingClient(ai.provider_manager.get_wssurl())
+    ai.task_manager.ws_client = existing_client
+    ai.multi_lock.acquire()
+    try:
+        ai._init_connect()
+        assert existing_client.run_calls == 0
+        assert ai.multi_lock.locked()
+    finally:
+        if ai.multi_lock.locked():
+            ai.multi_lock.release()
+
+
+def test_on_close_leaves_connection_lock_for_driver_finally(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class ClosingClient:
+        def __init__(self):
+            self.close_calls = 0
+
+        def close(self):
+            self.close_calls += 1
+
+    client = ClosingClient()
+    ai.multi_lock.acquire()
+    try:
+        ai._on_close(client, 1006, "network lost")
+        assert client.close_calls == 1
+        assert ai.multi_lock.locked()
+    finally:
+        if ai.multi_lock.locked():
+            ai.multi_lock.release()
 
 
 def test_auto_resume_disabled_ignores_generation_marker(monkeypatch):
@@ -1489,7 +1659,6 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
     manager = ManagerStub()
     tasker = maica_tasker_sub.AutoResumeTasker(1, "resume-send-failure", manager)
     tasker.enable()
-    tasker.set_should_resume_func(lambda: True)
     tasker._generation_started = True
     tasker._on_reconnect = True
 
@@ -1510,33 +1679,6 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
     assert tasker._generation_started is False
     assert tasker._on_reconnect is False
 
-
-def test_auto_resume_should_resume_failure_clears_flags_without_retry(monkeypatch):
-    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
-    manager = ManagerStub()
-    tasker = maica_tasker_sub.AutoResumeTasker(1, "resume-check-failure", manager)
-    tasker.enable()
-    tasker._generation_started = True
-    tasker._on_reconnect = True
-
-    def fail_check():
-        raise RuntimeError("resume check failed")
-
-    tasker.set_should_resume_func(fail_check)
-    login_event = type(
-        "TaskEvent",
-        (),
-        {
-            "event_type": maica_tasker.MAICATASKEVENT_TYPE_TASK,
-            "data": type("Data", (), {"name": "maica_login_successful"})(),
-        },
-    )()
-    with pytest.raises(RuntimeError, match="resume check failed"):
-        tasker.on_event(login_event)
-    assert tasker._generation_started is False
-    assert tasker._on_reconnect is False
-    tasker.on_event(login_event)
-    assert manager.ws_client.sent == []
 
 @pytest.mark.parametrize(
     "content",

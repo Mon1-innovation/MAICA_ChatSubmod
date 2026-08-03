@@ -720,6 +720,21 @@ def test_b_canonical_default_owner_exists(new):
     assert default_owner_exists(header, new), "default owner missing: {}".format(new)
 
 
+def test_b_connection_recovery_defaults_are_enabled_without_overwriting_saved_values():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    persistent_defaults = literal_dict(header, "persistent.maica_setting_dict")
+    canonical_defaults = block_after(header, r"maica_default_dict\s*=", 250)
+
+    for key in ("auto_reconnect", "auto_resume"):
+        assert persistent_defaults[key] is True
+        assert re.search(
+            r"['\"]{}['\"]\s*:\s*True".format(key),
+            canonical_defaults,
+        )
+
+    assert "maica_default_dict.update(persistent.maica_setting_dict)" in header
+
+
 @pytest.mark.parametrize("new", PERSISTENT_SETTINGS)
 def test_b_canonical_ui_owner_exists(new):
     ui = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
