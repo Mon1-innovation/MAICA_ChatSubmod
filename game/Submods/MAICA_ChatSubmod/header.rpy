@@ -413,7 +413,8 @@ init 10 python:
 
     def maica_get_preset_name(preset_type):
         preset = maica_get_matching_preset(preset_type)
-        return _(preset["name"]) if preset else _("Custom")
+        name = preset["name"] if preset else "Custom"
+        return renpy.substitute(_(name))
 
     _maica_validate_presets()
     if set(maica_advanced_default_setting) != set(maica_v13_migration.ADVANCED_SETTING_KEYS):
