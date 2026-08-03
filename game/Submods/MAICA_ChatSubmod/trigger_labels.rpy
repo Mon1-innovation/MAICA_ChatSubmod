@@ -1,15 +1,15 @@
 label mtrigger_change_clothes(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?{nw}"
+m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "要我现在换吗, [player]?{fast}"
-        "好啊":
+        "Should I change it now, [player]?{fast}"
+        "Okay":
             if outfit_name == "mas_pick_a_clothes":
-                call monika_clothes_select 
+                call monika_clothes_select
                 call maica_show_console
-                return 
+                return
             call mas_transition_to_emptydesk
             python:
                 renpy.pause(1.0, hard=True)
@@ -24,7 +24,7 @@ label mtrigger_change_clothes(outfit_name):
                 renpy.pause(4.0, hard=True)
 
             call mas_transition_from_emptydesk("monika 1eua")
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
@@ -32,15 +32,15 @@ label mtrigger_change_clothes(outfit_name):
 label mtrigger_change_hair(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?{nw}"
+m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "要我现在换吗, [player]?{fast}"
-        "好啊":
+        "Should I change it now, [player]?{fast}"
+        "Okay":
             if outfit_name == "mas_pick_a_clothes":
-                call monika_hair_select 
+                call monika_hair_select
                 call maica_show_console
-                return 
+                return
             call mas_transition_to_emptydesk
             python:
                 renpy.pause(1.0, hard=True)
@@ -55,18 +55,18 @@ label mtrigger_change_hair(outfit_name):
                 renpy.pause(4.0, hard=True)
 
             call mas_transition_from_emptydesk("monika 1eua")
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
 label mtrigger_unwear_acs(outfit_to_wear):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?{nw}"
+m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "要我现在换吗, [player]?{fast}"
-        "好啊":
+        "Should I change it now, [player]?{fast}"
+        "Okay":
             call mas_transition_to_emptydesk
             python:
                 renpy.pause(1.0, hard=True)
@@ -74,7 +74,7 @@ label mtrigger_unwear_acs(outfit_to_wear):
                 renpy.pause(4.0, hard=True)
 
             call mas_transition_from_emptydesk("monika 1eua")
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
@@ -82,15 +82,15 @@ label mtrigger_unwear_acs(outfit_to_wear):
 label mtrigger_change_acs(outfit_name):
     call maica_reconnect
     call maica_hide_console
-    m "要我现在换吗, [player]?{nw}"
+m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "要我现在换吗, [player]?{fast}"
-        "好啊":
+        "Should I change it now, [player]?{fast}"
+        "Okay":
             if outfit_name == "mas_pick_a_clothes":
-                call mtrigger_acs_select 
+                call mtrigger_acs_select
                 call maica_show_console
-                return 
+                return
             call mas_transition_to_emptydesk
             python:
                 renpy.pause(1.0, hard=True)
@@ -105,7 +105,7 @@ label mtrigger_change_acs(outfit_name):
                 renpy.pause(4.0, hard=True)
 
             call mas_transition_from_emptydesk("monika 1eua")
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
@@ -136,83 +136,83 @@ label mtrigger_kiss:
     call maica_reconnect
     if mas_shouldKiss(1, datetime.timedelta(0)):
         call maica_hide_console
-        m "那...来亲一个?{nw}"
+    m "Then...want a kiss?{nw}"
         $ _history_list.pop()
         menu:
-            "那...来亲一个?{fast}"
-            "亲亲[m_name]":
+            "Then...want a kiss?{fast}"
+            "Kiss [m_name]":
                 call monika_kissing_motion_short
-            "算了":
+            "Nevermind":
                 pass
         call maica_show_console
-    return 
+    return
 
 label mttrigger_minigame(game):
     call maica_reconnect
     call maica_hide_console
-    m "嗯...那来玩玩吗, [player]?{nw}"
+m "Then...shall we play a bit, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "嗯...那来玩玩吗, [player]?{fast}"
-        "好啊":
+        "Then...shall we play a bit, [player]?{fast}"
+        "Okay":
             $ renpy.call(game)
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
 
-label mtrigger_leave: 
+label mtrigger_leave:
     call maica_reconnect
     call maica_hide_console
-    m "要走了吗?{nw}"
+m "Leaving already?{nw}"
     $ _history_list.pop()
     menu:
-        "要走了吗?{fast}"
-        "是的":
-            m 1eka "回见, [player]!"
+        "Leaving already?{fast}"
+        "Yes":
+        m 1eka "See you around, [player]!"
             jump mtrigger_quit
             return
-        "还没呢":
-            m 1eka "谢谢你多陪我一会, [player]."
+        "Not yet":
+        m 1eka "Thanks for that, [player]."
             call maica_show_console
     return
-    
+
 label mtrigger_quit:
     $ persistent.closed_self = True #Monika happily closes herself
     $ mas_clearNotifs()
     jump _quit
     return
 
-label mtrigger_location: 
+label mtrigger_location:
     call maica_reconnect
     call maica_hide_console
     if mas_isMoniEnamored(higher=True):
         call monika_change_background
     else:
-        m 1eua "我们好像还没别的地方可去..."
-        m 1eksdlb "抱歉啦, [player]."
+    m 1eua "Seems we don't have anywhere to go right now..."
+    m 1eksdlb "Sorry for that, [player]."
     call maica_show_console
     return
 
 label mtrigger_idle:
     call maica_hide_console
-    m "现在就去吗?{nw}"
+m "Going already?{nw}"
     $ _history_list.pop()
     menu:
-        "现在就去吗?{fast}"
-        "是的":
-            m 1eka "好吧, [player]!"
+        "Going already?{fast}"
+        "Yes":
+        m 1eka "Okay, [player]!"
             pass
-        "算了":
-            m 1eka "好喔, [player]."
+        "Nevermind":
+        m 1eka "Alright, [player]."
             call maica_show_console
             return
     return "idle"
 
 label mtrigger_idle_callback:
     call maica_reconnect
-    m 1eka "你回来啦, [player]!"
-    m 1eka "我都开始想你了."
+m 1eka "You're back, [player]!"
+m 1eka "I was starting missing you."
     #jump maica_main.talking_start
     return
 
@@ -227,13 +227,13 @@ label mtrigger_brb:
 label mtrigger_hold:
     call maica_reconnect
     call maica_hide_console
-    m "那...来抱一个?{nw}"
+m "Then...want a hug?{nw}"
     $ _history_list.pop()
     menu:
-        "那...来抱一个?{fast}"
-        "抱抱[m_name]":
+        "Then...want a hug?{fast}"
+        "Hold [m_name]":
             pass
-        "算了":
+        "Nevermind":
             return
     call monika_holdme_prep
     call monika_holdme_start
@@ -245,13 +245,13 @@ label mtrigger_hold:
 label mtrigger_music_menu:
     call maica_reconnect
     call maica_hide_console
-    m "现在要换首歌吗, [player]?{nw}"
+m "Wanna change the music now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "现在要换首歌吗, [player]?{fast}"
-        "好啊":
+        "Wanna change the music now, [player]?{fast}"
+        "Okay":
             call display_music_menu
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
@@ -259,13 +259,13 @@ label mtrigger_music_menu:
 label mtrigger_music_auto(cls, selection):
     call maica_reconnect
     call maica_hide_console
-    m "要我放首'[selection]'吗, [player]?{nw}"
+m "Shall I play '[selection]' now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "要我放首'[selection]'吗, [player]?{fast}"
-        "好啊":
+        "Shall I play '[selection]' now, [player]?{fast}"
+        "Okay":
             $ store.mas_play_song(cls.find(selection))
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
@@ -283,10 +283,10 @@ label mtrigger_youtubemusic_search(keyword):
     call maica_hide_console
     if ytm_utils.is_online():
         if not ytm_globals.is_playing:
-            m 1eub "Of course!"
+    m 1eub "Of course!"
     else:
-        m 1rksdla "..."
-        m 1rksdlb "We need an internet connection to listen to music online, [player]..."
+m 1rksdla "..."
+m 1rksdlb "We need an internet connection to listen to music online, [player]..."
         return
 
     python:
@@ -299,11 +299,11 @@ label mtrigger_youtubemusic_search(keyword):
 
         if lower_search_request == "":
             if not ytm_globals.is_playing or renpy.music.get_pause():
-                m 1eka "Oh...{w=0.2}I really would like to listen to music with you!"
-                m 1eub "Let me know when you have time~"
+        m 1eka "Oh...{w=0.2}I really would like to listen to music with you!"
+        m 1eub "Let me know when you have time~"
 
             else:
-                m 1eka "Oh, okay."
+        m 1eka "Oh, okay."
 
         else:
             if ytm_utils.is_youtube_url(raw_search_request):
@@ -320,16 +320,16 @@ label mtrigger_youtubemusic_search(keyword):
                     and "your reality" in lower_search_request
                 ):
                     label .reaction_your_reality:
-                        m 3hua "Good choice, [player]~"
+                m 3hua "Good choice, [player]~"
 
                 elif (
                     not renpy.seen_label("ytm_monika_find_music.reaction_ily")
                     and "i love you" in lower_search_request
                 ):
                     label .reaction_ily:
-                        m 1hubsa "I love you too! Ehehe~"
+                m 1hubsa "I love you too! Ehehe~"
 
-                m 1dsa "Let me see what I can find.{w=0.5}{nw}"
+        m 1dsa "Let me see what I can find.{w=0.5}{nw}"
 
                 $ ytm_threading.update_thread_args(ytm_threading.search_music, [raw_search_request])
                 call ytm_search_loop
@@ -337,7 +337,7 @@ label mtrigger_youtubemusic_search(keyword):
 
                 label .menu_display:
                     if menu_list:
-                        m 1eub "Alright! Look what I've found!"
+                m 1eub "Alright! Look what I've found!"
                         show monika 1eua at t21
                         call screen mas_gen_scrollable_menu(menu_list, ytm_globals.SCR_MENU_AREA, ytm_globals.SCR_MENU_XALIGN, *ytm_globals.SCR_MENU_LAST_ITEMS)
                         show monika at t11
@@ -349,23 +349,23 @@ label mtrigger_youtubemusic_search(keyword):
 
                         elif _return == ytm_globals.SCR_MENU_CHANGED_MIND:
                             if not ytm_globals.is_playing:
-                                m 1eka "Oh...{w=0.2}{nw}"
-                                extend 3ekb "I really love to listen to music with you!"
-                                m 1eua "Let me know when you have time~"
+                        m 1eka "Oh...{w=0.2}{nw}"
+                        extend 3ekb "I really love to listen to music with you!"
+                        m 1eua "Let me know when you have time~"
                             else:
-                                m 1eka "Oh, okay."
+                        m 1eka "Oh, okay."
 
                         elif _return == ytm_globals.SCR_MENU_ANOTHER_SING:
-                            m 1eub "Alright!"
+                    m 1eub "Alright!"
                             jump .input_loop
 
                         else:
                             # aka the part you will never get to
-                            m 2tfu "{cps=*2}Reading this doesn't seem like the best use of your time, [player].{/cps}{nw}"
+                    m 2tfu "{cps=*2}Reading this doesn't seem like the best use of your time, [player].{/cps}{nw}"
                             $ _history_list.pop()
 
                     else:
-                        m 1eud "Sorry, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}I couldn't find anything."
+                m 1eud "Sorry, [mas_get_player_nickname(regex_replace_with_nullstr='my ')]...{w=0.5}I couldn't find anything."
 
                     $ del menu_list
 
@@ -376,14 +376,14 @@ label mtrigger_youtubemusic_search(keyword):
 label mtrigger_takeout:
     call maica_reconnect
     call maica_hide_console
-    m "现在就带我去吗, [player]?{nw}"
+m "Are we going now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "现在就带我去吗, [player]?{fast}"
-        "是的":
+        "Are we going now, [player]?{fast}"
+        "Yes":
             call bye_going_somewhere
             jump mtrigger_quit
-        "算了":
+        "Nevermind":
             pass
     call maica_show_console
     return
@@ -396,7 +396,7 @@ label mtrigger_backup:
     elif renpy.has_label('mas_backup'):
         call mas_backup
     else:
-        m "好像出了点问题...你还是手动备份一下吧?"
+    m "Something might went wrong...could you do it yourself please?"
         call maica_show_console
     return
 

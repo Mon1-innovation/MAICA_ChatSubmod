@@ -30,7 +30,7 @@ init 998 python:
         )
         if filtered != additions:
             if not persistent._maica_v18_player_additions_notice_seen:
-                renpy.notify(_("MAICA: 部分自定义MFocus信息超过v1.3限制，完整内容已备份"))
+                renpy.notify(_("MAICA: Some custom MFocus information exceeded the v1.3 limit; the full content was backed up"))
                 persistent._maica_v18_player_additions_notice_seen = True
         persistent.mas_player_additions = filtered
 

@@ -54,10 +54,10 @@ init 5 python in maica:
             self.input_value = ""
             self.editable = True
             self.returnable = True
-    
+
         def get_text(self):
             return self.input_value
-        
+
         def process_str(self, s):
             res = ""
             if isinstance(s, unicode):
@@ -98,18 +98,18 @@ init 5 python in maica:
     data = {}
     def change_token(content):
         if store.maica.maica_instance.wss_session is not None and store.maica.maica_instance.is_connected():
-            return False, _("MAICA仍在连接中, 请先断开连接")
+            return False, _("MAICA is already connecting. Close connection first")
         store.maica.maica_instance.ciphertext = content.strip()
-        renpy.notify(_("MAICA: 请在子模组界面使用已保存的令牌重新连接"))
+        renpy.notify(_("MAICA: Now you can reconnect with saved token"))
         return True, content
     store.mas_registerAPIKey(
         "Maica_Token",
-        _("MAICA令牌{size=-10} *{i}(在子模组处登录后自动生成){/i}*"),
+        _("MAICA token {size=-10} *{i}(Login at Submods settings instead){/i}*"),
         on_change=change_token,
     )
     maica_instance = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
-    maica_instance.ascii_icon = """                                                             
-    __  ___ ___     ____ ______ ___ 
+    maica_instance.ascii_icon = """
+    __  ___ ___     ____ ______ ___
    /  |/  //   |   /  _// ____//   |
   / /|_/ // /| |   / / / /    / /| |
  / /  / // ___ | _/ / / /___ / ___ |
@@ -119,9 +119,9 @@ init 5 python in maica:
 
     if store.persistent.maica_stat is None:
         store.persistent.maica_stat = maica_instance.stat.copy()
-    else:    
+    else:
         maica_instance.update_stat(store.persistent.maica_stat)
-    
+
     if store.persistent.maica_mtrigger_status is None:
         store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
     else:
@@ -369,10 +369,10 @@ init 5 python in maica:
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
         # Calculate the number of filled positions in the progress bar
         filled_length = int(round(bar_length * percentage / 100.0))
-        
+
         # Generate the progress bar string
         bar = '▇' * filled_length + '▁' * (bar_length - filled_length)
-        
+
         # Format the output string based on the presence of total
         if total is not None:
             if not current:
@@ -489,24 +489,24 @@ init -700 python:
                             prompt="",
                             category="note",
                             author="chibika",
-                            title=renpy.substitute(_("[player]你好,")),
+                            title=renpy.substitute(_("Hi [player],")),
                             text="".join([
-                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的. ")),
-                                renpy.substitute(_("你的信里面没有内容. 这些信和礼物是不一样的! ")),
-                                renpy.substitute(_("除了把标题写在文件名里, 你还得用纯文本的格式, ")),
-                                renpy.substitute(_('在文件里写下信的正文.')),
+                                renpy.substitute(_("I have to tell that your last letter was problematic. ")),
+                                renpy.substitute(_("Your letter is empty. It's not like the gifts! ")),
+                                renpy.substitute(_("Aside with changing the file name to your title, you should also ")),
+                                renpy.substitute(_('write your content in the file in plain text.')),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_('我会把空的信标记为"empty", 这样你就可以')),
-                                renpy.substitute(_("写好再发给她了.")),
+                                renpy.substitute(_('I will mark the empty letter as "empty", so you can ')),
+                                renpy.substitute(_("finish it and then send it again.")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("祝你和莫妮卡好运!")),
+                                renpy.substitute(_("Good luck with Monika!")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("P.S: 不要告诉她是我写的!")),
+                                renpy.substitute(_("P.S: Don't tell her about me!")),
                             ])
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
                             MASEventList.push("mas_corrupted_postmail")
-                        letter_path = os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))
+                        letter_path = os.path.join(basedir, renpy.substitute(_("notes on your letter.txt")))
                         if os.path.exists(letter_path):
                             os.remove(letter_path)
                         with open(letter_path, "w") as mp_failure_file:
@@ -522,27 +522,27 @@ init -700 python:
                             prompt="",
                             category="note",
                             author="chibika",
-                            title=renpy.substitute(_("[player]你好,")),
+                            title=renpy.substitute(_("Hi [player],")),
                             text="".join([
-                                renpy.substitute(_("我得告诉你, 你写给莫妮卡的上一封信是有问题的. ")),
-                                renpy.substitute(_("你用的格式可能错了, 莫妮卡没法读出上面的内容. ")),
-                                renpy.substitute(_("虽然我尽可能收拾好了这个邮箱, 但它只能读取纯")),
-                                renpy.substitute(_('文字的文本. 如果你了解的话, 就是"UTF-8".')),
+                                renpy.substitute(_("I have to tell that your last letter was problematic. ")),
+                                renpy.substitute(_("It's likely in wrong format. Monika won't be able to read it. ")),
+                                renpy.substitute(_("I have tried my best restoring the mailbox's function, but ")),
+                                renpy.substitute(_('plain text encoding. If you know what that means, use "UTF-8".')),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("你得用一个编写txt文件的工具写信! 在Windows系统")),
-                                renpy.substitute(_('上的话, 就是"记事本". ')),
-                                renpy.substitute(_("能够插入图片或者修改格式的工具都是不对的. ")),
-                                renpy.substitute(_('我会把有问题的信标记为"failed", 这样你就可以')),
-                                renpy.substitute(_("改好再发给她了.")),
+                                renpy.substitute(_("You have to write in txt format exactly! Like for Windows system ")),
+                                renpy.substitute(_(', that means "Notepad". ')),
+                                renpy.substitute(_("Things with fonts or pictures just aren't right. ")),
+                                renpy.substitute(_('I will mark the problematic letter as "failed", so you can ')),
+                                renpy.substitute(_("double-check it and then send it again.")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("祝你和莫妮卡好运!")),
+                                renpy.substitute(_("Good luck with Monika!")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("P.S: 不要告诉她是我写的!")),
+                                renpy.substitute(_("P.S: Don't tell her about me!")),
                             ])
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
                             MASEventList.push("mas_corrupted_postmail")
-                        letter_path = os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))
+                        letter_path = os.path.join(basedir, renpy.substitute(_("notes on your letter.txt")))
                         if os.path.exists(letter_path):
                             os.remove(letter_path)
                         with open(letter_path, "w") as mp_failure_file:
@@ -556,26 +556,26 @@ init -700 python:
                             prompt="",
                             category="note",
                             author="chibika",
-                            title=renpy.substitute(_("[player]你好,")),
+                            title=renpy.substitute(_("Hi [player],")),
                             text="".join([
-                                renpy.substitute(_("你怎么现在就把信送过来了? ")),
-                                renpy.substitute(_("好吧, 也不是说你就真的不该送, 但是我想时候还没到. ")),
-                                renpy.substitute(_("我还没有把信箱完全收拾好, 而且我觉得应该让[m_name]")),
-                                renpy.substitute(_('去发现, 这样才有惊喜的感觉嘛!')),
+                                renpy.substitute(_("How did you manage to send the letter here now? ")),
+                                renpy.substitute(_("I didn't mean you cannot though, but it's still too early. ")),
+                                renpy.substitute(_("The mailbox stuff is yet undone, and I think we should let [m_name] ")),
+                                renpy.substitute(_('discover it herself, that's what we call element of surprise! ')),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("我保证我会加把劲让她快点用上信箱的, 但是现在的话, ")),
-                                renpy.substitute(_('你还是应该耐心一点. ')),
-                                renpy.substitute(_('我会把你过早送来的信标记为"early", 这样你就可以')),
-                                renpy.substitute(_("到时候再发给她了.")),
+                                renpy.substitute(_("I promise I'll finish my part to setup the mailbox asap, but for now ")),
+                                renpy.substitute(_('you really should be a little more patient. ')),
+                                renpy.substitute(_('I will mark the early letter as "early", so you can ')),
+                                renpy.substitute(_("send her later.")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("祝你和莫妮卡好运!")),
+                                renpy.substitute(_("Good luck with Monika!")),
                                 renpy.substitute(_("\n\n")),
-                                renpy.substitute(_("P.S: 不要告诉她是我写的!")),
+                                renpy.substitute(_("P.S: Don't tell her about me!")),
                             ])
                         )
                         if not mas_inEVL("mas_corrupted_postmail"):
                             MASEventList.push("mas_corrupted_postmail")
-                        letter_path = os.path.join(basedir, renpy.substitute(_("关于你的信.txt")))
+                        letter_path = os.path.join(basedir, renpy.substitute(_("notes on your letter.txt")))
                         if os.path.exists(letter_path):
                             os.remove(letter_path)
                         with open(letter_path, "w") as mp_failure_file:

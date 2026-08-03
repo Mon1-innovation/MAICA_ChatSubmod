@@ -2,7 +2,7 @@ init -990 python:
     store.mas_submod_utils.Submod(
         author="P",
         name="MAICA Blessland",
-        description=_("MAICA官方前端子模组"),
+        description=_("MAICA Official Submod Frontend"),
         version=maica_ver,
         settings_pane="maica_setting_pane",
     )
@@ -251,8 +251,8 @@ init 10 python:
     # enabled when declared; omitted entries are reset to their defaults.
     maica_behavior_presets = [
         {
-            "name": "纯粹",
-            "description": "最大程度缩减prompt, 几乎不启用任何工具, 只保留核心纠错.\n+ 速度最快, TTFT接近最短\n- 几乎没有感知能力, 不能调用游戏内操作",
+            "name": "Pure",
+            "description": "Reduce prompt text to minimum, use almost no tool, only retain critical correction.\n+ Fastest, nearly shortest TTFT\n- Almost no external sense, no in-game action ability",
             "settings": {
                 "enable_mf": False,
                 "enable_mt": False,
@@ -266,8 +266,8 @@ init 10 python:
             },
         },
         {
-            "name": "流利",
-            "description": "不让常规LLM介入前生成阶段, 仅依靠常态工具, 优先压低TTFT. 适当减少其余工具.\n+ 速度较快, TTFT接近最短\n* 有较弱感知能力, 能调用游戏内操作",
+            "name": "Fluent",
+            "description": "No LLM intervention in pre-generation phase, use constant tools instead to reduce TTFT. Also reduced other tools.\n+ Relatively fast, nearly shortest TTFT\n* Limited external sense, has in-game action ability",
             "settings": {
                 "enable_mf": False,
                 "use_custom_model_config": True,
@@ -278,8 +278,8 @@ init 10 python:
             },
         },
         {
-            "name": "灵活",
-            "description": "在默认行为基础上采用偏激进的调校, 牺牲稳定性和不常用的功能, 换取平均速度.\n+ 速度较快, TTFT较短\n+ 有正常感知能力, 能调用游戏内操作",
+            "name": "Dexterous",
+            "description": "Aggressive tending calibration based on default, exchanges stability and rarely used functions for average speed.\n+ Relatively fast, relatively short TTFT\n+ Normal external sense, has in-game action ability",
             "settings": {
                 "gen_quality_chk": False,
                 "use_custom_model_config": True,
@@ -293,13 +293,13 @@ init 10 python:
             },
         },
         {
-            "name": "均衡(默认)",
-            "description": "MAICA的默认行为. 久经考验的平衡调校, 在绝大多数情况下表现最佳.\n* 速度中等, TTFT中等\n+ 有正常感知能力, 能调用游戏内操作",
+            "name": "Balanced (default)",
+            "description": "Default behavior of MAICA. Field-tested balanced calibration, performs best overall in most cases.\n* Decent speed, decent TTFT\n+ Normal external sense, has in-game action ability",
             "settings": {},
         },
         {
-            "name": "完全",
-            "description": "几乎完整启用生成辅助功能集. 在极端情况下可能表现更好, 但一般都是浪费时间.\n- 速度最慢, TTFT最长\n+ 有正常感知能力, 能调用游戏内操作",
+            "name": "Complete",
+            "description": "Almost complete feature set of generation assistance enabled. May perform better under extreme circumstances, but normally just wasting time.\n- Slowest, longest TTFT\n+ Normal external sense, has in-game action ability",
             "settings": {
                 "use_custom_model_config": True,
                 "mf_llm_concl": True,
@@ -311,28 +311,28 @@ init 10 python:
     ]
     maica_hyperparameter_presets = [
         {
-            "name": "贪婪",
-            "description": "固定种子, 贪婪采样.\n! 非特殊情况不推荐",
+            "name": "Eager",
+            "description": "Fixed seed, eager sampling.\n! Not recommended for normal cases",
             "settings": {
                 "temperature": 0.0,
                 "seed": 42,
             },
         },
         {
-            "name": "胆怯",
-            "description": "较低的温度.\n! 非特殊情况不推荐",
+            "name": "Cautious",
+            "description": "Lower temperature.\n! Not recommended for normal cases",
             "settings": {
                 "temperature": 0.10,
             },
         },
         {
-            "name": "标准(默认)",
-            "description": "MAICA的默认超参数. 久经考验的平衡调校, 在绝大多数情况下表现最佳.",
+            "name": "Standard (default)",
+            "description": "Default super params of MAICA. Field-tested balanced calibration, performs best overall in most cases.",
             "settings": {},
         },
         {
-            "name": "冒进",
-            "description": "较高的温度和采样范围.\n! 非特殊情况不推荐",
+            "name": "Aggressive",
+            "description": "Higher temperature.\n! Not recommended for normal cases",
             "settings": {
                 "temperature": 0.35,
                 "top_p": 0.8,
@@ -412,7 +412,7 @@ init 10 python:
 
     def maica_get_preset_name(preset_type):
         preset = maica_get_matching_preset(preset_type)
-        return _(preset["name"]) if preset else _("自定义")
+        return _(preset["name"]) if preset else _("Custom")
 
     _maica_validate_presets()
     maica_advanced_setting_status = {k: False for k, v in maica_advanced_setting.items()}
@@ -436,18 +436,18 @@ init 10 python:
     import time
     class ThrottleReturnNone(object):
         """This is a wrapper."""
-        
+
         def __init__(self, wait):
             self.wait = wait
             self.last_called = 0.0
             self.remain = 0
             self.result = None
-        
+
         def __call__(self, func):
             def wrapper(*args, **kwargs):
                 now = time.time()
                 elapsed = now - self.last_called
-                
+
                 if elapsed < self.wait:
                     pass
                 else:
@@ -459,7 +459,7 @@ init 10 python:
                     self.remain = 0.0
 
                 return None
-            
+
             return wrapper
 
     store.workload_throttle = ThrottleReturnNone(15.0)
@@ -479,7 +479,7 @@ init 10 python:
         store._maica_LoginEmail = ""
         store.mas_api_keys.api_keys.update({"Maica_Token":store.maica.maica_instance.ciphertext})
         store.mas_api_keys.save_keys()
-    
+
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
         sync_provider_id(persistent.maica_setting_dict["provider_id"])
@@ -508,31 +508,31 @@ init 10 python:
 
     def maica_validate_player_addition(raw_addition, additions, edittarget=None, prefix_player=True):
         if not isinstance(raw_addition, (str, unicode)) or not raw_addition.strip():
-            renpy.notify(_("MAICA: 输入为空"))
+            renpy.notify(_("MAICA: Input is empty"))
             return None
         addition = ("{player_name}" + raw_addition.strip() if prefix_player else raw_addition.strip())
         replacing = edittarget in additions
         if len(additions) >= 512:
             if not replacing:
-                renpy.notify(_("MAICA: 自定义MFocus信息已达512条上限"))
+                renpy.notify(_("MAICA: Custom MFocus information has reached the 512-item limit"))
                 return None
         if len(addition.encode("utf-8")) > 1536:
-            renpy.notify(_("MAICA: 单条自定义MFocus信息不能超过1536字节"))
+            renpy.notify(_("MAICA: A custom MFocus information item cannot exceed 1536 bytes"))
             return None
         if addition in additions and addition != edittarget:
-            renpy.notify(_("MAICA: 已存在相同内容"))
+            renpy.notify(_("MAICA: Identical content already exists"))
             return None
         return addition
 
     def _maica_verify_token():
         res = store.maica.maica_instance._verify_token()
         if res.get("success"):
-            renpy.show_screen("maica_message", message=_("验证成功"))
+            renpy.show_screen("maica_message", message=_("Authentication passed"))
         else:
             store.mas_api_keys.api_keys.update({"Maica_Token":""})
             store.maica.maica_instance.ciphertext = ""
-            renpy.show_screen("maica_message", message=renpy.substitute(_("验证失败, 请检查账号密码")) + "\n" + renpy.substitute(_("失败原因: ")) + res.get("exception"))
-            
+            renpy.show_screen("maica_message", message=renpy.substitute(_("Authentication failed, recheck your account and password")) + "\n" + renpy.substitute(_("Reason: ")) + res.get("exception"))
+
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def _upload_persistent_dict():
@@ -595,7 +595,7 @@ init 10 python:
             try:
                 if maica_v13_migration.utf8_byte_length(value) > max_bytes:
                     return "REMOVED|TOO_LONG"
-                
+
                 # Attempt JSON serialization
                 json.dumps(value)
                 return value
@@ -607,7 +607,7 @@ init 10 python:
             if i not in sentiment:
                 keys_to_remove.append(i)
                 continue
-            
+
             d[i] = process_value(d[i])
 
         for key in keys_to_remove:
@@ -615,21 +615,21 @@ init 10 python:
         res = store.maica.maica_instance.upload_save(d)
         if not res.get("success", False):
             store.mas_submod_utils.submod_log.error("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
-        renpy.notify(_("MAICA: 存档上传成功") if res.get("success", False) else _("MAICA: 存档上传失败"))
+        renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA; Savefile failed to upload"))
 
     def reset_session():
         store.maica.maica_instance.reset_chat_session()
-        renpy.notify(_("MAICA: 会话已重置"))
+        renpy.notify(_("MAICA: Chat session reset"))
     def output_chat_history():
         import json
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'w') as f:
             f.write(json.dumps(store.maica.maica_instance.get_history().get("content") or []))
-        renpy.notify(_("MAICA: 历史已导出至game/Submods/MAICA_ChatSubmod/chat_history.txt"))
-    
+        renpy.notify(_("MAICA: History exported to game/Submods/MAICA_ChatSubmod/chat_history.txt"))
+
     def upload_chat_history():
         import json
         if not os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt")):
-            renpy.notify(_("MAICA: 未找到历史game/Submods/MAICA_ChatSubmod/chat_history.txt"))
+            renpy.notify(_("MAICA: History not found at game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
             #history = json.load(f)
@@ -640,9 +640,9 @@ init 10 python:
                     raise Exception(str(res))
             except Exception as e:
                 store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(e))
-                renpy.notify(_("MAICA: 历史上传失败, 查看submod_log获取详细原因."))
+                renpy.notify(_("MAICA: Failed to upload history, check submod_log.log for details."))
                 return
-        renpy.notify(_("MAICA: 历史上传成功"))
+        renpy.notify(_("MAICA: History uploaded"))
 
     def run_migrations():
         if persistent.maica_setting_dict["mspire_interval"] <= 10:
@@ -671,7 +671,7 @@ init 10 python:
             maica_apply_advanced_setting()
         else:
             store.maica.maica_instance.modelconfig = {}
-        
+
         store.maica.maica_instance.savefile_access = persistent.maica_setting_dict["savefile_access"]
         store.maica.maica_instance.chat_session = persistent.maica_setting_dict["chat_session"]
         store.maica.maica_instance.enable_mf = persistent.maica_setting_dict['enable_mf']
@@ -701,8 +701,8 @@ init 10 python:
             store.MASEventList.clean()
         send_success = store.maica.maica_instance.send_settings()
         if not ininit:
-            renpy.notify(_("MAICA: 已上传设置") if send_success else _("MAICA: 请等待连接就绪后手动上传"))
-            
+            renpy.notify(_("MAICA: Settings uploaded") if send_success else _("MAICA: Do a manual upload after connection ready"))
+
     def maica_discard_setting():
         persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica_instance.auto_reconnect
         persistent.maica_setting_dict["auto_resume"] = store.maica.maica_instance.auto_resume
@@ -728,9 +728,9 @@ init 10 python:
         persistent.maica_setting_dict["pprt"] = store.maica.maica_instance.pprt
         store.maica.maica_instance.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
-        renpy.notify(_("MAICA: 已放弃设置修改"))
+        renpy.notify(_("MAICA: Settings discarded"))
 
-    
+
     def maica_apply_advanced_setting():
         settings_dict = {}
         for k, v in persistent.maica_advanced_setting_status.items():
@@ -738,7 +738,7 @@ init 10 python:
                 settings_dict[k] = persistent.maica_advanced_setting[k]
         store.maica.maica_instance.modelconfig.update(settings_dict)
         store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
-            
+
     def maica_discard_advanced_setting():
         settings_dict = {}
         for k, v in persistent.maica_advanced_setting_status.items():
@@ -763,7 +763,7 @@ init 10 python:
         except Exception:
             pid = 0
         persistent.maica_setting_dict["provider_id"] = pid
-        ai.provider_id = pid 
+        ai.provider_id = pid
         # ai.provider_manager.set_provider_id(pid)
 
         # 刷新 vista_manager 缓存的 base_url
@@ -773,7 +773,7 @@ init 10 python:
         if reconnect:
             if ai.is_connected():
                 ai.close_wss_session()
-            
+
 
         # 后台处理的东西 (刷新节点列表、重新 accessable()、再重连) 走threading (避免卡住 UI)
         def _bg():
@@ -803,10 +803,10 @@ init 10 python:
         except Exception:
             pass
 
-        
-        renpy.notify(_("MAICA: 已切换节点, 正在重新连接"))
+
+        renpy.notify(_("MAICA: Provider applied, reconnecting"))
         renpy.restart_interaction()
-        
+
 
     def common_can_add(var, min, max, sdict):
         if isinstance(max, float):
@@ -857,11 +857,11 @@ init 10 python:
 
     def reset_player_information():
         persistent.mas_player_additions = []
-    
+
     def export_player_information():
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
-        renpy.notify(_("MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
+        renpy.notify(_("MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"))
 
     def update_model_setting(ininit = False):
         import os, json
@@ -870,9 +870,9 @@ init 10 python:
                 store.maica.maica_instance.modelconfig = json.load(f)
         except Exception as e:
             if not ininit:
-                renpy.notify(_("MAICA: 加载高级参数失败, 查看submod_log.log获取详细原因").format(e))
+                renpy.notify(_("MAICA: Advanced settings failed to serialize, check submod_log.log").format(e))
             store.mas_submod_utils.submod_log.error("Failed to load custom model config: {}".format(e))
-    
+
     def try_eval(str):
         try:
             return eval(str)
@@ -926,11 +926,11 @@ init 10 python:
 
     maica_apply_setting(True)
     #log_eventstat()
-        
+
 
 init python:
     def scr_nullfunc():
-        return            
+        return
 
 
 screen maica_setting_pane():
@@ -940,7 +940,7 @@ screen maica_setting_pane():
     python:
         import store.maica as maica
         pane_cache = maica.maica_setting_pane_cache
-        stat = _("未连接") if not maica.maica_instance.wss_session else _("已连接") if maica.maica_instance.is_connected() else _("已断开")
+        stat = _("Not connected") if not maica.maica_instance.wss_session else _("Connection established") if maica.maica_instance.is_connected() else _("Connection closed")
         store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
         version_check = pane_cache.get("version_check", None)
@@ -961,31 +961,31 @@ screen maica_setting_pane():
             if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
                 hbox:
 
-                    text _("> 你当前的MAS构建版本过旧, 可能影响正常运行, 请升级至最新版本"):
+                    text _("> Your current MAS version is below the lowest compatible version, please update"):
                         style "main_menu_version_l"
 
             elif store.maica.maica_instance.is_outdated is True:
                 hbox:
-            
-                    text _("> {color=#ff0000}当前版本支持已终止{/color}, 请更新至最新版"):
+
+                    text _("> {color=#ff0000}Support for current version has ended{/color}, an update is required"):
                         style "main_menu_version_l"
-            
+
             if pane_cache.get("cacert_missing", False):
                 hbox:
 
-                    text _("> 警告: {color=#ff0000}找不到证书{/color}, 你是不是忘记安装数据包了?"):
+                    text _("> Warning: {color=#ff0000}no certification found{/color}, check datapack installation"):
                         style "main_menu_version_l"
 
             if pane_cache.get("better_loading_installed", False):
                 hbox:
 
-                    text _("> 警告: {color=#ff0000}与 Better Loading 不兼容{/color}"):
+                    text _("> Warning: Blessland is {color=#ff0000}NOT compatible with Better Loading{/color}"):
                         style "main_menu_version_l"
 
             if pane_cache.get("log_screen_installed", False):
                 hbox:
 
-                    text _("> 警告: 与 Log Screen 一起使用时, 请将'submod_log'的过滤级别提高至info及以上"):
+                    text _("> Warning: set 'submod_log' logger verbosity to 'info' or lower when using with Log Screen"):
                         style "main_menu_version_l"
 
             if version_check is not None:
@@ -993,23 +993,23 @@ screen maica_setting_pane():
                 if res is None:
                     hbox:
 
-                        text _("> 警告: 未检测到MAICA库版本信息. 请从Release下载安装MAICA, {color=#ff0000}而不是源代码{/color}"):
+                        text _("> Warning: MAICA Libs version not found. Please install from Release, {color=#ff0000}NOT source code{/color}"):
                             style "main_menu_version_l"
                 elif res != 0:
                     hbox:
 
-                        text _("> 警告: MAICA库版本[libv]与UI版本[uiv]不符. 请{color=#ff0000}从Release{/color}完整地更新MAICA"):
+                        text _("> Warning: MAICA Libs v[libv] mismatch with UI v[uiv]. Please fully update {color=#ff0000}from Release{/color}"):
                             style "main_menu_version_l"
 
             if renpy.windows and not pane_cache.get("is_zhcn", True):
                 hbox:
 
-                    text _("> 警告: {color=#ff0000}当前系统非Unicode语言不是简体中文{/color}, 可能导致包含中文的响应出现问题"):
+                    text _("> Warning: current system 'non-unicode language' is not Chinese, expect possible encoding issues"):
                         style "main_menu_version_l"
 
             if 13400 <= maica.maica_instance.status <= 13499:
                 hbox:
-                    text _("> MAICA通信状态: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
+                    text _("> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
                         style "main_menu_version_l"
 
             hbox:
@@ -1029,64 +1029,64 @@ screen maica_setting_pane():
             timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
 
             if not maica.maica_instance.is_accessable():
-                textbutton _("> 使用账号生成令牌")
+                textbutton _("> Generate token from account")
                     # action Show("maica_login")
-                
+
             elif not maica.maica_instance.is_connected():
-                textbutton _("> 使用账号生成令牌"):
+                textbutton _("> Generate token from account"):
                     action Show("maica_login")
-                
+
             if maica.maica_instance.has_token() and not maica.maica_instance.is_connected():
-                textbutton _("> 使用已保存令牌连接"):
+                textbutton _("> Connect with current token"):
                     action Function(store.maica.maica_instance.init_connect)
 
-                
+
             elif maica.maica_instance.is_connected():
                 if maica.maica_instance.is_ready_to_input():
-                    textbutton _("> 手动上传设置"):
+                    textbutton _("> Upload settings"):
                         action Function(maica_apply_setting)
-                    
-                    textbutton _("> 重置当前对话"):
+
+                    textbutton _("> Reset current chat session"):
                         action Function(reset_session)
                 else:
-                    textbutton _("> 手动上传设置 [[请先等待连接建立]")
-                        
-                    textbutton _("> 重置当前对话 [[请先等待连接建立]")
+                    textbutton _("> Upload settings manually [[wait for connection establishment first]")
 
-                textbutton _("> 导出当前对话"):
+                    textbutton _("> Reset current chat session [[wait for connection establishment first]")
+
+                textbutton _("> Export current conversation history"):
                     action Function(output_chat_history)
-                
-                textbutton _("> 上传对话历史到会话 [store.maica.maica_instance.chat_session]"):
+
+                textbutton _("> Upload chat history to session [store.maica.maica_instance.chat_session]"):
                     action Function(upload_chat_history)
 
-                textbutton renpy.substitute(_("> 退出当前DCC账号")) + " " + renpy.substitute(_("{size=-10}* 如果对话卡住, 退出以断开连接")):
+                textbutton renpy.substitute(_("> Logout")) + " " + renpy.substitute(_("{size=-10}* If conversation hangs, logout to interrupt")):
                     action Function(store.maica.maica_instance.close_wss_session)
 
             else:
-                textbutton _("> 使用已保存令牌连接")
-        
-            textbutton _("> MAICA参数与设置 {size=-10}*部分选项重新连接生效"):
+                textbutton _("> Connect with current token")
+
+            textbutton _("> MAICA params and settings {size=-10}*May need restarting to take effect"):
                 action Show("maica_setting")
-            
+
             if log_hasupdate:
-                textbutton _("> 更新日志与服务状态 {size=-10}*有新更新"):
+                textbutton _("> Update and service status tracker {size=-10}* Update available"):
                     action Show("maica_log")
             else:
-                textbutton _("> 更新日志与服务状态"):
+                textbutton _("> Changelogs and serving status"):
                     action Show("maica_log")
             if pane_cache.get("donation_exists", False):
-                textbutton _("> 向 MAICA 捐赠"):
+                textbutton _("> Donate to MAICA"):
                     action Show("maica_support")
 
 
 screen maica_setting():
-    
+
     python:
         store.len = len
 
 
     default tooltip = Tooltip("")
-    
+
     python:
         submods_screen = store.renpy.get_screen("maica_setting", "screens")
 
@@ -1147,150 +1147,150 @@ screen maica_setting():
                 $ triggered_list = str(store.maica.maica_instance.mtrigger_manager.triggered_list).replace("[", "[[").replace("{", "{{").replace("【", "【【")
                 text "triggered_list: [triggered_list]"
 
-                textbutton "输出Event信息到日志":
+                textbutton _("Write Event information to the log"):
                     action Function(log_eventstat)
 
-                textbutton "推送分句测试":
+                textbutton _("Push sentence-splitting test"):
                     action [
                                 Hide("maica_setting"),
                                 Function(store.maica_apply_setting),
                                 Function(store.MASEventList.push, "text_split")
                             ]
 
-                textbutton "推送聊天loop":
+                textbutton _("Push chat loop"):
                     action [
                                 Hide("maica_setting"),
                                 Function(store.maica_apply_setting),
                                 Function(store.MASEventList.push, "maica_main.talking_start")
                                 ]
-                textbutton "推送MSpire":
+                textbutton _("Push MSpire"):
                     action [
                                 Hide("maica_setting"),
                                 Function(store.maica_apply_setting),
                                 Function(store.MASEventList.push, "maica_mspire")
                                 ]
-                textbutton "推送maica_mpostal_read":
+                textbutton _("Push maica_mpostal_read"):
                     action [
                                     Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
                                     Function(store.MASEventList.push, "maica_mpostal_read")
                                 ]
-                textbutton "推送maica_mpostal_load":
+                textbutton _("Push maica_mpostal_load"):
                     action [
                                     Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
                                     Function(store.MASEventList.push, "maica_mpostal_load")
                                 ]
-                textbutton "推送maica_raw_context_example":
+                textbutton _("Push maica_raw_context_example"):
                     action [
                                     Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
                                     Function(store.MASEventList.push, "maica_raw_context_example")
                                 ]
-                
-                textbutton "显示maica_gen_quality_chk_notify 0.3":
+
+                textbutton _("Show maica_gen_quality_chk_notify 0.3"):
                     action Function(store.maica_handle_quality_status, False, 0.3)
 
-                textbutton "显示maica_gen_quality_chk_notify 0.6":
+                textbutton _("Show maica_gen_quality_chk_notify 0.6"):
                     action Function(store.maica_handle_quality_status, False, 0.6)
 
-                textbutton "显示maica_gen_quality_chk_notify 0.9":
+                textbutton _("Show maica_gen_quality_chk_notify 0.9"):
                     action Function(store.maica_handle_quality_status, False, 0.9)
 
             hbox:
-                use divider(_("连接与安全"))
+                use divider(_("Connection and Safety"))
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("服务提供节点: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"):
+                textbutton _("Current provider: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"):
                     action Show("maica_node_setting")
-                    hovered SetField(_tooltip, "value", _("设置服务器节点"))
+                    hovered SetField(_tooltip, "value", _("Choose provider"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "maica_check_nohover"
-                $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("未登录"))
-                textbutton _("当前用户: [user_disp]"):
+                $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
+                textbutton _("Current user: [user_disp]"):
                     action NullAction()
-                    hovered SetField(_tooltip, "value", _("如需更换或退出账号, 请在Submods界面退出登录.\n* 要修改账号信息或密码, 请前往注册网站"))
+                    hovered SetField(_tooltip, "value", _("To change account or logout, navigate to Submods menu.\n* To change account properties or password, navigate to registration site"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("自动重连: [persistent.maica_setting_dict.get('auto_reconnect')]"):
+                textbutton _("Auto reconnect: [persistent.maica_setting_dict.get('auto_reconnect')]"):
                     action ToggleDict(persistent.maica_setting_dict, "auto_reconnect", True, False)
-                    hovered SetField(_tooltip, "value", _("连接断开时自动重连"))
+                    hovered SetField(_tooltip, "value", _("Automatically reconnect on connection close"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("断点续传: [persistent.maica_setting_dict.get('auto_resume')]"):
+                textbutton _("Generation resume: [persistent.maica_setting_dict.get('auto_resume')]"):
                     action ToggleDict(persistent.maica_setting_dict, "auto_resume", True, False)
-                    hovered SetField(_tooltip, "value", _("若生成回复时网络中断, 重连后续传丢失的部分"))
+                    hovered SetField(_tooltip, "value", _("Resume streaming on reconnection to recover lost chunks"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("保持连接活跃: [persistent.maica_setting_dict.get('keep_alive')]"):
+                textbutton _("Keep connection active: [persistent.maica_setting_dict.get('keep_alive')]"):
                     action ToggleDict(persistent.maica_setting_dict, "keep_alive", True, False)
-                    hovered SetField(_tooltip, "value", _("定期发送心跳包保持长连接活跃, 并检测网络延迟"))
+                    hovered SetField(_tooltip, "value", _("Send ping packets timely to keep connection alive and calculate lag"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
-                use divider(_("行为与表现"))
+                use divider(_("Performance and Behavior"))
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("目标语言: [persistent.maica_setting_dict.get('target_lang')]"):
+                textbutton _("Target language: [persistent.maica_setting_dict.get('target_lang')]"):
                     action Show("maica_select_language")
-                    hovered SetField(_tooltip, "value", _("目标生成语言. 支持\"zh\", \"en\"或\"auto\".\n* 该参数不能100%保证生成语言是目标语言\n* 该参数影响范围广泛, 包括默认时区, 节日文化等, 并不止目标生成语言. 建议设为你的实际母语\n* auto代表通过prompt让模型自行选择语言回答, 效果不等同于指定对应语言\n* 截至文档编纂时为止, MAICA官方部署的英文能力仍然弱于中文"))
+                    hovered SetField(_tooltip, "value", _("Target generation language. Supports \"zh\", \"en\", and \"auto\".\n* This setting cannot guarantee the generated language\n* It also affects the default timezone, holidays, culture, and more; using your actual native language is recommended\n* auto asks the model to choose a response language through the prompt and is not equivalent to selecting that language explicitly\n* At the time of writing, MAICA's official deployment remains less capable in English than in Chinese"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("行为预设: [maica_get_preset_name('behavior')]"):
+                textbutton _("Behavior preset: [maica_get_preset_name('behavior')]"):
                     action Show("maica_select_preset", preset_type="behavior")
-                    hovered SetField(_tooltip, "value", _("这些设置影响MAICA的模型与工具协作行为.\n* 你选择的预设会影响模型的工具, 辅助, 提示词, 以及这些环节消耗的时间\n! 如果你不清楚其具体作用, 请不要修改"))
+                    hovered SetField(_tooltip, "value", _("These settings affect model and tool co-working behavior of MAICA.\n* Changing this preset will affect tools, enhancements and prompts around core model, together with time consumation\n! Do not modify unless you know what they exactly mean"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("超参数预设: [maica_get_preset_name('hyperparameter')]"):
+                textbutton _("Hyperparameter preset: [maica_get_preset_name('hyperparameter')]"):
                     action Show("maica_select_preset", preset_type="hyperparameter")
-                    hovered SetField(_tooltip, "value", _("这些设置影响MAICA核心模型的推理表现.\n* 你选择的预设直接影响核心模型的推理和采样\n! 如果你不清楚其具体作用, 请不要修改"))
+                    hovered SetField(_tooltip, "value", _("These settings affect core model's performance.\n* Changing this preset will directly affect core model's inference and sampling procedure\n! Do not modify unless you know what they exactly mean"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "maica_check_nohover"
-                text _("本节中的剩余条目均由预设管理.\n! 如果你不清楚这些条目的具体作用, 请不要手动修改")
+                text _("The remaining settings in this section are managed by presets.\n! Do not modify manually unless you know what they exactly mean")
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("使用MFocus: [persistent.maica_setting_dict.get('enable_mf')]"):
+                textbutton _("MFocus enabled: [persistent.maica_setting_dict.get('enable_mf')]"):
                     action ToggleDict(persistent.maica_setting_dict, "enable_mf", True, False)
-                    hovered SetField(_tooltip, "value", _("一个agent模型先于核心模型接收相同或相似的输入内容, 并调用工具以获取信息. 这些信息会被提供给核心模型.\n* MFocus是MAICA的重要功能之一, 一般不建议禁用"))
+                    hovered SetField(_tooltip, "value", _("An agent model will recieve input prior to the core model, and acquire information with tools.\n* MFocus is a major mechanism of MAICA, suggested to enable"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("使用MTrigger: [persistent.maica_setting_dict.get('enable_mt')]"):
+                textbutton _("MTrigger enabled: [persistent.maica_setting_dict.get('enable_mt')]"):
                     action ToggleDict(persistent.maica_setting_dict, "enable_mt", True, False)
-                    hovered SetField(_tooltip, "value", _("一个agent模型后于核心模型接收本轮的输入输出, 并调用工具以指示前端作出角色行为.\n* MTrigger是MAICA的重要功能之一, 一般不建议禁用"))
+                    hovered SetField(_tooltip, "value", _("An agent model will recieve input subsequent to the core model, and guide character's action.\n* MTrigger is a major mechanism of MAICA, suggested to enable"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("会话质量检测: [persistent.maica_setting_dict.get('gen_quality_chk')]"):
+                textbutton _("Session quality review: [persistent.maica_setting_dict.get('gen_quality_chk')]"):
                     action ToggleDict(persistent.maica_setting_dict, "gen_quality_chk", True, False)
-                    hovered SetField(_tooltip, "value", _("对话长度超过3轮后, 在每轮对话结束时, 要求MNerve介入检查输出合理性.\n+ 量化地检测判断会话劣化情况, 以免用户注意不到\n- 产生额外的MNerve开销"))
+                    hovered SetField(_tooltip, "value", _("Require MNerve to check generation quality after session exceeds 3 rounds.\n+ Quantitatively evaluate generation quality\n- Extra consumation of MNerve"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("输入语言检测: [persistent.maica_setting_dict.get('input_lang_detect')]"):
+                textbutton _("Input language detection: [persistent.maica_setting_dict.get('input_lang_detect')]"):
                     action ToggleDict(persistent.maica_setting_dict, "input_lang_detect", True, False)
-                    hovered SetField(_tooltip, "value", _("检测输入语言与目标生成语言是否相符.\n* 非特殊情况不建议关闭"))
+                    hovered SetField(_tooltip, "value", _("Raise a warning if input language is not target language.\n* Suggested to enable in normal cases"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("实时后处理: [persistent.maica_setting_dict.get('pprt')]"):
+                textbutton _("Realtime post proceeding: [persistent.maica_setting_dict.get('pprt')]"):
                     action ToggleDict(persistent.maica_setting_dict, "pprt", True, False)
-                    hovered SetField(_tooltip, "value", _("启用后端自动断句和实时后处理功能.\n* 非特殊情况不建议关闭"))
+                    hovered SetField(_tooltip, "value", _("Enable backend sentence breaking and realtime post proceeding.\n* Suggested to enable in normal cases"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
@@ -1303,61 +1303,61 @@ screen maica_setting():
                         xfill True
                     hbox:
                         style_prefix "generic_fancy_check"
-                        textbutton _("使用自定义高级参数: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
+                        textbutton _("Enable customized advanced parameters: [persistent.maica_setting_dict.get('use_custom_model_config')]"):
                             action ToggleDict(persistent.maica_setting_dict, "use_custom_model_config", True, False)
-                            hovered SetField(_tooltip, "value", _("高级参数可能大幅影响模型的表现.\n* 默认的高级参数已经是实践中的普遍最优配置, 不建议启用"))
+                            hovered SetField(_tooltip, "value", _("Advanced parameters could significantly affect the model's performance.\n* The default is already the best field-tested config, so it's not suggested to enable this"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:
                         style_prefix "maica_check"
                         if persistent.maica_setting_dict.get('use_custom_model_config'):
-                            textbutton _("设置高级参数"):
+                            textbutton _("Adjust advanced params"):
                                 style "maica_check_button"
                                 action Show("maica_advance_setting")
                         else:
-                            textbutton _("设置高级参数"):
+                            textbutton _("Adjust advanced params"):
                                 style "maica_check_button_disabled"
                                 action Show("maica_advance_setting")
             hbox:
-                use divider(_("会话与数据"))
+                use divider(_("Sessions and Data"))
 
             hbox:
                 style_prefix "generic_fancy_check"
                 if store.maica.savefile_access_marker_exists():
-                    textbutton _("使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"):
+                    textbutton _("Use persistent file: [persistent.maica_setting_dict.get('savefile_access')]"):
                         action ToggleDict(persistent.maica_setting_dict, "savefile_access", True, False)
-                        hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n* 每次重启游戏将自动上传存档数据"))
+                        hovered SetField(_tooltip, "value", _("Model will ignore savefile data if this is disabled.\n* MAICA Blessland uploads savefile on each restart automatically"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
                 else:
-                    textbutton _("使用存档数据: [persistent.maica_setting_dict.get('savefile_access')]"):
+                    textbutton _("Use persistent file: [persistent.maica_setting_dict.get('savefile_access')]"):
                         style "generic_fancy_check_button_disabled"
                         action ToggleDict(persistent.maica_setting_dict, "savefile_access", True, False)
-                        hovered SetField(_tooltip, "value", _("关闭时, 模型将不会使用存档数据.\n! savefile_access标记文件不存在, 存档数据不会上传或应用"))
+                        hovered SetField(_tooltip, "value", _("Model will ignore savefile data if this is disabled.\n! savefile_access marker does not exist, savefile will not be uploaded or applied"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if persistent.maica_setting_dict['mspire_session'] != 0 and persistent.maica_setting_dict['chat_session'] == persistent.maica_setting_dict['mspire_session']:
-                $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)\n! 当前session与MSpire会话相同, 可能导致迷惑性的表现")
+                $ tooltip_chat_session = _("Each session stores and applies history context independently.\n* Set to 0 to disable context (single round conversation)\n! Current session same as MSpire session, may cause confusing behaviour")
                 hbox:
                     style_prefix "maica_check_nohover"
-                    text _("! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."):
+                    text _("! Current main session is set to same as MSpire session which may cause unexpected issues.\n! Please avoid setting these the same value (except 0) unless you literally understand what you're doing."):
                         color "#FF0000"
             else:
-                $ tooltip_chat_session = _("每个session独立保存和应用对话记录.\n* 设为0以不记录和不使用对话记录(单轮对话)")
-            use num_bar(_("当前会话"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
+                $ tooltip_chat_session = _("Each session stores and applies history context independently.\n* Set to 0 to disable context (single round conversation)")
+            use num_bar(_("Current chat session"), 200 if config.language == "chinese" else 350, tooltip_chat_session, "chat_session", 0, 9)
 
 
-            $ tooltip_session_length = _("会话保留的最大长度. 范围512-28672.\n* 按字符数计算. 每3个ASCII字符只占用一个字符长度\n* 字符数超过限制后, MAICA会裁剪其中较早的部分, 直至少于限制的 2/3\n* 过大或过小的值可能导致表现和性能问题")
-            use prog_bar(_("会话长度"), 400 if config.language == "chinese" else 450, tooltip_session_length, "session_len_limit", 512, 28672)
-            textbutton _("重置会话长度"):
+            $ tooltip_session_length = _("Max length each session will preserve, in range of 512-28672.\n* Every 3 ASCII characters occupy one space\n* MAICA crops the former part of context on exceeding to no more than 2/3 left\n* Too high or too low value can cause performance and generation quality issues")
+            use prog_bar(_("Chat session length"), 400 if config.language == "chinese" else 450, tooltip_session_length, "session_len_limit", 512, 28672)
+            textbutton _("Reset chat session length"):
                 action SetDict(persistent.maica_setting_dict, "session_len_limit", 8192)
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("时区设置: [persistent.maica_setting_dict.get('tz')]"):
+                textbutton _("Timezone: [persistent.maica_setting_dict.get('tz')]"):
                     action Show("maica_tz_setting")
-            
+
             hbox:
                 style_prefix "maica_check"
-                textbutton _("地理位置: [persistent.mas_geolocation]"):
+                textbutton _("Geolocation: [persistent.mas_geolocation]"):
                     action Show("maica_location_input", addition = persistent.mas_geolocation)
 
             hbox:
@@ -1368,44 +1368,44 @@ screen maica_setting():
                     has vbox:
                         xmaximum 950
                         xfill True
-                    $ tooltip_mf_info = _("由你补充的设定信息, 由MFocus检索并呈递到核心模型.\n* 需要重新上传存档生效")
+                    $ tooltip_mf_info = _("User-provided implementations, handled and sent to core model by MFocus.\n* May need a restart for changes to take effect")
                     hbox:
                         style_prefix "maica_check_nohover"
-                        textbutton _("当前有[len(persistent.mas_player_additions)]条自定义MFocus信息"):
+                        textbutton _("[len(persistent.mas_player_additions)] MFocus info present"):
                             action NullAction()
                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("编辑MFocus信息"):
+                        textbutton _("Edit MFocus info"):
                             action Show("maica_addition_setting")
                             hovered SetField(_tooltip, "value", tooltip_mf_info)
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("导出自定义MFocus信息到主目录"):
+                        textbutton _("Export MFocus info to main directory"):
                             action Function(export_player_information)
-                            hovered SetField(_tooltip, "value", _("导出至game/Submods/MAICA_ChatSubmod/player_information.txt"))
+                            hovered SetField(_tooltip, "value", _("Export to game/Submods/MAICA_ChatSubmod/player_information.txt"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
-                use divider(_("工具与功能"))
+                use divider(_("Tools and Functions"))
 
             if not persistent._mas_enable_random_repeats:
                 hbox:
                     style_prefix "generic_fancy_check"
-                    textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                    textbutton _("Enable MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
                         action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                        hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n* 必须关闭复述话题才能启用\n* MSpire话题不使用MFocus和MTrigger"))
+                        hovered SetField(_tooltip, "value", _("Enable MSpire to generate vanilla-like conversations.\n* Repeat topics must be disabled to take effect\n* MSpire doesn't use MF/MT"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
             else:
                 hbox:
-                    textbutton _("启用MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
+                    textbutton _("Enable MSpire: [persistent.maica_setting_dict.get('mspire_enable')]"):
                         style "generic_fancy_check_button_disabled"
                         action ToggleDict(persistent.maica_setting_dict, "mspire_enable", True, False)
-                        hovered SetField(_tooltip, "value", _("是否允许由MSpire生成的对话.\n! 复述话题已启用, MSpire不会生效"))
+                        hovered SetField(_tooltip, "value", _("Enable MSpire to generate vanilla-like conversations.\n! Repeat topice enabled, with which MSpire conflicts"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
@@ -1418,68 +1418,68 @@ screen maica_setting():
                         xfill True
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("MSpire话题"):
+                        textbutton _("MSpire topics"):
                             action Show("maica_mspire_category_setting")
 
 
-                    $ tooltip_ms_time = _("MSpire对话的最小时间间隔")
-                    use prog_bar(_("MSpire最小间隔"), 250 if config.language == "chinese" else 400, tooltip_ms_time, "mspire_interval", 10, 180, "m")
+                    $ tooltip_ms_time = _("Minimal interval of MSpire conversations")
+                    use prog_bar(_("MSpire minimal interval"), 250 if config.language == "chinese" else 400, tooltip_ms_time, "mspire_interval", 10, 180, "m")
 
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("MSpire搜索方式: [persistent.maica_setting_dict.get('mspire_search_type')]"):
+                        textbutton _("MSpire searching method: [persistent.maica_setting_dict.get('mspire_search_type')]"):
                             action [
                                     Show("maica_mspire_setting")
                                         ]
-                            hovered SetField(_tooltip, "value", _("MSpire搜索话题的模式"))
+                            hovered SetField(_tooltip, "value", _("Way of MSpire searching for topics"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     if persistent.maica_setting_dict['mspire_session'] == 0:
                         hbox:
                             style_prefix "generic_fancy_check"
-                            textbutton _("MSpire使用缓存"):
+                            textbutton _("Use cache for MSpire"):
                                 action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数"))
+                                hovered SetField(_tooltip, "value", _("Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Enforces default super params"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
                     else:
                         hbox:
-                            textbutton _("MSpire使用缓存"):
+                            textbutton _("Use cache for MSpire"):
                                 style "generic_fancy_check_button_disabled"
                                 action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                                hovered SetField(_tooltip, "value", _("启用MSpire缓存.\n! MSpire会话不为0, MSpire缓存不会生效"))
+                                hovered SetField(_tooltip, "value", _("Enable MSpire cache.\n! MSpire session not 0, with which MSpire cache conflicts"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     if persistent.maica_setting_dict['mspire_session'] != 0 and persistent.maica_setting_dict['chat_session'] == persistent.maica_setting_dict['mspire_session']:
-                        $ tooltip_ms_session = _("MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! 当前session与主会话相同, 自动清空已禁用")
+                        $ tooltip_ms_session = _("Session MSpire uses.\n* Set to 0 to disable context (single round conversation)\n* MSpire will offer choice to continue if not 0\n! Currently same as main session, auto resetting disabled")
                         hbox:
                             style_prefix "maica_check_nohover"
-                            text _("! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."):
+                            text _("! Current main session is set to same as MSpire session which may cause unexpected issues.\n! Please avoid setting these the same value (except 0) unless you literally understand what you're doing."):
                                 color "#FF0000"
                     else:
-                        $ tooltip_ms_session = _("MSpire使用的session.\n* 设为0以不记录MSpire(单轮对话)\n* 如果不设为0, MSpire对话将提供接续选项\n! MSpire每次生成前将自动清空该session")
-                    use num_bar(_("MSpire会话"), 200 if config.language == "chinese" else 350, tooltip_ms_session, "mspire_session", 0, 9)
+                        $ tooltip_ms_session = _("Session MSpire uses.\n* Set to 0 to disable context (single round conversation)\n* MSpire will offer choice to continue if not 0\n! This session resets before MSpire generation every time")
+                    use num_bar(_("MSpire session"), 200 if config.language == "chinese" else 350, tooltip_ms_session, "mspire_session", 0, 9)
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("MTrigger列表"):
+                textbutton _("Mtrigger triggers list"):
                     action Show("maica_triggers")
-                    hovered SetField(_tooltip, "value", _("查看和配置MTrigger条目"))
+                    hovered SetField(_tooltip, "value", _("Configure MTrigger triggers"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if persistent._maica_vista_enabled:
                 hbox:
                     style_prefix "maica_check"
-                    textbutton _("MVista图片"):
+                    textbutton _("MVista images"):
                         action Show("maica_vista_filelist")
-                        hovered SetField(_tooltip, "value", _("查看和管理用于MVista的图片.\n* 请仔细阅读TOS, 对你自己的隐私负责"))
+                        hovered SetField(_tooltip, "value", _("View and manage MVista images.\n* Please read TOS carefully and be responsible for your own privacy"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
-            
+
             else:
                 hbox:
-                    textbutton _("MVista图片"):
+                    textbutton _("MVista images"):
                         style "maica_check_button_disabled"
                         action Show("maica_vista_filelist")
-                        hovered SetField(_tooltip, "value", _("查看和管理用于MVista的图片.\n! MVista尚未解锁, 请继续和莫妮卡交互或送信, 并耐心等待"))
+                        hovered SetField(_tooltip, "value", _("View and manage MVista images.\n! MVista not unlocked, please continue chatting with Monika patiently or send her letters"))
                         unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
@@ -1492,32 +1492,32 @@ screen maica_setting():
                         xfill True
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("MPostal历史信件"):
+                        textbutton _("Reread MPostal letters"):
                             action Show("maica_mpostals")
-                            hovered SetField(_tooltip, "value", _("查看MPostal历史信件"))
+                            hovered SetField(_tooltip, "value", _("Reread MPostal history letters"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
-                    $ tooltip_mp_time = _("MPostal回信的最小时间间隔")
-                    use prog_bar(_("MPostal最小间隔"), 250 if config.language == "chinese" else 400, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, "m")
-            
+                    $ tooltip_mp_time = _("Minimal interval of MPostal replies")
+                    use prog_bar(_("MPostal minimal interval"), 250 if config.language == "chinese" else 400, tooltip_mp_time, "mpostal_default_reply_time", 10, 720, "m")
+
             hbox:
-                use divider(_("界面与日志"))
+                use divider(_("Interfaces and Log"))
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("submod_log.log 等级: [logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
+                textbutton _("submod_log.log verbosity: [logging.getLevelName(persistent.maica_setting_dict['log_level'])]"):
                     action Show("maica_select_log_level", log = "log_level")#Function(store.change_loglevel)
-                    hovered SetField(_tooltip, "value", _("重要性低于设置等级的log将不会被记录在submod_log.log中.\n* 这也会影响其他子模组"))
+                    hovered SetField(_tooltip, "value", _("Lower level logs will not appear in submod_log.log.\n* This effect is global"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
 
-                use prog_bar(expl=_("状态码更新频率"), len=250 if config.language == "chinese" else 400, tooltip="在Submod界面处的状态码更新频率", var="status_update_time", min=1, max=60, istime="s")
+                use prog_bar(expl=_("Status code update interval"), len=250 if config.language == "chinese" else 400, tooltip="The refreshing frequency of status code on Submod screen", var="status_update_time", min=1, max=60, istime="s")
 
             hbox:
                 style_prefix "generic_fancy_check"
-                textbutton _("动态的天堂树林"):
+                textbutton _("Dynamic Heaven Forest"):
                     action ToggleDict(persistent.maica_setting_dict, "use_anim_background", True, False)
-                    hovered SetField(_tooltip, "value", _("使用动态摇曳和改良光影的天堂树林, 略微增加渲染压力. 重启生效.\n* 如果产生显存相关错误, 删减精灵包或禁用此选项"))
+                    hovered SetField(_tooltip, "value", _("Use dynamic forest background with improved illumination, may increase render consumation. Restart to take effect.\n* Remove some spritepacks or disable this if VRAM overflows"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
@@ -1530,38 +1530,38 @@ screen maica_setting():
                         xfill True
                     hbox:
                         style_prefix "generic_fancy_check"
-                        textbutton _("输出到控制台: [persistent.maica_setting_dict.get('console')]"):
+                        textbutton _("Debugging console: [persistent.maica_setting_dict.get('console')]"):
                             action ToggleDict(persistent.maica_setting_dict, "console", True, False)
-                            hovered SetField(_tooltip, "value", _("在对话期间是否使用console显示相关信息, wzt的癖好\n说谁呢, 不觉得这很酷吗"))
+                            hovered SetField(_tooltip, "value", _("Show debugging console while chatting\nI think this looks cool xd"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("控制台字体: [persistent.maica_setting_dict.get('console_font')]"):
+                        textbutton _("Console font: [persistent.maica_setting_dict.get('console_font')]"):
                             action Show("maica_select_console_font")#ToggleDict(persistent.maica_setting_dict, "console_font", store.maica_confont, store.mas_ui.MONO_FONT)
-                            hovered SetField(_tooltip, "value", _("console使用的字体\nmplus-1mn-medium.ttf为默认字体\nSarasaMonoTC-SemiBold.ttf对于非英文字符有更好的显示效果"))
+                            hovered SetField(_tooltip, "value", _("Decides what font should console display in. \nmplus-1mn-medium.ttf for default, SarasaMonoTC-SemiBold.ttf may behave better with non-ascii characters."))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
                     hbox:
                         style_prefix "maica_check"
-                        textbutton _("控制台log等级: [logging.getLevelName(persistent.maica_setting_dict['log_conlevel'])]"):
+                        textbutton _("Console logging verbosity: [logging.getLevelName(persistent.maica_setting_dict['log_conlevel'])]"):
                             action Show("maica_select_log_level", log = "log_conlevel")
-                            hovered SetField(_tooltip, "value", _("重要性低于设置等级的log将不会显示在控制台中"))
+                            hovered SetField(_tooltip, "value", _("Lower level logs will not appear in console"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
                     hbox:
                         style_prefix "generic_fancy_check"
-                        textbutton _("回信时显示控制台"):
+                        textbutton _("Show console on MPostal writing reply"):
                             action ToggleDict(persistent.maica_setting_dict, "show_console_when_reply", True, False)
 
             hbox:
-                use divider(_("统计与信息"))
+                use divider(_("Statics and Information"))
 
             hbox:
                 style_prefix "maica_check"
-                textbutton (_("展开性能监控") if store.nvw_folded else _("收起性能监控")):
+                textbutton (_("Expand performance monitor") if store.nvw_folded else _("Retract performance monitor")):
                     action [
                         Function(toggle_var, "nvw_folded")
                         ]
-                    hovered SetField(_tooltip, "value", _("显示/收起服务器的性能状态指标"))
+                    hovered SetField(_tooltip, "value", _("Expand/retract server performance monitor"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if not store.nvw_folded:
@@ -1571,11 +1571,11 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton (_("展开统计数据") if store.stat_folded else _("收起统计数据")):
+                textbutton (_("Expand statics") if store.stat_folded else _("Retract statics")):
                     action [
                         Function(toggle_var, "stat_folded")
                         ]
-                    hovered SetField(_tooltip, "value", _("显示/收起你的使用统计数据"))
+                    hovered SetField(_tooltip, "value", _("Expand/retract client-side statics"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
             if not store.stat_folded:
@@ -1587,22 +1587,22 @@ screen maica_setting():
         hbox:
             xpos 10
             style_prefix "confirm"
-            textbutton _("保存设置"):
+            textbutton _("Save settings"):
                 action [
                         Function(store.maica_apply_setting),
                         Hide("maica_setting")
                         ]
-            textbutton _("放弃修改"):
+            textbutton _("Discard modifications"):
                 action [
                         Function(store.maica_discard_setting),
                         Hide("maica_setting")
                         ]
-            textbutton _("重置设置"):
+            textbutton _("Reset defaults"):
                 action [
                         Function(reset_adv_to_default),
                         Function(store.maica_reset_setting),
                         Function(store.maica_apply_setting, ininit = True),
-                        Function(renpy.notify, _("MAICA: 已重置设置")),
+                        Function(renpy.notify, _("MAICA: Settings reset")),
                         Hide("maica_setting")
                     ]
 
@@ -1627,15 +1627,15 @@ screen maica_input_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("退出"):
+            textbutton _("Quit"):
                 selected False
                 action Return("nevermind")
 
-            textbutton _("粘贴"):
+            textbutton _("Paste"):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
             if persistent._maica_vista_enabled:
-                textbutton renpy.substitute(_("选择图片 | 当前已选择 ")) + str(len(store._maica_selected_visuals)) + renpy.substitute(_(" 张")):
+                textbutton renpy.substitute(_("Choose images | ")) + str(len(store._maica_selected_visuals)) + renpy.substitute(_(" chosen")):
                     selected False
                     action [Show("maica_vista_filelist", selecting=True), NullAction()]
             #extbutton _("清空"):
@@ -1675,11 +1675,11 @@ screen maica_input_information_screen(prompt):
             xalign 0.5
             yalign 0.995
 
-            textbutton _("退出"):
+            textbutton _("Quit"):
                 selected False
                 action Return("nevermind")
 
-            textbutton _("粘贴"):
+            textbutton _("Paste"):
                 selected False
                 action [Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input_information.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
 

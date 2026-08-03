@@ -25,7 +25,7 @@ label maica_talking(mspire = False):
         import copy
         from store.maica import maica_instance as ai
         import bot_interface
-        from maica_mtrigger import MTriggerAction 
+        from maica_mtrigger import MTriggerAction
         import traceback
         ai.content_func = store.mas_ptod._update_console_history
         store.action = {}
@@ -59,11 +59,11 @@ label maica_talking.asking:
                             break
 
                     question = mas_input(
-                                _("说吧, [player]"),
+                                _("Go on, [player]"),
                                 default="",
                                 length=75 if not config.language == "english" else 375,
                                 screen="maica_input_screen"
-                                #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("就这样吧")}
+                                #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind", "return_button_prompt": _("I'm done")}
                             ).strip(' \t\n\r') #mas_input
 
                     if store.maica.maica_instance.input_lang_detect and not bot_interface.is_correct_lang(question, target_lang=store.maica.maica_instance.target_lang):
@@ -111,7 +111,7 @@ label maica_talking.asking:
                     ))
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
-                        renpy.say(m, _("好像出了什么问题..."))
+                        renpy.say(m, _("Something may went wrong..."))
                         return_code = "disconnected"
                         break
                 if ai.len_message_queue() == 0:
@@ -120,14 +120,14 @@ label maica_talking.asking:
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                     if len(_history_list):
                         _history_list.pop()
-                    continue    
+                    continue
                 message = ai.get_message()
                 store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}', extend={}".format(message[0], message[1], message[2] if len(message) >= 3 else False))
                 received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
                 try:
                     is_extend = message[2] if len(message) >= 3 else False
-                    
+
                     if not is_extend:
                         extend_sayer = ExtendSayer()
                     extend_sayer.say(message[1])
@@ -152,28 +152,28 @@ label maica_talking.asking:
                 else:
                     mspire = False
                     renpy.jump("maica_talking.ask_mspire_continue")
-            
+
     # store.mas_ptod.write_command()
 
     # store.mas_ptod._update_console_history([])
 
 label maica_talking.end:
     call maica_hide_console
-    if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":    
+    if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":
         $ store.mas_ptod.clear_console()
     # if mspire_user_responsed:
     #     $ maica_apply_setting(True)
     return return_code
 label maica_talking.ask_mspire_continue:
-    m 1eub "嗯...{w=0.3}我们要接着这个话题聊聊吗?{nw}"
+m 1eub "Hmm...{w=0.3}shall we go further on this topic?{nw}"
     $ _history_list.pop()
     menu:
-        "嗯...我们要接着这个话题聊聊吗?{fast}"
-        "好啊":
+        "Hmm...shall we go further on this topic?{fast}"
+        "Okay":
             $ mspire_user_responsed = True
             jump maica_talking.asking
-            
-        "算了":
+
+        "Nevermind":
             $ return_code = "canceled"
             jump maica_talking.end
     return
@@ -276,7 +276,7 @@ label maica_mpostal_read:
             if cur_postal["responsed_status"] != "notupload":
                 continue
             start_time = time.time()
-            if cur_postal.get("raw_image"):  
+            if cur_postal.get("raw_image"):
                 uuid = ai.vista_manager.upload(cur_postal["raw_image"])
                 cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
 
@@ -285,7 +285,7 @@ label maica_mpostal_read:
             current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
             ai.console_logger.info("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
-            cur_postal["responsed_status"] = "failed"        
+            cur_postal["responsed_status"] = "failed"
             gen_time = 0
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.gen_time > gen_time:
@@ -297,7 +297,7 @@ label maica_mpostal_read:
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
                         cur_postal["responsed_status"] = "failed"
-                        cur_postal["responsed_content"] = cur_postal["responsed_content"] + renpy.substitute(_("无法回复信件, 查看submod_log以获取详细原因\n错误码: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]" + "\nt{}".format(time.time()))) + ("\n" if len(cur_postal["responsed_content"]) else "")
+                        cur_postal["responsed_content"] = cur_postal["responsed_content"] + renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]" + "\nt{}".format(time.time()))) + ("\n" if len(cur_postal["responsed_content"]) else "")
 
                         _return = "failed"
                         store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")
@@ -305,17 +305,17 @@ label maica_mpostal_read:
                 if ai.len_message_queue() == 0:
                     store.mas_ptod.write_command("Wait message...")
                     renpy.pause(1.0)
-                    continue    
+                    continue
                 message = ai.get_message(add_pause = False)
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
                 cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol_big_bracket_only)
                 cur_postal["responsed_status"] = "received"
-                _return = "success"   
+                _return = "success"
 
             if _return != 'success':
                 if cur_postal.get("failed_count", 0) >= 3:
                     cur_postal["responsed_status"] = "fatal"
-                    cur_postal["responsed_content"] = renpy.substitute(_("无法回复信件, 尝试失败次数已达上限")) + "\n" +cur_postal["responsed_content"]
+                    cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" +cur_postal["responsed_content"]
                     store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
                     break
                 else:
@@ -330,7 +330,7 @@ label maica_mpostal_read.failed:
         window show
     $ mas_HKBRaiseShield()
     return _return
-    
+
 
 label maica_mpostal_show(content = "no content"):
     python:
@@ -343,7 +343,7 @@ label maica_mpostal_show(content = "no content"):
         )
     call mas_showpoem(store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
     return
-        
+
 label maica_mpostal_show_backtoscreen(content = "no content"):
     call maica_mpostal_show(content)
     return
@@ -376,7 +376,7 @@ label maica_mpostal_show_mpscreen:
             )
 
             _mas_game_menu_end(temp_space)
-    
+
     return
 
 label _maica_return_game_menu(*args, **kwargs):
@@ -407,7 +407,7 @@ label maica_show_setting_screen:
             )
 
             _mas_game_menu_end(temp_space)
-    
+
     return
 init 999 python:
     @store.mas_submod_utils.functionplugin("maica_mpostal_show_backtoscreen")

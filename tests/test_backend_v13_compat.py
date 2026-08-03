@@ -137,9 +137,7 @@ def strip_comments_and_strings(text, suffix):
             (kind, "" if kind in (tokenize.COMMENT, tokenize.STRING) else value)
             for kind, value, _start, _end, _line in tokens
         )
-    text = re.sub(r"(?s)(?:[rubfRUBF]*)('''.*?'''|\"\"\".*?\"\"\")", "", text)
-    text = re.sub(r"(?m)#.*$", "", text)
-    return re.sub(r"(?s)(?:[rubfRUBF]*)(['\"])(?:\\.|(?!\1).)*\1", "", text)
+    return " ".join(value for kind, value in lex_source(text) if kind != "STRING")
 
 
 def runtime_identifiers(relative):
@@ -550,9 +548,14 @@ def assert_key_default(text, key, value_pattern):
 
 
 def assert_key_control(text, key, upper):
-    context = block_after(text, r"(?:textbutton|use\s+\w+)[^\n]*{}|{}[^\n]*(?:textbutton|use\s+\w+)".format(key, key), 500)
-    assert re.search(r"\b0\s*,\s*{}\b|(?:max|upper|maximum)\s*=\s*{}\b".format(upper, upper), context)
-    assert "ToggleDict" not in context
+    range_control = re.search(r"use\s+num_bar[^\n]*{}[^\n]*".format(key), text)
+    assert range_control, "no numeric UI control found for {}".format(key)
+    assert re.search(
+        r"\b0\s*,\s*{}\b|(?:max|upper|maximum)\s*=\s*{}\b".format(upper, upper),
+        range_control.group(0),
+    )
+    toggle_context = block_after(text, r"textbutton[^\n]*{}".format(key), 300)
+    assert "ToggleDict" not in toggle_context
 
 
 def function_body(text, name_pattern):
@@ -991,8 +994,8 @@ def test_c_tool_and_session_limits_are_two_and_28672():
 
 def test_c_session_limit_translation_matches_the_current_source_range():
     translation = source("game/Submods/MAICA_ChatSubmod/tl/header.rpy")
-    assert re.search(r'^\s*old\s+"会话保留的最大长度\. 范围512-28672\.', translation, re.M)
-    assert re.search(r'^\s*new\s+"Max length each session will preserve, in range of 512-28672\.', translation, re.M)
+    assert re.search(r'^\s*old\s+"Max length each session will preserve, in range of 512-28672\.', translation, re.M)
+    assert re.search(r'^\s*new\s+"会话保留的最大长度\. 范围512-28672\.', translation, re.M)
 
 
 @pytest.mark.parametrize("relative", ("game/python-packages/maica.py", "game/python-packages/maica_tasker_sub_sessionsender.py"))

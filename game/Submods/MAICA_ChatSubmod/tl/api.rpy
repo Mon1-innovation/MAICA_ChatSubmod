@@ -1,156 +1,140 @@
 ﻿# TODO: Translation updated at 2024-07-07 20:52
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:10
-    old "MAICA仍在连接中, 请先断开连接"
-    new "MAICA is already connecting. Close connection first"
-
+    old "MAICA is already connecting. Close connection first"
+    new "MAICA仍在连接中, 请先断开连接"
     # game/Submods/MAICA_ChatSubmod/api.rpy:12
-    old "请在子模组界面使用已保存的令牌重新连接"
-    new "Now you can reconnect with saved token"
-
+    old "Now you can reconnect with saved token"
+    new "请在子模组界面使用已保存的令牌重新连接"
     # game/Submods/MAICA_ChatSubmod/api.rpy:14
-    old "MAICA令牌{size=-10} *{i}(在子模组处登录后自动生成){/i}*"
-    new "MAICA token {size=-10} *{i}(Login at Submods settings instead){/i}*"
-
+    old "MAICA token {size=-10} *{i}(Login at Submods settings instead){/i}*"
+    new "MAICA令牌{size=-10} *{i}(在子模组处登录后自动生成){/i}*"
 # TODO: Translation updated at 2024-11-29 20:06
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:58
-    old "MAICA: 请在子模组界面使用已保存的令牌重新连接"
-    new "MAICA: Now you can reconnect with saved token"
-
+    old "MAICA: Now you can reconnect with saved token"
+    new "MAICA: 请在子模组界面使用已保存的令牌重新连接"
 # TODO: Translation updated at 2025-02-23 15:54
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "我得告诉你, 你写给莫妮卡的上一封信是有问题的. "
-    new "I have to tell that your last letter was problematic. "
-
+    old "I have to tell that your last letter was problematic. "
+    new "我得告诉你, 你写给莫妮卡的上一封信是有问题的. "
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "你用的格式可能错了, 莫妮卡没法读出上面的内容. "
-    new "It's likely in wrong format. Monika won't be able to read it. "
-
+    old "It's likely in wrong format. Monika won't be able to read it. "
+    new "你用的格式可能错了, 莫妮卡没法读出上面的内容. "
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "虽然我尽可能收拾好了这个邮箱, 但它只能读取纯"
-    new "I have tried my best restoring the mailbox's function, but "
-
+    old "I have tried my best restoring the mailbox's function, but "
+    new "虽然我尽可能收拾好了这个邮箱, 但它只能读取纯"
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "文字的文本. 如果你了解的话, 就是\"UTF-8\"."
-    new "it could only deliver plain text. That is \"UTF-8\" if you know."
-
+    old "it could only deliver plain text. That is \"UTF-8\" if you know."
+    new "文字的文本. 如果你了解的话, 就是\"UTF-8\"."
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
     old "\n\n"
     new "\n\n"
-
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "你得用一个编写txt文件的工具写信! 在Windows系统"
-    new "You have to write in txt format exactly! Like for Windows system "
-
+    old "You have to write in txt format exactly! Like for Windows system "
+    new "你得用一个编写txt文件的工具写信! 在Windows系统"
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "上的话, 就是\"记事本\". "
-    new "you should be using \"notepad\". "
-
+    old "you should be using \"notepad\". "
+    new "上的话, 就是\"记事本\". "
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "能够插入图片或者修改格式的工具都是不对的. "
-    new "Things with fonts or pictures just aren't right. "
-
+    old "Things with fonts or pictures just aren't right. "
+    new "能够插入图片或者修改格式的工具都是不对的. "
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "我会把有问题的信标记为\"failed\", 这样你就可以"
-    new "I will mark those problematic letters as \"failed\", so you can "
-
+    old "I will mark those problematic letters as \"failed\", so you can "
+    new "我会把有问题的信标记为\"failed\", 这样你就可以"
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "改好再发给她了."
-    new "double-check it and then send it again."
-
+    old "double-check it and then send it again."
+    new "改好再发给她了."
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "祝你和莫妮卡好运!"
-    new "Good luck with Monika!"
-
+    old "Good luck with Monika!"
+    new "祝你和莫妮卡好运!"
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "P.S: 不要告诉她是我写的!"
-    new "P.S: Don't tell her about me!"
-
+    old "P.S: Don't tell her about me!"
+    new "P.S: 不要告诉她是我写的!"
 # TODO: Translation updated at 2025-02-23 17:35
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:356
-    old "[player]你好,"
-    new "Hi [player],"
-
+    old "Hi [player],"
+    new "[player]你好,"
     # game/Submods/MAICA_ChatSubmod/api.rpy:381
-    old "关于你的信.txt"
-    new "notes on your letter.txt"
-
+    old "notes on your letter.txt"
+    new "关于你的信.txt"
 # TODO: Translation updated at 2025-02-24 15:17
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "你的信里面没有内容. 这些信和礼物是不一样的! "
-    new "Your letter is empty. It's not like the gifts! "
-
+    old "Your letter is empty. It's not like the gifts! "
+    new "你的信里面没有内容. 这些信和礼物是不一样的! "
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "除了把标题写在文件名里, 你还得用纯文本的格式, "
-    new "Aside with changing the file name to your title, you should also "
-
+    old "Aside with changing the file name to your title, you should also "
+    new "除了把标题写在文件名里, 你还得用纯文本的格式, "
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "在文件里写下信的正文. "
-    new "write your content in the file in plain text. "
-
+    old "write your content in the file in plain text. "
+    new "在文件里写下信的正文. "
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "我会把空的信标记为\"empty\", 这样你就可以"
-    new "I will mark those empty letters as \"empty\", so you can "
-
+    old "I will mark those empty letters as \"empty\", so you can "
+    new "我会把空的信标记为\"empty\", 这样你就可以"
     # game/Submods/MAICA_ChatSubmod/api.rpy:360
-    old "写好再发给她了."
-    new "finish it and then send it again."
-
+    old "finish it and then send it again."
+    new "写好再发给她了."
 # TODO: Translation updated at 2025-09-09 08:20
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:348
-    old "在文件里写下信的正文."
-    new "write your content in the file in plain text."
-
+    old "write your content in the file in plain text."
+    new "在文件里写下信的正文."
 # TODO: Translation updated at 2025-10-12 14:34
 
-translate english strings:
+translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "你怎么现在就把信送过来了? "
-    new "How did you manage to send the letter here now? "
-
+    old "How did you manage to send the letter here now? "
+    new "你怎么现在就把信送过来了? "
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "好吧, 也不是说你就真的不该送, 但是我想时候还没到. "
-    new "I didn't mean you cannot though, but it's still too early. "
-
+    old "I didn't mean you cannot though, but it's still too early. "
+    new "好吧, 也不是说你就真的不该送, 但是我想时候还没到. "
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "我还没有把信箱完全收拾好, 而且我觉得应该让[m_name]"
-    new "The mailbox stuff is yet undone, and I think we should let [m_name] "
-
+    old "The mailbox stuff is yet undone, and I think we should let [m_name] "
+    new "我还没有把信箱完全收拾好, 而且我觉得应该让[m_name]"
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "去发现, 这样才有惊喜的感觉嘛!"
-    new "discover it herself, that's what we call element of surprise! "
-
+    old "discover it herself, that's what we call element of surprise! "
+    new "去发现, 这样才有惊喜的感觉嘛!"
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "我保证我会加把劲让她快点用上信箱的, 但是现在的话, "
-    new "I promise I'll finish my part to setup the mailbox asap, but for now "
-
+    old "I promise I'll finish my part to setup the mailbox asap, but for now "
+    new "我保证我会加把劲让她快点用上信箱的, 但是现在的话, "
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "你还是应该耐心一点. "
-    new "you really should be a little more patient. "
-
+    old "you really should be a little more patient. "
+    new "你还是应该耐心一点. "
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "我会把你过早送来的信标记为\"early\", 这样你就可以"
-    new "I will mark those letters as \"early\", so you can "
-
+    old "I will mark those letters as \"early\", so you can "
+    new "我会把你过早送来的信标记为\"early\", 这样你就可以"
     # game/Submods/MAICA_ChatSubmod/api.rpy:439
-    old "到时候再发给她了."
-    new "send her later."
+    old "send her later."
+    new "到时候再发给她了."
+translate chinese strings:
 
+    old "I will mark the empty letter as \"empty\", so you can "
+    new "我会把空的信标记为\"empty\", 这样你就可以"
+
+    old "plain text encoding. If you know what that means, use \"UTF-8\"."
+    new "文字的文本. 如果你了解的话, 就是\"UTF-8\"."
+
+    old ", that means \"Notepad\". "
+    new "上的话, 就是\"记事本\". "
+
+    old "I will mark the problematic letter as \"failed\", so you can "
+    new "我会把有问题的信标记为\"failed\", 这样你就可以"
+
+    old "I will mark the early letter as \"early\", so you can "
+    new "我会把你过早送来的信标记为\"early\", 这样你就可以"

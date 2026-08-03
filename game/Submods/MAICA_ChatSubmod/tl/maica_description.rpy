@@ -1,4 +1,4 @@
-translate english python in maica:
+translate chinese python in maica:
     try:
         from bot_interface import PY2, PY3
     except Exception:
@@ -59,7 +59,7 @@ translate english python in maica:
         store.mas_submod_utils.submod_log.error("MAICA Blessland seemingly not exist: {}".format(e))
 
 
-translate english python:
+translate chinese python:
 
     try:
         import maica_provider_manager as mpm

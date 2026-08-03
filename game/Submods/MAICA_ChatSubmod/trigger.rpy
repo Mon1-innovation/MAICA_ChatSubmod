@@ -6,13 +6,13 @@ init 999 python in maica:
     ai = store.maica.maica_instance
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("内置 | 调整好感, 范围为单次0~3 * 有10分钟冷却"),method=MTriggerMethod.request)
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("Intergrated | Adjust affection, 0~3 per time * 10 minutes cooldown"),method=MTriggerMethod.request)
             self.last_triggered = time.time()
-        
+
         def triggered(self, data):
             self.last_triggered = time.time()
             return self.callback(data.get("alter_value", data.get("affection", 0.1)))
-            
+
         def can_triggered(self):
             return (time.time() - self.last_triggered) >= 600.0
 
@@ -36,7 +36,7 @@ init 999 python in maica:
             self.clothes_data = {store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
             self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
             self.clothes_data["__none__"] = "mas_pick_a_clothes"
-            super(ClothesTrigger, self).__init__(template, name, description=_("内置 | 更换衣服"),callback=self.clothes_callback, 
+            super(ClothesTrigger, self).__init__(template, name, description=_("Integrated | Changing clothes"),callback=self.clothes_callback,
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内服装",
                     item_name_en = "change in-game outfit",
@@ -74,7 +74,7 @@ init 999 python in maica:
         for ev in store.mas_games.game_db.values()
         if store.mas_isGameUnlocked(ev.prompt)
     }
-    
+
     unlocked_games_dict["玩家自行选择"] = "mas_pick_a_game"
     unlocked_games_dict["__none__"] = "mas_pick_a_game"
     unlocked_games_dict["Pong"] = "game_pong"
@@ -83,14 +83,14 @@ init 999 python in maica:
     if store.mas_isGameUnlocked("Hangman") or store.mas_isGameUnlocked("上吊小人"):
         unlocked_games_dict["Hangman"] = "game_hangman"
     def minigame_callback(item):
-        
+
         if not item in unlocked_games_dict:
             ai.console_logger.warning("<mtrigger> {} is not a vaild minigame".format(item))
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
         store.renpy.call("mttrigger_minigame", game_label)
-    
+
     minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
         exprop=MTriggerExprop(
             item_name_zh="玩小游戏",
@@ -98,10 +98,10 @@ init 999 python in maica:
             item_list=list(unlocked_games_dict.keys()),
             curr_value="__none__",
         ),
-        description = _("内置 | 拉起小游戏"),method=MTriggerMethod.table
+        description = _("Integrated | Starting minigames"),method=MTriggerMethod.table
     )
     ai.mtrigger_manager.add_trigger(minigame_trigger)
-    
+
 
 #################################################################################
 
@@ -113,7 +113,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_kiss")
 
     kiss_trigger = MTriggerBase(customize_template, "kiss", condition=mtrigger_kiss_condition, callback=mtrigger_kiss_callback,
-        description = _("内置 | 调用亲吻事件"),
+        description = _("Integrated | Call a kiss"),
         exprop = MTriggerExprop(item_name_zh = "亲吻玩家", item_name_en = "kiss player")
         )
     ai.mtrigger_manager.add_trigger(kiss_trigger)
@@ -123,7 +123,7 @@ init 999 python in maica:
     def mtrigger_leave_callback(arg):
         ai.console_logger.debug("<mtrigger> mtrigger_leave_callback called")
         store.renpy.call("mtrigger_leave")
-    leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("内置 | 关闭游戏"),method=MTriggerMethod.table,
+    leave_trigger = MTriggerBase(customize_template, "leave", callback=mtrigger_leave_callback, description=_("Integrated | Shutdown game"),method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="帮助玩家离开游戏", item_name_en="help player quit game"))
     ai.mtrigger_manager.add_trigger(leave_trigger)
 
@@ -132,7 +132,7 @@ init 999 python in maica:
     def mtrigger_takeout_callback(arg):
         ai.console_logger.debug("<mtrigger> mtrigger_takeout_callback called")
         store.renpy.call("mtrigger_takeout")
-    takeout_trigger = MTriggerBase(customize_template, "go_outside", callback=mtrigger_takeout_callback, description=_("内置 | 带[m_name]出去"),method=MTriggerMethod.table,
+    takeout_trigger = MTriggerBase(customize_template, "go_outside", callback=mtrigger_takeout_callback, description=_("Integrated | Take [m_name] out"),method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="和玩家一起出门", item_name_en="go outside with player"))
     ai.mtrigger_manager.add_trigger(takeout_trigger)
 
@@ -142,7 +142,7 @@ init 999 python in maica:
         ai.console_logger.debug("<mtrigger> mtrigger_idle_callback called")
         store.MASEventList.push("mtrigger_brb")
         return "stop"
-    idle_trigger = MTriggerBase(customize_template, "idle", callback=mtrigger_idle_callback, description=_("内置 | 暂离"), method=MTriggerMethod.table,
+    idle_trigger = MTriggerBase(customize_template, "idle", callback=mtrigger_idle_callback, description=_("Integrated | Be right back"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="当玩家表示想要短暂离开(<1小时)时调用", item_name_en="Call when the player indicates they want to take a temporary leave (<1 hour)."))
     ai.mtrigger_manager.add_trigger(idle_trigger)
 
@@ -163,13 +163,13 @@ init 999 python in maica:
                     curr_value=store.mas_current_weather.prompt
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换天气 * 在天堂树林内不生效"),
+                description = _("Intergrated | Change weather * Not effective in Heaven Forest"),
                 condition = self.condition
             )
 
         def condition(self):
             return store.mas_isMoniAff(higher=True) and self.can_change
-            
+
         def build(self):
             self.weathers = self.get_weather_dict()
             self.weathers_list = self.get_weather_list()
@@ -217,7 +217,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_location")
 
     location_trigger = MTriggerBase(customize_template, "location", condition=mtrigger_location_condition, callback=mtrigger_location_callback,
-        description = _("内置 | 调用切换房间"), method=MTriggerMethod.table,
+        description = _("Integrated | Change room"), method=MTriggerMethod.table,
         exprop = MTriggerExprop(item_name_zh="切换游戏内场景/房间", item_name_en="change in-game location/room"))
     ai.mtrigger_manager.add_trigger(location_trigger)
 
@@ -230,7 +230,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_backup")
 
     backup_trigger = MTriggerBase(customize_template, "backup", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
-        description = _("内置 | 备份存档 * 需要 Extra Plus 子模组"), method=MTriggerMethod.table,
+        description = _("Intergrated | Backup persistent * Extra Plus Submod required"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="备份存档", item_name_en="backup savefile"))
     ai.mtrigger_manager.add_trigger(backup_trigger)
 
@@ -243,7 +243,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_hold")
 
     hold_trigger = MTriggerBase(customize_template, "hold", condition=mtrigger_hold_condition, callback=mtrigger_hold_callback,
-        description = _("内置 | 拥抱"), method=MTriggerMethod.table,
+        description = _("Integrated | Hug"), method=MTriggerMethod.table,
         exprop = MTriggerExprop(item_name_zh="拥抱玩家", item_name_en="hold player"))
     ai.mtrigger_manager.add_trigger(hold_trigger)
 
@@ -266,11 +266,11 @@ init 999 python in maica:
 
                 ),
                 callback = self.callback,
-                description = _("内置 | 更换背景音乐"),
+                description = _("Integrated | Change BGM"),
                 perf_suggestion=True,
                 method = MTriggerMethod.table
             )
-        
+
         def on_build_pre(self):
             self.musics = self.song_list()
             self.exprop.item_list = self.musics
@@ -279,7 +279,7 @@ init 999 python in maica:
         def current_item(self):
             current = store.songs.current_track
             return current if isinstance(current, basestring) and current in self.musics else "__none__"
-        
+
         def song_list(self):
             m = ["__none__"]
             for s in store.songs.music_choices:
@@ -293,7 +293,7 @@ init 999 python in maica:
         def build(self):
             self.musics = self.song_list()
             return super(MusicTrigger, self).build()
-        
+
         @staticmethod
         def find(selection):
             return [x for x in store.songs.music_choices if selection in x][0]
@@ -318,7 +318,7 @@ init 999 python in maica:
             if selection == "停止/静音":
                 store.mas_play_song(None)
                 return
-            
+
             store.renpy.call("mtrigger_music_auto", self.__class__, selection)
 
     music_trigger = MusicTrigger()
@@ -331,7 +331,7 @@ init 999 python in maica:
             self.clothes_data = {store.mas_selspr.HAIR_SEL_MAP[key].display_name:key for key in store.mas_selspr.HAIR_SEL_MAP if self.outfit_has_and_unlocked(key)}
             self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
             self.clothes_data["__none__"] = "mas_pick_a_clothes"
-            super(HairTrigger, self).__init__(template, name, description=_("内置 | 更换发型"),callback=self.clothes_callback, 
+            super(HairTrigger, self).__init__(template, name, description=_("Integrated | Change hairstyle"),callback=self.clothes_callback,
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内发型",
                     item_name_en = "change in-game hair",
@@ -341,7 +341,7 @@ init 999 python in maica:
                 action = MTriggerAction.post,
                 method = MTriggerMethod.table
             )
-        
+
         def on_build_pre(self):
             self.exprop.curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name
 
@@ -372,7 +372,7 @@ init 999 python in maica:
         def __init__(self):
             self.accessory_data = {}
             self.refresh_accessories()
-            super(AccessoryTrigger, self).__init__(common_switch_template, "accessory", description=_("内置 | 佩戴或取下饰品"), callback=self.accessory_callback,
+            super(AccessoryTrigger, self).__init__(common_switch_template, "accessory", description=_("Integrated | Wear or remove accessories"), callback=self.accessory_callback,
                 exprop=MTriggerExprop(
                     item_name_zh = "佩戴或取下游戏内饰品",
                     item_name_en = "wear or remove an in-game accessory",
@@ -422,7 +422,7 @@ init 999 python in maica:
 
     accessory_trigger = AccessoryTrigger()
     ai.mtrigger_manager.add_trigger(accessory_trigger)
-                    
+
 #################################################################################
 
     def mtrigger_write_memory_callback(memory_item):
@@ -439,6 +439,6 @@ init 999 python in maica:
         "write_memory",
         callback=mtrigger_write_memory_callback,
         method=MTriggerMethod.request,
-        description = _("内置 | 记忆写入")
+        description = _("Integrated | Memory writing")
     )
     ai.mtrigger_manager.add_trigger(memory_trigger)

@@ -179,10 +179,10 @@ init -1:
             if not istime:
                 minutes = ""
             elif istime == "m":
-                minutes = _("分钟")
+                minutes = _("minutes")
             else:
-                minutes = _("秒")
-            
+                minutes = _("seconds")
+
             str_var = '_' + var
             if str_var not in s_dict:
                 s_dict[str_var] = str(s_dict[var])
@@ -209,15 +209,15 @@ init -1:
                 except Exception:
                     renpy.show_screen("maica_common_warn")
                 finally:
-                    
+
                     del s_dict[str_var]
-                    
+
         modal True
         zorder 95
 
         style_prefix "confirm"
 
-        use maica_setter_small_frame(title=_("请输入{}({}~{}{}):".format(expl, min, max, minutes)), ok_action=Function(apply_var, var, min, max, isfloat, s_dict), cancel_action=Hide("maica_common_setter")):
+        use maica_setter_small_frame(title=_("Enter {} ({}-{}{}):".format(expl, min, max, minutes)), ok_action=Function(apply_var, var, min, max, isfloat, s_dict), cancel_action=Hide("maica_common_setter")):
             hbox:
                 input:
                     default str(s_dict[str_var])
@@ -225,7 +225,7 @@ init -1:
                     length 9
                     allow ("0123456789" + "." if isfloat else "")
 
-    screen maica_common_warn(text=_("请输入正确的数值!")):
+    screen maica_common_warn(text=_("Please input a valid value!")):
 
         modal True
         zorder 100
@@ -253,7 +253,7 @@ init -1:
                     if ok_action:
                         textbutton _("OK") action ok_action
                     if cancel_action:
-                        textbutton _("取消") action cancel_action   
+                        textbutton _("Cancel") action cancel_action
 
     screen maica_setter_small_frame(title=None, ok_action=None, cancel_action=None):
         frame:
@@ -276,7 +276,7 @@ init -1:
                     if ok_action:
                         textbutton _("OK") action ok_action
                     if cancel_action:
-                        textbutton _("取消") action cancel_action
+                        textbutton _("Cancel") action cancel_action
 
     screen maica_setter_medium_frame(title=None, ok_action=None, cancel_action=None):
         frame:
@@ -302,8 +302,8 @@ init -1:
                     if ok_action:
                         textbutton _("OK") action ok_action
                     if cancel_action:
-                        textbutton _("取消") action cancel_action
-                        
+                        textbutton _("Cancel") action cancel_action
+
     screen maica_common_outer_frame(w=1000, h=500, x=0.5, y=0.3):
         frame:
             xsize w

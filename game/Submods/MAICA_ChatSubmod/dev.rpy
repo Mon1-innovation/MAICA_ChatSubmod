@@ -1,7 +1,7 @@
 label text_split:
     call maica_show_console
-    m "你想让我说什么呢?"
-    $ text = mas_input("说吧, [player]",default="",length=9999,screen="maica_input_screen").strip(' \t\n\r')
+m "What do you want me to talk about?"
+    $ text = mas_input("Go on, [player]",default="",length=9999,screen="maica_input_screen").strip(' \t\n\r')
     python:
         def stupid_print(s):
             store.mas_submod_utils.submod_log.debug("text_split: "+str(s))
