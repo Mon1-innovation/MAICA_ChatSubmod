@@ -3,6 +3,7 @@
 ## 当前工作
 
 - [MAICA 后端 v1.3 前端兼容性修复](work/2026-07-21-maica-v13-repair/20-spec.md)
+- [默认英文与中文翻译互换](specs/2026-08-03-english-source-chinese-translation-design.md)
 
 ## 权威参考资料
 
