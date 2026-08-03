@@ -208,60 +208,66 @@ screen maica_advance_setting():
             $ sdict = "maica_advanced_setting"
 
             hbox:
+                $ tooltip_max_tokens = _("The limit of tokens model can generate one round. Normally don't affect performance, but stops generating on hitting the limit")
                 spacing 5
                 textbutton "max_tokens":
                     action ToggleDict(persistent.maica_advanced_setting_status, "max_tokens")
-                    hovered SetField(_tooltip, "value", _("The limit of tokens model can generate one round. Normally don't affect performance, but stops generating on hitting the limit"))
+                    hovered SetField(_tooltip, "value", tooltip_max_tokens)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 if persistent.maica_advanced_setting_status.get("max_tokens", False):
-                    use prog_bar("max_tokens", 250, _("The limit of tokens model can generate one round. Normally don't affect performance, but stops generating on hitting the limit"), "max_tokens", 1, 2048, sdict=sdict)
+                    use prog_bar("max_tokens", 250, tooltip_max_tokens, "max_tokens", 1, 2048, sdict=sdict)
 
             hbox:
+                $ tooltip_seed = _("Generation seed. Normally a minor and random factor")
                 spacing 5
                 textbutton "seed":
                     action ToggleDict(persistent.maica_advanced_setting_status, "seed")
-                    hovered SetField(_tooltip, "value", _("Generation seed. Normally a minor and random factor"))
+                    hovered SetField(_tooltip, "value", tooltip_seed)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("seed", False):
-                    use num_bar("seed", 200, _("Generation seed. Normally a minor and random factor"), "seed", -2147483648, 2147483647, sdict=sdict)
+                    use num_bar("seed", 200, tooltip_seed, "seed", -2147483648, 2147483647, sdict=sdict)
 
             hbox:
+                $ tooltip_top_p = _("Token weight filter percentage. Seriously do not touch this")
                 spacing 5
                 textbutton "top_p":
                     action ToggleDict(persistent.maica_advanced_setting_status, "top_p")
-                    hovered SetField(_tooltip, "value", _("Token weight filter percentage. Seriously do not touch this"))
+                    hovered SetField(_tooltip, "value", tooltip_top_p)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
                 if persistent.maica_advanced_setting_status.get("top_p", False):
-                    use prog_bar("top_p", 250, _("Token weight filter percentage. Seriously do not touch this"), "top_p", 0.1, 1.0, sdict=sdict)
+                    use prog_bar("top_p", 250, tooltip_top_p, "top_p", 0.1, 1.0, sdict=sdict)
 
             hbox:
+                $ tooltip_temperature = _("The randomness tokens are chosen. Higher this value, larger the offset between model performance and generally best performance")
                 spacing 5
                 textbutton "temperature":
                     action ToggleDict(persistent.maica_advanced_setting_status, "temperature")
-                    hovered SetField(_tooltip, "value", _("The randomness tokens are chosen. Higher this value, larger the offset between model performance and generally best performance"))
+                    hovered SetField(_tooltip, "value", tooltip_temperature)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("temperature", False):
-                    use prog_bar("temperature", 250, _("The randomness tokens are chosen. Higher this value, larger the offset between model performance and generally best performance"), "temperature", 0.0, 1.0, sdict=sdict)
+                    use prog_bar("temperature", 250, tooltip_temperature, "temperature", 0.0, 1.0, sdict=sdict)
 
             hbox:
+                $ tooltip_frequency_penalty = _("Token frequency penalty. Higher this value, less likely repeatedly appeared tokens continue appearing, usually resulting in shorter and more expanding generation")
                 spacing 5
                 textbutton "frequency_penalty":
                     action ToggleDict(persistent.maica_advanced_setting_status, "frequency_penalty")
-                    hovered SetField(_tooltip, "value", _("Token frequency penalty. Higher this value, less likely repeatedly appeared tokens continue appearing, usually resulting in shorter and more expanding generation"))
+                    hovered SetField(_tooltip, "value", tooltip_frequency_penalty)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("frequency_penalty", False):
-                    use prog_bar("frequency_penalty", 250, _("Token frequency penalty. Higher this value, less likely repeatedly appeared tokens continue appearing, usually resulting in shorter and more expanding generation"), "frequency_penalty", 0.0, 1.0, sdict=sdict)
+                    use prog_bar("frequency_penalty", 250, tooltip_frequency_penalty, "frequency_penalty", 0.0, 1.0, sdict=sdict)
 
             hbox:
+                $ tooltip_presence_penalty = _("Token presence penalty. Higher this value, less likely appeared tokens appear again, usually resulting in more jumping generation")
                 spacing 5
                 textbutton "presence_penalty":
                     action ToggleDict(persistent.maica_advanced_setting_status, "presence_penalty")
-                    hovered SetField(_tooltip, "value", _("Token presence penalty. Higher this value, less likely appeared tokens appear again, usually resulting in more jumping generation"))
+                    hovered SetField(_tooltip, "value", tooltip_presence_penalty)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("presence_penalty", False):
-                    use prog_bar("presence_penalty", 250, _("Token presence penalty. Higher this value, less likely appeared tokens appear again, usually resulting in more jumping generation"), "presence_penalty", 0.0, 1.0, sdict=sdict)
+                    use prog_bar("presence_penalty", 250, tooltip_presence_penalty, "presence_penalty", 0.0, 1.0, sdict=sdict)
 
             use divider_small(_("Advanced settings"))
 
@@ -279,7 +285,7 @@ screen maica_advance_setting():
                 spacing 5
                 textbutton "prompt_allow_nickname":
                     action ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname")
-                    hovered SetField(_tooltip, "value", _("Experimental: allow the model to generate the [[player_nickname] placeholder in prompts.\n+ Better matches MAS's dialogue style\n- Requires additional frontend handling\n- May cause unexpected issues"))
+                    hovered SetField(_tooltip, "value", _("Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May cause unexpected issues"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('prompt_allow_nickname')
                 if persistent.maica_advanced_setting_status.get("prompt_allow_nickname", False):
@@ -297,31 +303,34 @@ screen maica_advance_setting():
                         action ToggleDict(persistent.maica_advanced_setting, "mf_llm_concl")
 
             hbox:
+                $ tooltip_mf_sf_access_impl = _("Experimental: implementation of possibly faster savefile access, replacing traditional MFocus implementation.\n* 0: (Traditional) LLM-only implementation\n* 1: RAG + reranker implementation\n* 2: RAG-only implementation\n+ Could be a lot, lot faster\n+ mf_const_sf_access can be enabled only if this is nonzero\n- RAG-only mode does not search from per-query savefile\n- Significantly less precise than traditional implementation, demanding core model's distraction resistance\n- Falls back to 0 if backend does not implement optional requirements")
                 spacing 5
                 textbutton "mf_sf_access_impl":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_sf_access_impl"), Function(maica_clamp_advanced_setting, "mf_sf_access_impl", 0, 2)]
-                    hovered SetField(_tooltip, "value", _("Experimental: quickly extract information from the setting set (savefile), replacing the traditional MFocus implementation.\n* 0: Traditional LLM-only implementation\n* 1: RAG + reranker implementation\n* 2: RAG-only implementation\n+ Much faster\n+ mf_const_sf_access can be enabled only when this is nonzero\n- RAG-only mode does not retrieve savefile content supplied with the query\n- Significantly less precise than the traditional implementation and tests the core model's resistance to distractions\n- Falls back to 0 if the backend does not implement the optional requirements"))
+                    hovered SetField(_tooltip, "value", tooltip_mf_sf_access_impl)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_sf_access_impl", False):
-                    use num_bar("mf_sf_access_impl", 200, _("Experimental: quickly extract information from the setting set (savefile), replacing the traditional MFocus implementation.\n* 0: Traditional LLM-only implementation\n* 1: RAG + reranker implementation\n* 2: RAG-only implementation\n+ Much faster\n+ mf_const_sf_access can be enabled only when this is nonzero\n- RAG-only mode does not retrieve savefile content supplied with the query\n- Significantly less precise than the traditional implementation and tests the core model's resistance to distractions\n- Falls back to 0 if the backend does not implement the optional requirements"), "mf_sf_access_impl", 0, 2, sdict=sdict)
+                    use num_bar("mf_sf_access_impl", 200, tooltip_mf_sf_access_impl, "mf_sf_access_impl", 0, 2, sdict=sdict)
 
             hbox:
+                $ tooltip_const_sfa = _("Experimental: provide extracted information even when MFocus does not call savefile access.\n* 0: (Traditional) MFocus tool only\n* 1: Pre-retrieval + tool\n* 2: Pre-retrieval only\n+ Significantly increases interventionality of savefile data\n- Can introduce distractions and demands core model's distraction resistance\n- Just wasting time in more than half cases")
                 spacing 5
                 textbutton "mf_const_sf_access":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_const_sf_access"), Function(maica_clamp_advanced_setting, "mf_const_sf_access", 0, 2)]
-                    hovered SetField(_tooltip, "value", _("Experimental: provide extracted information even when MFocus does not call information retrieval.\n* 0: Traditional MFocus tool only\n* 1: Pre-retrieval + tool\n* 2: Pre-retrieval only\n+ Makes setting data much more likely to influence the response\n- Can introduce distracting information and tests the core model's resistance to distractions\n- Has a limited effect and may only waste time in most cases"))
+                    hovered SetField(_tooltip, "value", tooltip_const_sfa)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_const_sf_access", False):
-                    use num_bar("mf_const_sf_access", 200, _("Experimental: provide extracted information even when MFocus does not call information retrieval.\n* 0: Traditional MFocus tool only\n* 1: Pre-retrieval + tool\n* 2: Pre-retrieval only\n+ Makes setting data much more likely to influence the response\n- Can introduce distracting information and tests the core model's resistance to distractions\n- Has a limited effect and may only waste time in most cases"), "mf_const_sf_access", 0, 2, sdict=sdict)
+                    use num_bar("mf_const_sf_access", 200, tooltip_const_sfa, "mf_const_sf_access", 0, 2, sdict=sdict)
 
             hbox:
+                $ tooltip_const_tools = _("Provide some tool results even when MFocus does not call a tool.\n* 0: Disabled\n* 1: Provide the current time and holidays\n* 2: Also provide the current date and attempt to provide local weather\n+ Mitigates hallucinations caused by missing information and enables more flexible, considerate responses\n- May cause distraction and confusion")
                 spacing 5
                 textbutton "mf_const_tools":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "mf_const_tools"), Function(maica_clamp_advanced_setting, "mf_const_tools", 0, 2)]
-                    hovered SetField(_tooltip, "value", _("Provide some tool results even when MFocus does not call a tool.\n* 0: Disabled\n* 1: Provide the current time and holidays\n* 2: Also provide the current date and attempt to provide local weather\n+ Mitigates hallucinations caused by missing information and enables more flexible, considerate responses\n- May cause distraction and confusion"))
+                    hovered SetField(_tooltip, "value", tooltip_const_tools)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_const_tools", False):
-                    use num_bar("mf_const_tools", 200, _("Provide some tool results even when MFocus does not call a tool.\n* 0: Disabled\n* 1: Provide the current time and holidays\n* 2: Also provide the current date and attempt to provide local weather\n+ Mitigates hallucinations caused by missing information and enables more flexible, considerate responses\n- May cause distraction and confusion"), "mf_const_tools", 0, 2, sdict=sdict)
+                    use num_bar("mf_const_tools", 200, tooltip_const_tools, "mf_const_tools", 0, 2, sdict=sdict)
 
             hbox:
                 spacing 5
@@ -345,13 +354,14 @@ screen maica_advance_setting():
                         action ToggleDict(persistent.maica_advanced_setting, "mf_precheck_mt")
 
             hbox:
+                $ tooltip_memory_concl_arc = _("Experimental: generate memory summary when session trimmed or cleared to preserve information.\n* 0: Disabled\n* 1: Rotate on trimming only\n* 2: Rotate on both trimming and clearing\n+ Generates conclusion for rounds leaving context window, as short-term memory\n- Operations triggering summarizing could be much slower\n- May cause distraction and demands core model's distraction resistance")
                 spacing 5
                 textbutton "memory_concl_arc":
                     action [ToggleDict(persistent.maica_advanced_setting_status, "memory_concl_arc"), Function(maica_clamp_advanced_setting, "memory_concl_arc", 0, 2)]
-                    hovered SetField(_tooltip, "value", _("Experimental: generate a memory summary when a session is archived or cleared to preserve useful information.\n* 0: Disabled\n* 1: Rotate the summary only when an overlong session is automatically trimmed\n* 2: Rotate the summary when a session is automatically trimmed or manually cleared\n+ Preserves persistent information from conversations instead of relying entirely on manual entries\n- Operations that generate a summary become much slower\n- May cause distraction and tests the core model's resistance to distractions"))
+                    hovered SetField(_tooltip, "value", tooltip_memory_concl_arc)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("memory_concl_arc", False):
-                    use num_bar("memory_concl_arc", 200, _("Experimental: generate a memory summary when a session is archived or cleared to preserve useful information.\n* 0: Disabled\n* 1: Rotate the summary only when an overlong session is automatically trimmed\n* 2: Rotate the summary when a session is automatically trimmed or manually cleared\n+ Preserves persistent information from conversations instead of relying entirely on manual entries\n- Operations that generate a summary become much slower\n- May cause distraction and tests the core model's resistance to distractions"), "memory_concl_arc", 0, 2, sdict=sdict)
+                    use num_bar("memory_concl_arc", 200, tooltip_memory_concl_arc, "memory_concl_arc", 0, 2, sdict=sdict)
 
             hbox:
                 spacing 5
@@ -365,22 +375,24 @@ screen maica_advance_setting():
                         action ToggleDict(persistent.maica_advanced_setting, "nsfw_acceptive")
 
             hbox:
+                $ tooltip_mf_context_rnds = _("Provide extra context for analysis when MFocus intervenes. Range: 0-5.\n+ Improves MFocus's understanding of coherent conversations\n- Increases the risk of disrupting MFocus's response pattern")
                 spacing 5
                 textbutton "mf_context_rnds":
                     action ToggleDict(persistent.maica_advanced_setting_status, "mf_context_rnds")
-                    hovered SetField(_tooltip, "value", _("Provide extra context for analysis when MFocus intervenes. Range: 0-5.\n+ Improves MFocus's understanding of coherent conversations\n- Increases the risk of disrupting MFocus's response pattern"))
+                    hovered SetField(_tooltip, "value", tooltip_mf_context_rnds)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mf_context_rnds", False):
-                    use num_bar("mf_context_rnds", 200, _("Provide extra context for analysis when MFocus intervenes. Range: 0-5.\n+ Improves MFocus's understanding of coherent conversations\n- Increases the risk of disrupting MFocus's response pattern"), "mf_context_rnds", 0, 5, sdict=sdict)
+                    use num_bar("mf_context_rnds", 200, tooltip_mf_context_rnds, "mf_context_rnds", 0, 5, sdict=sdict)
 
             hbox:
+                $ tooltip_mt_context_rnds = _("Provide history context for MTrigger, in range of 0-5 rounds.\n+ Improves MTrigger's understanding to serial conversation\n- Risk of breaking MTrigger reply pattern")
                 spacing 5
                 textbutton "mt_context_rnds":
                     action ToggleDict(persistent.maica_advanced_setting_status, "mt_context_rnds")
-                    hovered SetField(_tooltip, "value", _("Provide history context for MTrigger, in range of 0-5 rounds.\n+ Improves MTrigger's understanding to serial conversation\n- Risk of breaking MTrigger reply pattern"))
+                    hovered SetField(_tooltip, "value", tooltip_mt_context_rnds)
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                 if persistent.maica_advanced_setting_status.get("mt_context_rnds", False):
-                    use num_bar("mt_context_rnds", 200, _("Provide history context for MTrigger, in range of 0-5 rounds.\n+ Improves MTrigger's understanding to serial conversation\n- Risk of breaking MTrigger reply pattern"), "mt_context_rnds", 0, 5, sdict=sdict)
+                    use num_bar("mt_context_rnds", 200, tooltip_mt_context_rnds, "mt_context_rnds", 0, 5, sdict=sdict)
 
             hbox:
                 spacing 5
@@ -407,7 +419,7 @@ screen maica_advance_setting():
                 spacing 5
                 textbutton "gen_enforce_lang":
                     action ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang")
-                    hovered SetField(_tooltip, "value", _("Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is effective only for the target language en; with zh, it cannot prevent incorrect English responses\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues"))
+                    hovered SetField(_tooltip, "value", _("Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('gen_enforce_lang')
                 if persistent.maica_advanced_setting_status.get("gen_enforce_lang", False):
