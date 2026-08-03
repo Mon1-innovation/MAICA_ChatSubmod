@@ -1285,7 +1285,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check_nohover"
-                text _("The remaining settings in this section are managed by presets.\n! Do not modify manually unless you know what they exactly mean")
+                text _("* The remaining settings in this section are managed by presets.\n* Do not modify manually unless you know what they exactly mean")
 
             hbox:
                 style_prefix "generic_fancy_check"
