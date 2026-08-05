@@ -1218,6 +1218,11 @@ def test_e_memory_template_preserves_backend_player_name_placeholder():
         trigger,
         re.S,
     )
+    memory_callback = function_body(trigger, r"mtrigger_write_memory_callback")
+    assert memory_callback.count("store._upload_persistent_dict()") == 1
+    assert memory_callback.index("mas_player_additions.append(addition)") < memory_callback.index(
+        "store._upload_persistent_dict()"
+    )
 
     addition_input = named_screen(
         source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
