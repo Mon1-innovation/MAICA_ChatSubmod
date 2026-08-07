@@ -360,7 +360,7 @@ init 5 python in maica:
         submod_ver_limit = store.maica.maica_instance.version_info
         if submod_ver_limit.get("success"):
             minver = submod_ver_limit.get("content", {}).get("fe_blessland_version", "0.0.0")
-            if store.mas_utils.compareVersionLists(minver.strip().split('.'), store.maica_ver.strip().split('.')) == -1:
+            if store.mas_utils.compareVersionLists(store.maica_ver.strip().split('.'), minver.strip().split('.')) == -1:
                 store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
         if store.maica.maica_instance.is_outdated:
             store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)

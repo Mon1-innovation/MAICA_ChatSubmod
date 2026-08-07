@@ -60,3 +60,4 @@ This repository introduction is very brief. If this is your first contact with M
 5. Does not support system http(s)/socks proxy. Turn it off.
 6. You can delete `game\Submods\MAICA_ChatSubmod\donation` to hide donation link.
 7. You can delete `game\Submods\MAICA_ChatSubmod\savefile_access` to prevent savefile uploading and neutralize `savefile_access`.
+8. On devices where the root certificate cannot be read, the submod may fall back to a compatibility provider. Its transport is determined by the remote provider list and may use plain `ws://`/`http://`; check the current provider and avoid untrusted networks.

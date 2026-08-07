@@ -25,6 +25,17 @@ RAW_CONTEXT_MAX_MESSAGES = 10
 RAW_CONTEXT_MAX_BYTES = 16 * 1024
 _UNSET = object()
 
+CORE_INPUT_STREAM = "stream"
+CORE_INPUT_COMPLETE = "complete"
+CORE_OUTPUT_INCREMENTAL = "incremental"
+CORE_OUTPUT_COMPLETE = "complete"
+
+
+def _normalize_core_mode(value, allowed, name):
+    if value not in allowed:
+        raise ValueError("{} must be one of {}".format(name, sorted(allowed)))
+    return value
+
 
 def _utf8_bytes(value):
     if PY2 and isinstance(value, str):
@@ -248,7 +259,94 @@ class SessionSenderAndReceiver(MaicaWSTask):
         super(SessionSenderAndReceiver, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.processing = False
         self._external_callback = None
+        self.core_input_mode = CORE_INPUT_STREAM
+        self.core_output_mode = CORE_OUTPUT_INCREMENTAL
+        self._core_output_parts = []
+        self._request_timeout = 300.0
+        self._request_generation = 0
+        self._request_timer = None
+        self._request_timed_out = False
 
+    def _configure_core_output(self, input_mode, output_mode, request_timeout):
+        self.core_input_mode = _normalize_core_mode(
+            input_mode, {CORE_INPUT_STREAM, CORE_INPUT_COMPLETE}, "core_input_mode"
+        )
+        self.core_output_mode = _normalize_core_mode(
+            output_mode, {CORE_OUTPUT_INCREMENTAL, CORE_OUTPUT_COMPLETE}, "core_output_mode"
+        )
+        if request_timeout is not None:
+            if request_timeout <= 0:
+                raise ValueError("request_timeout must be positive")
+            self._request_timeout = float(request_timeout)
+
+    def _start_request_timeout(self):
+        self._request_generation += 1
+        generation = self._request_generation
+        self._request_timed_out = False
+        if self._request_timer is not None:
+            self._request_timer.cancel()
+        self._request_timer = threading.Timer(
+            self._request_timeout, self._on_request_timeout, (generation,)
+        )
+        self._request_timer.daemon = True
+        self._request_timer.start()
+
+    def _cancel_request_timeout(self):
+        self._request_generation += 1
+        if self._request_timer is not None:
+            self._request_timer.cancel()
+            self._request_timer = None
+
+    def _on_request_timeout(self, generation):
+        if generation != self._request_generation or not self.processing:
+            return
+        self._request_timed_out = True
+        self.processing = False
+        self._core_output_parts = []
+        self.logger.error(
+            "[{}] request timed out after {:.1f} seconds".format(
+                self.__class__.__name__, self._request_timeout
+            )
+        )
+        if SessionSenderAndReceiver.multi_lock.locked():
+            SessionSenderAndReceiver.multi_lock.release()
+        if self.manager and self.manager.ws_client:
+            try:
+                self.manager.close_ws()
+            except Exception as error:
+                self.logger.error(
+                    "[{}] failed to close WebSocket after timeout: {}".format(
+                        self.__class__.__name__, error
+                    )
+                )
+
+    @property
+    def request_timed_out(self):
+        return self._request_timed_out
+
+    def consume_core_output(self, event):
+        """Normalize core output packets for incremental or complete delivery."""
+        status = event.data.status
+        if status == 'maica_core_streaming_continue':
+            content = event.data.content
+            if not isinstance(content, text_types):
+                self.logger.error(
+                    "[{}] ignored non-text core output: {}".format(
+                        self.__class__.__name__, type(content).__name__
+                    )
+                )
+                return []
+            self._core_output_parts.append(content)
+            if self.core_output_mode == CORE_OUTPUT_INCREMENTAL:
+                return [content]
+            return []
+        if status == 'maica_chat_loop_finished':
+            if self.core_output_mode == CORE_OUTPUT_COMPLETE:
+                output = "".join(self._core_output_parts)
+                self._core_output_parts = []
+                return [output] if output else []
+            self._core_output_parts = []
+        return []
     def start_request(self, *args, **kwargs):
         """
         启动一个聊天请求。
@@ -267,13 +365,19 @@ class SessionSenderAndReceiver(MaicaWSTask):
         Raises:
             RuntimeError: 如果已有其他请求在处理中
         """
+        input_mode = kwargs.pop("core_input_mode", self.core_input_mode)
+        output_mode = kwargs.pop("core_output_mode", self.core_output_mode)
+        request_timeout = kwargs.pop("request_timeout", None)
+        self._configure_core_output(input_mode, output_mode, request_timeout)
         # 尝试非阻塞地获取锁，避免竞态条件
         if not SessionSenderAndReceiver.multi_lock.acquire(blocking=False):
             raise RuntimeError("SessionSenderAndReceiver is already processing a request.")
         self.logger.debug("[{}] start_request args: {}, kwargs: {}".format(self.__class__.__name__, args, kwargs))
 
         self.processing = True
+        self._core_output_parts = []
         SessionSenderAndReceiver.multi_lock.running_info = self.__str__()
+        self._start_request_timeout()
         try:
             self.process_request(*args, **kwargs)
         except Exception as e:
@@ -281,6 +385,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
             self.logger.error("[SessionSenderAndReceiver] start_request error: {}".format(traceback.format_exc()))
             # 如果发生异常，立即释放锁
             self.processing = False
+            self._cancel_request_timeout()
             SessionSenderAndReceiver.multi_lock.release()
 
     def on_event(self, event):
@@ -338,6 +443,8 @@ class SessionSenderAndReceiver(MaicaWSTask):
         """
         super(SessionSenderAndReceiver, self).reset()
         self.processing = False
+        self._cancel_request_timeout()
+        self._core_output_parts = []
         # 释放锁
         if SessionSenderAndReceiver.multi_lock.locked():
             SessionSenderAndReceiver.multi_lock.release()
@@ -468,6 +575,11 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
 
     use_session = 0
 
+    def __init__(self, *args, **kwargs):
+        super(MAICAMPostalProcessor, self).__init__(*args, **kwargs)
+        self.core_input_mode = CORE_INPUT_COMPLETE
+        self.core_output_mode = CORE_OUTPUT_COMPLETE
+
     def process_request(self, query, visions=None):
         """
         处理MPostal聊天请求。
@@ -479,7 +591,7 @@ class MAICAMPostalProcessor(SessionSenderAndReceiver):
         """
         query = dict(query)
         query.setdefault('twk_super', True)
-        query.pop('ic_prep', None)
+        query['bypass_stream'] = self.core_input_mode == CORE_INPUT_COMPLETE
         data = {
             'type': 'query',
             'chat_session': MAICAMPostalProcessor.use_session,

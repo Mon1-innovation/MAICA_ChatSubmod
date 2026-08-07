@@ -170,26 +170,6 @@ def _task_event(name):
     )()
 
 
-def _new_validator(monkeypatch):
-    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
-    manager = ManagerStub()
-    validator = maica_tasker_sub.StreamingPacketValidator(
-        task_type=1,
-        name="streaming_packet_validator",
-        manager=manager,
-        except_ws_status=[
-            "maica_core_streaming_continue",
-            "maica_core_complete",
-        ],
-    )
-    return validator
-
-
-def _send_streaming_packets(validator, count):
-    for _index in range(count):
-        validator.on_received(EventStub("maica_core_streaming_continue"))
-
-
 def _new_mtrigger_handler(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     return maica_tasker_sub.MTriggerWsHandler(
@@ -1109,6 +1089,24 @@ def test_mpostal_uses_v13_twk_super_option():
     postmail = _last_json(manager)["postmail"]
     assert postmail["twk_super"] is True
     assert "ic_prep" not in postmail
+    assert postmail["bypass_stream"] is True
+
+
+def test_core_output_modes_are_explicit_and_accumulate_complete_responses():
+    manager = ManagerStub()
+    postal = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
+        1, "mpostal", manager
+    )
+    assert postal.core_input_mode == maica_tasker_sub_sessionsender.CORE_INPUT_COMPLETE
+    assert postal.core_output_mode == maica_tasker_sub_sessionsender.CORE_OUTPUT_COMPLETE
+    assert postal.consume_core_output(EventStub("maica_core_streaming_continue", "first")) == []
+    assert postal.consume_core_output(EventStub("maica_core_streaming_continue", "second")) == []
+    assert postal.consume_core_output(EventStub("maica_chat_loop_finished")) == ["firstsecond"]
+
+    chat = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "chat", manager
+    )
+    assert chat.consume_core_output(EventStub("maica_core_streaming_continue", "chunk")) == ["chunk"]
 
 
 def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
@@ -1148,69 +1146,6 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     assert ai.QualityStatusTasker.clear_count == 1
 
 
-def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 3)
-    assert validator.packet_count == 3
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished for user, 3 packets sent",
-        )
-    )
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-
-
-def test_streaming_completion_accepts_account_name_without_tracker_id(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished for SirrrrrrrrrrrrrP, 2 packets sent",
-        )
-    )
-
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-    assert validator.manager.closed is False
-
-
-def test_streaming_completion_tolerates_transport_whitespace(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            " \tStreaming finished for SirrrrrrrrrrrrrP, 2 packets sent\r\n",
-        )
-    )
-
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-    assert validator.manager.closed is False
-
-
-def test_streaming_completion_accepts_numeric_trace_suffix(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished for SirrrrrrrrrrrrrP, 2 packets sent <9285727781>",
-        )
-    )
-
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-    assert validator.manager.closed is False
-
-
 def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     manager = ManagerStub()
@@ -1219,95 +1154,13 @@ def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
     assert _last_json(manager) == {"type": "auth", "access_token": "token"}
 
 
-def test_streaming_cache_completion_validates_without_tracker_id(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.on_received(
-        EventStub("maica_core_complete", "MSpire cache finished, 2 packets sent")
-    )
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-
-
-def test_streaming_legacy_seed_and_traceray_completion_still_validates(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished with seed None for Monika, 2 packets sent -- your traceray ID is trace-1",
-        )
-    )
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-
-
-@pytest.mark.parametrize(
-    "content",
-    [
-        "Streaming finished for user, -2 packets sent",
-        "Streaming finished for user, 1.2 packets sent",
-        "tracker 2024 packets sent",
-        "Streaming finished for user, 2 packets sent malicious-tail",
-    ],
-)
-def test_streaming_completion_rejects_ambiguous_or_extended_packet_counts(
-    content, monkeypatch
-):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.on_received(EventStub("maica_core_complete", content))
-    assert validator.validation_passed is False
-    assert validator.packet_count == 0
-    assert validator.manager.closed is True
-
-
-@pytest.mark.parametrize("content", [None, 42, "request 99 completed without packet report"])
-def test_streaming_nontext_or_unrelated_numbers_are_controlled_failures(
-    content, monkeypatch
-):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 1)
-    validator.on_received(EventStub("maica_core_complete", content))
-    assert validator.validation_passed is False
-    assert validator.packet_count == 0
-    assert validator.manager.closed is True
-
-
-def test_streaming_disable_and_reset_clear_partial_count(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.disable()
-    assert validator.packet_count == 0
-    validator.enable()
-    _send_streaming_packets(validator, 1)
-    validator.reset()
-    assert validator.packet_count == 0
-
-
-def test_streaming_validation_resets_when_event_notification_raises(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 1)
-
-    def fail_create_event(_event):
-        raise RuntimeError("notification failed")
-
-    validator.manager.create_event = fail_create_event
-    with pytest.raises(RuntimeError, match="notification failed"):
-        validator.on_received(
-            EventStub("maica_core_complete", "Streaming finished for user, 2 packets sent")
-        )
-    assert validator.validation_passed is False
-    assert validator.packet_count == 0
-    assert validator.manager.closed is True
-
-
 def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     assert ai.MPostalProcessor.except_ws_status == [
         "maica_core_streaming_continue",
         "maica_chat_loop_finished",
     ]
+    assert not hasattr(ai, "StreamingPacketValidator")
     assert ai.MTriggerTasker.except_ws_status == ["maica_mtrigger_trigger"]
     assert ai.QualityStatusTasker.except_ws_status == ["maica_quality_status"]
     loop_task = ai.task_manager.get_task("maicaloop_warn_handler")
@@ -1678,24 +1531,6 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
         tasker.on_event(login_event)
     assert tasker._generation_started is False
     assert tasker._on_reconnect is False
-
-
-@pytest.mark.parametrize(
-    "content",
-    [
-        "malformed completion",
-        "Streaming finished for user, 2 packets sent",
-    ],
-)
-def test_streaming_malformed_and_mismatched_completion_paths_reset_count(
-    content, monkeypatch
-):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 1)
-    assert validator.packet_count == 1
-
-    validator.on_received(EventStub("maica_core_complete", content))
-    assert validator.packet_count == 0
 
 
 def _emotion_selector(fallback_predictor=None):

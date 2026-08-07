@@ -111,7 +111,8 @@ label maica_talking.asking:
                     ))
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
-                        renpy.say(m, _("Something may went wrong..."))
+                        # This is already spoken at label .talking_start
+                        # renpy.say(m, _("Something may went wrong..."))
                         return_code = "disconnected"
                         break
                 if ai.len_message_queue() == 0:
@@ -135,6 +136,12 @@ label maica_talking.asking:
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.console_logger.error("!!SUBMOD ERROR when chatting: {}".format(e))
+            if ai.response_timed_out():
+                store.mas_submod_utils.submod_log.error("label maica_talking: response timed out")
+                # renpy.say(m, _("Something may went wrong..."))
+                return_code = "disconnected"
+            if return_code == "disconnected":
+                break
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             return_code = "mtrigger_triggering"
             store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
@@ -311,6 +318,12 @@ label maica_mpostal_read:
                 cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol_big_bracket_only)
                 cur_postal["responsed_status"] = "received"
                 _return = "success"
+
+            if ai.response_timed_out():
+                cur_postal["responsed_status"] = "failed"
+                cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
+                _return = "failed"
+                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: response timed out")
 
             if _return != 'success':
                 if cur_postal.get("failed_count", 0) >= 3:

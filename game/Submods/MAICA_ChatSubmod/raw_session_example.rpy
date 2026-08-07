@@ -183,5 +183,9 @@ label maica_raw_session(context, visions=None):
                 # traceback.format_exc() 获取完整的异常堆栈
                 store.mas_submod_utils.submod_log.error("label maica_raw_session::renpy.say error:{}".format(traceback.format_exc()))
 
+        if ai.response_timed_out():
+            store.mas_submod_utils.submod_log.error("label maica_raw_session: response timed out")
+            # renpy.say(m, _("好像出了什么问题..."))
+
     # 执行结束
     return

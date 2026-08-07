@@ -22,6 +22,7 @@ class DefaultLogger(object):
 
 
 logger = DefaultLogger()
+HTTP_TIMEOUT = (5.0, 30.0)
 
 
 class MaicaProviderManager(object):
@@ -70,7 +71,7 @@ class MaicaProviderManager(object):
         """获取服务提供商列表"""
         import requests
         try:
-            res = requests.get(self._provider_list, json={})
+            res = requests.get(self._provider_list, json={}, timeout=HTTP_TIMEOUT)
             if res.status_code != 200:
                 logger.error("Cannot get providers because server return non 200: {}".format(res.content))
                 self._isfailedresponse["description"] = "Cannot get providers because server {}".format(res.status_code)
