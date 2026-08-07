@@ -728,8 +728,8 @@ translate chinese strings:
     old "Replace [[player] in prompts and guidance with the player's real name.\n+ Gives the model a concrete understanding of the player's name\n- Increases the risk of inconsistent or confused behavior"
     new "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 更容易发生表现离群和混乱"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1255
-    old "Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"
-    new "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 表现更稳定\n- 涉及互联网搜索时生成速度更慢\n- 可能会对核心模型的回答方式产生误导"
+    old "Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n+ Force enabled if backend using responses SERP implementation\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"
+    new "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 表现更稳定\n+ 若后端启用了responses serp实现, 该配置强制启用\n- 涉及互联网搜索时生成速度更慢\n- 可能会对核心模型的回答方式产生误导"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1261
     old "Require MFocus to precheck the player's request and provide guidance when MTrigger is present.\n+ Mitigates MTrigger desynchronization in principle\n- May make the language less natural in rare cases"
     new "当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 从原理上缓解MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏"

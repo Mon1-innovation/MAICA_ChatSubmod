@@ -336,7 +336,7 @@ screen maica_advance_setting():
                 spacing 5
                 textbutton "esearch_llm_concl":
                     action ToggleDict(persistent.maica_advanced_setting_status, "esearch_llm_concl")
-                    hovered SetField(_tooltip, "value", _("Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"))
+                    hovered SetField(_tooltip, "value", _("Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n+ Force enabled if backend using responses SERP implementation\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('esearch_llm_concl')
                 if persistent.maica_advanced_setting_status.get("esearch_llm_concl", False):
