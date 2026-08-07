@@ -104,8 +104,8 @@ translate chinese strings:
     old "Export to directory"
     new "导出至根目录"
     # game/Submods/MAICA_ChatSubmod/header.rpy:263
-    old "Export to game/Submods/MAICA_ChatSubmod/player_information.txt"
-    new "导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
+    old "Export to game/Submods/MAICA_ChatSubmod/player_info.txt"
+    new "导出至game/Submods/MAICA_ChatSubmod/player_info.txt"
     # game/Submods/MAICA_ChatSubmod/header.rpy:270
     old "Save settings"
     new "保存设置"
@@ -209,11 +209,11 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:280
-    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}Official document of MAICA API{/i}{/u}{/a}"
-    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
+    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}Official document of MAICA API{/u}{/i}{/a}"
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}MAICA 官方文档{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:282
-    old "{a=https://platform.openai.com/docs/api-reference/chat}{i}{u}OPENAI documents{/i}{/u}{/a}"
-    new "{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/i}{/u}{/a}"
+    old "{a=https://platform.openai.com/docs/api-reference/chat}{i}{u}OPENAI documents{/u}{/i}{/a}"
+    new "{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:287
     old "The token choice range in sequence of probability. Model will only choose the next token from the top_p/1 former part of all tokens."
     new "模型选择的范围, 模型考虑概率质量值在前 top_p 的标记的结果, 因此，0.1 意味着仅考虑概率质量值前 10% 的标记"
@@ -364,8 +364,8 @@ translate chinese strings:
     old "> Changelogs and serving status"
     new "> 更新日志与服务状态"
     # game/Submods/MAICA_ChatSubmod/header.rpy:878
-    old "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
-    new "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
+    old "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/u}{/i}{/a}"
+    new "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:950
     old "Nevermind{#maica_host_nevermind}"
     new "算了"
@@ -389,8 +389,8 @@ translate chinese strings:
     old "※ Trigger condition not satisfied"
     new "※ 当前不满足触发条件"
     # game/Submods/MAICA_ChatSubmod/header.rpy:555
-    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA Official API references{/i}{/u}{/a}"
-    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
+    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA Official API references{/u}{/i}{/a}"
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA 官方文档{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:559
     old "{size=-10}Notice: Only checked (X) advanced settings will take effect, unchecked ones will remain default"
     new "{size=-10}注意: 只有已被勾选(标记了X)的高级设置才会被使用, 未使用的设置将使用服务端的默认设置"
@@ -434,8 +434,8 @@ translate chinese strings:
     old "Mtrigger triggers list"
     new "MTrigger列表"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1019
-    old "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
-    new "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
+    old "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/u}{/i}{/a}"
+    new "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/u}{/i}{/a}"
 # TODO: Translation updated at 2024-11-28 07:51
 
 translate chinese strings:
@@ -924,8 +924,8 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:402
-    old "MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"
-    new "MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
+    old "MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_info.txt"
+    new "MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_info.txt"
 # TODO: Translation updated at 2025-09-28 16:56
 
 translate chinese strings:

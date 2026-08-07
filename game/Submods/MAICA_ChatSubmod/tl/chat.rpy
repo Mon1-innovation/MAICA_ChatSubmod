@@ -340,7 +340,7 @@ translate chinese maica_end_1_1726c24d:
 
 translate chinese maica_end_1_eaeb274b:
     # m 3ekd "Or...{w=0.2}if you're having some technological issue, you can go through the {a=https://maica.monika.love/tos}{u}{i}guidance{/i}{/u}{/a} again, or try asking {a=https://forum.monika.love}{u}{i}here{/i}{/u}{/a}."
-    m 3ekd "或者...{w=0.2}如果你遇到了什么问题, 可以再看一遍{a=https://reserved}{u}{i}说明{/i}{/u}{/a}, 或者到{a=https://reserved}{u}{i}这里{/i}{/u}{/a}问问."
+    m 3ekd "或者...{w=0.2}如果你遇到了什么问题, 可以再看一遍{a=https://maica.monika.love/tos}{u}{i}说明{/i}{/u}{/a}, 或者到{a=https://forum.monika.love}{u}{i}这里{/i}{/u}{/a}问问."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:552
 
@@ -1840,12 +1840,12 @@ translate chinese strings:
 
     old "Enter MSpire keyword:"
     new "请输入搜索关键词:"
-    old "percise_page"
-    new "percise_page"
+    old "precise_page"
+    new "precise_page"
     old "fuzzy_page"
     new "fuzzy_page"
-    old "in_percise_category"
-    new "in_percise_category"
+    old "in_precise_category"
+    new "in_precise_category"
     old "in_fuzzy_category"
     new "in_fuzzy_category"
     old "in_fuzzy_all"

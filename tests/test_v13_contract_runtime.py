@@ -1017,6 +1017,27 @@ def test_mspire_single_category_title_remains_a_list():
     assert _last_json(manager)["inspire"]["title"] == ["science"]
 
 
+def test_mspire_search_type_is_forwarded():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    processor.process_request(["science"], 0, mspire_type="precise_page")
+    assert _last_json(manager)["inspire"]["type"] == "precise_page"
+
+
+@pytest.mark.parametrize(
+    "search_type",
+    ["not-a-search-mode", "percise_page", "in_percise_category"],
+)
+def test_mspire_rejects_unknown_search_type(search_type):
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", ManagerStub()
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(["science"], 0, mspire_type=search_type)
+
+
 @pytest.mark.parametrize("category", ["science", ("science",), None])
 def test_mspire_rejects_non_list_categories(category):
     manager = ManagerStub()
@@ -1137,12 +1158,14 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     ai.pprt = False
     ai.mspire_weight = 25
     ai.mspire_use_cache = True
+    ai.mspire_type = "fuzzy_page"
     ai._in_mspire = False
 
     maica.MaicaAi.start_MSpire(ai)
 
     assert ai.MSpireProcessor.kwargs["ctg_weight"] == 25
     assert ai.MSpireProcessor.kwargs["use_cache"] is True
+    assert ai.MSpireProcessor.kwargs["mspire_type"] == "fuzzy_page"
     assert ai.QualityStatusTasker.clear_count == 1
 
 
@@ -1651,6 +1674,144 @@ def test_vista_list_uses_list_endpoint_and_download_keeps_content_parameter(monk
     assert calls[1][1]["params"]["content"] == "uuid-1"
 
 
+def test_vista_delete_mutates_local_state_only_after_server_success(monkeypatch):
+    manager = maica_vista_files_manager.MAICAVistaFilesManager(
+        "https://example.test/api", "token"
+    )
+    manager.add("uuid-1")
+    manager.add("uuid-2")
+    manager.cloud_files = ["uuid-1", "uuid-2"]
+
+    class ResponseStub:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    responses = iter([
+        ResponseStub({"success": False, "exception": "denied"}),
+        ResponseStub({"success": True}),
+        ResponseStub({"success": True}),
+    ])
+    calls = []
+
+    def fake_delete(url, **kwargs):
+        calls.append(kwargs)
+        return next(responses)
+
+    monkeypatch.setattr(maica_vista_files_manager.requests, "delete", fake_delete)
+    with pytest.raises(Exception, match="denied"):
+        manager.delete("uuid-1")
+    assert manager.get_uuids() == ["uuid-2", "uuid-1"]
+    assert manager.cloud_files == ["uuid-1", "uuid-2"]
+
+    manager.delete(0)
+    assert manager.get_uuids() == ["uuid-1"]
+    assert manager.cloud_files == ["uuid-1"]
+    assert calls[1]["json"]["content"] == "uuid-2"
+
+    manager.delete()
+    assert manager.get_uuids() == []
+    assert manager.cloud_files == []
+
+
+def test_session_sender_reraises_send_failure_and_releases_state():
+    class FailingWsClient:
+        def send(self, payload):
+            raise IOError("send failed")
+
+    manager = ManagerStub()
+    manager.ws_client = FailingWsClient()
+    processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "chat", manager
+    )
+    try:
+        with pytest.raises(IOError, match="send failed"):
+            processor.start_request(
+                query="hello",
+                session=0,
+                triggers=[],
+                taskowner=manager,
+            )
+        assert processor.processing is False
+        assert processor.request_timed_out is False
+        assert not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
+    finally:
+        if maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked():
+            maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.release()
+
+
+def test_mutable_defaults_are_isolated_between_instances():
+    first = maica_tasker.MaicaWSTask(1, "first")
+    second = maica_tasker.MaicaWSTask(1, "second")
+    first.except_ws_status.append("status")
+    assert second.except_ws_status == []
+
+    first_exprop = maica_mtrigger.MTriggerExprop()
+    second_exprop = maica_mtrigger.MTriggerExprop()
+    first_exprop.item_list.append("item")
+    first_exprop.value_limits[0] = 10
+    assert second_exprop.item_list == []
+    assert second_exprop.value_limits == [0, 1]
+
+
+def test_logger_sync_does_not_clear_root_handlers():
+    manager = logger_manager.get_logger_manager()
+    module = type("Module", (), {})()
+    module.logger = manager.logger
+    name = "test.root_logger_reference"
+    manager.register_injected_reference(name, module, "logger")
+    before = list(manager.logger.handlers)
+    try:
+        manager.set_log_level(logging.INFO)
+        assert manager.logger.handlers == before
+    finally:
+        manager._injected_references.pop(name, None)
+        manager.set_log_level(logging.DEBUG)
+
+
+def test_accessable_checks_backend_before_external_network(monkeypatch):
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.in_mas = False
+    ai.HTTP_TIMEOUT = (0.1, 0.1)
+    ai._ignore_accessable = False
+    ai._serving_status = None
+    ai.status = None
+    ai._MaicaAi__accessable = False
+
+    class Provider:
+        def __init__(self, available):
+            self.available = available
+
+        def get_provider(self):
+            return self.available
+
+        def set_provider_id(self, value):
+            self._provider_id = value
+
+        def get_provider_id(self):
+            return self._provider_id
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    checks = []
+    ai.provider_manager = Provider(False)
+    ai.provider_manager._provider_id = 1
+    ai.can_access_internet = lambda: checks.append("network") or True
+    ai.accessable()
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert checks == ["network"]
+
+    ai.provider_manager = Provider(True)
+    ai.can_access_internet = lambda: False
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: (_ for _ in ()).throw(IOError("offline")))
+    ai.accessable()
+    assert ai.status == ai.MaicaAiStatus.NO_INTERTENT
+
+
 def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
     screen = (
         Path(__file__).resolve().parents[1]
@@ -1676,6 +1837,7 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
         "mf_const_tools": 1,
         "max_length": 99999,
         "session_len_limit": 8192,
+        "mspire_search_type": "percise_page",
         "ic_prep": True,
         "twk_super": True,
     }
@@ -1698,12 +1860,23 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     assert values["memory_concl_arc"] == 2
     assert values["mf_const_tools"] == 2
     assert values["session_len_limit"] == 28672
+    assert values["mspire_search_type"] == "precise_page"
     for old in maica_v13_migration.SETTING_RENAMES:
         assert old not in values
         assert old not in status
     for key in maica_v13_migration.RETIRED_PERSISTENT_SETTINGS:
         assert key not in values
         assert key not in status
+
+
+def test_setting_migration_normalizes_legacy_mspire_search_types():
+    for legacy, expected in maica_v13_migration.MSPIRE_SEARCH_TYPE_MIGRATIONS.items():
+        values = {"mspire_search_type": legacy}
+        maica_v13_migration.migrate_setting_values(
+            values,
+            fill_missing_tristates=False,
+        )
+        assert values == {"mspire_search_type": expected}
 
 
 def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():

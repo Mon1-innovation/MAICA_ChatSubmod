@@ -58,6 +58,11 @@ TRISTATE_DEFAULTS = {
     "memory_concl_arc": 1,
 }
 
+MSPIRE_SEARCH_TYPE_MIGRATIONS = {
+    "percise_page": "precise_page",
+    "in_percise_category": "in_precise_category",
+}
+
 try:
     TEXT_TYPES = (basestring,)
 except NameError:
@@ -157,6 +162,11 @@ def migrate_setting_values(
 
     if values.get("mf_const_tools") == 3:
         values["mf_const_tools"] = 2
+    mspire_search_type = values.get("mspire_search_type")
+    if mspire_search_type in MSPIRE_SEARCH_TYPE_MIGRATIONS:
+        values["mspire_search_type"] = MSPIRE_SEARCH_TYPE_MIGRATIONS[
+            mspire_search_type
+        ]
     session_len_limit = values.get("session_len_limit")
     if (
         isinstance(session_len_limit, INTEGER_TYPES)

@@ -847,8 +847,8 @@ screen maica_mspire_setting():
         use maica_common_inner_frame():
 
             style_prefix "generic_fancy_check"
-            textbutton "percise_page":
-                action SetDict(persistent.maica_setting_dict, "mspire_search_type", "percise_page")
+            textbutton "precise_page":
+                action SetDict(persistent.maica_setting_dict, "mspire_search_type", "precise_page")
             text _("Select the single most related page, ignoring sample range. Relatively fast since no recursive search performed.\n"):
                 style "small_expl_hw"
                 size 15
@@ -857,8 +857,8 @@ screen maica_mspire_setting():
             text _("Select one random from multiple related pages. Relatively fast since no recursive search performed.\n"):
                 style "small_expl_hw"
                 size 15
-            textbutton "in_percise_category":
-                action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_percise_category")
+            textbutton "in_precise_category":
+                action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_precise_category")
             text _("Select the single most related category, then recursively search pages and subcategories. Relatively slow.\n"):
                 style "small_expl_hw"
                 size 15

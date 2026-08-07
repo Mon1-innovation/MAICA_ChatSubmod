@@ -122,6 +122,22 @@ def normalize_use_cache(value):
         raise ValueError("use_cache must be a boolean")
     return value
 
+
+MSPIRE_TYPES = (
+    "precise_page",
+    "fuzzy_page",
+    "in_precise_category",
+    "in_fuzzy_category",
+    "in_fuzzy_all",
+)
+
+
+def normalize_mspire_type(value):
+    """Return a backend-supported MSpire search type."""
+    if value not in MSPIRE_TYPES:
+        raise ValueError("mspire_type must be one of {}".format(list(MSPIRE_TYPES)))
+    return value
+
 class ChatLock(object):
     """
     聊天锁，用于保证同时只有一个聊天会话在处理。
@@ -243,10 +259,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
     multi_lock = ChatLock()
     
 
-    def __init__(self, task_type, name, manager, except_ws_status=[
-            'maica_core_streaming_continue',
-            'maica_chat_loop_finished'
-        ]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化会话发送者和接收者。
 
@@ -256,6 +269,11 @@ class SessionSenderAndReceiver(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息类型列表
         """
+        if except_ws_status is None:
+            except_ws_status = [
+                'maica_core_streaming_continue',
+                'maica_chat_loop_finished'
+            ]
         super(SessionSenderAndReceiver, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.processing = False
         self._external_callback = None
@@ -386,7 +404,9 @@ class SessionSenderAndReceiver(MaicaWSTask):
             # 如果发生异常，立即释放锁
             self.processing = False
             self._cancel_request_timeout()
-            SessionSenderAndReceiver.multi_lock.release()
+            if SessionSenderAndReceiver.multi_lock.locked():
+                SessionSenderAndReceiver.multi_lock.release()
+            raise
 
     def on_event(self, event):
         """
@@ -509,7 +529,8 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     ctg_weight = 10
 
     def process_request(self, category, session, pprt=False, flush=False,
-                        ctg_weight=_UNSET, use_cache=_UNSET):
+                        ctg_weight=_UNSET, use_cache=_UNSET,
+                        mspire_type=_UNSET):
         """
         处理MSpire聊天请求。
 
@@ -528,6 +549,9 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
         if use_cache is _UNSET:
             use_cache = self.use_cache
         cache_enabled = normalize_use_cache(use_cache)
+        if mspire_type is _UNSET:
+            mspire_type = self.mspire_type
+        search_type = normalize_mspire_type(mspire_type)
         if cache_enabled and session != 0:
             raise ValueError("use_cache is only available for session 0")
 
@@ -544,7 +568,7 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
                 "type": "query",
                 "chat_session": session,
                 "inspire": {
-                    "type": MAICAMSpireProcessor.mspire_type,
+                    "type": search_type,
                     "sample": 250,
                     "title": categories,
                     "ctg_weight": weight,

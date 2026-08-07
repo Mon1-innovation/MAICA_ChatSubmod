@@ -889,7 +889,7 @@ init 10 python:
     def export_player_information():
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
-        renpy.notify(_("MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"))
+        renpy.notify(_("MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_info.txt"))
 
     def update_model_setting(ininit = False):
         import os, json
@@ -1416,7 +1416,7 @@ screen maica_setting():
                         style_prefix "maica_check"
                         textbutton _("Export MFocus info to main directory"):
                             action Function(export_player_information)
-                            hovered SetField(_tooltip, "value", _("Export to game/Submods/MAICA_ChatSubmod/player_information.txt"))
+                            hovered SetField(_tooltip, "value", _("Export to game/Submods/MAICA_ChatSubmod/player_info.txt"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:

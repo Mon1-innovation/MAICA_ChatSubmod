@@ -32,7 +32,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化错误处理器。
 
@@ -69,7 +69,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
                     )
 class GeneralWsConsoleLogger(MaicaWSTask):
 
-    def __init__(self, task_type, name, manager, except_ws_status=[], console_logger=None):
+    def __init__(self, task_type, name, manager, except_ws_status=None, console_logger=None):
         super(GeneralWsConsoleLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.console_logger = console_logger
         self.ui_lang_zh = False
@@ -129,7 +129,7 @@ class GeneralWsLogger(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化日志记录器。
 
@@ -312,7 +312,7 @@ class MTriggerWsHandler(MaicaWSTask):
         manager: 触发器管理器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化触发器处理器。
 
@@ -365,7 +365,7 @@ class MTriggerWsHandler(MaicaWSTask):
 class QualityStatusWsHandler(MaicaWSTask):
     """Receive post-core quality results without treating them as triggers."""
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         super(QualityStatusWsHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=except_ws_status
@@ -429,7 +429,7 @@ class MAICALoginTasker(MaicaWSTask):
     负责发送登录请求，使用访问令牌进行身份验证。
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化登录任务处理器。
 
@@ -526,7 +526,7 @@ class MAICASessionResetTasker(MaicaWSTask):
     """
 
 
-    def __init__(self, task_type, name, manager, except_ws_status=['maica_session_reset']):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化会话重置任务处理器。
 
@@ -536,6 +536,8 @@ class MAICASessionResetTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表
         """
+        if except_ws_status is None:
+            except_ws_status = ['maica_session_reset']
         super(MAICASessionResetTasker, self).__init__(task_type, name, manager, except_ws_status)
 
     def on_manual_run(self, chat_session):
@@ -576,7 +578,7 @@ class MAICASettingSendTasker(MaicaWSTask):
         _generate_setting_func (callable|None): 生成配置参数的回调函数，返回配置字典
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=['maica_params_accepted']):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化设置发送任务处理器。
 
@@ -586,6 +588,8 @@ class MAICASettingSendTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表，默认监听 'maica_params_accepted'
         """
+        if except_ws_status is None:
+            except_ws_status = ['maica_params_accepted']
         super(MAICASettingSendTasker, self).__init__(task_type, name, manager, except_ws_status=except_ws_status)
         self._generate_setting_func = None
 
@@ -689,7 +693,7 @@ class AutoReconnector(MaicaWSTask):
         _max_reconnect_attempts (int): 连续重连次数上限
         _login_successful (bool): 是否已成功登录，用于防止在登录失败后重连
     """
-    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None):
         """
         初始化自动重连处理器。
 
@@ -873,7 +877,7 @@ class AutoResumeTasker(MaicaWSTask):
         _enabled (bool): 自动恢复功能是否启用
         _generation_started (bool): 后端是否已发送生成开始标记
     """
-    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None):
         """
         初始化自动恢复任务处理器。
 
@@ -997,7 +1001,7 @@ class KeepWsAliveTasker(MaicaWSTask):
         _pong_event (threading.Event|None): 用于等待pong响应的事件
     """
 
-    def __init__(self, task_type, name, manager=None, except_ws_status=['pong'], ping_interval=30.0):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None, ping_interval=30.0):
         """
         初始化心跳保活处理器。
 
@@ -1008,6 +1012,8 @@ class KeepWsAliveTasker(MaicaWSTask):
             except_ws_status (list): 监听的消息状态列表，默认监听'pong'
             ping_interval (float): 静默心跳间隔时间（秒），默认30秒
         """
+        if except_ws_status is None:
+            except_ws_status = ['pong']
         super(KeepWsAliveTasker, self).__init__(task_type, name, manager, except_ws_status)
         self._enabled = False
         self._logged_in = False

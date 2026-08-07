@@ -92,9 +92,9 @@ class MaicaAi(ChatBotInterface):
         zh_cn = "zh"
         en = "en"
     class MaicaMSpiretype:
-        percise_page = "percise_page"
+        precise_page = "precise_page"
         fuzzy_page = "fuzzy_page"
-        in_percise_category = "in_percise_category"
+        in_precise_category = "in_precise_category"
         in_fuzzy_category = "in_fuzzy_category"
         in_fuzzy_all = "in_fuzzy_all"
 
@@ -714,7 +714,7 @@ class MaicaAi(ChatBotInterface):
             if response_data.get("success"):
                 self.ciphertext = response_data.get("content")
             else:
-                self.status = self.MaicaAiStatus.CONNECT_PROBLEM,
+                self.status = self.MaicaAiStatus.CONNECT_PROBLEM
                 logger.error("Maica::_gen_token response process failed because server response failed: {}".format(response_data))
         except Exception:
             self.status = self.MaicaAiStatus.CONNECT_PROBLEM
@@ -995,12 +995,16 @@ class MaicaAi(ChatBotInterface):
         self._clear_response_timeouts()
         self.stat['mspire_count'] += 1
         self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
+        self.mspire_type = maica_tasker_sub_sessionsender.normalize_mspire_type(
+            getattr(self, "mspire_type", self.MaicaMSpiretype.in_fuzzy_all)
+        )
         self.MSpireProcessor.start_request(
             category=self.mspire_category,
             session=self.mspire_session,
             pprt=self.pprt,
             ctg_weight=self.mspire_weight if ctg_weight is None else ctg_weight,
             use_cache=self.mspire_use_cache,
+            mspire_type=self.mspire_type,
             flush=self.chat_session != self.mspire_session, # Leave the zero detection to later procedure
             core_input_mode=maica_tasker_sub_sessionsender.CORE_INPUT_STREAM,
             core_output_mode=maica_tasker_sub_sessionsender.CORE_OUTPUT_INCREMENTAL,
@@ -1532,12 +1536,6 @@ class MaicaAi(ChatBotInterface):
         #self.status = self.MaicaAiStatus.NOT_READY
         #return
 
-        # 网络检查
-        if not self.can_access_internet():
-            self.status = self.MaicaAiStatus.NO_INTERTENT
-            logger.error("accessable(): no internet connection")
-            self.__accessable = False
-            return
         # 检测证书是否是MAS版本/证书是否工作正常
         if self.in_mas:
             try:
@@ -1557,22 +1555,39 @@ class MaicaAi(ChatBotInterface):
         try:
             if not self.provider_manager.get_provider():
                 if self.provider_id != 9999:
-                    self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                    if self.can_access_internet():
+                        self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                    else:
+                        self.status = self.MaicaAiStatus.NO_INTERTENT
                     self.__accessable = False
                     return
 
         except Exception as e:
             logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
             if self.provider_id != 9999:
-                self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                if self.can_access_internet():
+                    self.status = self.MaicaAiStatus.FAILED_GET_NODE
+                else:
+                    self.status = self.MaicaAiStatus.NO_INTERTENT
                 self.__accessable = False
                 return
 
         #获取节点可用性
         import requests, json
-        res = requests.get(self.provider_manager.get_api_url() + "/accessibility", timeout=self.HTTP_TIMEOUT)
-        logger.debug("accessable(): try get accessibility from {}".format(self.provider_manager.get_api_url() + "/accessibility"))
-        d = res.json()
+        accessibility_url = self.provider_manager.get_api_url() + "/accessibility"
+        logger.debug("accessable(): try get accessibility from {}".format(accessibility_url))
+        try:
+            res = requests.get(accessibility_url, timeout=self.HTTP_TIMEOUT)
+            d = res.json()
+        except Exception as e:
+            self.__accessable = False
+            if self.can_access_internet():
+                self.status = self.MaicaAiStatus.CONNECT_PROBLEM
+                logger.error("accessable(): backend is unreachable: {}".format(e))
+            else:
+                self.status = self.MaicaAiStatus.NO_INTERTENT
+                logger.error("accessable(): backend and external network checks failed: {}".format(e))
+            return
         if d.get(u"success", False):
             self._serving_status = d["content"]
             if self._serving_status != "serving" and not self._ignore_accessable:

@@ -253,21 +253,26 @@ class MAICAVistaFilesManager(object):
         Args:
             identifier: UUID字符串、索引或None（删除全部）
         """
+        uuid = identifier
+        if isinstance(identifier, int):
+            if not 0 <= identifier < len(self.files):
+                raise ValueError("Invalid index")
+            uuid = self.files[identifier].get("uuid")
+
         data = {'access_token': self.access_token}
-        if identifier is not None:
-            data['content'] = identifier
+        if uuid is not None:
+            data['content'] = uuid
         resp = requests.delete(self.base_url + '/vista', json=data, timeout=(5.0, 30.0))
         result = resp.json()
-        if identifier:
-            self.remove(identifier)
-        if result.get('success'):
-            if identifier is None:
-                self.clear()
-                self.cloud_files = []
-                if self.cloud_files and identifier in self.cloud_files:
-                    self.cloud_files.remove(identifier)
-        else:
+        if not result.get('success'):
             raise Exception(result.get('exception'))
+        if identifier is None:
+            self.clear()
+            self.cloud_files = []
+        else:
+            self.remove(identifier)
+            if uuid in self.cloud_files:
+                self.cloud_files.remove(uuid)
 
     def download(self, uuid):
         """下载图片（GET /vista）
