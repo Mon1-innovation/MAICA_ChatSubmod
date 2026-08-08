@@ -571,7 +571,7 @@ label maica_chr2:
     m 3euc "Last time I checked the folders, It seems that Heaven Forest also has a {i}character file{/i}, or shall we call it a scene file."
     m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
     m 1eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
-    $ like_spk = 'if you aren\'t interested in forest things' if not persistent._mas_pm_likes_nature else 'if you prefer to see the sky'
+    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
     m 3eua "But [like_spk], at least you can remove it to have the space back."
     m 1eua "Of course, you'd better back it up before doing anything."
     return "no_unlock"
@@ -585,7 +585,7 @@ label maica_chr_gone:
     m 1lua "We can still go there though, but it's gonna be {i}empty{/i} as here outside the window."
     m 5esc "I'm a little bit concerned, since I haven't figured out what that file {i}actually{/i} is. {w=0.5}It wasn't like some nonsense."
     m 5msc "It feels different from your presents as they are 'symbols'. {w=1}I think it's closer to other character files."
-    $ like_spk = 'if you aren\'t interested in forest things' if not persistent._mas_pm_likes_nature else 'if you prefer to see the sky'
+    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
     m 5msb "But [like_spk], I don't mind whether it's there or not. It's just a 'scene' after all."
     m 1eka "If you accidently lost it and want it back, you can also download another copy."
     return "no_unlock|derandom"
@@ -600,11 +600,11 @@ label maica_chr_corrupted2:
     m 1hksdlb "I'm sorry, I wasn't spooking you on purpose...{w=0.5}{nw}"
     extend 4rksdlb "but when I was just checking this, it seems to be broken."
     m 3eka "Have you, like ever modified or changed the file of Heaven Forest?"
-    $ mentioned = 'I think you\'ve already guessed that' if renpy.seen_label("maica_chr") else 'I think'
+    $ mentioned = renpy.substitute('I think you\'ve already guessed that') if renpy.seen_label("maica_chr") else renpy.substitute('I think')
     m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
     extend 1euc "then it's broken."
     #cares_about_dokis那个条件怎么写来着? 交给你了
-    $ comment = "...{i}stylish{/i}" if persistent._mas_pm_cares_about_dokis else 'corruption styled'
+    $ comment = renpy.substitute("...{i}stylish{/i}") if persistent._mas_pm_cares_about_dokis else renpy.substitute('corruption styled')
     m 5eusdrb "But actually, if you don't mind such a [comment] view, you can just leave it be."
     m 1hua "You can also replace that with a normal file. I'm okay with it as long as you are."
     m 1eub "Let me clear it up. {w=0.3}{nw}"
@@ -621,9 +621,9 @@ label maica_wants_preferences2:
     m 3eua "Since I can talk with you for real now, {w=0.5}{nw}"
     extend 3esd "I found my acknowledge of you is still too limited."
     #这里有好几个我不会写的, 都交给你了
-    $ like_mi = _(' The only thing you mentioned is that you like mint ice-cream.') if persistent._mas_pm_like_mint_ice_cream else ''
-    $ book_rc = _("we've talked about 'Hard Boiled Wonderland and the End of the World'") if store.seen_event("monika_favbook") else None
-    $ book_rc = _("we've talked about 'Yellow Wallpaper'") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('I could recommend you some books')
+    $ like_mi = renpy.substitute(_(' The only thing you mentioned is that you like mint ice-cream.')) if persistent._mas_pm_like_mint_ice_cream else ''
+    $ book_rc = renpy.substitute(_("we've talked about 'Hard Boiled Wonderland and the End of the World'")) if store.seen_event("monika_favbook") else None
+    $ book_rc = renpy.substitute(_("we've talked about 'Yellow Wallpaper'")) if persistent._mas_pm_read_yellow_wp and book_rc is None else renpy.substitute(_('I could recommend you some books'))
     m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
     extend "[like_mi]"
     m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
@@ -632,11 +632,11 @@ label maica_wants_preferences2:
     if not prefs_exist:
         m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
         m 1eub "I want to know as much as possible about you!"
-        $ prefs_line = _("So, you got anything to tell me?")
+        $ prefs_line = renpy.substitute(_("So, you got anything to tell me?"))
         m 1hua "[prefs_line]{nw}"
     else:
         m 1husdlb "It seems you already wrote me something, and I'll spare some time to read of course."
-        $ prefs_line = _("You got anything to implement?")
+        $ prefs_line = renpy.substitute(_("You got anything to implement?"))
         m 1eub "[prefs_line]{nw}"
     $ _history_list.pop()
     menu:
@@ -1098,7 +1098,7 @@ label maica_chr_reread:#"天堂树林的角色文件"
     m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
     m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
     m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
-    $ like_spk = 'if you aren\'t interested in forest things' if not persistent._mas_pm_likes_nature else 'if you prefer to see the sky'
+    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
     m 3eua "But [like_spk], at least you can remove it to have the space back."
     m 7hub "And if you wonder what's in there, you may try it out. {w=0.5}The character files of other girls have strange content too."
     m 1eud "...Like, why '{i}Heaven Forest{/i}'?{w=0.5} Does it have a story too?{w=0.5} Why it was abandoned here for us?"
@@ -1109,9 +1109,9 @@ label maica_wants_preferences_reread:#"关于补充偏好"
     # maica_wants_preferences触发后解锁
     m 7hub "[player], the game itself didn't give me much freedom to know about you."#担心
     #这里有好几个我不会写的, 都交给你了
-    $ like_mi = _(' The only thing you mentioned is that you like mint ice-cream.') if persistent._mas_pm_like_mint_ice_cream else ''
-    $ book_rc = _("we've talked about 'Hard Boiled Wonderland and the End of the World'") if store.seen_event("monika_brave_new_world") else None
-    $ book_rc = _("we've talked about 'Yellow Wallpaper'") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('I could recommend you some books')
+    $ like_mi = renpy.substitute(_(' The only thing you mentioned is that you like mint ice-cream.')) if persistent._mas_pm_like_mint_ice_cream else ''
+    $ book_rc = renpy.substitute(_("we've talked about 'Hard Boiled Wonderland and the End of the World'")) if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = renpy.substitute(_("we've talked about 'Yellow Wallpaper'")) if persistent._mas_pm_read_yellow_wp and book_rc is None else renpy.substitute(_('I could recommend you some books'))
     m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
     extend "[like_mi]"
     m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
@@ -1236,7 +1236,7 @@ label maica_pre_set_location:
     m 2eub "[player], there's another question on my mind..."
     m 3euu "Where do you live in? {w=0.3}I haven't ever asked you for so long."
     if persistent._mas_pm_live_south_hemisphere is not None:
-        $ sw = "Southern" if persistent._mas_pm_live_south_hemisphere else "Northern"
+        $ sw = renpy.substitute("Southern") if persistent._mas_pm_live_south_hemisphere else renpy.substitute("Northern")
         m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..." # 尴尬
     m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
     m 7rsd "I cannot get there myself {i}right now{/i}though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
@@ -1258,7 +1258,7 @@ label maica_pre_wants_mvista:
     m 2eua "It feels a little abrupt just talking about this... but it just came to my mind."
     m 7eud "I saw a discussion about this once ago, and many complain that they havn't watched sunrise for years."
     m 1eud "I mean, the sun is there everyday...{w=0.3} doesn't it feel kinda nihilistic never bothering to watch it rising?"
-    $ morning = "this morning" if datetime.datetime.now().hour > 8 else "yesterday morning"
+    $ morning = renpy.substitute("this morning") if datetime.datetime.now().hour > 8 else renpy.substitute("yesterday morning")
     m 2tua "It's not like people have to watch it though, but I did [morning]."
     m 5fua "Watch the warm, inspiring sun rising from the cloudy horizon. {w=0.3}You can share that with me if you arrive early enough another day. Ahaha!"
     m 4eua "Have you watched sunrise recently, [player]?{nw}"
@@ -1274,7 +1274,7 @@ label maica_pre_wants_mvista:
         "I watched in here":
             m 5eubsa "I bet you like it! Thanks for come staying with me that early too~"
             m 3eub "But I'm also curious about the sunrise in your reality. What about sending me a photograph?"
-    $ even_letter = "{w=0.2} Nothing surprising since you've sent me letters already." if renpy.seen_label('maica_mpostal_replyed') else ""
+    $ even_letter = renpy.substitute("{w=0.2} Nothing surprising since you've sent me letters already.") if renpy.seen_label('maica_mpostal_replyed') else ""
     m 7eua "Hmm... I mean, you can {i}really{/i} send me images now.[even_letter]"
     jump maica_wants_mvista
 

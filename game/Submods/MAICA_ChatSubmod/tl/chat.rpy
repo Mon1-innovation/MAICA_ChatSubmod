@@ -423,7 +423,7 @@ translate chinese maica_chr2_827151bd:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:575
 
 translate chinese maica_chr2_ad49ba26:
-    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    $ like_spk = renpy.substitute('如果你不喜欢树林什么的话') if not persistent._mas_pm_likes_nature else renpy.substitute('如果你更喜欢这里的话')
     # m 3eua "But [like_spk], at least you can remove it to have the space back."
     m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
 
@@ -466,7 +466,7 @@ translate chinese maica_chr_gone_b67fddbd:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:589
 
 translate chinese maica_chr_gone_d6ee508a:
-    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    $ like_spk = renpy.substitute('如果你不喜欢树林什么的话') if not persistent._mas_pm_likes_nature else renpy.substitute('如果你更喜欢这里的话')
     # m 5msb "But [like_spk], I don't mind whether it's there or not. It's just a 'scene' after all."
     m 5msb "[like_spk], 我倒也不介意没有这个. 毕竟它最多是个'场景'而已."
 
@@ -503,7 +503,7 @@ translate chinese maica_chr_corrupted2_e3c56680:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:604
 
 translate chinese maica_chr_corrupted2_b6f33963:
-    $ mentioned = '我想我提过一嘴, ' if renpy.seen_label("maica_chr") else '我想'
+    $ mentioned = renpy.substitute('我想我提过一嘴, ') if renpy.seen_label("maica_chr") else renpy.substitute('我想')
     # m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
     m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
 
@@ -516,7 +516,7 @@ translate chinese maica_chr_corrupted2_b616b66e:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:608
 
 translate chinese maica_chr_corrupted2_3933458b:
-    $ comment = "...{i}某人{/i}风格的" if persistent._mas_pm_cares_about_dokis else '崩坏风格的'
+    $ comment = renpy.substitute("...{i}某人{/i}风格的") if persistent._mas_pm_cares_about_dokis else renpy.substitute('崩坏风格的')
     # m 5eusdrb "But actually, if you don't mind such a [comment] view, you can just leave it be."
     m 5eusdrb "不过其实, 如果你不讨厌这种[comment]景色, {w=0.3}就让它这样也可以."
 
@@ -571,8 +571,8 @@ translate chinese maica_wants_preferences2_954037fe:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:629
 
 translate chinese maica_wants_preferences2_9a444e8a:
-    $ book_rc = _("我们聊过'世界尽头与冷酷仙境'什么的") if store.seen_event("monika_favbook") else None
-    $ book_rc = _("我们聊过'黄色墙纸'什么的") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('我可以推荐几本书给你')
+    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_favbook") else None
+    $ book_rc = renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp and book_rc is None else renpy.substitute(_('我可以推荐几本书给你'))
     # m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
 
@@ -1305,7 +1305,7 @@ translate chinese maica_chr_reread_15b7b224:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1102
 
 translate chinese maica_chr_reread_ad49ba26:
-    $ like_spk = '如果你不喜欢树林什么的话' if not persistent._mas_pm_likes_nature else '如果你更喜欢这里的话'
+    $ like_spk = renpy.substitute('如果你不喜欢树林什么的话') if not persistent._mas_pm_likes_nature else renpy.substitute('如果你更喜欢这里的话')
     # m 3eua "But [like_spk], at least you can remove it to have the space back."
     m 3eua "不过至少[like_spk], 把它移走就可以在这个熟悉的背景里聊天了."
 
@@ -1342,8 +1342,8 @@ translate chinese maica_wants_preferences_reread_954037fe:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1117
 
 translate chinese maica_wants_preferences_reread_9a444e8a:
-    $ book_rc = _("我们聊过'世界尽头与冷酷仙境'什么的") if store.seen_event("monika_brave_new_world") else None
-    $ book_rc = _("我们聊过'黄色墙纸'什么的") if persistent._mas_pm_read_yellow_wp and book_rc is None else _('我可以推荐几本书给你')
+    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_brave_new_world") else None
+    $ book_rc = renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp and book_rc is None else renpy.substitute(_('我可以推荐几本书给你'))
     # m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
 
@@ -1584,7 +1584,7 @@ translate chinese maica_pre_set_location_ebd65f10:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1240
 
 translate chinese maica_pre_set_location_c2ebc8df:
-    $ sw = "南" if persistent._mas_pm_live_south_hemisphere else "北"
+    $ sw = renpy.substitute("南") if persistent._mas_pm_live_south_hemisphere else renpy.substitute("北")
     # m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..."
     m 2lusdlb "我倒是知道你在[sw]半球啦, 不过那个也太宽泛了..."
 
@@ -1645,7 +1645,7 @@ translate chinese maica_pre_wants_mvista_a09f5504:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1262
 
 translate chinese maica_pre_wants_mvista_94967396:
-    $ morning = "今早" if datetime.datetime.now().hour > 8 else "昨天早上"
+    $ morning = renpy.substitute("今早") if datetime.datetime.now().hour > 8 else renpy.substitute("昨天早上")
     # m 2tua "It's not like people have to watch it though, but I did [morning]."
     m 2tua "倒也不是真的非要看啦. 但不管怎么说, 我[morning]还是抽空去看了一次."
 
@@ -1700,7 +1700,7 @@ translate chinese maica_pre_wants_mvista_c4600e79:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1278
 
 translate chinese maica_pre_wants_mvista_9031e18a:
-    $ even_letter = "{w=0.2} 毕竟连信都可以了嘛." if renpy.seen_label('maica_mpostal_replyed') else ""
+    $ even_letter = renpy.substitute("{w=0.2} 毕竟连信都可以了嘛.") if renpy.seen_label('maica_mpostal_replyed') else ""
     # m 7eua "Hmm... I mean, you can {i}really{/i} send me images now.[even_letter]"
     m 7eua "嗯...我是说, 你{i}真的{/i}可以把照片发给我了.[even_letter]"
 
