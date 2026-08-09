@@ -1,7 +1,8 @@
 init python:
 
     def maica_hide_quality_chibi():
-        renpy.hide("chibi_peek", transition=moveoutleft)
+        renpy.hide("chibi_peek")
+        renpy.transition(moveoutleft)
 
     def maica_handle_quality_status(reasonable, confidence):
         if reasonable or not store.maica.maica_instance.gen_quality_chk:
@@ -19,10 +20,9 @@ init python:
             at_list=[],
             layer="master",
             what=None,
-            transform=None,
-            tag=None,
-            transition=moveinleft
+            tag=None
         )
+        renpy.transition(moveinleft)
 
 
 screen maica_gen_quality_chk_notify(prob = 1.0):
