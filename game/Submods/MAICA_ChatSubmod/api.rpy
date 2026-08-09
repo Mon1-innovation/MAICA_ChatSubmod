@@ -234,7 +234,7 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.error("MAICA: Non-unicode language check failed: {}".format(e))
 
         if renpy.android:
-            cert_path = os.path.join(ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')
+            cert_path = os.path.join(store.ANDROID_MASBASE, 'game', 'python-packages', 'certifi', 'cacert.pem')
             cacert_missing = not os.path.exists(cert_path)
         else:
             cacert_missing = False
@@ -319,7 +319,7 @@ init 5 python in maica:
         maica_certifi_download_thread_running = True
         basedir = renpy.config.basedir
         android = renpy.android
-        android_masbase = ANDROID_MASBASE if android else None
+        android_masbase = store.ANDROID_MASBASE if android else None
         store.mas_submod_utils.submod_log.info("MAICA: certifi download started in background")
         try:
             renpy.invoke_in_thread(lambda: maica_download_certifi_files(fix_certifi, basedir, android, android_masbase))
@@ -645,8 +645,6 @@ init 999 python:
         def migration_1_2_0():
             if renpy.android:
                 persistent.maica_setting_dict['provider_id'] = 2
-            if persistent.maica_setting_dict['max_history_token'] > 4096:
-                persistent.maica_setting_dict['max_history_token'] = 4096
             maica_reset_setting()
 
         def migration_1_2_8():

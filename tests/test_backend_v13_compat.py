@@ -667,6 +667,22 @@ def test_a_migration_is_structurally_registered_and_invoked():
     assert re.search(r"persistent\._maica_last_version\s*=\s*store\.maica_ver", api)
 
 
+def test_a_maica_namespace_qualifies_android_host_path():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    maica_block = api.split("init 5 python in maica:", 1)[1].split("\ninit ", 1)[0]
+
+    assert "store.ANDROID_MASBASE" in maica_block
+    assert not re.search(r"(?<![A-Za-z0-9_.])ANDROID_MASBASE\b", maica_block)
+
+
+def test_a_legacy_migration_does_not_index_retired_history_key():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    migration = function_body(api, r"migration_1_2_0")
+
+    assert "maica_reset_setting()" in migration
+    assert "max_history_token" not in migration
+
+
 def test_a_dev_override_remains_ignored():
     assert re.search(r"(?:^|/)dev_enable\.rpy$", source(".gitignore"), re.M)
 
