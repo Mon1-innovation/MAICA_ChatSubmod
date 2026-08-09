@@ -110,7 +110,11 @@ class LoggerManager(object):
         Args:
             level: logging level (e.g., logging.DEBUG, logging.INFO, etc.)
         """
-        self._root_logger.setLevel(level)
+        set_level = getattr(self._root_logger, "setLevel", None)
+        if callable(set_level):
+            set_level(level)
+        elif hasattr(self._root_logger, "level"):
+            self._root_logger.level = level
         self._stream_handler.setLevel(level)
         self._root_logger.info("Log level set to {}".format(level))
         self._sync_injected_references()
@@ -122,7 +126,11 @@ class LoggerManager(object):
         Args:
             handler: logging.Handler instance
         """
-        self._root_logger.addHandler(handler)
+        add_handler = getattr(self._root_logger, "addHandler", None)
+        if not callable(add_handler):
+            self._root_logger.warning("Current logger does not support handlers")
+            return
+        add_handler(handler)
         self._root_logger.info("Handler added: {}".format(handler))
         self._sync_injected_references()
 
@@ -133,7 +141,11 @@ class LoggerManager(object):
         Args:
             handler: logging.Handler instance
         """
-        self._root_logger.removeHandler(handler)
+        remove_handler = getattr(self._root_logger, "removeHandler", None)
+        if not callable(remove_handler):
+            self._root_logger.warning("Current logger does not support handlers")
+            return
+        remove_handler(handler)
         self._root_logger.info("Handler removed: {}".format(handler))
         self._sync_injected_references()
 
@@ -178,6 +190,8 @@ class LoggerManager(object):
         This is called automatically after configuration changes to ensure
         all modules get the latest logger configuration.
         """
+        root_level = getattr(self._root_logger, 'level', None)
+        root_handlers = list(getattr(self._root_logger, 'handlers', []))
         for name, ref_info in self._injected_references.items():
             try:
                 module = ref_info['module']
@@ -186,15 +200,18 @@ class LoggerManager(object):
                 # Get current logger from module
                 current_logger = getattr(module, attr_name, None)
 
-                # Update configuration to match current root logger
-                if current_logger is not None:
-                    current_logger.setLevel(self._root_logger.level)
-
-                    # Clear existing handlers and add current ones
-                    for handler in current_logger.handlers[:]:
+                # Dynamic proxies already resolve the current logger on every call.
+                # Only synchronize distinct stdlib loggers with a stdlib root.
+                if (
+                    isinstance(current_logger, logging.Logger)
+                    and current_logger is not self._root_logger
+                    and isinstance(self._root_logger, logging.Logger)
+                ):
+                    if root_level is not None:
+                        current_logger.setLevel(root_level)
+                    for handler in list(current_logger.handlers):
                         current_logger.removeHandler(handler)
-
-                    for handler in self._root_logger.handlers:
+                    for handler in root_handlers:
                         current_logger.addHandler(handler)
 
                 self._root_logger.debug("Synced injection point: {}".format(name))
@@ -210,10 +227,11 @@ class LoggerManager(object):
         Returns:
             dict: Status information
         """
+        handlers = list(getattr(self._root_logger, 'handlers', []))
         return {
-            'logger_level': logging.getLevelName(self._root_logger.level),
-            'handler_count': len(self._root_logger.handlers),
-            'handlers': [type(h).__name__ for h in self._root_logger.handlers],
+            'logger_level': logging.getLevelName(getattr(self._root_logger, 'level', logging.NOTSET)),
+            'handler_count': len(handlers),
+            'handlers': [type(h).__name__ for h in handlers],
             'formatter': str(self._formatter._fmt) if self._formatter else None,
             'injected_references': list(self._injected_references.keys())
         }

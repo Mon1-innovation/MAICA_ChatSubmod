@@ -188,7 +188,7 @@ class MAICAVistaFilesManager(object):
         with open(file_path, 'rb') as f:
             files = {'content': f}
             data = {'access_token': self.access_token}
-            resp = requests.post(self.base_url + '/vista', data=data, files=files, timeout = 10)
+            resp = requests.post(self.base_url + '/vista', data=data, files=files, timeout=(5.0, 60.0))
             result = resp.json()
             if result.get('success'):
                 uuid = result.get('content')
@@ -253,21 +253,26 @@ class MAICAVistaFilesManager(object):
         Args:
             identifier: UUID字符串、索引或None（删除全部）
         """
+        uuid = identifier
+        if isinstance(identifier, int):
+            if not 0 <= identifier < len(self.files):
+                raise ValueError("Invalid index")
+            uuid = self.files[identifier].get("uuid")
+
         data = {'access_token': self.access_token}
-        if identifier is not None:
-            data['content'] = identifier
-        resp = requests.delete(self.base_url + '/vista', json=data)
+        if uuid is not None:
+            data['content'] = uuid
+        resp = requests.delete(self.base_url + '/vista', json=data, timeout=(5.0, 30.0))
         result = resp.json()
-        if identifier:
-            self.remove(identifier)
-        if result.get('success'):
-            if identifier is None:
-                self.clear()
-                self.cloud_files = []
-                if self.cloud_files and identifier in self.cloud_files:
-                    self.cloud_files.remove(identifier)
-        else:
+        if not result.get('success'):
             raise Exception(result.get('exception'))
+        if identifier is None:
+            self.clear()
+            self.cloud_files = []
+        else:
+            self.remove(identifier)
+            if uuid in self.cloud_files:
+                self.cloud_files.remove(uuid)
 
     def download(self, uuid):
         """下载图片（GET /vista）
@@ -278,7 +283,7 @@ class MAICAVistaFilesManager(object):
         Returns:
             图片二进制数据或UUID列表
         """
-        resp = requests.get(self.base_url + '/vista', params={'content': uuid})
+        resp = requests.get(self.base_url + '/vista', params={'content': uuid}, timeout=(5.0, 60.0))
         if resp.headers.get('content-type', '').startswith('image/'):
             return resp.content
         result = resp.json()
@@ -299,7 +304,11 @@ class MAICAVistaFilesManager(object):
         if not force_refresh and self.cloud_files and (current_time - self._cloud_files_cache_time) < self._cloud_files_cache_ttl:
             return self.cloud_files
 
-        resp = requests.get(self.base_url + '/vista/list', params={'access_token': self.access_token})
+        resp = requests.get(
+            self.base_url + '/vista/list',
+            params={'access_token': self.access_token},
+            timeout=(5.0, 30.0)
+        )
         result = resp.json()
         if result.get('success'):
             self.cloud_files = result.get('content')

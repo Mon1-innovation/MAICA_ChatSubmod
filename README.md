@@ -60,3 +60,4 @@ Blessland(光耀之地) 是 MAICA 的前端, 基于 MAICA 的聊天子模组.
 5. 不支持http(s), socks系统代理. 在系统的设置中将其关闭.
 6. 你可以删除`game\Submods\MAICA_ChatSubmod\donation`文件以禁用捐赠链接.
 7. 你可以删除`game\Submods\MAICA_ChatSubmod\savefile_access`文件以禁止上传存档, 并使`savefile_access`参数无效.
+8. 在部分设备无法读取根证书时, 子模组会 fallback 到兼容节点以维持可用性. 该节点的传输协议由远端节点列表决定, 可能使用普通 `ws://`/`http://`; 请在不可信网络中谨慎使用并检查当前节点信息.

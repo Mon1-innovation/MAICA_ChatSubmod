@@ -18,6 +18,7 @@ label maica_raw_context_example:
         # 导入上下文查询构建器模块
         # 该模块提供了 MAICAContextQueryBuilder 类用于构建对话上下文
         import maica_context_query
+        import traceback
 
         # 创建上下文构建器实例
         # 构建器用于逐步添加对话消息（系统消息、用户消息、助手消息）
@@ -103,10 +104,17 @@ label maica_raw_session(context, visions=None):
         #                   示例: visions = ["uuid-1", "uuid-2"]
         #
         # 注意: -1 session 不需要 trigger 参数，MFocus 不会介入
-        store.maica.maica_instance.start_raw_context(
-            query=context.build(),
-            visions=visions
-        )
+        request_send_failed = False
+        try:
+            store.maica.maica_instance.start_raw_context(
+                query=context.build(),
+                visions=visions
+            )
+        except Exception:
+            request_send_failed = True
+            store.mas_submod_utils.submod_log.error(
+                "label maica_raw_session: request send failed: {}".format(traceback.format_exc())
+            )
 
         # -------------------------------------------------------------------------
         # 响应处理循环
@@ -115,7 +123,7 @@ label maica_raw_session(context, visions=None):
         # 循环条件:
         #   - ai.is_responding(): AI 是否仍在生成响应 (流式传输中)
         #   - ai.len_message_queue() > 0: 消息队列中是否还有待处理的消息
-        while ai.is_responding() or ai.len_message_queue() > 0:
+        while not request_send_failed and (ai.is_responding() or ai.len_message_queue() > 0):
 
             # 检查是否发生连接错误
             if ai.is_failed():
@@ -182,6 +190,10 @@ label maica_raw_session(context, visions=None):
                 # 错误处理: 记录异常信息
                 # traceback.format_exc() 获取完整的异常堆栈
                 store.mas_submod_utils.submod_log.error("label maica_raw_session::renpy.say error:{}".format(traceback.format_exc()))
+
+        if ai.response_timed_out():
+            store.mas_submod_utils.submod_log.error("label maica_raw_session: response timed out")
+            # renpy.say(m, _("好像出了什么问题..."))
 
     # 执行结束
     return

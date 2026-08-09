@@ -47,7 +47,7 @@ class MTriggerExprop(object):
     """
     注意: 所有的值都有默认值, 如有需要请务必修改
     """
-    def __init__(self, item_name_zh="", item_name_en="", item_list=[],value_limits=[0, 1], curr_value=None, suggestion=False):
+    def __init__(self, item_name_zh="", item_name_en="", item_list=None, value_limits=None, curr_value=None, suggestion=False):
         """
         初始化函数。
         
@@ -60,8 +60,8 @@ class MTriggerExprop(object):
         """
         self.item_name_zh = item_name_zh
         self.item_name_en = item_name_en
-        self.item_list = item_list
-        self.value_limits = value_limits
+        self.item_list = [] if item_list is None else item_list
+        self.value_limits = [0, 1] if value_limits is None else value_limits
         self.curr_value = curr_value
         self.suggestion = suggestion
 
@@ -71,21 +71,21 @@ class MTriggerMethod(object):
     table = 1
 
 class MTriggerTemplate(object):
-    def __init__(self, name, datakey=None, exprop=MTriggerExprop(True,True,True,True,True,True)):
+    def __init__(self, name, datakey=None, exprop=None):
         self.name = name
         self.datakey = datakey
-        self.exprop = exprop
+        self.exprop = MTriggerExprop(True, True, True, True, True, True) if exprop is None else exprop
 
 
 common_affection_template = MTriggerTemplate("common_affection_template", "alter_value", exprop=MTriggerExprop(False, False, False, False, False, False))
 common_switch_template = MTriggerTemplate("common_switch_template", "choice", exprop=MTriggerExprop(True, True, True, False, True, True))
 common_meter_template = MTriggerTemplate("common_meter_template", "value", exprop=MTriggerExprop(True, True, False, True, True, False))
 customize_template = MTriggerTemplate("customized", None, exprop=MTriggerExprop(True, True, False, False, False, False))
-memory_template = MTriggerTemplate("memory_template", "memory_item", exprop=MTriggerExprop(False, False, False, False, False, False))
+memory_writeback_template = MTriggerTemplate("memory_writeback_template", "memory_item", exprop=MTriggerExprop(False, False, False, False, False, False))
 
 FIXED_TEMPLATE_NAMES = {
     common_affection_template.name: "alter_affection",
-    memory_template.name: "write_memory",
+    memory_writeback_template.name: "write_memory",
 }
 
 TEMPLATE_EXPROP_FIELDS = (
@@ -110,7 +110,7 @@ CANONICAL_TEMPLATE_SPECS = {
         common_switch_template,
         common_meter_template,
         customize_template,
-        memory_template,
+        memory_writeback_template,
     )
 }
 
@@ -120,7 +120,7 @@ class MTriggerManager(object):
         common_switch_template.name: 6,
         common_meter_template.name: 6,
         customize_template.name: 20,
-        memory_template.name: 1,
+        memory_writeback_template.name: 1,
     }
     SIZE_LIMIT = {
         MTriggerMethod.all : 100000,
@@ -241,19 +241,19 @@ def null_condition():
 
 class MTriggerBase(object):
 
-    def __init__(self, template, name, description = "", callback=null_callback, action=MTriggerAction.post, exprop=MTriggerExprop(), condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False, priority=0):
+    def __init__(self, template, name, description = "", callback=null_callback, action=MTriggerAction.post, exprop=None, condition=null_condition, method=MTriggerMethod.request, perf_suggestion = False, priority=0):
         self.name = name
         self.template = template
         self.callback = callback
         self.action = action
-        self.exprop = exprop
+        self.exprop = MTriggerExprop() if exprop is None else exprop
         self.description = description if description != "" else self.name
         self.condition = condition
         self.method = method
         self.perf_suggestion = perf_suggestion
         self.priority = priority
 
-        if self.template.name not in FIXED_TEMPLATE_NAMES and exprop.item_name_zh == "":
+        if self.template.name not in FIXED_TEMPLATE_NAMES and self.exprop.item_name_zh == "":
             raise ValueError("Customizable template must have exprop.item_name_zh.")
     def on_build_pre(self):
         pass
@@ -353,7 +353,9 @@ class MTriggerBase(object):
         return data
 
     
-    def triggered(self, data={}):
+    def triggered(self, data=None):
+        if data is None:
+            data = {}
         value = data.get(self.template.datakey) if self.template.datakey else None
         if value is None and self.template.name == common_affection_template.name:
             value = data.get("affection")

@@ -5,22 +5,22 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (will be automatically extracted from api.rpy if not specified)'
-        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/checkout@v4
       with:
-        python-version: '3.x'
+        fetch-depth: 0
 
     - name: Extract build configuration from api.rpy
       id: get_version
@@ -45,44 +45,29 @@ jobs:
           echo "is_development=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Use provided or extracted version
-      id: set_version
-      run: |
-        version="${{ github.event.inputs.version }}"
-        if [ -z "$version" ]; then
-          version="${{ steps.get_version.outputs.version }}"
-        fi
-        echo "Using version: $version"
-        echo "version=$version" >> $GITHUB_OUTPUT
-
     - name: Check if release exists
       id: check_release
       if: steps.get_version.outputs.is_development == 'false'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
       run: |
-        release=$(curl -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.set_version.outputs.version }})
-
-        if echo "$release" | grep -q "message.*Not Found"; then
-          echo "Release does not exist"
-          echo "create_release=true" >> $GITHUB_OUTPUT
-        else
+        if gh release view "${{ steps.get_version.outputs.version }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
           echo "Release already exists"
           echo "create_release=false" >> $GITHUB_OUTPUT
+        else
+          echo "Release does not exist"
+          echo "create_release=true" >> $GITHUB_OUTPUT
         fi
 
     - name: Create release version file
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
-        mkdir -p game/Submods/MAICA_ChatSubmod
-        echo "${{ steps.set_version.outputs.version }}" > game/python-packages/maica_release_version
+        echo "${{ steps.get_version.outputs.version }}" > game/python-packages/maica_release_version
 
     - name: Create zip package
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
-        zip -r MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip . \
+        zip -r MAICA_ChatSubmod-${{ steps.get_version.outputs.version }}.zip . \
           -x '.git*' \
           -x '.github*' \
           -x '*.git*' \
@@ -100,29 +85,29 @@ jobs:
         # Convert release notes to GitHub Flavored Markdown
         echo "$release_notes" | sed 's/^/- /' > release_notes.md
         # Prepend version information
-        echo "## MAICA ChatSubmod ${{ steps.set_version.outputs.version }}" | cat - release_notes.md > temp && mv temp release_notes.md
+        echo "## MAICA ChatSubmod ${{ steps.get_version.outputs.version }}" | cat - release_notes.md > temp && mv temp release_notes.md
         echo "RELEASE_NOTES_PATH=release_notes.md" >> $GITHUB_OUTPUT
 
     - name: Create Release
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.set_version.outputs.version }}
+        tag_name: ${{ steps.get_version.outputs.version }}
         body_path: ${{ steps.generate_release_notes.outputs.RELEASE_NOTES_PATH }}
         files: |
-          MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip
+          MAICA_ChatSubmod-${{ steps.get_version.outputs.version }}.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
 
     - name: Skip release if already exists
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'false'
       run: |
-        echo "Release ${{ steps.set_version.outputs.version }} already exists. Skipping release creation."
+        echo "Release ${{ steps.get_version.outputs.version }} already exists. Skipping release creation."
 
     - name: Skip development build
       if: steps.get_version.outputs.is_development == 'true'
       run: |
-        echo "Development build ${{ steps.set_version.outputs.version }} is not eligible for release."
+        echo "Development build ${{ steps.get_version.outputs.version }} is not eligible for release."
 
     - name: Upload artifact
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
@@ -130,6 +115,6 @@ jobs:
       with:
         name: release-files
         path: |
-          MAICA_ChatSubmod-${{ steps.set_version.outputs.version }}.zip
+          MAICA_ChatSubmod-${{ steps.get_version.outputs.version }}.zip
           release_notes.md
         retention-days: 30

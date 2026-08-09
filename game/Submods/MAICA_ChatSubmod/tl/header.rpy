@@ -1,4 +1,4 @@
-# TODO: Translation updated at 2024-07-07 20:52
+﻿# TODO: Translation updated at 2024-07-07 20:52
 
 translate chinese strings:
 
@@ -104,8 +104,8 @@ translate chinese strings:
     old "Export to directory"
     new "导出至根目录"
     # game/Submods/MAICA_ChatSubmod/header.rpy:263
-    old "Export to game/Submods/MAICA_ChatSubmod/player_information.txt"
-    new "导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
+    old "Export to game/Submods/MAICA_ChatSubmod/player_info.txt"
+    new "导出至game/Submods/MAICA_ChatSubmod/player_info.txt"
     # game/Submods/MAICA_ChatSubmod/header.rpy:270
     old "Save settings"
     new "保存设置"
@@ -209,11 +209,11 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:280
-    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}Official document of MAICA API{/i}{/u}{/a}"
-    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
+    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}Official document of MAICA API{/u}{/i}{/a}"
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md#调整设置}{i}{u}MAICA 官方文档{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:282
-    old "{a=https://platform.openai.com/docs/api-reference/chat}{i}{u}OPENAI documents{/i}{/u}{/a}"
-    new "{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/i}{/u}{/a}"
+    old "{a=https://platform.openai.com/docs/api-reference/chat}{i}{u}OPENAI documents{/u}{/i}{/a}"
+    new "{a=https://www.openaidoc.com.cn/api-reference/chat}{i}{u}OPENAI 中文文档{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:287
     old "The token choice range in sequence of probability. Model will only choose the next token from the top_p/1 former part of all tokens."
     new "模型选择的范围, 模型考虑概率质量值在前 top_p 的标记的结果, 因此，0.1 意味着仅考虑概率质量值前 10% 的标记"
@@ -364,8 +364,8 @@ translate chinese strings:
     old "> Changelogs and serving status"
     new "> 更新日志与服务状态"
     # game/Submods/MAICA_ChatSubmod/header.rpy:878
-    old "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
-    new "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
+    old "※ By using MAICA Blessland, you have acknowledged and agree to obey {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/u}{/i}{/a}"
+    new "※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:950
     old "Nevermind{#maica_host_nevermind}"
     new "算了"
@@ -389,8 +389,8 @@ translate chinese strings:
     old "※ Trigger condition not satisfied"
     new "※ 当前不满足触发条件"
     # game/Submods/MAICA_ChatSubmod/header.rpy:555
-    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA Official API references{/i}{/u}{/a}"
-    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA 官方文档{/i}{/u}{/a}"
+    old "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA Official API references{/u}{/i}{/a}"
+    new "{a=https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md}{i}{u}MAICA 官方文档{/u}{/i}{/a}"
     # game/Submods/MAICA_ChatSubmod/header.rpy:559
     old "{size=-10}Notice: Only checked (X) advanced settings will take effect, unchecked ones will remain default"
     new "{size=-10}注意: 只有已被勾选(标记了X)的高级设置才会被使用, 未使用的设置将使用服务端的默认设置"
@@ -434,8 +434,8 @@ translate chinese strings:
     old "Mtrigger triggers list"
     new "MTrigger列表"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1019
-    old "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/i}{/u}{/a}"
-    new "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/i}{/u}{/a}"
+    old "{size=-10}※ By using MAICA Blessland, you agree to {a=https://maica.monika.love/tos_en}{i}{u}MAICA TOS{/u}{/i}{/a}"
+    new "{size=-10}※ 使用MAICA Blessland, 即认为你同意 {a=https://maica.monika.love/tos_zh}{i}{u}MAICA服务条款{/u}{/i}{/a}"
 # TODO: Translation updated at 2024-11-28 07:51
 
 translate chinese strings:
@@ -728,8 +728,8 @@ translate chinese strings:
     old "Replace [[player] in prompts and guidance with the player's real name.\n+ Gives the model a concrete understanding of the player's name\n- Increases the risk of inconsistent or confused behavior"
     new "将prompt和引导中的[[player]字段替换为玩家真名.\n+ 模型对玩家的名字有实质性理解\n- 更容易发生表现离群和混乱"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1255
-    old "Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"
-    new "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 表现更稳定\n- 涉及互联网搜索时生成速度更慢\n- 可能会对核心模型的回答方式产生误导"
+    old "Require MFocus to reorganize Internet search results.\n+ Higher information density and more stable behavior in most cases\n+ Force enabled if backend using responses SERP implementation\n- Slower generation when Internet search is involved\n- May mislead the core model's response style"
+    new "在MFocus调用互联网搜索的情况下, 要求其整理一遍结果.\n+ 大多数情况下信息密度更高, 表现更稳定\n+ 若后端启用了responses serp实现, 该配置强制启用\n- 涉及互联网搜索时生成速度更慢\n- 可能会对核心模型的回答方式产生误导"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1261
     old "Require MFocus to precheck the player's request and provide guidance when MTrigger is present.\n+ Mitigates MTrigger desynchronization in principle\n- May make the language less natural in rare cases"
     new "当MTrigger存在时, 要求MFocus预检玩家的请求并提供指导.\n+ 从原理上缓解MTrigger失步问题\n- 在少数情况下对语言的自然性产生破坏"
@@ -924,8 +924,8 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/header.rpy:402
-    old "MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"
-    new "MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_information.txt"
+    old "MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_info.txt"
+    new "MAICA: 信息已导出至game/Submods/MAICA_ChatSubmod/player_info.txt"
 # TODO: Translation updated at 2025-09-28 16:56
 
 translate chinese strings:
@@ -1060,8 +1060,8 @@ translate chinese strings:
     new "这些设置影响MAICA的模型与工具协作行为.\n* 你选择的预设会影响模型的工具, 辅助, 提示词, 以及这些环节消耗的时间\n! 如果你不清楚其具体作用, 请不要修改"
     old "These settings affect core model's performance.\n* Changing this preset will directly affect core model's inference and sampling procedure\n! Do not modify unless you know what they exactly mean"
     new "这些设置影响MAICA核心模型的推理表现.\n* 你选择的预设直接影响核心模型的推理和采样\n! 如果你不清楚其具体作用, 请不要修改"
-    old "The remaining settings in this section are managed by presets.\n! Do not modify manually unless you know what they exactly mean"
-    new "本节中的剩余条目均由预设管理.\n! 如果你不清楚这些条目的具体作用, 请不要手动修改"
+    old "* The remaining settings in this section are managed by presets.\n* Do not modify manually unless you know what they exactly mean"
+    new "* 本节中的剩余条目均由预设管理.\n* 如果你不清楚这些条目的具体作用, 请不要手动修改"
     old "Custom"
     new "自定义"
     old "Pure"

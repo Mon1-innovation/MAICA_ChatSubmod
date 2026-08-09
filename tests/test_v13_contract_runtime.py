@@ -142,8 +142,8 @@ def _build_trigger_batch(template, count):
         fixed_names = {
             maica_mtrigger.common_affection_template: "alter_affection",
         }
-        if hasattr(maica_mtrigger, "memory_template"):
-            fixed_names[maica_mtrigger.memory_template] = "write_memory"
+        if hasattr(maica_mtrigger, "memory_writeback_template"):
+            fixed_names[maica_mtrigger.memory_writeback_template] = "write_memory"
         manager.add_trigger(
             _build_trigger(
                 template,
@@ -168,26 +168,6 @@ def _task_event(name):
             "data": type("Data", (), {"name": name})(),
         },
     )()
-
-
-def _new_validator(monkeypatch):
-    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
-    manager = ManagerStub()
-    validator = maica_tasker_sub.StreamingPacketValidator(
-        task_type=1,
-        name="streaming_packet_validator",
-        manager=manager,
-        except_ws_status=[
-            "maica_core_streaming_continue",
-            "maica_core_complete",
-        ],
-    )
-    return validator
-
-
-def _send_streaming_packets(validator, count):
-    for _index in range(count):
-        validator.on_received(EventStub("maica_core_streaming_continue"))
 
 
 def _new_mtrigger_handler(monkeypatch):
@@ -399,7 +379,7 @@ def test_fixed_name_templates_send_canonical_name_in_request_payload():
         name="alter_affection",
     )
     memory = _build_trigger(
-        maica_mtrigger.memory_template,
+        maica_mtrigger.memory_writeback_template,
         name="write_memory",
     )
 
@@ -408,7 +388,7 @@ def test_fixed_name_templates_send_canonical_name_in_request_payload():
         "name": "alter_affection",
     }
     assert memory.build() == {
-        "template": "memory_template",
+        "template": "memory_writeback_template",
         "name": "write_memory",
     }
 
@@ -417,7 +397,7 @@ def test_fixed_name_templates_send_canonical_name_in_request_payload():
     ("template_name", "invalid_name"),
     [
         ("common_affection_template", "custom_affection"),
-        ("memory_template", "custom_memory"),
+        ("memory_writeback_template", "custom_memory"),
     ],
 )
 def test_fixed_name_templates_reject_custom_names(template_name, invalid_name):
@@ -429,7 +409,7 @@ def test_fixed_name_templates_reject_custom_names(template_name, invalid_name):
 def test_memory_template_extracts_memory_item():
     received = []
     trigger = maica_mtrigger.MTriggerBase(
-        maica_mtrigger.memory_template,
+        maica_mtrigger.memory_writeback_template,
         "write_memory",
         callback=received.append,
     )
@@ -440,9 +420,9 @@ def test_memory_template_extracts_memory_item():
 
 
 def test_memory_template_allows_only_one_trigger():
-    assert len(_build_trigger_batch(maica_mtrigger.memory_template, 1)) == 1
+    assert len(_build_trigger_batch(maica_mtrigger.memory_writeback_template, 1)) == 1
     with pytest.raises(ValueError):
-        _build_trigger_batch(maica_mtrigger.memory_template, 2)
+        _build_trigger_batch(maica_mtrigger.memory_writeback_template, 2)
 
 
 def test_switch_build_uses_curr_item_instead_of_curr_value():
@@ -621,7 +601,7 @@ def test_meter_number_types_are_python2_compatible_and_accept_large_integers():
         maica_mtrigger.common_switch_template,
         maica_mtrigger.common_meter_template,
         maica_mtrigger.customize_template,
-        maica_mtrigger.memory_template,
+        maica_mtrigger.memory_writeback_template,
     ],
 )
 def test_mtrigger_accepts_equivalent_canonical_template_clones(canonical):
@@ -1037,6 +1017,27 @@ def test_mspire_single_category_title_remains_a_list():
     assert _last_json(manager)["inspire"]["title"] == ["science"]
 
 
+def test_mspire_search_type_is_forwarded():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    processor.process_request(["science"], 0, mspire_type="precise_page")
+    assert _last_json(manager)["inspire"]["type"] == "precise_page"
+
+
+@pytest.mark.parametrize(
+    "search_type",
+    ["not-a-search-mode", "percise_page", "in_percise_category"],
+)
+def test_mspire_rejects_unknown_search_type(search_type):
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", ManagerStub()
+    )
+    with pytest.raises(ValueError):
+        processor.process_request(["science"], 0, mspire_type=search_type)
+
+
 @pytest.mark.parametrize("category", ["science", ("science",), None])
 def test_mspire_rejects_non_list_categories(category):
     manager = ManagerStub()
@@ -1109,6 +1110,24 @@ def test_mpostal_uses_v13_twk_super_option():
     postmail = _last_json(manager)["postmail"]
     assert postmail["twk_super"] is True
     assert "ic_prep" not in postmail
+    assert postmail["bypass_stream"] is True
+
+
+def test_core_output_modes_are_explicit_and_accumulate_complete_responses():
+    manager = ManagerStub()
+    postal = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
+        1, "mpostal", manager
+    )
+    assert postal.core_input_mode == maica_tasker_sub_sessionsender.CORE_INPUT_COMPLETE
+    assert postal.core_output_mode == maica_tasker_sub_sessionsender.CORE_OUTPUT_COMPLETE
+    assert postal.consume_core_output(EventStub("maica_core_streaming_continue", "first")) == []
+    assert postal.consume_core_output(EventStub("maica_core_streaming_continue", "second")) == []
+    assert postal.consume_core_output(EventStub("maica_chat_loop_finished")) == ["firstsecond"]
+
+    chat = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "chat", manager
+    )
+    assert chat.consume_core_output(EventStub("maica_core_streaming_continue", "chunk")) == ["chunk"]
 
 
 def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
@@ -1139,76 +1158,15 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     ai.pprt = False
     ai.mspire_weight = 25
     ai.mspire_use_cache = True
+    ai.mspire_type = "fuzzy_page"
     ai._in_mspire = False
 
     maica.MaicaAi.start_MSpire(ai)
 
     assert ai.MSpireProcessor.kwargs["ctg_weight"] == 25
     assert ai.MSpireProcessor.kwargs["use_cache"] is True
+    assert ai.MSpireProcessor.kwargs["mspire_type"] == "fuzzy_page"
     assert ai.QualityStatusTasker.clear_count == 1
-
-
-def test_streaming_completion_without_tracker_id_validates_and_resets(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 3)
-    assert validator.packet_count == 3
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished for user, 3 packets sent",
-        )
-    )
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-
-
-def test_streaming_completion_accepts_account_name_without_tracker_id(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished for SirrrrrrrrrrrrrP, 2 packets sent",
-        )
-    )
-
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-    assert validator.manager.closed is False
-
-
-def test_streaming_completion_tolerates_transport_whitespace(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            " \tStreaming finished for SirrrrrrrrrrrrrP, 2 packets sent\r\n",
-        )
-    )
-
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-    assert validator.manager.closed is False
-
-
-def test_streaming_completion_accepts_numeric_trace_suffix(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished for SirrrrrrrrrrrrrP, 2 packets sent <9285727781>",
-        )
-    )
-
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-    assert validator.manager.closed is False
 
 
 def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
@@ -1219,95 +1177,13 @@ def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
     assert _last_json(manager) == {"type": "auth", "access_token": "token"}
 
 
-def test_streaming_cache_completion_validates_without_tracker_id(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.on_received(
-        EventStub("maica_core_complete", "MSpire cache finished, 2 packets sent")
-    )
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-
-
-def test_streaming_legacy_seed_and_traceray_completion_still_validates(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.on_received(
-        EventStub(
-            "maica_core_complete",
-            "Streaming finished with seed None for Monika, 2 packets sent -- your traceray ID is trace-1",
-        )
-    )
-    assert validator.validation_passed is True
-    assert validator.packet_count == 0
-
-
-@pytest.mark.parametrize(
-    "content",
-    [
-        "Streaming finished for user, -2 packets sent",
-        "Streaming finished for user, 1.2 packets sent",
-        "tracker 2024 packets sent",
-        "Streaming finished for user, 2 packets sent malicious-tail",
-    ],
-)
-def test_streaming_completion_rejects_ambiguous_or_extended_packet_counts(
-    content, monkeypatch
-):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.on_received(EventStub("maica_core_complete", content))
-    assert validator.validation_passed is False
-    assert validator.packet_count == 0
-    assert validator.manager.closed is True
-
-
-@pytest.mark.parametrize("content", [None, 42, "request 99 completed without packet report"])
-def test_streaming_nontext_or_unrelated_numbers_are_controlled_failures(
-    content, monkeypatch
-):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 1)
-    validator.on_received(EventStub("maica_core_complete", content))
-    assert validator.validation_passed is False
-    assert validator.packet_count == 0
-    assert validator.manager.closed is True
-
-
-def test_streaming_disable_and_reset_clear_partial_count(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 2)
-    validator.disable()
-    assert validator.packet_count == 0
-    validator.enable()
-    _send_streaming_packets(validator, 1)
-    validator.reset()
-    assert validator.packet_count == 0
-
-
-def test_streaming_validation_resets_when_event_notification_raises(monkeypatch):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 1)
-
-    def fail_create_event(_event):
-        raise RuntimeError("notification failed")
-
-    validator.manager.create_event = fail_create_event
-    with pytest.raises(RuntimeError, match="notification failed"):
-        validator.on_received(
-            EventStub("maica_core_complete", "Streaming finished for user, 2 packets sent")
-        )
-    assert validator.validation_passed is False
-    assert validator.packet_count == 0
-    assert validator.manager.closed is True
-
-
 def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     assert ai.MPostalProcessor.except_ws_status == [
         "maica_core_streaming_continue",
         "maica_chat_loop_finished",
     ]
+    assert not hasattr(ai, "StreamingPacketValidator")
     assert ai.MTriggerTasker.except_ws_status == ["maica_mtrigger_trigger"]
     assert ai.QualityStatusTasker.except_ws_status == ["maica_quality_status"]
     loop_task = ai.task_manager.get_task("maicaloop_warn_handler")
@@ -1680,24 +1556,6 @@ def test_auto_resume_send_failure_clears_resume_flags(monkeypatch):
     assert tasker._on_reconnect is False
 
 
-@pytest.mark.parametrize(
-    "content",
-    [
-        "malformed completion",
-        "Streaming finished for user, 2 packets sent",
-    ],
-)
-def test_streaming_malformed_and_mismatched_completion_paths_reset_count(
-    content, monkeypatch
-):
-    validator = _new_validator(monkeypatch)
-    _send_streaming_packets(validator, 1)
-    assert validator.packet_count == 1
-
-    validator.on_received(EventStub("maica_core_complete", content))
-    assert validator.packet_count == 0
-
-
 def _emotion_selector(fallback_predictor=None):
     return emotion_analyze_v2.EmoSelector(
         selector={"微笑": {"eua": 0.5}},
@@ -1816,6 +1674,144 @@ def test_vista_list_uses_list_endpoint_and_download_keeps_content_parameter(monk
     assert calls[1][1]["params"]["content"] == "uuid-1"
 
 
+def test_vista_delete_mutates_local_state_only_after_server_success(monkeypatch):
+    manager = maica_vista_files_manager.MAICAVistaFilesManager(
+        "https://example.test/api", "token"
+    )
+    manager.add("uuid-1")
+    manager.add("uuid-2")
+    manager.cloud_files = ["uuid-1", "uuid-2"]
+
+    class ResponseStub:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    responses = iter([
+        ResponseStub({"success": False, "exception": "denied"}),
+        ResponseStub({"success": True}),
+        ResponseStub({"success": True}),
+    ])
+    calls = []
+
+    def fake_delete(url, **kwargs):
+        calls.append(kwargs)
+        return next(responses)
+
+    monkeypatch.setattr(maica_vista_files_manager.requests, "delete", fake_delete)
+    with pytest.raises(Exception, match="denied"):
+        manager.delete("uuid-1")
+    assert manager.get_uuids() == ["uuid-2", "uuid-1"]
+    assert manager.cloud_files == ["uuid-1", "uuid-2"]
+
+    manager.delete(0)
+    assert manager.get_uuids() == ["uuid-1"]
+    assert manager.cloud_files == ["uuid-1"]
+    assert calls[1]["json"]["content"] == "uuid-2"
+
+    manager.delete()
+    assert manager.get_uuids() == []
+    assert manager.cloud_files == []
+
+
+def test_session_sender_reraises_send_failure_and_releases_state():
+    class FailingWsClient:
+        def send(self, payload):
+            raise IOError("send failed")
+
+    manager = ManagerStub()
+    manager.ws_client = FailingWsClient()
+    processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(
+        1, "chat", manager
+    )
+    try:
+        with pytest.raises(IOError, match="send failed"):
+            processor.start_request(
+                query="hello",
+                session=0,
+                triggers=[],
+                taskowner=manager,
+            )
+        assert processor.processing is False
+        assert processor.request_timed_out is False
+        assert not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
+    finally:
+        if maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked():
+            maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.release()
+
+
+def test_mutable_defaults_are_isolated_between_instances():
+    first = maica_tasker.MaicaWSTask(1, "first")
+    second = maica_tasker.MaicaWSTask(1, "second")
+    first.except_ws_status.append("status")
+    assert second.except_ws_status == []
+
+    first_exprop = maica_mtrigger.MTriggerExprop()
+    second_exprop = maica_mtrigger.MTriggerExprop()
+    first_exprop.item_list.append("item")
+    first_exprop.value_limits[0] = 10
+    assert second_exprop.item_list == []
+    assert second_exprop.value_limits == [0, 1]
+
+
+def test_logger_sync_does_not_clear_root_handlers():
+    manager = logger_manager.get_logger_manager()
+    module = type("Module", (), {})()
+    module.logger = manager.logger
+    name = "test.root_logger_reference"
+    manager.register_injected_reference(name, module, "logger")
+    before = list(manager.logger.handlers)
+    try:
+        manager.set_log_level(logging.INFO)
+        assert manager.logger.handlers == before
+    finally:
+        manager._injected_references.pop(name, None)
+        manager.set_log_level(logging.DEBUG)
+
+
+def test_accessable_checks_backend_before_external_network(monkeypatch):
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.in_mas = False
+    ai.HTTP_TIMEOUT = (0.1, 0.1)
+    ai._ignore_accessable = False
+    ai._serving_status = None
+    ai.status = None
+    ai._MaicaAi__accessable = False
+
+    class Provider:
+        def __init__(self, available):
+            self.available = available
+
+        def get_provider(self):
+            return self.available
+
+        def set_provider_id(self, value):
+            self._provider_id = value
+
+        def get_provider_id(self):
+            return self._provider_id
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    checks = []
+    ai.provider_manager = Provider(False)
+    ai.provider_manager._provider_id = 1
+    ai.can_access_internet = lambda: checks.append("network") or True
+    ai.accessable()
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert checks == ["network"]
+
+    ai.provider_manager = Provider(True)
+    ai.can_access_internet = lambda: False
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: (_ for _ in ()).throw(IOError("offline")))
+    ai.accessable()
+    assert ai.status == ai.MaicaAiStatus.NO_INTERTENT
+
+
 def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
     screen = (
         Path(__file__).resolve().parents[1]
@@ -1836,11 +1832,12 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
         "prompt_pname_repl": False,
         "mf_sf_access_impl": False,
         "mf_const_sf_access": True,
-        "mt_concl_memory": 2,
+        "memory_concl_arc": 2,
         "tnd_aggressive": 3,
         "mf_const_tools": 1,
         "max_length": 99999,
         "session_len_limit": 8192,
+        "mspire_search_type": "percise_page",
         "ic_prep": True,
         "twk_super": True,
     }
@@ -1860,9 +1857,10 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
     assert status["prompt_pname_repl"] is True
     assert values["mf_sf_access_impl"] == 0
     assert values["mf_const_sf_access"] == 1
-    assert values["mt_concl_memory"] == 2
+    assert values["memory_concl_arc"] == 2
     assert values["mf_const_tools"] == 2
     assert values["session_len_limit"] == 28672
+    assert values["mspire_search_type"] == "precise_page"
     for old in maica_v13_migration.SETTING_RENAMES:
         assert old not in values
         assert old not in status
@@ -1871,13 +1869,23 @@ def test_setting_migration_renames_tristates_and_is_idempotent():
         assert key not in status
 
 
+def test_setting_migration_normalizes_legacy_mspire_search_types():
+    for legacy, expected in maica_v13_migration.MSPIRE_SEARCH_TYPE_MIGRATIONS.items():
+        values = {"mspire_search_type": legacy}
+        maica_v13_migration.migrate_setting_values(
+            values,
+            fill_missing_tristates=False,
+        )
+        assert values == {"mspire_search_type": expected}
+
+
 def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings():
     missing_values = {}
     maica_v13_migration.migrate_setting_values(missing_values)
     assert missing_values == {
         "mf_sf_access_impl": 1,
         "mf_const_sf_access": 0,
-        "mt_concl_memory": 1,
+        "memory_concl_arc": 1,
     }
 
     values = {
@@ -1893,7 +1901,7 @@ def test_setting_migration_defaults_invalid_and_missing_tristates_with_warnings(
 
     assert values["mf_sf_access_impl"] == 1
     assert values["mf_const_sf_access"] == 0
-    assert values["mt_concl_memory"] == 1
+    assert values["memory_concl_arc"] == 1
     assert len(warnings) == 2
     assert "reset to 0" in warnings[1]
 
@@ -1903,13 +1911,13 @@ def test_outbound_settings_normalize_tristates_to_real_integers():
         {
             "mf_sf_access_impl": False,
             "mf_const_sf_access": True,
-            "mt_concl_memory": "invalid",
+            "memory_concl_arc": "invalid",
         }
     )
 
     assert normalized["mf_sf_access_impl"] == 0
     assert normalized["mf_const_sf_access"] == 1
-    assert normalized["mt_concl_memory"] == 1
+    assert normalized["memory_concl_arc"] == 1
     for key in maica_v13_migration.TRISTATE_SETTINGS:
         assert type(normalized[key]) is int
 

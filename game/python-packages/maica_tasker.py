@@ -444,7 +444,7 @@ class MaicaWSTask(MaicaTask):
       - 未传入except_ws_status时, 将不会收到on_received方法的调用
     """
 
-    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None):
         """
         初始化WebSocket任务。
 
@@ -456,7 +456,7 @@ class MaicaWSTask(MaicaTask):
                                    空列表表示不会处理。
         """
         super(MaicaWSTask, self).__init__(task_type, name, manager)
-        self.except_ws_status = except_ws_status
+        self.except_ws_status = list(except_ws_status) if except_ws_status is not None else []
 
     def on_event(self, event):
         """

@@ -50,11 +50,11 @@ def test_dynamic_default_logger():
     maica_tasker.default_logger.error("Error message")
     maica_tasker.default_logger.critical("Critical message")
 
-    # Test 5: 验证 default_logger 是 DynamicDefaultLogger 实例
+    # Test 5: 验证 default_logger 保持动态代理契约
     print("\n[Test 5] Type verification")
-    assert isinstance(maica_tasker.default_logger, maica_tasker.DynamicDefaultLogger), \
-        "default_logger should be DynamicDefaultLogger instance"
-    print("✓ default_logger is DynamicDefaultLogger instance")
+    assert hasattr(maica_tasker.default_logger, "_get_current_logger"), \
+        "default_logger should dynamically resolve the manager logger"
+    print("✓ default_logger provides the dynamic logger contract")
 
     # Test 6: 验证代理到 LoggerManager 的 logger
     print("\n[Test 6] Verify delegation to LoggerManager")
@@ -114,7 +114,11 @@ def test_maica_task_logger_property():
     print("\n[Test] Creating task and accessing logger")
     try:
         # 直接创建任务（不注册到管理器）
-        task = SimpleTask(None)
+        task = SimpleTask(
+            maica_tasker.MaicaTask.MAICATASK_TYPE_NORMAL,
+            "simple_task",
+            None,
+        )
 
         # 访问 logger property
         task_logger = task.logger

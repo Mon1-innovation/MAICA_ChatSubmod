@@ -433,9 +433,10 @@ init 999 python in maica:
         )
         if addition is not None:
             store.persistent.mas_player_additions.append(addition)
+            store._upload_persistent_dict()
 
     memory_trigger = MTriggerBase(
-        memory_template,
+        memory_writeback_template,
         "write_memory",
         callback=mtrigger_write_memory_callback,
         method=MTriggerMethod.request,

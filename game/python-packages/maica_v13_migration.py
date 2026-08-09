@@ -32,7 +32,7 @@ ADVANCED_SETTING_KEYS = (
     "mf_const_tools",
     "esearch_llm_concl",
     "mf_precheck_mt",
-    "mt_concl_memory",
+    "memory_concl_arc",
     "nsfw_acceptive",
     "mf_context_rnds",
     "mt_context_rnds",
@@ -49,13 +49,18 @@ RETIRED_PERSISTENT_SETTINGS = (
 TRISTATE_SETTINGS = (
     "mf_sf_access_impl",
     "mf_const_sf_access",
-    "mt_concl_memory",
+    "memory_concl_arc",
 )
 
 TRISTATE_DEFAULTS = {
     "mf_sf_access_impl": 1,
     "mf_const_sf_access": 0,
-    "mt_concl_memory": 1,
+    "memory_concl_arc": 1,
+}
+
+MSPIRE_SEARCH_TYPE_MIGRATIONS = {
+    "percise_page": "precise_page",
+    "in_percise_category": "in_precise_category",
 }
 
 try:
@@ -157,6 +162,11 @@ def migrate_setting_values(
 
     if values.get("mf_const_tools") == 3:
         values["mf_const_tools"] = 2
+    mspire_search_type = values.get("mspire_search_type")
+    if mspire_search_type in MSPIRE_SEARCH_TYPE_MIGRATIONS:
+        values["mspire_search_type"] = MSPIRE_SEARCH_TYPE_MIGRATIONS[
+            mspire_search_type
+        ]
     session_len_limit = values.get("session_len_limit")
     if (
         isinstance(session_len_limit, INTEGER_TYPES)

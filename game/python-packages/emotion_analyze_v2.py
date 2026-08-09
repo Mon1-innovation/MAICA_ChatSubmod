@@ -328,13 +328,16 @@ class EmoSelector(object):
     def _fix_strength(self):
         self.main_strength = min(1.0, max(0.0, self.main_strength))
 
-def get_sequence_emo(strength, emotion, storage, eoc, excepted=[], centralization=1.0):
+def get_sequence_emo(strength, emotion, storage, eoc, excepted=None, centralization=1.0):
     """
     strength = total accumulated emotion tendency
     emotion = selector[emotion]
     excepted = rejected emos, like last used: ['eka']
     centralization = higher for lower randomness
     """    
+
+    if excepted is None:
+        excepted = []
 
     weight_sel = []
     weight_rnd = []

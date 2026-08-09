@@ -112,6 +112,41 @@ class TestLoggerManager(object):
         print("✓ Get status test passed")
         print("  Status: {}".format(status))
 
+    def test_custom_logger_without_stdlib_attributes(self):
+        """Status and level updates remain usable with Ren'Py-like loggers."""
+        manager = get_logger_manager()
+        original_logger = manager.logger
+
+        class RenpyLikeLogger(object):
+            def __init__(self):
+                self.messages = []
+
+            def debug(self, message, *args, **kwargs):
+                self.messages.append(("debug", message))
+
+            def info(self, message, *args, **kwargs):
+                self.messages.append(("info", message))
+
+            def warning(self, message, *args, **kwargs):
+                self.messages.append(("warning", message))
+
+            def error(self, message, *args, **kwargs):
+                self.messages.append(("error", message))
+
+            def critical(self, message, *args, **kwargs):
+                self.messages.append(("critical", message))
+
+        custom_logger = RenpyLikeLogger()
+        try:
+            manager.set_logger(custom_logger)
+            status = manager.get_status()
+            assert status['handler_count'] == 0
+            assert status['handlers'] == []
+            manager.set_log_level(logging.INFO)
+            assert custom_logger.messages[-1][0] == "info"
+        finally:
+            manager.set_logger(original_logger)
+
     def test_injection_point_registration(self):
         """Verify injection point registration"""
         manager = get_logger_manager()

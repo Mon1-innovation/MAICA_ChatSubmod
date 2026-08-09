@@ -32,7 +32,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化错误处理器。
 
@@ -69,7 +69,7 @@ class GeneralWsErrorHandler(MaicaWSTask):
                     )
 class GeneralWsConsoleLogger(MaicaWSTask):
 
-    def __init__(self, task_type, name, manager, except_ws_status=[], console_logger=None):
+    def __init__(self, task_type, name, manager, except_ws_status=None, console_logger=None):
         super(GeneralWsConsoleLogger, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.console_logger = console_logger
         self.ui_lang_zh = False
@@ -129,7 +129,7 @@ class GeneralWsLogger(MaicaWSTask):
         logger: 日志记录器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化日志记录器。
 
@@ -312,7 +312,7 @@ class MTriggerWsHandler(MaicaWSTask):
         manager: 触发器管理器实例
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化触发器处理器。
 
@@ -365,7 +365,7 @@ class MTriggerWsHandler(MaicaWSTask):
 class QualityStatusWsHandler(MaicaWSTask):
     """Receive post-core quality results without treating them as triggers."""
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         super(QualityStatusWsHandler, self).__init__(
             task_type, name, manager=manager,
             except_ws_status=except_ws_status
@@ -429,7 +429,7 @@ class MAICALoginTasker(MaicaWSTask):
     负责发送登录请求，使用访问令牌进行身份验证。
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=[]):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化登录任务处理器。
 
@@ -526,7 +526,7 @@ class MAICASessionResetTasker(MaicaWSTask):
     """
 
 
-    def __init__(self, task_type, name, manager, except_ws_status=['maica_session_reset']):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化会话重置任务处理器。
 
@@ -536,6 +536,8 @@ class MAICASessionResetTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表
         """
+        if except_ws_status is None:
+            except_ws_status = ['maica_session_reset']
         super(MAICASessionResetTasker, self).__init__(task_type, name, manager, except_ws_status)
 
     def on_manual_run(self, chat_session):
@@ -576,7 +578,7 @@ class MAICASettingSendTasker(MaicaWSTask):
         _generate_setting_func (callable|None): 生成配置参数的回调函数，返回配置字典
     """
 
-    def __init__(self, task_type, name, manager, except_ws_status=['maica_params_accepted']):
+    def __init__(self, task_type, name, manager, except_ws_status=None):
         """
         初始化设置发送任务处理器。
 
@@ -586,6 +588,8 @@ class MAICASettingSendTasker(MaicaWSTask):
             manager (MaicaTaskManager): 任务管理器实例
             except_ws_status (list): 监听的消息状态列表，默认监听 'maica_params_accepted'
         """
+        if except_ws_status is None:
+            except_ws_status = ['maica_params_accepted']
         super(MAICASettingSendTasker, self).__init__(task_type, name, manager, except_ws_status=except_ws_status)
         self._generate_setting_func = None
 
@@ -689,7 +693,7 @@ class AutoReconnector(MaicaWSTask):
         _max_reconnect_attempts (int): 连续重连次数上限
         _login_successful (bool): 是否已成功登录，用于防止在登录失败后重连
     """
-    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None):
         """
         初始化自动重连处理器。
 
@@ -873,7 +877,7 @@ class AutoResumeTasker(MaicaWSTask):
         _enabled (bool): 自动恢复功能是否启用
         _generation_started (bool): 后端是否已发送生成开始标记
     """
-    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None):
         """
         初始化自动恢复任务处理器。
 
@@ -997,7 +1001,7 @@ class KeepWsAliveTasker(MaicaWSTask):
         _pong_event (threading.Event|None): 用于等待pong响应的事件
     """
 
-    def __init__(self, task_type, name, manager=None, except_ws_status=['pong'], ping_interval=30.0):
+    def __init__(self, task_type, name, manager=None, except_ws_status=None, ping_interval=30.0):
         """
         初始化心跳保活处理器。
 
@@ -1008,6 +1012,8 @@ class KeepWsAliveTasker(MaicaWSTask):
             except_ws_status (list): 监听的消息状态列表，默认监听'pong'
             ping_interval (float): 静默心跳间隔时间（秒），默认30秒
         """
+        if except_ws_status is None:
+            except_ws_status = ['pong']
         super(KeepWsAliveTasker, self).__init__(task_type, name, manager, except_ws_status)
         self._enabled = False
         self._logged_in = False
@@ -1192,214 +1198,3 @@ class KeepWsAliveTasker(MaicaWSTask):
         self._latency = 0.0
         self._pong_event.clear()
         self._stop_timer_thread()
-
-
-class StreamingPacketValidator(MaicaWSTask):
-    """
-    Streaming数据包验证器。
-
-    监听 maica_core_streaming_continue 和 maica_core_complete 消息，
-    验证接收到的streaming continue数据包数量是否与服务器报告的数量匹配。
-    如果不匹配则断开WebSocket连接。
-
-    工作流程：
-    1. 监听 maica_core_streaming_continue 消息，计数每个接收到的数据包
-    2. 监听 maica_core_complete 消息，解析其content中的packet数量
-    3. 比较计数与报告的packet数量
-    4. 如果不匹配，记录错误并断开WebSocket连接
-    5. 在完成消息后重置计数器
-
-    Attributes:
-        _packet_count (int): 当前接收到的streaming continue数据包计数
-        _enabled (bool): 验证功能是否启用，默认为True
-        _validation_passed (bool): 上一次验证是否成功
-    """
-
-    def __init__(self, task_type, name, manager=None, except_ws_status=[]):
-        """
-        初始化Streaming数据包验证器。
-
-        Args:
-            task_type (int): 任务类型
-            name (str): 任务名称
-            manager (MaicaTaskManager): 任务管理器实例
-            except_ws_status (list): 监听的消息状态列表
-        """
-        super(StreamingPacketValidator, self).__init__(
-            task_type, name, manager=manager,
-            except_ws_status=except_ws_status
-        )
-        self._packet_count = 0
-        self._enabled = True
-        self._validation_passed = True
-
-    def on_received(self, event):
-        """
-        处理接收到的WebSocket消息。
-
-        根据消息状态进行相应的处理：
-        - maica_core_streaming_continue: 增加数据包计数
-        - maica_core_complete: 验证数据包数量并进行处理
-
-        Args:
-            event (MaicaTaskEvent): WebSocket事件对象
-        """
-        if not self._enabled:
-            return
-
-        wspack = event.data
-
-        if wspack.status == 'maica_core_streaming_continue':
-            self._packet_count += 1
-            self.logger.debug(
-                "[StreamingPacketValidator] received packet, count: {}".format(self._packet_count)
-            )
-
-        elif wspack.status == 'maica_core_complete':
-            self._validate_and_process_complete(wspack)
-
-    def _validate_and_process_complete(self, wspack):
-        """
-        验证和处理完成消息。
-
-        解析 maica_core_complete 消息，提取packet数量，
-        与已接收的数据包计数进行比较。
-
-        Args:
-            wspack (WSResponse): WebSocket响应对象
-        """
-        content = wspack.content
-        self.logger.debug(
-            "[StreamingPacketValidator] received complete message: {!r} ({})".format(
-                content, type(content).__name__
-            )
-        )
-
-        try:
-            reported_packets = self._extract_reported_packets(content)
-            if reported_packets is None:
-                self._validation_passed = False
-                self.logger.error(
-                    "[StreamingPacketValidator] failed to parse complete message: {!r} ({})".format(
-                        content, type(content).__name__
-                    )
-                )
-                self._close_ws_safely()
-                return
-
-            self._validation_passed = self._packet_count == reported_packets
-            if not self._validation_passed:
-                self.logger.error(
-                    "[StreamingPacketValidator] packet count mismatch! Received: {}, Reported: {} - disconnecting WebSocket".format(
-                        self._packet_count, reported_packets
-                    )
-                )
-                try:
-                    self.manager.create_event(
-                        MaicaTaskEvent(
-                            taskowner=self,
-                            event_type=MAICATASKEVENT_TYPE_TASK,
-                            data=maica_tasker_events.GenericData(
-                                name='streaming_packet_mismatch',
-                                content={
-                                    'received_count': self._packet_count,
-                                    'reported_count': reported_packets,
-                                }
-                            )
-                        )
-                    )
-                finally:
-                    self._close_ws_safely()
-            else:
-                self.logger.info("[StreamingPacketValidator] packet count verified successfully")
-        finally:
-            self._reset_count()
-
-    def _close_ws_safely(self):
-        if not self.manager or not self.manager.ws_client:
-            return
-        try:
-            self.manager.close_ws()
-        except Exception as error:
-            self.logger.error(
-                "[StreamingPacketValidator] failed to close WebSocket: {}".format(error)
-            )
-
-    @staticmethod
-    def _extract_reported_packets(content):
-        """Return the integer immediately associated with ``packets sent``."""
-        import re
-        try:
-            string_types = (basestring,)
-        except NameError:
-            string_types = (str, bytes)
-        if not isinstance(content, string_types):
-            return None
-        if isinstance(content, bytes):
-            try:
-                content = content.decode('utf-8')
-            except (UnicodeDecodeError, AttributeError):
-                return None
-        content = content.strip()
-        patterns = (
-            r'Streaming finished for [^,\r\n]+, (0|[1-9]\d*) packets sent(?: <\d+>)?\Z',
-            r'MSpire cache finished, (0|[1-9]\d*) packets sent\Z',
-            r'Streaming finished with seed (?:None|-?(?:0|[1-9]\d*)) for [^,\r\n]+, (0|[1-9]\d*) packets sent -- your traceray ID is [^\s]+\Z',
-        )
-        for pattern in patterns:
-            match = re.match(pattern, content)
-            if match:
-                try:
-                    return int(match.group(1))
-                except (TypeError, ValueError):
-                    return None
-        return None
-
-    def _reset_count(self):
-        """重置数据包计数器。"""
-        self._packet_count = 0
-        self.logger.debug("[StreamingPacketValidator] packet count reset")
-
-    def enable(self):
-        """
-        启用验证功能。
-
-        启用后，会对streaming数据包进行验证。
-        """
-        self._enabled = True
-        self.logger.info("[StreamingPacketValidator] enabled")
-
-    def disable(self):
-        """
-        禁用验证功能。
-
-        禁用后，不会对streaming数据包进行验证。
-        """
-        self._enabled = False
-        self._reset_count()
-        self.logger.info("[StreamingPacketValidator] disabled")
-
-    def reset(self):
-        """重置验证器状态。"""
-        super(StreamingPacketValidator, self).reset()
-        self._reset_count()
-
-    @property
-    def packet_count(self):
-        """
-        获取当前的数据包计数。
-
-        Returns:
-            int: 当前接收到的streaming continue数据包数量
-        """
-        return self._packet_count
-
-    @property
-    def validation_passed(self):
-        """
-        获取上一次验证是否成功。
-
-        Returns:
-            bool: 如果上一次验证成功返回True，否则返回False
-        """
-        return self._validation_passed

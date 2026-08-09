@@ -847,6 +847,7 @@ persistent_filter = [
     "_mas_bday_said_happybday",
     "_mas_f14_spent_f14",
     "_mas_nye_spent_nye",
+    "_mas_nye_spent_nyd",
     "_mas_player_bday_spent_time",
     "_mas_d25_spent_d25",
     "_mas_o31_tt_count",

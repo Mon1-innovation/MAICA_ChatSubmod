@@ -191,7 +191,7 @@ init 10 python:
         "gen_enforce_lang":True,
         "mf_sf_access_impl":1,
         "mf_const_sf_access":0,
-        "mt_concl_memory":1,
+        "memory_concl_arc":1,
         "prompt_allow_nickname":True,
     }
     maica_advanced_default_setting = copy.deepcopy(maica_advanced_setting)
@@ -237,7 +237,7 @@ init 10 python:
         # "gen_enforce_lang":True,
         # "mf_sf_access_impl":1,
         # "mf_const_sf_access":0,
-        # "mt_concl_memory":1,
+        # "memory_concl_arc":1,
         # "prompt_allow_nickname":True,
 
     # super:
@@ -262,7 +262,7 @@ init 10 python:
                 "mf_const_tools": 0,
                 "nsfw_acceptive": False,
                 "gen_enforce_lang": False,
-                "mt_concl_memory": 0,
+                "memory_concl_arc": 0,
                 "prompt_allow_nickname": False,
             },
         },
@@ -413,7 +413,8 @@ init 10 python:
 
     def maica_get_preset_name(preset_type):
         preset = maica_get_matching_preset(preset_type)
-        return _(preset["name"]) if preset else _("Custom")
+        name = preset["name"] if preset else "Custom"
+        return renpy.substitute(_(name))
 
     _maica_validate_presets()
     if set(maica_advanced_default_setting) != set(maica_v13_migration.ADVANCED_SETTING_KEYS):
@@ -888,7 +889,7 @@ init 10 python:
     def export_player_information():
         with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "player_info.txt"), 'w') as f:
             f.write(json.dumps(persistent.mas_player_additions))
-        renpy.notify(_("MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_information.txt"))
+        renpy.notify(_("MAICA: Exported to game/Submods/MAICA_ChatSubmod/player_info.txt"))
 
     def update_model_setting(ininit = False):
         import os, json
@@ -1120,6 +1121,9 @@ screen maica_setting():
 
     default tooltip = Tooltip("")
 
+    on "show" action Show("maica_setting_tooltip", tooltip=tooltip)
+    on "hide" action Hide("maica_setting_tooltip")
+
     python:
         submods_screen = store.renpy.get_screen("maica_setting", "screens")
 
@@ -1282,7 +1286,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check_nohover"
-                text _("The remaining settings in this section are managed by presets.\n! Do not modify manually unless you know what they exactly mean")
+                text _("* The remaining settings in this section are managed by presets.\n* Do not modify manually unless you know what they exactly mean")
 
             hbox:
                 style_prefix "generic_fancy_check"
@@ -1412,7 +1416,7 @@ screen maica_setting():
                         style_prefix "maica_check"
                         textbutton _("Export MFocus info to main directory"):
                             action Function(export_player_information)
-                            hovered SetField(_tooltip, "value", _("Export to game/Submods/MAICA_ChatSubmod/player_information.txt"))
+                            hovered SetField(_tooltip, "value", _("Export to game/Submods/MAICA_ChatSubmod/player_info.txt"))
                             unhovered SetField(_tooltip, "value", _tooltip.default)
 
             hbox:
@@ -1630,6 +1634,9 @@ screen maica_setting():
                         Function(renpy.notify, _("MAICA: Settings reset")),
                         Hide("maica_setting")
                     ]
+
+screen maica_setting_tooltip(tooltip):
+    zorder 95
 
     if tooltip.value:
         frame:

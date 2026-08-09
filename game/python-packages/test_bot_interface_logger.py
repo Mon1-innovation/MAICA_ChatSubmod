@@ -130,15 +130,11 @@ class TestBotInterfaceLoggerProxy(unittest.TestCase):
 
         self.logger_manager.set_formatter(fmt=new_fmt, datefmt=new_datefmt)
 
-        # Get current logger and check formatter
-        current_logger = self.logger_manager.logger
-        for handler in current_logger.handlers:
-            if hasattr(handler, 'formatter') and handler.formatter:
-                self.assertIn(
-                    "%(levelname)s",
-                    handler.formatter._fmt,
-                    "Formatter not properly updated"
-                )
+        self.assertIn(
+            "%(levelname)s",
+            self.logger_manager._stream_handler.formatter._fmt,
+            "Manager stream formatter not properly updated"
+        )
 
     def test_proxy_delegates_unknown_attributes(self):
         """Test that proxy delegates unknown attributes to wrapped logger"""
