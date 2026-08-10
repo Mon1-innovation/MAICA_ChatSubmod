@@ -1,10 +1,12 @@
 init -990 python:
+    # dependencies - dictionary in the following structure: {"name": ("minimum_version", "maximum_version")}
     store.mas_submod_utils.Submod(
         author="P",
         name="MAICA Blessland",
         description=_("MAICA Official Submod Frontend"),
         version=maica_ver,
-        settings_pane="maica_setting_pane",
+        dependencies={"Ignore Translation Conflicts": (None, None)},
+        settings_pane="maica_setting_pane"
     )
 init -989 python:
     if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):

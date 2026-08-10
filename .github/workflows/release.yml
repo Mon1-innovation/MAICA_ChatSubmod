@@ -64,6 +64,32 @@ jobs:
       run: |
         echo "${{ steps.get_version.outputs.version }}" > game/python-packages/maica_release_version
 
+    - name: Download Ignore Translation Conflicts dependency
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
+      run: |
+        dependency_tmp_dir="$(mktemp -d)"
+        dependency_archive="$dependency_tmp_dir/dependency.zip"
+        dependency_extracted="$dependency_tmp_dir/extracted"
+        dependency_url="https://github.com/MAS-Submod-MoyuTeam/MAS_ignore_tl_conficts_submod/archive/refs/tags/v1.0.0.zip"
+        trap 'rm -rf "$dependency_tmp_dir"' EXIT
+
+        curl --fail --show-error --location --retry 3 "$dependency_url" --output "$dependency_archive"
+        mkdir -p "$dependency_extracted"
+        unzip -q "$dependency_archive" -d "$dependency_extracted"
+
+        dependency_source="$(find "$dependency_extracted" -type d -path '*/game/Submods/IgnoreTranslationConflicts' -print -quit)"
+        if [ -z "$dependency_source" ]; then
+          echo "Expected Ignore Translation Conflicts directory was not found in the dependency archive" >&2
+          exit 1
+        fi
+        if [ ! -f "$dependency_source/zz_ignore_translation_conflicts.rpy" ]; then
+          echo "Expected Ignore Translation Conflicts script was not found in the dependency archive" >&2
+          exit 1
+        fi
+
+        mkdir -p game/Submods
+        cp -R "$dependency_source" game/Submods/
+
     - name: Create zip package
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
