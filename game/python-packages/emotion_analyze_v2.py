@@ -309,20 +309,26 @@ class EmoSelector(object):
         
         res = get_sequence_emo(self.main_strength, self.selector[emote_kw], self.storage, eoc=self.eoc, excepted=[self._pre_emote_code])
         strength_diff = res[1] - self.main_strength
-        self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset)) if self.sentiment[emote_kw] == self.sentiment[self._pre_emote_kw] else 0.1
+
         self._pre_emote_code = self._emote_code
         self._emote_code = res[0]
-        
-        if self.sentiment[self._pre_emote_kw] == self.sentiment[emote_kw]:
+
+        if self.sentiment[emote_kw] == self.sentiment[self._pre_emote_kw]:
+            self.main_strength += min(0.15, max(-0.15, multi * strength_diff + offset))
+
             if self._pre_emote_kw != emote_kw:
                 if self.main_strength <= 0.3:
-                    self.main_strength += 0.2
+                    self.main_strength += 0.15
                 elif self.main_strength <= 0.6:
                     self.main_strength += 0.1
                 else:
                     self.main_strength += 0.05
             else:
                 self.main_strength += 0.05
+
+        else:
+            self.main_strength = 0.1
+        
         self._fix_strength()
 
     def _fix_strength(self):
