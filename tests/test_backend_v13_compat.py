@@ -1470,17 +1470,23 @@ def test_h_quality_ui_never_runs_display_calls_in_a_background_thread():
     assert "timer 5.0 action Function(maica_hide_quality_chibi)" in screen
 
 
-def test_h_quality_ui_uses_transition_api_instead_of_show_hide_kwargs():
+def test_h_quality_ui_scopes_chibi_transitions_to_master_layer():
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     hide_body = function_body(screen, r"maica_hide_quality_chibi")
     show_body = function_body(screen, r"maica_handle_quality_status")
 
     assert re.search(r"renpy\.hide\(\s*['\"]chibi_peek['\"]\s*\)", hide_body)
-    assert "renpy.transition(moveoutleft)" in hide_body
+    assert re.search(
+        r"renpy\.transition\(\s*moveoutleft\s*,\s*layer\s*=\s*['\"]master['\"]\s*\)",
+        hide_body,
+    )
     assert "transition=" not in hide_body
     assert "transition=" not in show_body
     assert "transform=" not in show_body
-    assert "renpy.transition(moveinleft)" in show_body
+    assert re.search(
+        r"renpy\.transition\(\s*moveinleft\s*,\s*layer\s*=\s*['\"]master['\"]\s*\)",
+        show_body,
+    )
 
 
 def test_h_legacy_quality_receiver_status_is_removed_by_latest_migration():
