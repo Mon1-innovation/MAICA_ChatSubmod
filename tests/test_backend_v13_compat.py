@@ -1375,6 +1375,21 @@ def test_g_persistent_upload_uses_the_player_addition_byte_limit():
     assert re.search(r"maica_v13_migration\.utf8_byte_length\s*\(", upload)
 
 
+def test_g_persistent_upload_includes_the_effective_target_language():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    upload = function_body(header, r"_upload_persistent_dict")
+    persistent_filter = json.loads(
+        source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")
+    )
+
+    assert re.search(
+        r"d\[['\"]target_lang['\"]\]\s*=\s*"
+        r"store\.maica\.maica_instance\.target_lang",
+        upload,
+    )
+    assert "target_lang" in persistent_filter
+
+
 def test_g_v18_migration_runs_before_persistent_upload():
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")

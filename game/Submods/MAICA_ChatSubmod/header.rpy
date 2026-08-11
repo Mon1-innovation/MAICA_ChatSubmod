@@ -592,6 +592,7 @@ init 10 python:
         if persistent._mas_player_bday:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
+        d['target_lang'] = store.maica.maica_instance.target_lang
         del d['_preferences']
         import json_exporter
         sentiment = json_exporter.persistent_filter
