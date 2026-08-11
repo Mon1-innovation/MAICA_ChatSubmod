@@ -93,14 +93,10 @@ jobs:
     - name: Create zip package
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
-        zip -r MAICA_ChatSubmod-${{ steps.get_version.outputs.version }}.zip . \
-          -x '.git*' \
-          -x '.github*' \
-          -x '*.git*' \
-          -x '.vscode/*' \
-          -x 'README.md' \
-          -x 'README_EN.md' \
-          -x 'tests/*'
+        zip -r MAICA_ChatSubmod-${{ steps.get_version.outputs.version }}.zip \
+          characters \
+          game \
+          lib
 
     - name: Generate Release Notes
       id: generate_release_notes
