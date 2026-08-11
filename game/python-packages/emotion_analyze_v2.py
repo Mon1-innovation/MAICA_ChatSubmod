@@ -58,7 +58,7 @@ class EmoSelector(object):
         self.emote_translate = {}
         self.affection = 100
         self.eoc = eoc
-        self.main_strength = 0.0
+        self.main_strength = 0.1
         self._pre_emote_kw = u"微笑"
         self._pre_emote_code = "eua"
 
@@ -69,7 +69,7 @@ class EmoSelector(object):
         self.fallback_selector = FallBackEmo()
 
     def reset(self):
-        self.main_strength = 0.0
+        self.main_strength = 0.1
         self._pre_emote_kw = u"微笑"
         self._pre_emote_code = "eua"
 

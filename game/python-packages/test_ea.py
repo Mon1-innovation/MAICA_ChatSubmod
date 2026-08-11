@@ -83,4 +83,4 @@ def print_info(data = ""):
     #print("strength m{} r{}".format(selector.main_strength, selector.repeat_strength))
     #print("期望表情: {}:{}".format(selector.pre_emote,selector.selector.get(selector.pre_emote, None)))
 
-print_info("[smile]My favorite book? There's a lot of books I like.[smile]If you ask me what my favorite book is, I'd say it's the one you're reading right now, [player].[grin]Ahaha~")
+print_info("[尴尬]123")

@@ -115,6 +115,46 @@ class EventStub:
         self.data = type("Packet", (), {"status": status, "content": content})()
 
 
+def test_general_chat_completion_resets_mood_after_final_analysis():
+    calls = []
+
+    class ProcessorStub:
+        def consume_core_output(self, event):
+            return []
+
+        def reset(self):
+            calls.append("processor.reset")
+
+    class TalkSplitterStub:
+        def announce_stop(self):
+            return ["final"]
+
+    class MoodStatusStub:
+        def reset(self):
+            calls.append("mood.reset")
+
+    ai = type(
+        "AiStub",
+        (),
+        {
+            "_in_mspire": True,
+            "pprt": False,
+            "TalkSpilter": TalkSplitterStub(),
+            "MoodStatus": MoodStatusStub(),
+            "MaicaAiStatus": type("Status", (), {"MESSAGE_DONE": "done"}),
+            "add_ana": lambda self, content: calls.append(("add_ana", content)),
+        },
+    )()
+
+    maica.MaicaAi.general_chat_callback(
+        ai, ProcessorStub(), EventStub("maica_chat_loop_finished")
+    )
+
+    assert calls == [("add_ana", "final"), "mood.reset", "processor.reset"]
+    assert ai.status == "done"
+    assert ai._in_mspire is False
+
+
 def _build_trigger(template, name="trigger", exprop=None, description=""):
     if exprop is None:
         exprop = maica_mtrigger.MTriggerExprop(item_name_zh="项目")
