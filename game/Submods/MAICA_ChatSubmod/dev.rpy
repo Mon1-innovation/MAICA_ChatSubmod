@@ -34,3 +34,15 @@ label text_split:
 
     call maica_hide_console
     return
+
+label test_dscl:
+    menu:
+        "0.3":
+            $ maica_handle_quality_status(False, 0.3)
+        "0.6":
+            $ maica_handle_quality_status(False, 0.6)
+        "0.9":
+            $ maica_handle_quality_status(False, 0.9)
+        "1.0":
+            $ maica_handle_quality_status(False, 1.0)
+    return
