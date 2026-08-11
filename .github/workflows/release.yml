@@ -90,6 +90,11 @@ jobs:
         mkdir -p game/Submods
         cp -R "$dependency_source" game/Submods/
 
+    - name: Copy documentation into submod package
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
+      run: |
+        cp README.md README_EN.md LICENSE game/Submods/MAICA_ChatSubmod/
+
     - name: Create zip package
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |
