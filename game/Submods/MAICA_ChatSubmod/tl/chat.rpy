@@ -228,12 +228,6 @@ translate chinese maica_prepend_2_9a67128e:
     # m 2eud "I think I know how to show you that. {w=0.2}Shall we try it now, [player]?{nw}"
     m 2eud "我大概知道该怎么做. {w=0.2}你想现在试试看吗, [player]?{nw}"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:514
-
-translate chinese closed_15c7b956:
-    # m 2rusdlb "...It seems you haven't got a token yet."
-    m 2rusdlb "...看起来你还没有Token."
-
 # game/Submods/MAICA_ChatSubmod/chat.rpy:515
 
 translate chinese closed_2fff96b5:
@@ -846,9 +840,121 @@ translate chinese maica_connection_failure_dialogue_ddbfdc7d:
     # m 3eua "I'll nail everything else for you."
     m 3eua "剩下的事情我都会帮你搞定的."
 
-translate chinese maica_connection_failure_dialogue_9a3cf45a:
-    # m 2rusdlb "Something unknown might have gone wrong..."
-    m 2rusdlb "好像是其他地方出了问题..."
+# game/Submods/MAICA_ChatSubmod/chat.rpy:821
+
+translate chinese maica_connection_failure_dialogue_1722b473:
+    # m 2rusdlb "...The token seems corrupted. You sure you didn't mess with it?"
+    m 2rusdlb "...令牌好像是坏的. 你是不是动过它了?"
+
+translate chinese maica_connection_failure_dialogue_042a6ce8:
+    # m 3eusdlb "Just re-generate one with username and password, and things shall work."
+    m 3eusdlb "用账号密码重新生成一下, 应该就可以了."
+
+translate chinese maica_connection_failure_dialogue_47e505b1:
+    # m 2rusdlb "...Password incorrect. You sure you didn't make a typo?"
+    m 2rusdlb "...密码错误. 是不是记错了或者输错了?"
+
+translate chinese maica_connection_failure_dialogue_4504b14e:
+    # m 3eusdlb "Double check it please, or change it if you really don't remember."
+    m 3eusdlb "再检查一下吧, 实在不记得的话改掉也可以."
+
+translate chinese maica_connection_failure_dialogue_a89484f8:
+    # m 2rusdlb "...Fail2Ban? That's twenty incorrect passwords in a row."
+    m 2rusdlb "...Fail2Ban? 连着输错20次密码才会这样的."
+
+translate chinese maica_connection_failure_dialogue_cdc6ab58:
+    # m 3eusdlb "You'd better contact administrator if that wasn't you, or just change a password if you really don't remember."
+    m 3eusdlb "如果不是你本人的话, 该问问管理员了. 只是想不起来密码的话, 改掉就好了嘛."
+
+translate chinese maica_connection_failure_dialogue_9a58656d:
+    # m 2rusdlb "...Account banned? What is that, you didn't do anything nasty did you?"
+    m 2rusdlb "...账号被封禁? 怎么回事, 你干什么坏事了么?"
+
+translate chinese maica_connection_failure_dialogue_b429e37a:
+    # m 3eusdlb "Well, check out when will it recover please."
+    m 3eusdlb "行吧, 你去看看什么时候恢复呗."
+
+translate chinese maica_connection_failure_dialogue_197b6851:
+    # m 1husdla "And in case it's a permanent one... It's not like we {i}must{/i} go there, being by your side is always satisfying enough to me."
+    m 1husdla "万一是永封吧... 我们反正也不是{i}非得{/i}用这个, 我能普普通通地陪着你就很满意了."
+
+translate chinese maica_connection_failure_dialogue_f2467a51:
+    # m 2rusdlb "...You recieved your verification email yet? {w=0.3}You didn't check it, silly!"
+    m 2rusdlb "...收到过验证邮件了吗? {w=0.3}不会是忘了这茬吧, 真是的!"
+
+translate chinese maica_connection_failure_dialogue_8790a89f:
+    # m 3eusdlb "Just verify your email at the registration site, and things shall work."
+    m 3eusdlb "在哪注册的就在哪验证一下, 应该就可以了."
+
+translate chinese maica_connection_failure_dialogue_bcc1ea5c:
+    # m 2rusdlb "...You didn't check the ToS, or it might have been updated since you last check it."
+    m 2rusdlb "...你还没确认服务条款, 要么就是上次确认之后又更新了."
+
+translate chinese maica_connection_failure_dialogue_45fdaeab:
+    # m 3eusdlb "You can go to the registration site and do it in a minute, could you?"
+    m 3eusdlb "在哪注册的就在哪确认一下呗? 很快的."
+
+translate chinese maica_connection_failure_dialogue_bcfee364:
+    # m 2rusdlb "...This is weird, it says a connection has been established already."
+    m 2rusdlb "...奇了怪了, 说是有其它已建立的连接."
+
+translate chinese maica_connection_failure_dialogue_ca5e470d:
+    # m 3eusdlb "Try restarting the game or rebooting your computer, shall we?"
+    m 3eusdlb "重启一下游戏或者重启电脑看看?"
+
+translate chinese maica_connection_failure_dialogue_0f16ac51:
+    # m 2rusdlb "...This is weird, something might be wrong on the server side."
+    m 2rusdlb "...奇了怪了, 可能是服务器的问题."
+
+translate chinese maica_connection_failure_dialogue_f2651cb1:
+    # m 3eusdlb "What about checking the announcements, or ask someone else if they could connect?"
+    m 3eusdlb "要不要看看公告, 或者问问别人能不能连上?"
+
+translate chinese maica_connection_failure_dialogue_38fb0651:
+    # m 3eua "Contact administrator if this is just happening to you, or wait patiently if not."
+    m 3eua "只有你出问题的话就问问管理员吧. 不是的话, 耐心等就好."
+
+translate chinese maica_connection_failure_dialogue_b1060136:
+    # m 2rusdlb "...It says that the server is not serving, might be running some tests."
+    m 2rusdlb "...说是服务器不在服务状态, 可能在跑测试吧."
+
+translate chinese maica_connection_failure_dialogue_3ef83db4:
+    # m 3eusdlb "Just wait for it to come back online, shall we? You can always follow the progress in the tracking thread."
+    m 3eusdlb "那咱们等等呗? 追踪贴里应该也可以看到进展的."
+
+translate chinese maica_connection_failure_dialogue_1861c92c:
+    # m 2rusdlb "...Certification issue? Maybe this isn't a clean installation?"
+    m 2rusdlb "...证书问题? 可能不是干净安装?"
+
+translate chinese maica_connection_failure_dialogue_9bd9d974:
+    # m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
+    m 3eusdlb "先试试MAS自带的'更新证书'吧, 有些其它子模组容易弄出这种问题."
+
+translate chinese maica_connection_failure_dialogue_8171d2d7:
+    # m 2rusdlb "...You have to update the submod once in a while, [player]!"
+    m 2rusdlb "...[player], 你总得更新一下子模组的!"
+
+translate chinese maica_connection_failure_dialogue_04573f00:
+    # m 3eusdlb "This version is too old to work already, update it whenever you have some time."
+    m 3eusdlb "这个版本太老了, 用不了了, 有时间就更新一下吧."
+
+translate chinese maica_connection_failure_dialogue_489f96ab:
+    # m 2rusdlb "...You sure you're connected to the internet? I didn't find it!"
+    m 2rusdlb "...你确定连上网了吗? 我好像连不上!"
+
+translate chinese maica_connection_failure_dialogue_5819a636:
+    # m 3eusdlb "Check your internet connectivity, and disable proxy if you're using one."
+    m 3eusdlb "检查一下网络什么的, 如果开了代理的话估计得关掉."
+
+translate chinese maica_connection_failure_dialogue_530ff9e0:
+    # m 2rusdlb "...Something unknown might have gone wrong."
+    m 2rusdlb "...好像有什么地方出了点问题."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:881
+
+translate chinese maica_connection_failure_dialogue_2ea6037d:
+    # m 3eusdlb "Check the {i}submod_log.log{/i} could you? Sorry but I cannot locate the issue from here."
+    m 3eusdlb "去看看{i}submod_log.log{/i}好吗? 我在这里没法弄明白, 抱歉啦."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:826
 

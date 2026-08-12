@@ -819,7 +819,7 @@ label maica_connection_failure_dialogue:
 
     elif ai.status == ai.MaicaAiStatus.TOKEN_CORRUPTED:
         m 2rusdlb "...The token seems corrupted. You sure you didn't mess with it?"
-        m 3eusdlb "Just re-generate one, and things shall work."
+        m 3eusdlb "Just re-generate one with username and password, and things shall work."
 
     elif ai.status == ai.MaicaAiStatus.TOKEN_INVALID:
         m 2rusdlb "...Password incorrect. You sure you didn't make a typo?"

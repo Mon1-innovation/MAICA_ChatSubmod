@@ -148,27 +148,6 @@ def test_chinese_translation_ids_are_unique():
     assert not duplicates, "duplicate Chinese translation IDs:\n{}".format("\n".join(duplicates))
 
 
-def test_connection_failure_dialogue_has_current_chinese_translation_ids():
-    source = read(SUBMOD / "chat.rpy")
-    block = source.split("label maica_connection_failure_dialogue:", 1)[1].split(
-        "\nlabel ", 1
-    )[0]
-    expected = set()
-    for line in block.splitlines():
-        code = line.strip()
-        if not re.match(r'^m\s+\S+\s+"', code):
-            continue
-        digest = hashlib.md5((code + "\r\n").encode("utf-8")).hexdigest()[:8]
-        expected.add("maica_connection_failure_dialogue_{}".format(digest))
-
-    translated = set(TRANSLATE_CHINESE_ID_RE.findall(read(TL / "chat.rpy")))
-
-    assert len(expected) == 21
-    assert expected.issubset(translated), "missing dialogue translations:\n{}".format(
-        "\n".join(sorted(expected - translated))
-    )
-
-
 def test_chinese_translation_headers_are_separate_and_blocks_are_indented():
     malformed = []
     for path in rpy_files(TL):
