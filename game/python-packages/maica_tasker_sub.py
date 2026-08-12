@@ -44,6 +44,11 @@ class GeneralWsErrorHandler(MaicaWSTask):
             logger: 日志记录器
         """
         super(GeneralWsErrorHandler, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
+        self._error_callback = None
+
+    def set_error_callback(self, callback):
+        self._error_callback = callback
+
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             self.on_received(event)
@@ -62,6 +67,9 @@ class GeneralWsErrorHandler(MaicaWSTask):
         else:
             wspack = event.data
             if wspack.type == 'error' or 500 <= wspack.code <= 600:
+                if self._error_callback:
+                    if self._error_callback(wspack.status, wspack.content, wspack.code) is False:
+                        return
                 event.taskowner.close_ws()
                 if self.logger:
                     self.logger.error(
@@ -207,7 +215,7 @@ class HistoryStatusHandler(MaicaWSTask):
 
     监听历史记录切片相关的消息，跟踪token使用状态：
     - TOKEN_NORMAL: 正常状态
-    - TOKEN_24000_EXCEEDED: token超过24000
+    - TOKEN_WARN_EXCEEDED: token超过24000
     - TOKEN_MAX_EXCEEDED: token达到最大限制
 
     Attributes:
@@ -216,7 +224,7 @@ class HistoryStatusHandler(MaicaWSTask):
 
     # Token状态常量
     TOKEN_NORMAL = 0
-    TOKEN_24000_EXCEEDED = 1
+    TOKEN_WARN_EXCEEDED = 1
     TOKEN_MAX_EXCEEDED = 2
 
     def __init__(self, task_type, name, manager):
@@ -244,7 +252,7 @@ class HistoryStatusHandler(MaicaWSTask):
             event (MaicaTaskEvent): WebSocket事件对象
         """
         if event.data.status == 'maica_history_slice_hint':
-            self.status = self.TOKEN_24000_EXCEEDED
+            self.status = self.TOKEN_WARN_EXCEEDED
         elif event.data.status == 'maica_history_sliced':
             self.status = self.TOKEN_MAX_EXCEEDED
 
@@ -441,8 +449,30 @@ class MAICALoginTasker(MaicaWSTask):
         """
         super(MAICALoginTasker, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.success = False
-        self.wrong_pwd = False
+        self._result_callback = None
         self.__token = ''
+
+    LOGIN_FAILURE_STATUSES = (
+        'maica_login_token_corrupted',
+        'maica_login_token_invalid',
+        'maica_login_f2b',
+        'maica_login_banned',
+        'maica_login_email_unchecked',
+        'maica_login_tos_unaccepted',
+        'maica_connection_reuse_denied',
+    )
+
+    PREAUTH_FAILURE_STATUSES = (
+        'maica_unified_warning',
+        'maica_unified_error',
+    )
+
+    def set_result_callback(self, callback):
+        self._result_callback = callback
+
+    def _notify_result(self, success, status=None, message=None, code=None):
+        if self._result_callback:
+            self._result_callback(success, status, message, code)
 
     def on_manual_run(self, token):
         """
@@ -487,6 +517,7 @@ class MAICALoginTasker(MaicaWSTask):
             self.start_event(self.__token)
         elif event.data.status == 'maica_connection_established':
             self.success = True
+            self._notify_result(True)
             self.manager.create_event(
                 MaicaTaskEvent(
                     taskowner=self,
@@ -497,15 +528,28 @@ class MAICALoginTasker(MaicaWSTask):
                     )            
                 )
             )
-        elif event.data.status == 'maica_unidentified_warning':
-            self.wrong_pwd = True
+        elif not self.success and event.data.status in (
+            self.LOGIN_FAILURE_STATUSES + self.PREAUTH_FAILURE_STATUSES
+        ):
+            self.success = False
+            self.status = MaicaTask.MAICATASK_STATUS_ERROR
+            self._notify_result(
+                False,
+                event.data.status,
+                event.data.content,
+                getattr(event.data, 'code', None),
+            )
             self.manager.create_event(
                 MaicaTaskEvent(
                     taskowner=self,
                     event_type=MAICATASKEVENT_TYPE_TASK,
                     data=maica_tasker_events.GenericData(
                         name='maica_login_failed',
-                        content={}
+                        content={
+                            'status': event.data.status,
+                            'message': event.data.content,
+                            'code': getattr(event.data, 'code', None),
+                        }
                     )            
                 )
             )
@@ -515,7 +559,6 @@ class MAICALoginTasker(MaicaWSTask):
     def reset(self):
         super(MAICALoginTasker, self).reset()
         self.success = False
-        self.wrong_pwd = False
 
 
 class MAICASessionResetTasker(MaicaWSTask):

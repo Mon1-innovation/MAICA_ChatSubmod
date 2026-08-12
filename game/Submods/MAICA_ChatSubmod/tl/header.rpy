@@ -269,12 +269,11 @@ translate chinese strings:
 
 translate chinese strings:
 
-    # game/Submods/MAICA_ChatSubmod/header.rpy:96
-    old "Authentication failed, recheck your account and password"
-    new "验证失败, 请检查账号密码"
     # game/Submods/MAICA_ChatSubmod/header.rpy:98
     old "Authentication passed"
     new "验证成功"
+    old "Authentication failed: "
+    new "验证失败: "
     # game/Submods/MAICA_ChatSubmod/header.rpy:143
     old "Verification passed"
     new "验证成功{#maica_location}"

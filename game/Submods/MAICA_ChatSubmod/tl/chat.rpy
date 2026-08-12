@@ -830,33 +830,25 @@ translate chinese maica_main_talking_start_164b29fa:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:819
 
-translate chinese maica_main_talking_start_15c7b956:
+translate chinese maica_connection_failure_dialogue_15c7b956:
     # m 2rusdlb "...It seems you haven't got a token yet."
     m 2rusdlb "...好像你的令牌还没有设置好."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:820
 
-translate chinese maica_main_talking_start_2fff96b5:
+translate chinese maica_connection_failure_dialogue_2fff96b5:
     # m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
     m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:821
 
-translate chinese maica_main_talking_start_ddbfdc7d:
+translate chinese maica_connection_failure_dialogue_ddbfdc7d:
     # m 3eua "I'll nail everything else for you."
     m 3eua "剩下的事情我都会帮你搞定的."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:823
-
-translate chinese maica_main_talking_start_1e039b8c:
-    # m 2rusdlb "Seems we're having some problem uploading the savefile..."
-    m 2rusdlb "好像上传存档出了点问题..."
-
-# game/Submods/MAICA_ChatSubmod/chat.rpy:825
-
-translate chinese maica_main_talking_start_0f3f8e83:
-    # m 2rusdlb "Something unknown might went wrong..."
-    m 2rusdlb "好像是其他的地方出问题了..."
+translate chinese maica_connection_failure_dialogue_9a3cf45a:
+    # m 2rusdlb "Something unknown might have gone wrong..."
+    m 2rusdlb "好像是其他地方出了问题..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:826
 

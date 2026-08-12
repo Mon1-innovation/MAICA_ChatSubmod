@@ -553,9 +553,16 @@ init 10 python:
         if res.get("success"):
             renpy.show_screen("maica_message", message=_("Authentication passed"))
         else:
-            store.mas_api_keys.api_keys.update({"Maica_Token":""})
-            store.maica.maica_instance.ciphertext = ""
-            renpy.show_screen("maica_message", message=renpy.substitute(_("Authentication failed, recheck your account and password")) + "\n" + renpy.substitute(_("Reason: ")) + res.get("exception"))
+            ai = store.maica.maica_instance
+            if ai.status in (ai.MaicaAiStatus.TOKEN_CORRUPTED, ai.MaicaAiStatus.TOKEN_INVALID):
+                store.mas_api_keys.api_keys.update({"Maica_Token":""})
+                ai.ciphertext = ""
+                store.mas_api_keys.save_keys()
+            status_text = renpy.substitute(_("Authentication failed: ")) + ai.get_status_description()
+            detail = u"{}".format(res.get("exception") or "")
+            if detail:
+                status_text += "\n" + renpy.substitute(_("Reason: ")) + maica_escape_display_text(detail)
+            renpy.show_screen("maica_message", message=status_text)
 
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
@@ -1075,7 +1082,7 @@ screen maica_setting_pane():
 
             if maica.maica_instance.has_token() and not maica.maica_instance.is_connected():
                 textbutton _("> Connect with current token"):
-                    action Function(store.maica.maica_instance.init_connect)
+                    action Function(renpy.call_in_new_context, "maica_connect_from_settings")
 
 
             elif maica.maica_instance.is_connected():

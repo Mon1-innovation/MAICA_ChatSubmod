@@ -115,6 +115,231 @@ class EventStub:
         self.data = type("Packet", (), {"status": status, "content": content})()
 
 
+def _ws_event(taskowner, status, content="detail", code=400, event_type="error"):
+    return type(
+        "WsEvent",
+        (),
+        {
+            "taskowner": taskowner,
+            "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+            "data": type(
+                "Packet",
+                (),
+                {
+                    "status": status,
+                    "content": content,
+                    "code": code,
+                    "type": event_type,
+                },
+            )(),
+        },
+    )()
+
+
+def test_task_reset_restores_ready_status(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    task = maica_tasker.MaicaTask(
+        maica_tasker.MaicaTask.MAICATASK_TYPE_NORMAL,
+        "reset-test",
+        None,
+    )
+    task.status = task.MAICATASK_STATUS_ERROR
+
+    task.reset()
+
+    assert task.status == task.MAICATASK_STATUS_READY
+
+
+def test_login_tasker_exposes_current_backend_failure_statuses(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.MAICALoginTasker(
+        1,
+        "login",
+        manager,
+        except_ws_status=list(maica_tasker_sub.MAICALoginTasker.LOGIN_FAILURE_STATUSES),
+    )
+    statuses = (
+        "maica_login_token_corrupted",
+        "maica_login_token_invalid",
+        "maica_login_f2b",
+        "maica_login_banned",
+        "maica_login_email_unchecked",
+        "maica_login_tos_unaccepted",
+        "maica_connection_reuse_denied",
+    )
+    for status in statuses:
+        event = type(
+            "WsEvent",
+            (),
+            {
+                "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
+                "data": type("Packet", (), {"status": status, "content": "detail", "code": 400})(),
+            },
+        )()
+        tasker.on_event(event)
+        assert manager.closed is True
+        failure = manager.events[-1].data
+        assert failure.name == "maica_login_failed"
+        assert failure.content["status"] == status
+        tasker.reset()
+        manager.closed = False
+
+    assert not hasattr(tasker, "wrong_pwd")
+    assert not hasattr(tasker, "login_status")
+
+
+def test_login_tasker_ignores_unified_warning_after_login(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.MAICALoginTasker(
+        1,
+        "login-success-warning",
+        manager,
+        except_ws_status=list(maica_tasker_sub.MAICALoginTasker.PREAUTH_FAILURE_STATUSES),
+    )
+    tasker.success = True
+
+    tasker.on_event(
+        _ws_event(manager, "maica_unified_warning", code=409, event_type="warn")
+    )
+
+    assert tasker.success is True
+    assert tasker.status == tasker.MAICATASK_STATUS_READY
+    assert manager.closed is False
+    assert not any(
+        getattr(getattr(event, "data", None), "name", None) == "maica_login_failed"
+        for event in manager.events
+    )
+
+
+def test_login_tasker_treats_preauth_unified_error_as_login_failure(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.MAICALoginTasker(
+        1,
+        "login-preauth-error",
+        manager,
+        except_ws_status=list(maica_tasker_sub.MAICALoginTasker.PREAUTH_FAILURE_STATUSES),
+    )
+    results = []
+    tasker.set_result_callback(lambda *args: results.append(args))
+
+    tasker.on_event(_ws_event(manager, "maica_unified_error", code=500))
+
+    assert tasker.success is False
+    assert tasker.status == tasker.MAICATASK_STATUS_ERROR
+    assert manager.closed is True
+    assert results == [(False, "maica_unified_error", "detail", 500)]
+
+
+def test_general_ws_error_handler_can_defer_login_failure_close(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    handler = maica_tasker_sub.GeneralWsErrorHandler(1, "ws-error", manager)
+    handler.set_error_callback(lambda *args: False)
+
+    handler.on_event(_ws_event(manager, "maica_unified_error", code=500))
+
+    assert manager.closed is False
+
+
+@pytest.mark.parametrize(
+    "protocol_status, expected_status",
+    [
+        ("maica_login_token_corrupted", maica.MaicaAi.MaicaAiStatus.TOKEN_CORRUPTED),
+        ("maica_login_token_invalid", maica.MaicaAi.MaicaAiStatus.TOKEN_INVALID),
+        ("maica_login_f2b", maica.MaicaAi.MaicaAiStatus.LOGIN_BLOCKED),
+        ("maica_login_banned", maica.MaicaAi.MaicaAiStatus.ACCOUNT_BANNED),
+        ("maica_login_email_unchecked", maica.MaicaAi.MaicaAiStatus.EMAIL_UNVERIFIED),
+        ("maica_login_tos_unaccepted", maica.MaicaAi.MaicaAiStatus.TOS_UNACCEPTED),
+        ("maica_connection_reuse_denied", maica.MaicaAi.MaicaAiStatus.CONNECTION_REUSE_DENIED),
+    ],
+)
+def test_login_result_maps_protocol_failure_to_numeric_status(
+    protocol_status, expected_status
+):
+    ai = object.__new__(maica.MaicaAi)
+    ai.status = ai.MaicaAiStatus.NOT_READY
+
+    ai._handle_login_result(False, protocol_status, "detail", 400)
+
+    assert ai.status == expected_status
+    assert ai.get_error_result() == {
+        "success": False,
+        "status": protocol_status,
+        "exception": "detail",
+        "code": 400,
+    }
+
+
+def test_clear_error_removes_stale_numeric_error_status():
+    ai = object.__new__(maica.MaicaAi)
+    ai.status = ai.MaicaAiStatus.TOKEN_INVALID
+    ai.error_protocol_status = "maica_login_token_invalid"
+    ai.error_message = "detail"
+    ai.error_protocol_code = 400
+
+    ai.clear_error()
+
+    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.get_error_result() == {
+        "success": False,
+        "status": None,
+        "exception": None,
+        "code": None,
+    }
+
+
+def test_connection_scripts_do_not_reference_retired_error_state_api():
+    root = PACKAGE_ROOT.parent
+    paths = [
+        root / "Submods" / "MAICA_ChatSubmod" / "main.rpy",
+        root / "Submods" / "MAICA_ChatSubmod" / "chat.rpy",
+        root / "Submods" / "MAICA_ChatSubmod" / "header.rpy",
+        root / "Submods" / "MAICA_ChatSubmod" / "raw_session_example.rpy",
+    ]
+    source = "\n".join(path.read_text(encoding="utf-8-sig") for path in paths)
+    retired_names = (
+        "login_failure_message",
+        "TOKEN_FAILED",
+        "SAVEFILE_NOTFOUND",
+        "MODEL_NOT_FOUND",
+        "WSS_CLOSED_UNEXCEPTED",
+        "NO_INTERTENT",
+    )
+
+    assert not [name for name in retired_names if name in source]
+    assert "call maica_init_connect" in paths[0].read_text(encoding="utf-8-sig")
+    assert "call maica_init_connect" in paths[1].read_text(encoding="utf-8-sig")
+    raw_example = paths[3].read_text(encoding="utf-8-sig")
+    assert 'if _return == "disconnected":' in raw_example
+
+
+def test_maica_legality_preserves_backend_status_from_http_error(monkeypatch):
+    class Response:
+        def json(self):
+            return {
+                "success": False,
+                "exception": "maica_login_email_unchecked: Email not verified",
+            }
+
+    class Provider:
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    ai = object.__new__(maica.MaicaAi)
+    ai._MaicaAi__accessable = True
+    ai.ciphertext = "token-value"
+    ai.provider_manager = Provider()
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: Response())
+
+    result = ai._verify_token()
+
+    assert result["status"] == "maica_login_email_unchecked"
+    assert result["exception"] == "Email not verified"
+
+
 def test_general_chat_completion_resets_mood_after_final_analysis():
     calls = []
 
@@ -1230,6 +1455,108 @@ def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_gl
     assert loop_task.except_ws_status == ["maica_loop_warn_reset"]
 
 
+def test_init_connect_without_token_sets_explicit_failure(isolated_maica_ai_globals):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
+    ai.status = ai.MaicaAiStatus.TOKEN_INVALID
+    ai.ciphertext = ""
+
+    assert ai.init_connect() is False
+    assert ai.status == ai.MaicaAiStatus.TOKEN_MISSING
+    assert ai.get_error_result()["status"] == "client_token_missing"
+    assert ai.wss_thread is None
+
+
+def test_init_connect_preserves_availability_failure_detail(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = "token-value"
+    ai._MaicaAi__accessable = False
+    ai.set_error(
+        "client_provider_unavailable",
+        "provider lookup failed",
+        fallback=ai.MaicaAiStatus.FAILED_GET_NODE,
+    )
+
+    assert ai.init_connect() is False
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.error_protocol_status == "client_provider_unavailable"
+    assert ai.error_message == "provider lookup failed"
+
+
+def test_ws_failure_dispatch_defers_login_errors_to_loginer(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.Loginer.success = False
+
+    assert (
+        ai._handle_ws_failure("maica_unified_error", "pre-auth failure", 500)
+        is False
+    )
+    assert ai.status == ai.MaicaAiStatus.WAIT_AVAILABILITY
+
+    ai.Loginer.success = True
+    assert ai._handle_ws_failure("maica_unified_error", "runtime failure", 500) is True
+    assert ai.status == ai.MaicaAiStatus.SERVER_ERROR
+    assert ai.error_message == "runtime failure"
+
+
+def test_response_timeout_sets_unified_numeric_failure(isolated_maica_ai_globals):
+    ai = maica.MaicaAi("account", "password")
+
+    ai.ChatProcessor._timeout_callback("MAICAGeneralChatProcessor", 12.0)
+
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.get_error_result()["status"] == "client_response_timeout"
+    assert "12.0 seconds" in ai.error_message
+
+
+def test_intentional_close_clears_login_failure_state(isolated_maica_ai_globals):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        def __init__(self):
+            self.close_calls = 0
+
+        def close(self):
+            self.close_calls += 1
+
+    client = Client()
+    ai.task_manager.ws_client = client
+    ai.Loginer.success = True
+    ai.set_error("client_network_error", "old failure")
+
+    ai.close_wss_session()
+
+    assert client.close_calls == 1
+    assert ai.Loginer.success is False
+    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.get_error_result()["status"] is None
+    assert client in ai._intentional_ws_closes
+
+
+def test_unexpected_close_sets_numeric_connection_failure(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        def close(self):
+            pass
+
+    client = Client()
+    ai.Loginer.success = True
+    ai.status = ai.MaicaAiStatus.MESSAGE_WAIT_INPUT
+
+    ai._on_close(client, 1006, "network lost")
+
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_connection_closed"
+    assert ai.error_message == "network lost"
+
+
 def test_maica_runtime_has_no_websocket_cookie_owner(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     assert not hasattr(maica_tasker_sub, "MAICAWSCookiesHandler")
@@ -1842,6 +2169,7 @@ def test_accessable_checks_backend_before_external_network(monkeypatch):
     ai.can_access_internet = lambda: checks.append("network") or True
     ai.accessable()
     assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.get_error_result()["status"] == "client_provider_unavailable"
     assert checks == ["network"]
 
     ai.provider_manager = Provider(True)
@@ -1849,7 +2177,8 @@ def test_accessable_checks_backend_before_external_network(monkeypatch):
     import requests
     monkeypatch.setattr(requests, "get", lambda *args, **kwargs: (_ for _ in ()).throw(IOError("offline")))
     ai.accessable()
-    assert ai.status == ai.MaicaAiStatus.NO_INTERTENT
+    assert ai.status == ai.MaicaAiStatus.NO_INTERNET
+    assert ai.get_error_result()["status"] == "client_no_internet"
 
 
 def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():

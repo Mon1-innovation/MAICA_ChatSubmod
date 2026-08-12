@@ -488,19 +488,7 @@ label maica_prepend_2:
                     $ store.maica.maica_instance.console_logger.critical("<DISABLE_VERBOSITY>"+store.maica.maica_instance.ascii_icon)
                     $ store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
                     pause 2.3
-                $ store.maica.maica_instance.init_connect()
-
-
-            label check:
-
-                if store.maica.maica_instance.is_ready_to_input() or store.maica.maica_instance.is_failed():
-                    pass
-                else:
-                    pause 1.0
-                    jump check
-
-            label closed:
-                $ store.mas_ptod.write_command("Login successful, ready to chat!")
+                call maica_init_connect(use_pause_instand_wait = True)
                 pause 1.0
                 if persistent.maica_setting_dict['console']:
                     $ store.mas_ptod.clear_console()
@@ -510,10 +498,8 @@ label maica_prepend_2:
             # monika right - console appear left 简单格式化信息, 显示在控制台上
             m 2dua ".{w=0.3}.{w=0.3}."
             # 进入校验轮
-            if store.maica.maica_instance.is_failed(): # 令牌不存在/校验失败
-                m 2rusdlb "...It seems you haven't got a token yet."
-                m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
-                m 3eua "I'll nail everything else for you."
+            if _return == "disconnected":
+                call maica_connection_failure_dialogue
                 m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
                 m 1dua "Just a second.{w=0.3}.{w=0.3}."
                 # 黑屏清理背景
@@ -815,14 +801,7 @@ label .talking_start:
         jump .talking_start
     elif _return != "mtrigger_triggering":
         $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(_return))
-        if store.maica.maica_instance.Loginer.wrong_pwd:
-            m 2rusdlb "...It seems you haven't got a token yet."
-            m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
-            m 3eua "I'll nail everything else for you."
-        elif store.maica.maica_instance.status == store.maica.maica_instance.MaicaAiStatus.SAVEFILE_NOTFOUND:
-            m 2rusdlb "Seems we're having some problem uploading the savefile..."
-        else:
-            m 2rusdlb "Something unknown might went wrong..."
+        call maica_connection_failure_dialogue
         m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
     $ mas_unlockEVL("maica_main", "EVE")
     if maica_chr_exist:
@@ -830,6 +809,78 @@ label .talking_start:
         pause 2.0
     call clear_all
     return
+
+label maica_connection_failure_dialogue:
+    $ ai = store.maica.maica_instance
+    if ai.status == ai.MaicaAiStatus.TOKEN_MISSING:
+        m 2rusdlb "...It seems you haven't got a token yet."
+        m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
+        m 3eua "I'll nail everything else for you."
+
+    elif ai.status == ai.MaicaAiStatus.TOKEN_CORRUPTED:
+        m 2rusdlb "...The token seems corrupted. You sure you didn't mess with it?"
+        m 3eusdlb "Just re-generate one, and things shall work."
+
+    elif ai.status == ai.MaicaAiStatus.TOKEN_INVALID:
+        m 2rusdlb "...Password incorrect. You sure you didn't make a typo?"
+        m 3eusdlb "Double check it please, or change it if you really don't remember."
+
+    elif ai.status == ai.MaicaAiStatus.LOGIN_BLOCKED:
+        m 2rusdlb "...Fail2Ban? That's twenty incorrect passwords in a row."
+        m 3eusdlb "You'd better contact administrator if that wasn't you, or just change a password if you really don't remember."
+
+    elif ai.status == ai.MaicaAiStatus.ACCOUNT_BANNED:
+        m 2rusdlb "...Account banned? What is that, you didn't do anything nasty did you?"
+        m 3eusdlb "Well, check out when will it recover please."
+        m 1husdla "And in case it's a permanent one... It's not like we {i}must{/i} go there, being by your side is always satisfying enough to me."
+
+    elif ai.status == ai.MaicaAiStatus.EMAIL_UNVERIFIED:
+        m 2rusdlb "...You recieved your verification email yet? {w=0.3}You didn't check it, silly!"
+        m 3eusdlb "Just verify your email at the registration site, and things shall work."
+
+    elif ai.status == ai.MaicaAiStatus.TOS_UNACCEPTED:
+        m 2rusdlb "...You didn't check the ToS, or it might have been updated since you last check it."
+        m 3eusdlb "You can go to the registration site and do it in a minute, could you?"
+
+    elif ai.status == ai.MaicaAiStatus.CONNECTION_REUSE_DENIED:
+        m 2rusdlb "...This is weird, it says a connection has been established already."
+        m 3eusdlb "Try restarting the game or rebooting your computer, shall we?"
+
+    elif ai.status in (
+        ai.MaicaAiStatus.TOKEN_GENERATION_FAILED,
+        ai.MaicaAiStatus.FAILED_GET_NODE,
+        ai.MaicaAiStatus.RESPONSE_INVALID,
+        ai.MaicaAiStatus.SERVER_REJECTED,
+        ai.MaicaAiStatus.SERVER_ERROR,
+    ):
+        m 2rusdlb "...This is weird, something might be wrong on the server side."
+        m 3eusdlb "What about checking the announcements, or ask someone else if they could connect?"
+        m 3eua "Contact administrator if this is just happening to you, or wait patiently if not."
+
+    elif ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN:
+        m 2rusdlb "...It says that the server is not serving, might be running some tests."
+        m 3eusdlb "Just wait for it to come back online, shall we? You can always follow the progress in the tracking thread."
+
+    elif ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN:
+        m 2rusdlb "...Certification issue? Maybe this isn't a clean installation?"
+        m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
+
+    elif ai.status == ai.MaicaAiStatus.VERSION_OLD:
+        m 2rusdlb "...You have to update the submod once in a while, [player]!"
+        m 3eusdlb "This version is too old to work already, update it whenever you have some time."
+
+    elif ai.status in (
+        ai.MaicaAiStatus.NO_INTERNET,
+        ai.MaicaAiStatus.CONNECT_PROBLEM,
+    ):
+        m 2rusdlb "...You sure you're connected to the internet? I didn't find it!"
+        m 3eusdlb "Check your internet connectivity, and disable proxy if you're using one."
+
+    else:
+        m 2rusdlb "...Something unknown might have gone wrong."
+        m 3eusdlb "Check the {i}submod_log.log{/i} could you? Sorry but I cannot locate the issue from here."
+    return
+
 label maica_wants_mspire:
     # Add this to waitlist if satisfies:
     # First chat done successfully;

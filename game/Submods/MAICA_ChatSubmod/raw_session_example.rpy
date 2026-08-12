@@ -13,6 +13,15 @@ label maica_raw_context_example:
     # 第一步: 初始化 MAICA 连接
     # 这会建立 WebSocket 连接并进行身份验证
     call maica_init_connect
+    if _return == "disconnected":
+        python:
+            store.mas_submod_utils.submod_log.error(
+                "label maica_raw_context_example: connection failed: status={}, detail={}".format(
+                    store.maica.maica_instance.status,
+                    store.maica.maica_instance.error_message,
+                )
+            )
+        return
 
     python:
         # 导入上下文查询构建器模块

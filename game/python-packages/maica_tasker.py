@@ -342,7 +342,7 @@ class MaicaTask(object):
         子类可以重写此方法以实现自定义的重置逻辑。
         必须要执行父类reset方法以重置self.status
         """
-        self.status == MaicaTask.MAICATASK_STATUS_READY
+        self.status = MaicaTask.MAICATASK_STATUS_READY
 
     def start_event(self, *args, **kwargs):
         """

@@ -42,3 +42,8 @@ translate chinese strings:
 
     old "Hmm...shall we go further on this topic?{fast}"
     new "嗯...我们要接着这个话题聊聊吗?{fast}"
+
+    old "MAICA: Connection failed: "
+    new "MAICA: 连接失败: "
+    old "MAICA: Connection established"
+    new "MAICA: 已连接"

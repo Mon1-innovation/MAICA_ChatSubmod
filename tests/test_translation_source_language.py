@@ -1,3 +1,4 @@
+import hashlib
 import re
 from pathlib import Path
 
@@ -147,6 +148,27 @@ def test_chinese_translation_ids_are_unique():
     assert not duplicates, "duplicate Chinese translation IDs:\n{}".format("\n".join(duplicates))
 
 
+def test_connection_failure_dialogue_has_current_chinese_translation_ids():
+    source = read(SUBMOD / "chat.rpy")
+    block = source.split("label maica_connection_failure_dialogue:", 1)[1].split(
+        "\nlabel ", 1
+    )[0]
+    expected = set()
+    for line in block.splitlines():
+        code = line.strip()
+        if not re.match(r'^m\s+\S+\s+"', code):
+            continue
+        digest = hashlib.md5((code + "\r\n").encode("utf-8")).hexdigest()[:8]
+        expected.add("maica_connection_failure_dialogue_{}".format(digest))
+
+    translated = set(TRANSLATE_CHINESE_ID_RE.findall(read(TL / "chat.rpy")))
+
+    assert len(expected) == 21
+    assert expected.issubset(translated), "missing dialogue translations:\n{}".format(
+        "\n".join(sorted(expected - translated))
+    )
+
+
 def test_chinese_translation_headers_are_separate_and_blocks_are_indented():
     malformed = []
     for path in rpy_files(TL):
@@ -206,9 +228,9 @@ def test_maica_description_status_and_event_overrides_are_chinese():
     expected_snippets = [
         'MaicaAiStatus.NOT_READY: u"等待账号设置"',
         'MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA已准备好接收询问"',
-        'MaicaAiStatus.TOKEN_FAILED: u"Token验证失败"',
+        'MaicaAiStatus.TOKEN_INVALID: u"账号或密码无效"',
         'MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版"',
-        'MaicaAiStatus.NO_INTERTENT: u"检测到子模组离线',
+        'MaicaAiStatus.NO_INTERNET: u"检测到子模组离线',
         'prompt="我们去天堂树林吧", category=["你", "我们", "模组", "MAICA"]',
         'prompt="关于\'MVista\'", category=["你", "我们", "模组", "MAICA"]',
     ]

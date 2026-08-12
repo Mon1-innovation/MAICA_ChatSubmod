@@ -18,8 +18,9 @@ init python:
 label maica_talking(mspire = False):
     call maica_show_console
     call maica_init_connect(use_pause_instand_wait = True)
-    if return_code == "disconnected":
+    if _return == "disconnected":
         return "disconnected"
+    $ return_code = None
     python:
         import time
         import copy
@@ -240,22 +241,28 @@ label maica_mpostal_load:
 label maica_init_connect(use_pause_instand_wait = False):
     python:
         _return = None
-        return_code = None
         ai = store.maica.maica_instance
         ai.content_func = store.mas_ptod._update_console_history
-        if not ai.is_connected():
+        if not ai.is_connected() and not ai.is_connecting():
             ai.console_logger.critical("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" + ai.ascii_icon)
             ai.init_connect()
         while True:
-            if not ai.is_connected():
+            if ai.is_failed():
+                store.mas_submod_utils.submod_log.error(
+                    "maica_init_connect failed: status={}, protocol_status={}, detail={}".format(
+                        ai.status,
+                        ai.error_protocol_status,
+                        ai.error_message,
+                    )
+                )
+                store.mas_ptod.write_command(ai.get_status_description())
+                renpy.pause(2.0)
+                _return = "disconnected"
+                break
+            if not ai.is_connected() or not ai.is_ready_to_input():
                 store.mas_ptod.write_command("Init Connecting...")
-                renpy.pause(0.3, True)
-                if not ai.is_failed():
-                    continue
-            if not ai.is_ready_to_input() and not ai.is_failed():
-                store.mas_ptod.write_command("Wait login...")
                 if use_pause_instand_wait:
-                    renpy.pause(1.0)
+                    renpy.pause(0.3, True)
                 else:
                     renpy.say(m, ".{w=0.3}.{w=0.3}.{w=0.3}{nw}")
                     if len(_history_list):
@@ -266,19 +273,16 @@ label maica_init_connect(use_pause_instand_wait = False):
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 _return = "success"
                 break
-            elif ai.is_failed():
-                if ai.status == ai.MaicaAiStatus.TOKEN_FAILED:
-                    store.mas_ptod.write_command("Login failed, please check your token.")
-                elif ai.status == ai.MaicaAiStatus.SAVEFILE_NOTFOUND:
-                    store.mas_ptod.write_command("Savedata not found, please check your setting.")
-                else:
-                    store.mas_submod_utils.submod_log.error("maica_talking:: Unknown Error: ai.is_failed() = {}, ai.status = {}, ai.is_connected() = {}".format(ai.is_failed(), ai.status, ai.is_connected()))
-                    store.mas_ptod.write_command("An error occurred, please check your submod_log.log")
-                renpy.pause(2.0)
-                _return = "disconnected"
-                break
     call show_workload
     return _return
+
+label maica_connect_from_settings:
+    call maica_init_connect(use_pause_instand_wait = True)
+    if _return == "disconnected":
+        $ renpy.notify(renpy.substitute(_("MAICA: Connection failed: ")) + store.maica.maica_instance.get_status_description())
+    else:
+        $ renpy.notify(_("MAICA: Connection established"))
+    return
 
 label maica_mpostal_read:
     $ mas_HKBRaiseShield()

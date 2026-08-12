@@ -19,18 +19,23 @@ translate chinese python in maica:
             maica_instance.MaicaAiStatus.REQUEST_RESET_SESSION: u"正在请求重置会话",
             maica_instance.MaicaAiStatus.SESSION_RESETED: u"会话已重置, 连接已关闭",
             maica_instance.MaicaAiStatus.REQUEST_PING: u"正在发送PING",
-            maica_instance.MaicaAiStatus.TOKEN_FAILED: u"Token验证失败",
-            maica_instance.MaicaAiStatus.MODEL_NOT_FOUND: u"模型选择错误",
+            maica_instance.MaicaAiStatus.TOKEN_MISSING: u"尚未配置令牌",
+            maica_instance.MaicaAiStatus.TOKEN_CORRUPTED: u"令牌已损坏",
+            maica_instance.MaicaAiStatus.TOKEN_INVALID: u"账号或密码无效",
+            maica_instance.MaicaAiStatus.LOGIN_BLOCKED: u"登录暂时被阻止",
+            maica_instance.MaicaAiStatus.ACCOUNT_BANNED: u"账号已被封禁",
+            maica_instance.MaicaAiStatus.EMAIL_UNVERIFIED: u"账号邮箱尚未验证",
+            maica_instance.MaicaAiStatus.TOS_UNACCEPTED: u"尚未接受最新服务条款",
+            maica_instance.MaicaAiStatus.CONNECTION_REUSE_DENIED: u"账号已存在活动连接",
+            maica_instance.MaicaAiStatus.SERVER_REJECTED: u"服务器拒绝了请求",
+            maica_instance.MaicaAiStatus.SERVER_ERROR: u"服务器发生错误",
+            maica_instance.MaicaAiStatus.TOKEN_GENERATION_FAILED: u"令牌生成失败",
+            maica_instance.MaicaAiStatus.CONNECT_PROBLEM: u"无法连接服务器, 请检查网络和submod_log",
+            maica_instance.MaicaAiStatus.RESPONSE_INVALID: u"服务器响应无效",
             maica_instance.MaicaAiStatus.TOKEN_MAX_EXCEEDED:u"会话长度已超出限制, 部分会话将被裁剪",
-            maica_instance.MaicaAiStatus.TOKEN_24000_EXCEEDED:u"会话长度接近阈值, 超出后将被裁剪",
-            maica_instance.MaicaAiStatus.WSS_CLOSED_UNEXCEPTED:u"WebSocket异常关闭, 请查看submod_log获取详细信息" if PY2 else u"WebSocket异常关闭, 请重新确认datapack是否正确解压, 并查看submod_log获取详细信息",
-            maica_instance.MaicaAiStatus.SAVEFILE_NOTFOUND:u"未找到当前会话的存档文件",
+            maica_instance.MaicaAiStatus.TOKEN_WARN_EXCEEDED:u"会话长度接近阈值, 超出后将被裁剪",
             maica_instance.MaicaAiStatus.SERVER_MAINTAIN:u"服务器正在维护, 请等待后续公告",
-            maica_instance.MaicaAiStatus.WRONE_INPUT:u"输入错误, 请检查是否有拼写错误",
             maica_instance.MaicaAiStatus.CERTIFI_BROKEN:u"SSL/TLS已损坏, 可能由其他子模组导致. 需要完全重新安装MAS",
-            maica_instance.MaicaAiStatus.CERTIFI_AUTO_FIX:u"SSL/TLS已损坏, 请重启游戏以应用补丁. 如果问题持续, 请完全重新安装MAS",
-            maica_instance.MaicaAiStatus.TOOLONG_CONTENT_LENGTH:u"内容长度超出限制, 可考虑禁用大型MTrigger项目",
-            maica_instance.MaicaAiStatus.IS_SOURCECODE:u"检测到源码安装. 请改用发布版安装",
 
         })
         maica_instance.MaicaAiStatus._descriptions.update({
@@ -41,7 +46,7 @@ translate chinese python in maica:
             maica_instance.MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版",  # 新增
         })
         maica_instance.MaicaAiStatus._descriptions.update({
-            maica_instance.MaicaAiStatus.NO_INTERTENT: u"检测到子模组离线. 请根据Readme重新检查安装和网络连接",  # 新增
+            maica_instance.MaicaAiStatus.NO_INTERNET: u"检测到子模组离线. 请根据Readme重新检查安装和网络连接",  # 新增
         })
         store.mas_setEVLPropValues("maica_main", prompt="我们去天堂树林吧", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_mods_preferences", prompt="我想修改我的偏好", category=["你", "我们", "模组", "MAICA"])

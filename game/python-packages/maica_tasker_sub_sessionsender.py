@@ -284,6 +284,10 @@ class SessionSenderAndReceiver(MaicaWSTask):
         self._request_generation = 0
         self._request_timer = None
         self._request_timed_out = False
+        self._timeout_callback = None
+
+    def set_timeout_callback(self, callback):
+        self._timeout_callback = callback
 
     def _configure_core_output(self, input_mode, output_mode, request_timeout):
         self.core_input_mode = _normalize_core_mode(
@@ -326,6 +330,8 @@ class SessionSenderAndReceiver(MaicaWSTask):
                 self.__class__.__name__, self._request_timeout
             )
         )
+        if self._timeout_callback:
+            self._timeout_callback(self.__class__.__name__, self._request_timeout)
         if SessionSenderAndReceiver.multi_lock.locked():
             SessionSenderAndReceiver.multi_lock.release()
         if self.manager and self.manager.ws_client:
