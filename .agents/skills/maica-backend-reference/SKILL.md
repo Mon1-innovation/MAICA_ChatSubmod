@@ -9,6 +9,8 @@ Treat these upstream sources as authoritative for this project:
 
 - Backend repository: https://github.com/Mon1-innovation/MAICA
 - API documentation: https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md
+- MTTS Backend repository: https://github.com/Mon1-innovation/MAICA_MTTS
+- MTTS API documentation: https://github.com/Mon1-innovation/MAICA_MTTS/blob/main/document/API%20Documents.md
 
 ## Verification Workflow
 
