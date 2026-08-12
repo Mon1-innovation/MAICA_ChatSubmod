@@ -852,7 +852,7 @@ translate chinese maica_connection_failure_dialogue_042a6ce8:
 
 translate chinese maica_connection_failure_dialogue_47e505b1:
     # m 2rusdlb "...Password incorrect. You sure you didn't make a typo?"
-    m 2rusdlb "...密码错误. 是不是记错了或者输错了?"
+    m 2rusdlb "...密码不对. 是不是记错了或者输错了?"
 
 translate chinese maica_connection_failure_dialogue_4504b14e:
     # m 3eusdlb "Double check it please, or change it if you really don't remember."
@@ -872,7 +872,7 @@ translate chinese maica_connection_failure_dialogue_9a58656d:
 
 translate chinese maica_connection_failure_dialogue_b429e37a:
     # m 3eusdlb "Well, check out when will it recover please."
-    m 3eusdlb "行吧, 你去看看什么时候恢复呗."
+    m 3eusdlb "行吧, 那你去看看什么时候恢复呗."
 
 translate chinese maica_connection_failure_dialogue_197b6851:
     # m 1husdla "And in case it's a permanent one... It's not like we {i}must{/i} go there, being by your side is always satisfying enough to me."
@@ -904,7 +904,7 @@ translate chinese maica_connection_failure_dialogue_ca5e470d:
 
 translate chinese maica_connection_failure_dialogue_0f16ac51:
     # m 2rusdlb "...This is weird, something might be wrong on the server side."
-    m 2rusdlb "...奇了怪了, 可能是服务器的问题."
+    m 2rusdlb "...奇了怪了, 可能服务器那边有问题."
 
 translate chinese maica_connection_failure_dialogue_f2651cb1:
     # m 3eusdlb "What about checking the announcements, or ask someone else if they could connect?"
@@ -916,7 +916,7 @@ translate chinese maica_connection_failure_dialogue_38fb0651:
 
 translate chinese maica_connection_failure_dialogue_b1060136:
     # m 2rusdlb "...It says that the server is not serving, might be running some tests."
-    m 2rusdlb "...说是服务器不在服务状态, 可能在跑测试吧."
+    m 2rusdlb "...说是服务器不在服务状态, 可能在做测试吧."
 
 translate chinese maica_connection_failure_dialogue_3ef83db4:
     # m 3eusdlb "Just wait for it to come back online, shall we? You can always follow the progress in the tracking thread."
@@ -924,7 +924,7 @@ translate chinese maica_connection_failure_dialogue_3ef83db4:
 
 translate chinese maica_connection_failure_dialogue_1861c92c:
     # m 2rusdlb "...Certification issue? Maybe this isn't a clean installation?"
-    m 2rusdlb "...证书问题? 可能不是干净安装?"
+    m 2rusdlb "...证书有问题? 可能不是干净安装?"
 
 translate chinese maica_connection_failure_dialogue_9bd9d974:
     # m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
