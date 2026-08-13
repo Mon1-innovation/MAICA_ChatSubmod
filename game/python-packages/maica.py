@@ -186,6 +186,7 @@ class MaicaAi(ChatBotInterface):
             "maica_unified_error": SERVER_ERROR,
             "client_token_generation_failed": TOKEN_GENERATION_FAILED,
             "client_server_unavailable": SERVER_MAINTAIN,
+            "client_availability_failed": CONNECT_PROBLEM,
             "client_network_error": CONNECT_PROBLEM,
             "client_response_timeout": CONNECT_PROBLEM,
             "client_response_invalid": RESPONSE_INVALID,
@@ -769,18 +770,32 @@ class MaicaAi(ChatBotInterface):
             "code": getattr(self, "error_protocol_code", None),
         }
 
+    def _preserve_or_set_availability_error(self, message):
+        availability_failures = (
+            self.MaicaAiStatus.SERVER_MAINTAIN,
+            self.MaicaAiStatus.CERTIFI_BROKEN,
+            self.MaicaAiStatus.FAILED_GET_NODE,
+            self.MaicaAiStatus.VERSION_OLD,
+            self.MaicaAiStatus.NO_INTERNET,
+            self.MaicaAiStatus.CONNECT_PROBLEM,
+        )
+        if self.status not in availability_failures:
+            self.set_error(
+                "client_availability_failed",
+                message,
+                fallback=self.MaicaAiStatus.CONNECT_PROBLEM,
+            )
+
     def _gen_token(self, account, pwd, token = "", email = None):
         if token != "":
             self.ciphertext = token
             self.clear_error()
             return
         if not self.__accessable and token == "":
-            self.set_error(
-                "client_server_unavailable",
-                "Maica server not serving",
-                fallback=self.MaicaAiStatus.SERVER_MAINTAIN,
+            self._preserve_or_set_availability_error(
+                "Maica server availability is unknown"
             )
-            return logger.error("_gen_token:Maica server not serving.")
+            return logger.error("_gen_token: Maica server is not accessible.")
         self.ciphertext = ""
         self.clear_error()
         import requests
@@ -991,30 +1006,17 @@ class MaicaAi(ChatBotInterface):
 
     def init_connect(self):
         import threading
+        if not self.__accessable:
+            self._preserve_or_set_availability_error(
+                "Maica server availability is unknown"
+            )
+            return False
         if not self.has_token():
             self.set_error(
                 "client_token_missing",
                 "Access token is not configured",
                 fallback=self.MaicaAiStatus.TOKEN_MISSING,
             )
-            return False
-        if not self.__accessable:
-            availability_failures = (
-                self.MaicaAiStatus.SERVER_MAINTAIN,
-                self.MaicaAiStatus.CERTIFI_BROKEN,
-                self.MaicaAiStatus.FAILED_GET_NODE,
-                self.MaicaAiStatus.VERSION_OLD,
-                self.MaicaAiStatus.NO_INTERNET,
-                self.MaicaAiStatus.CONNECT_PROBLEM,
-            )
-            if self.status in availability_failures:
-                pass
-            else:
-                self.set_error(
-                    "client_server_unavailable",
-                    "Maica server not serving",
-                    fallback=self.MaicaAiStatus.SERVER_MAINTAIN,
-                )
             return False
         self.clear_error(self.MaicaAiStatus.WEBSOCKET_CONNECTING)
         self.wss_thread = threading.Thread(target=self._init_connect)
@@ -1024,12 +1026,10 @@ class MaicaAi(ChatBotInterface):
         
     def _init_ws_client(self):
         if not self.__accessable:
-            self.set_error(
-                "client_server_unavailable",
-                "Maica server not serving",
-                fallback=self.MaicaAiStatus.SERVER_MAINTAIN,
+            self._preserve_or_set_availability_error(
+                "Maica server became unavailable before WebSocket initialization"
             )
-            logger.error("Maica server not serving.")
+            logger.error("Maica server is not accessible.")
             return False
         if not self.multi_lock.acquire(False):
             self.set_error(
@@ -1735,10 +1735,28 @@ class MaicaAi(ChatBotInterface):
         return baidu_reachable or google_reachable
     
     def check_certifi(self):
-        baidu_reachable = self.ping("www.baidu.com", 443)
-        google_reachable = self.ping("www.google.com", 443)
-            
-        return baidu_reachable or google_reachable
+        try:
+            import certifi
+            import os
+            import ssl
+
+            cert_path = certifi.where()
+            if not cert_path or not os.path.isfile(cert_path):
+                return False
+
+            if not hasattr(ssl, "SSLContext"):
+                return False
+            protocol = getattr(
+                ssl,
+                "PROTOCOL_TLS_CLIENT",
+                getattr(ssl, "PROTOCOL_TLS", ssl.PROTOCOL_SSLv23),
+            )
+            context = ssl.SSLContext(protocol)
+            context.load_verify_locations(cafile=cert_path)
+            return True
+        except Exception as e:
+            logger.error("check_certifi(): local CA bundle is unusable: {}".format(e))
+            return False
 
     def accessable(self):
         """
@@ -1765,7 +1783,7 @@ class MaicaAi(ChatBotInterface):
             try:
                 import certifi
                 certifi.set_parent_dir
-            except AttributeError:
+            except (ImportError, AttributeError):
                 logger.error("accessable(): certifi is broken")
                 self.set_error(
                     "client_certifi_broken",
@@ -1855,9 +1873,9 @@ class MaicaAi(ChatBotInterface):
                 self.clear_error(self.MaicaAiStatus.NOT_READY)
         else:
             self.set_error(
-                "client_server_unavailable",
+                "client_availability_failed",
                 d.get("exception") or "Accessibility request failed",
-                fallback=self.MaicaAiStatus.SERVER_MAINTAIN,
+                fallback=self.MaicaAiStatus.CONNECT_PROBLEM,
             )
             self.__accessable = False
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))

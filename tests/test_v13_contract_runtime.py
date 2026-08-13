@@ -1485,6 +1485,51 @@ def test_init_connect_preserves_availability_failure_detail(
     assert ai.error_message == "provider lookup failed"
 
 
+def test_init_connect_without_token_preserves_availability_failure(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = ""
+    ai._MaicaAi__accessable = False
+    ai.set_error(
+        "client_provider_unavailable",
+        "provider lookup failed",
+        fallback=ai.MaicaAiStatus.FAILED_GET_NODE,
+    )
+
+    assert ai.init_connect() is False
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.error_protocol_status == "client_provider_unavailable"
+    assert ai.error_message == "provider lookup failed"
+
+
+def test_init_connect_unknown_unavailability_is_connection_problem(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = ""
+    ai._MaicaAi__accessable = False
+    ai.clear_error(ai.MaicaAiStatus.NOT_READY)
+
+    assert ai.init_connect() is False
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_availability_failed"
+
+
+def test_token_generation_unavailability_survives_verification(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = False
+
+    ai._gen_token("account", "password")
+    result = ai._verify_token()
+
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert result["status"] == "client_availability_failed"
+    assert result["exception"] == "Maica server availability is unknown"
+
+
 def test_ws_failure_dispatch_defers_login_errors_to_loginer(
     isolated_maica_ai_globals,
 ):
@@ -2179,6 +2224,119 @@ def test_accessable_checks_backend_before_external_network(monkeypatch):
     ai.accessable()
     assert ai.status == ai.MaicaAiStatus.NO_INTERNET
     assert ai.get_error_result()["status"] == "client_no_internet"
+
+
+def test_accessable_only_uses_maintenance_for_explicit_non_serving(monkeypatch):
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.in_mas = False
+    ai.HTTP_TIMEOUT = (0.1, 0.1)
+    ai._ignore_accessable = False
+    ai._serving_status = None
+    ai.status = None
+    ai._MaicaAi__accessable = False
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    ai.provider_manager = Provider()
+    payloads = iter(
+        [
+            {"success": True, "content": "maintenance"},
+            {"success": False, "exception": "temporary gateway failure"},
+        ]
+    )
+    import requests
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: Response(next(payloads)),
+    )
+
+    ai.accessable()
+    assert ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN
+    assert ai.error_protocol_status == "client_server_unavailable"
+
+    ai.accessable()
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_availability_failed"
+
+
+def test_check_certifi_loads_ca_bundle_without_network(monkeypatch):
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.ping = lambda *args, **kwargs: pytest.fail(
+        "certificate validation must not perform network probes"
+    )
+
+    assert ai.check_certifi() is True
+
+
+def test_check_certifi_rejects_an_invalid_local_ca_bundle(monkeypatch, tmp_path):
+    import certifi
+
+    invalid_bundle = tmp_path / "cacert.pem"
+    invalid_bundle.write_text("not a certificate", encoding="ascii")
+    monkeypatch.setattr(certifi, "where", lambda: str(invalid_bundle))
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+
+    assert ai.check_certifi() is False
+
+
+def test_accessable_reports_network_failure_when_local_ca_bundle_is_valid(monkeypatch):
+    import certifi
+    import requests
+
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.in_mas = True
+    ai.HTTP_TIMEOUT = (0.1, 0.1)
+    ai._ignore_accessable = False
+    ai._serving_status = None
+    ai.status = None
+    ai._MaicaAi__accessable = False
+    ai.can_access_internet = lambda: False
+    monkeypatch.setattr(certifi, "set_parent_dir", lambda *args: None, raising=False)
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    ai.provider_manager = Provider()
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: (_ for _ in ()).throw(IOError("offline")),
+    )
+
+    ai.accessable()
+
+    assert ai.status == ai.MaicaAiStatus.NO_INTERNET
+    assert ai.error_protocol_status == "client_no_internet"
+
+
+def test_accessable_reports_missing_certifi_module_as_certificate_failure(monkeypatch):
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.in_mas = True
+    ai.status = None
+    ai._MaicaAi__accessable = False
+    monkeypatch.setitem(sys.modules, "certifi", None)
+
+    ai.accessable()
+
+    assert ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN
+    assert ai.error_protocol_status == "client_certifi_broken"
 
 
 def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
