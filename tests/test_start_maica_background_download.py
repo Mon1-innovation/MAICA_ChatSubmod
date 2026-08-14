@@ -30,3 +30,5 @@ def test_start_maica_locks_main_only_before_greeting_main_and_talking_seen():
     ) in start_maica
     assert 'submod_log.info("MAICA: maica_main locked' in start_maica
     assert 'mas_lockEVL("maica_main", "EVE")' in start_maica
+    assert "else:" in start_maica
+    assert 'mas_unlockEVL("maica_main", "EVE")' in start_maica

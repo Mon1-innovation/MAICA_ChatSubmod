@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.8.5'
+    maica_ver = '1.8.6'
     maica_is_dev = False
     # 如果是开发版本:
     # - workflow不会自动发布release
@@ -369,7 +369,9 @@ init 5 python in maica:
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
         else:
-            store.mas_unlockEVL("maica_greeting", "GRE")
+            # A one-shot intro or a side event may leave the main topic locked.
+            # Once any valid MAICA entry point has been used, keep chat available.
+            store.mas_unlockEVL("maica_main", "EVE")
         check_workload()
 
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):

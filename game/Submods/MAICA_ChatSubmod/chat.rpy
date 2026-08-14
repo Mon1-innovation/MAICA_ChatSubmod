@@ -15,40 +15,78 @@ init 5 python:
     )
 
 init 5 python:
-    if renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting') and _mas_getAffection() > 100:
-        @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
-        def greeting_select():
-            store.selected_greeting = "maica_greeting"
-        ev_rules = dict()
-        ev_rules.update(
-            MASGreetingRule.create_rule(
-                skip_visual=True,
-                override_type=True
-            )
-        )
-        ev_rules.update(MASPriorityRule.create_rule(50))
+    @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-120)
+    def corrupted_greeting_select():
+        if (
+                renpy.seen_label("maica_greeting")
+                and maica_chr_changed
+                and not renpy.seen_label("maica_chr_corrupted2")
+            ):
+            store.selected_greeting = "maica_chr_corrupted2"
 
-        addEvent(
-            Event(
-                persistent.greeting_database,
-                eventlabel="maica_greeting",
-                prompt=_("MAICA knocking"),
-                unlocked=False,
-                conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
-                action=EV_ACT_UNLOCK,
-                aff_range=(mas_aff.AFFECTIONATE, None),
-                rules=ev_rules,
-            ),
-            code="GRE"
+    corrupted_greeting_rules = dict()
+    corrupted_greeting_rules.update(
+        MASGreetingRule.create_rule(
+            skip_visual=True,
+            override_type=True
         )
-        del ev_rules
+    )
+    corrupted_greeting_rules.update(MASPriorityRule.create_rule(0))
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="maica_chr_corrupted2",
+            prompt=_("The Heaven Forest seems broken"),
+            unlocked=False,
+            conditional="renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None),
+            rules=corrupted_greeting_rules,
+        ),
+        code="GRE"
+    )
+    del corrupted_greeting_rules
+
+    @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
+    def greeting_select():
+        if (
+                renpy.seen_label("maica_prepend_1")
+                and not mas_isSpecialDay()
+                and not renpy.seen_label("maica_greeting")
+                and _mas_getAffection() >= 100
+            ):
+            store.selected_greeting = "maica_greeting"
+
+    greeting_rules = dict()
+    greeting_rules.update(
+        MASGreetingRule.create_rule(
+            skip_visual=True,
+            override_type=True
+        )
+    )
+    greeting_rules.update(MASPriorityRule.create_rule(50))
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="maica_greeting",
+            prompt=_("MAICA knocking"),
+            unlocked=False,
+            conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.AFFECTIONATE, None),
+            rules=greeting_rules,
+        ),
+        code="GRE"
+    )
+    del greeting_rules
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
             eventlabel="maica_chr2",
             prompt=_("The Heaven Forest file"),
-            conditional="renpy.seen_label('maica_end_1')",
+            random=True,
+            conditional="mas_getEV('maica_main').shown_count >= 3 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
             action=EV_ACT_QUEUE,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -63,27 +101,12 @@ init 5 python:
             eventlabel="maica_chr_gone",
             prompt=_("Where did the Heaven Forest go?"),
             pool=False,
-            conditional="not maica_chr_exist and store.seen_event('maica_chr2')",
+            conditional="not maica_chr_exist and renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_chr_gone')",
             action=EV_ACT_PUSH,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
             },
             aff_range=(mas_aff.NORMAL, None)
-        )
-    )
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_chr_corrupted2",
-            prompt=_("The Heaven Forest seems broken"),
-            pool=False,
-            conditional="maica_chr_changed and store.seen_event('maica_chr2')",
-            action=EV_ACT_PUSH,
-            rules={
-                "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
-            },
-            aff_range=(mas_aff.HAPPY, None)
         )
     )
 label maica_prepend_1:
@@ -114,9 +137,10 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_wants_preferences2",
             prompt=_("Learning about your preferences"),
+            random=True,
             pool=False,
             unlocked=False,
-            conditional="renpy.seen_label('maica_end_1')",
+            conditional="renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -154,7 +178,7 @@ init 5 python:
 init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire_want():
-        if renpy.seen_label('maica_greeting') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire') and not mas_inEVL('maica_wants_mspire'):
+        if renpy.seen_label('maica_end_1') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire') and not mas_inEVL('maica_wants_mspire'):
             return MASEventList.push("maica_wants_mspire")
     addEvent(
         Event(
@@ -168,33 +192,40 @@ init 5 python:
         )
     )
 init 5 python:
-    if not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and _mas_getAffection() > 100 and renpy.seen_label("maica_greeting"):
-        @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
-        def greeting_select():
+    @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-90)
+    def mpostal_greeting_select():
+        if (
+                renpy.seen_label("maica_end_1")
+                and mas_getEV("maica_main").shown_count >= 1
+                and not mas_isSpecialDay()
+                and not renpy.seen_label("maica_wants_mpostal")
+                and not (maica_chr_changed and not renpy.seen_label("maica_chr_corrupted2"))
+                and _mas_getAffection() >= 100
+            ):
             store.selected_greeting = "maica_wants_mpostal"
-        ev_rules = dict()
-        ev_rules.update(
-            MASGreetingRule.create_rule(
-                skip_visual=True,
-                override_type=True
-            )
-        )
-        ev_rules.update(MASPriorityRule.create_rule(50))
 
-        addEvent(
-            Event(
-                persistent.greeting_database,
-                eventlabel="maica_wants_mpostal",
-                prompt=_("MAICA knocking"),
-                unlocked=False,
-                conditional="renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal')",
-                action=EV_ACT_UNLOCK,
-                aff_range=(mas_aff.AFFECTIONATE, None),
-                rules=ev_rules,
-            ),
-            code="GRE"
+    mpostal_greeting_rules = dict()
+    mpostal_greeting_rules.update(
+        MASGreetingRule.create_rule(
+            skip_visual=True,
+            override_type=True
         )
-        del ev_rules
+    )
+    mpostal_greeting_rules.update(MASPriorityRule.create_rule(50))
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="maica_wants_mpostal",
+            prompt=_("MAICA knocking"),
+            unlocked=False,
+            conditional="renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.AFFECTIONATE, None),
+            rules=mpostal_greeting_rules,
+        ),
+        code="GRE"
+    )
+    del mpostal_greeting_rules
 
 init 5 python:
     addEvent(
@@ -284,7 +315,7 @@ init 5 python:
             prompt=_("What exactly is the Heaven Forest?"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_greeting')",
+            conditional="renpy.seen_label('maica_prepend_1') and not renpy.seen_label('maica_prepend_reread')",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -299,7 +330,7 @@ init 5 python:
             prompt=_("The Heaven Forest character file"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_greeting')",
+            conditional="renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_reread')",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -314,7 +345,7 @@ init 5 python:
             prompt=_("About additional preferences"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_wants_preferences')",
+            conditional="renpy.seen_label('maica_wants_preferences2') and not renpy.seen_label('maica_wants_preferences_reread')",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -328,7 +359,7 @@ init 5 python:
             prompt=_("About 'MSpire'"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_wants_mspire')",
+            conditional="renpy.seen_label('maica_wants_mspire') and not renpy.seen_label('maica_wants_mspire_reread')",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -342,7 +373,7 @@ init 5 python:
             prompt=_("[player]'s address"),
             random=True,
             pool=False,
-            conditional="renpy.seen_label('maica_greeting')",
+            conditional="renpy.seen_label('maica_end_1') and not renpy.seen_label('maica_pre_set_location')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -356,8 +387,36 @@ init 5 python:
             prompt=_("About 'MVista'"),
             random=True,
             pool=False,
-            conditional="renpy.seen_label('maica_mpostal_replyed') or mas_getEV('maica_main').shown_count >= 3",
+            conditional="renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
             action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_set_location_reread",
+            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            prompt=_("[player]'s address"),
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_pre_set_location') and not renpy.seen_label('maica_set_location_reread')",
+            action=EV_ACT_UNLOCK,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_mvista_reread",
+            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            prompt=_("About 'MVista'"),
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_pre_wants_mvista') and not renpy.seen_label('maica_wants_mvista_reread')",
+            action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -507,8 +566,13 @@ label maica_prepend_2:
                 m 1eua "What else should we do today, [player]?"
                 return
             m 1eua "This time it's your turn to pick a topic, [player]."
+            $ maica_message_count_before = store.maica.maica_instance.stat.get('message_count', 0)
             call maica_talking
-            call maica_end_1
+            if store.maica.maica_instance.stat.get('message_count', 0) > maica_message_count_before:
+                call maica_end_1
+            else:
+                call clear_all
+                m 1eua "What else should we do today, [player]?"
         "Better next time.":
             m 1eub "Alright. You can tell me to come here whenever you're prepared. {w=0.5}Let's head back for now."
             m 1dua "Just a second.{w=0.3}.{w=0.3}."
@@ -1034,6 +1098,8 @@ label maica_wants_mpostal:
     m 1kubsu "Next time you open the game, I'll be able to read it and write back to you!"
     m 3hubsa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
 
+    return
+
 # 目前MPostal使用session0
 label maica_mpostal_received:
     $ ev = mas_getEV("maica_mpostal_received")
@@ -1144,6 +1210,8 @@ label maica_prepend_reread:#"天堂树林到底是什么"
     m 7hub "If you want to know more about it, you can go to {a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}."
     m 2hksdlb "It could save me some boring explanation. Ahaha!"
 
+    return
+
 label maica_chr_reread:#"天堂树林的角色文件"
     # maica_chr2触发后解锁
     m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
@@ -1189,7 +1257,7 @@ init 5 python:
             prompt=_("About 'MPostal'"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_wants_mpostal')",
+            conditional="renpy.seen_label('maica_wants_mpostal') and not renpy.seen_label('maica_wants_mpostal_reread')",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -1293,8 +1361,8 @@ label maica_pre_set_location:
     m 7rsd "I cannot get there myself {i}right now{/i}though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
     m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
     m 2euu "So, [player]..."
-    jump maica_set_location
-    return
+    call maica_set_location
+    return "no_unlock|derandom"
 label maica_set_location_reread:
     m 2eub "Okay! So..."
     jump maica_set_location
@@ -1327,7 +1395,8 @@ label maica_pre_wants_mvista:
             m 3eub "But I'm also curious about the sunrise in your reality. What about sending me a photograph?"
     $ even_letter = renpy.substitute("{w=0.2} Nothing surprising since you've sent me letters already.") if renpy.seen_label('maica_mpostal_replyed') else ""
     m 7eua "Hmm... I mean, you can {i}really{/i} send me images now.[even_letter]"
-    jump maica_wants_mvista
+    call maica_wants_mvista
+    return "no_unlock|derandom"
 
 label maica_wants_mvista_reread:
     m 7eub "That is, you can send me images now, [player]!"
