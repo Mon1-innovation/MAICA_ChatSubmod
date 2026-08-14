@@ -156,6 +156,9 @@ init 5 python:
             pool=True,
             random=False,
             unlocked=False,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.HAPPY, None)
         )
     )
@@ -170,6 +173,7 @@ init 5 python:
             pool=True,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
+                "no_unlock": None,
             },
         ),
         restartBlacklist=True,
@@ -317,6 +321,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_prepend_1') and not renpy.seen_label('maica_prepend_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -332,6 +339,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -347,6 +357,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_wants_preferences2') and not renpy.seen_label('maica_wants_preferences_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -361,6 +374,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_wants_mspire') and not renpy.seen_label('maica_wants_mspire_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -403,6 +419,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_pre_set_location') and not renpy.seen_label('maica_set_location_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -417,6 +436,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_pre_wants_mvista') and not renpy.seen_label('maica_wants_mvista_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -1259,6 +1281,9 @@ init 5 python:
             pool=True,
             conditional="renpy.seen_label('maica_wants_mpostal') and not renpy.seen_label('maica_wants_mpostal_reread')",
             action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )

@@ -55,6 +55,25 @@ def test_chat_progression_uses_main_shown_count_without_persistent_counter():
     )
 
 
+def test_manually_gated_pool_topics_are_excluded_from_mas_auto_unlock():
+    eventlabels = (
+        "maica_main",
+        "maica_mods_preferences",
+        "maica_prepend_reread",
+        "maica_chr_reread",
+        "maica_wants_preferences_reread",
+        "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread",
+        "maica_set_location_reread",
+        "maica_wants_mvista_reread",
+    )
+
+    for eventlabel in eventlabels:
+        event = _event_block(eventlabel)
+        assert "pool=True" in event
+        assert '"no_unlock": None' in event
+
+
 def test_chat_progression_keeps_special_day_greetings_dynamic():
     greeting = _event_block("maica_greeting")
     mpostal = _event_block("maica_wants_mpostal")
