@@ -714,7 +714,7 @@ class MaicaAi(ChatBotInterface):
             if talk:
                 self.add_ana(talk)
         try:
-            if type(res[1]) == ellipsis:
+            if res[1] is Ellipsis:
                 res[1] = "..."
             if type(res[1]) in (int, float):
                 res[1] = str(res[1])

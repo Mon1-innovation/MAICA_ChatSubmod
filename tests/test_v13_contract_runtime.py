@@ -2422,3 +2422,26 @@ def test_maica_ai_disable_accepts_and_saves_status(isolated_maica_ai_globals):
     except TypeError as exc:
         pytest.fail("disable(status) must accept and save status: {}".format(exc))
     assert ai.status == marker
+
+
+def test_get_message_normalizes_ellipsis_before_pause_processing():
+    class MessageQueueStub:
+        def __len__(self):
+            return 1
+
+        def get(self):
+            return ["1eua", Ellipsis, False]
+
+    class TalkSplitterStub:
+        def add_pauses(self, value):
+            if not isinstance(value, str):
+                raise TypeError("message must be a string")
+            return value
+
+    ai = object.__new__(maica.MaicaAi)
+    ai.message_list = MessageQueueStub()
+    ai.TalkSpilter = TalkSplitterStub()
+
+    message = ai.get_message()
+
+    assert message[1] == "..."
