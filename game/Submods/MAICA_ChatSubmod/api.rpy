@@ -365,7 +365,7 @@ init 5 python in maica:
         if store.maica.maica_instance.is_outdated:
             store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
 
-        if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main"):
+        if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
         else:
