@@ -74,7 +74,6 @@ def seconds_to_hms(timestamp_ms):
     return dt.strftime("%H:%M:%S")
 
 class MaicaAi(ChatBotInterface):
-    SUPPORT_BACKEND = "1.3.000"
     HTTP_TIMEOUT = (5.0, 30.0)
     CONNECTION_TIMEOUT = 30.0
     RESPONSE_TIMEOUT = 300.0
@@ -322,7 +321,6 @@ class MaicaAi(ChatBotInterface):
         self.pprt=False
         self.in_mas = True
         self.provider_manager = maica_provider_manager.MaicaProviderManager()
-        self.is_outdated = None
         self.max_history_token = 8192
         self._in_mspire = False
         self.mspire_use_cache = False
@@ -1884,23 +1882,6 @@ class MaicaAi(ChatBotInterface):
         if self.__accessable:
             version_info = self.get_version()
             self.version_info = version_info
-            if version_info.get("success", False):
-                legc_version = version_info.get("content", {}).get("legc_version", "")
-                try:
-                    from packaging import version
-                    if version.parse(legc_version) > version.parse(self.SUPPORT_BACKEND):
-                        self.set_error(
-                            "client_version_unsupported",
-                            "Backend {} requires a newer client than {}".format(
-                                legc_version, self.SUPPORT_BACKEND
-                            ),
-                            fallback=self.MaicaAiStatus.VERSION_OLD,
-                        )
-                        self.__accessable = False
-                        logger.error("accessable(): Backend version {} is newer than supported version {}".format(legc_version, self.SUPPORT_BACKEND))
-                        return
-                except:
-                    pass
             try:
                 res = requests.get(self.provider_manager.get_api_url() + "/defaults", timeout=self.HTTP_TIMEOUT).json()["content"]
                 if type(res) == dict:

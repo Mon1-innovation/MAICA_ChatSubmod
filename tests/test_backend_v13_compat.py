@@ -639,8 +639,23 @@ def assert_key_has_semantic_upper_bound(text, key, upper):
     assert False, "{} over {} is neither clamped nor rejected".format(key, upper)
 
 
-def test_a_backend_version_is_final():
-    assert re.search(r"SUPPORT_BACKEND\s*=\s*['\"]1\.3\.000['\"]", source("game/python-packages/maica.py"))
+def test_a_frontend_version_declaration_is_authoritative():
+    client = source("game/python-packages/maica.py")
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+
+    assert "SUPPORT_BACKEND" not in client
+    assert "legc_version" not in client
+    assert not re.search(r"\bis_outdated\b", client + api + header)
+    assert re.search(r"def\s+is_frontend_version_outdated\(version_info=None\)", api)
+    assert 'get("fe_blessland_version")' in api
+    assert re.search(
+        r"compareVersionLists\(\s*store\.maica_ver\.strip\(\)\.split\('\.'\),"
+        r"\s*minver\.strip\(\)\.split\('\.'\)\s*\)\s*==\s*-1",
+        api,
+    )
+    assert "if is_frontend_version_outdated():" in api
+    assert "elif maica.is_frontend_version_outdated():" in header
 
 
 def test_a_development_build_contract():
@@ -649,7 +664,6 @@ def test_a_development_build_contract():
     translation = source("game/Submods/MAICA_ChatSubmod/tl/header.rpy")
     workflow = source(".github/workflows/release.yml")
 
-    assert re.search(r"(?m)^\s*maica_is_dev\s*=\s*True\s*$", api)
     assert re.search(r"force_current\s*=\s*store\.maica_is_dev", api)
     assert "if store.maica_is_dev:" in header
     assert "development build" in header

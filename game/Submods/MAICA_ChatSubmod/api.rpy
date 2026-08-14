@@ -224,6 +224,21 @@ init 5 python in maica:
 
         return _maica_version_check_cache
 
+    def is_frontend_version_outdated(version_info=None):
+        if version_info is None:
+            version_info = store.maica.maica_instance.version_info
+        if not version_info.get("success", False):
+            return False
+
+        minver = version_info.get("content", {}).get("fe_blessland_version")
+        if not minver:
+            return False
+
+        return store.mas_utils.compareVersionLists(
+            store.maica_ver.strip().split('.'),
+            minver.strip().split('.')
+        ) == -1
+
     def refresh_setting_pane_cache(force_version=False):
         global maica_setting_pane_cache
         try:
@@ -356,13 +371,7 @@ init 5 python in maica:
 
         store.maica.maica_instance.accessable()
 
-        # 版本限制检查
-        submod_ver_limit = store.maica.maica_instance.version_info
-        if submod_ver_limit.get("success"):
-            minver = submod_ver_limit.get("content", {}).get("fe_blessland_version", "0.0.0")
-            if store.mas_utils.compareVersionLists(store.maica_ver.strip().split('.'), minver.strip().split('.')) == -1:
-                store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
-        if store.maica.maica_instance.is_outdated:
+        if is_frontend_version_outdated():
             store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
 
         if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main"):

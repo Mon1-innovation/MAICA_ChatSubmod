@@ -1008,7 +1008,7 @@ screen maica_setting_pane():
                     text _("> Your current MAS version is below the lowest compatible version, please update"):
                         style "main_menu_version_l"
 
-            elif store.maica.maica_instance.is_outdated is True:
+            elif maica.is_frontend_version_outdated():
                 hbox:
 
                     text _("> {color=#ff0000}Support for current version has ended{/color}, an update is required"):
