@@ -32,10 +32,52 @@ def _function_block(function_name):
 
 
 def _label_block(label):
-    marker = "label {}:".format(label)
-    start = CHAT_SOURCE.index(marker)
+    markers = ("label {}:".format(label), "label {}(".format(label))
+    starts = [CHAT_SOURCE.find(marker) for marker in markers]
+    start = min(index for index in starts if index >= 0)
+    marker = CHAT_SOURCE[start : CHAT_SOURCE.find("\n", start)]
     end = CHAT_SOURCE.find("\nlabel ", start + len(marker))
     return CHAT_SOURCE[start:] if end == -1 else CHAT_SOURCE[start:end]
+
+
+def test_first_chat_end_uses_rounds_from_the_current_attempt():
+    prepend = _label_block("maica_prepend_2")
+    end = _label_block("maica_end_1")
+
+    assert (
+        "maica_message_count_before = "
+        "store.maica.maica_instance.stat.get('message_count', 0) or 0"
+    ) in prepend
+    assert (
+        "maica_message_count_after = "
+        "store.maica.maica_instance.stat.get('message_count', 0) or 0"
+    ) in prepend
+    assert (
+        "conv_rounds = max(0, "
+        "maica_message_count_after - maica_message_count_before)"
+    ) in prepend
+    assert "call maica_end_1(conv_rounds)" in prepend
+    assert "label maica_end_1(conv_rounds=0):" in end
+    assert "stat.get('message_count')" not in end
+
+
+def test_zero_round_attempt_does_not_unlock_success_gated_events():
+    helper = _function_block("maica_has_successful_chat")
+
+    assert 'renpy.seen_label("maica_end_1")' in helper
+    assert 'stat.get("message_count", 0) or 0' in helper
+    for eventlabel in (
+        "maica_wants_preferences2",
+        "maica_pre_set_location",
+        "maica_pre_wants_mvista",
+        "maica_wants_mpostal",
+    ):
+        assert "maica_has_successful_chat()" in _event_block(eventlabel)
+
+    assert "maica_has_successful_chat()" in _function_block("push_mspire_want")
+    assert "maica_has_successful_chat()" in _function_block(
+        "mpostal_greeting_select"
+    )
 
 
 def test_chat_progression_uses_main_shown_count_without_persistent_counter():
@@ -143,6 +185,8 @@ def test_one_shot_and_reread_events_do_not_fall_through_to_other_topics():
 
 def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.6", migration_1_8_6)' in MIGRATION_SOURCE
+    assert '("1.8.7", migration_1_8_7)' in MIGRATION_SOURCE
+    assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert 'persistent._seen_ever["maica_end_1"] = True' in MIGRATION_SOURCE
     assert '"maica_chr": "maica_chr2"' in MIGRATION_SOURCE
     assert '"maica_chr_corrupted": "maica_chr_corrupted2"' in MIGRATION_SOURCE

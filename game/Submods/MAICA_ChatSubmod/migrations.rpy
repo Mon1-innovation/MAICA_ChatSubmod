@@ -115,7 +115,20 @@ init 998 python:
             ev.action = EV_ACT_UNLOCK
             ev.unlocked = renpy.seen_label(source_label)
 
+    def migration_1_8_7():
+        event_conditions = {
+            "maica_wants_preferences2": "maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
+            "maica_pre_set_location": "maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
+            "maica_pre_wants_mvista": "maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
+            "maica_wants_mpostal": "maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+        }
+        for eventlabel, conditional in event_conditions.items():
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.conditional = conditional
+
     migration_queue = [
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
+        ("1.8.7", migration_1_8_7),
     ]

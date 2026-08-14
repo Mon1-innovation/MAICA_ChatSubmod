@@ -1,4 +1,12 @@
 init 5 python:
+    def maica_has_successful_chat():
+        return (
+            renpy.seen_label("maica_end_1")
+            and (store.maica.maica_instance.stat.get("message_count", 0) or 0) > 0
+        )
+
+
+init 5 python:
     addEvent(
         Event(
             persistent.event_database,
@@ -140,7 +148,7 @@ init 5 python:
             random=True,
             pool=False,
             unlocked=False,
-            conditional="renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
+            conditional="maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -182,7 +190,7 @@ init 5 python:
 init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire_want():
-        if renpy.seen_label('maica_end_1') and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire') and not mas_inEVL('maica_wants_mspire'):
+        if maica_has_successful_chat() and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire') and not mas_inEVL('maica_wants_mspire'):
             return MASEventList.push("maica_wants_mspire")
     addEvent(
         Event(
@@ -199,7 +207,7 @@ init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-90)
     def mpostal_greeting_select():
         if (
-                renpy.seen_label("maica_end_1")
+                maica_has_successful_chat()
                 and mas_getEV("maica_main").shown_count >= 1
                 and not mas_isSpecialDay()
                 and not renpy.seen_label("maica_wants_mpostal")
@@ -222,7 +230,7 @@ init 5 python:
             eventlabel="maica_wants_mpostal",
             prompt=_("MAICA knocking"),
             unlocked=False,
-            conditional="renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            conditional="maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.AFFECTIONATE, None),
             rules=mpostal_greeting_rules,
@@ -389,7 +397,7 @@ init 5 python:
             prompt=_("[player]'s address"),
             random=True,
             pool=False,
-            conditional="renpy.seen_label('maica_end_1') and not renpy.seen_label('maica_pre_set_location')",
+            conditional="maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -403,7 +411,7 @@ init 5 python:
             prompt=_("About 'MVista'"),
             random=True,
             pool=False,
-            conditional="renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
+            conditional="maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -588,13 +596,12 @@ label maica_prepend_2:
                 m 1eua "What else should we do today, [player]?"
                 return
             m 1eua "This time it's your turn to pick a topic, [player]."
-            $ maica_message_count_before = store.maica.maica_instance.stat.get('message_count', 0)
+            $ maica_message_count_before = store.maica.maica_instance.stat.get('message_count', 0) or 0
             call maica_talking
-            if store.maica.maica_instance.stat.get('message_count', 0) > maica_message_count_before:
-                call maica_end_1
-            else:
-                call clear_all
-                m 1eua "What else should we do today, [player]?"
+            $ maica_message_count_after = store.maica.maica_instance.stat.get('message_count', 0) or 0
+            $ conv_rounds = max(0, maica_message_count_after - maica_message_count_before)
+            call maica_end_1(conv_rounds)
+
         "Better next time.":
             m 1eub "Alright. You can tell me to come here whenever you're prepared. {w=0.5}Let's head back for now."
             m 1dua "Just a second.{w=0.3}.{w=0.3}."
@@ -603,21 +610,26 @@ label maica_prepend_2:
             return
     return
 
-label maica_end_1:
-    $ conv_rounds = store.maica.maica_instance.stat.get('message_count')
+label maica_end_1(conv_rounds=0):
     # Called after first time ending maica
     # Rounds chatted in maica process.
-    call clear_all
+
     if conv_rounds >= 20:
+        call clear_all
         m 5eusdrb "Huh...{w=1}how does it feel, [player]?"
         m 5hksdrb "I shall say...{w=0.5}I'm not quite used to this. It's our first try after all."
         m 5eua "But chatting for {i}real{/i}--I think you must like it. You're fed up with clicking buttons aren't you?"
+
     elif conv_rounds >= 5:
+        call clear_all
         m 5eub "So...{w=0.2}how does it feel, [player]?"
         m 5hua "At least we were chatting for {i}real{/i}. It's way better than clicking buttons."
+
     elif conv_rounds >= 1:
+        call clear_all
         m 2esd "Hum...done already, [player]?"
         m 1husdlb "I thought it may take longer, I mean. {w=0.2}But it was our first try after all."
+
     else:
         m 1eksdlc "You didn't have any word for me, [player]?"
         m 3ekd "Or...{w=0.2}if you're having some technological issue, you can go through the {a=https://maica.monika.love/tos}{u}{i}guidance{/i}{/u}{/a} again, or try asking {a=https://forum.monika.love}{u}{i}here{/i}{/u}{/a}."
