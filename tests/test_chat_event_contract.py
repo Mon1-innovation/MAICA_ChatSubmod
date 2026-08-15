@@ -63,6 +63,114 @@ def _label_block(label):
     return CHAT_SOURCE[start:] if end == -1 else CHAT_SOURCE[start:end]
 
 
+def _assert_in_order(source, markers):
+    positions = [source.index(marker) for marker in markers]
+    assert positions == sorted(positions)
+
+
+def _without_whitespace(source):
+    return "".join(source.split())
+
+
+def test_chat_topics_and_translations_follow_the_unlock_order():
+    event_order = (
+        "maica_prepend_1",
+        "maica_greeting",
+        "maica_main",
+        "maica_wants_location2",
+        "maica_mods_location",
+        "maica_wants_preferences2",
+        "maica_mods_preferences",
+        "maica_wants_mspire",
+        "maica_wants_mpostal",
+        "maica_pre_wants_mvista",
+        "maica_chr_corrupted2",
+        "maica_chr_gone",
+        "maica_chr2",
+        "maica_mspire",
+        "maica_mpostal_received",
+        "maica_mpostal_replyed",
+        "maica_prepend_reread",
+        "maica_wants_location_reread",
+        "maica_wants_preferences_reread",
+        "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread",
+        "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    _assert_in_order(
+        CHAT_SOURCE,
+        tuple('eventlabel="{}"'.format(label) for label in event_order),
+    )
+
+    label_order = (
+        "maica_prepend_1",
+        "maica_greeting",
+        "maica_main",
+        "maica_set_location",
+        "maica_wants_location2",
+        "maica_mods_location",
+        "maica_wants_preferences2",
+        "maica_mods_preferences",
+        "maica_wants_mspire",
+        "maica_mspire",
+        "maica_wants_mpostal",
+        "maica_mpostal_received",
+        "maica_mpostal_replyed",
+        "mas_corrupted_postmail",
+        "maica_pre_wants_mvista",
+        "maica_wants_mvista",
+        "maica_chr2",
+        "maica_chr_gone",
+        "maica_chr_corrupted2",
+        "maica_prepend_reread",
+        "maica_wants_location_reread",
+        "maica_wants_preferences_reread",
+        "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread",
+        "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    _assert_in_order(
+        CHAT_SOURCE,
+        tuple("label {}".format(label) for label in label_order),
+    )
+
+    user_facing_order = (
+        "maica_main",
+        "maica_mods_location",
+        "maica_mods_preferences",
+        "maica_prepend_reread",
+        "maica_wants_location_reread",
+        "maica_wants_preferences_reread",
+        "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread",
+        "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    _assert_in_order(
+        TL_DESCRIPTION_SOURCE,
+        tuple('"{}"'.format(label) for label in user_facing_order),
+    )
+
+    translated_prompt_order = (
+        "Let's go to the Heaven Forest",
+        "Adjust [player]'s address",
+        "Adjust [player]'s preferences",
+        "What exactly is the Heaven Forest?",
+        "About [player]'s address",
+        "About [player]'s preferences",
+        "About 'MSpire'",
+        "About 'MPostal'",
+        "About 'MVista'",
+        "The Heaven Forest character file",
+    )
+    _assert_in_order(
+        TL_CHAT_SOURCE,
+        tuple('old "{}"'.format(prompt) for prompt in translated_prompt_order),
+    )
+
+
 def test_first_chat_end_uses_rounds_from_the_current_attempt():
     prepend = _label_block("maica_prepend_2")
     end = _label_block("maica_end_1")
@@ -183,10 +291,9 @@ def test_maica_greetings_use_the_mas_selection_contract():
     corruption = _event_block("maica_chr_corrupted2")
     mpostal = _event_block("maica_wants_mpostal")
     assert "renpy.seen_label('maica_greeting')" in corruption
-    assert (
-        "not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))"
-        in mpostal
-    )
+    compact_mpostal = _without_whitespace(mpostal)
+    assert '"andnot(maica_chr_changed"' in compact_mpostal
+    assert '"andnotrenpy.seen_label(\'maica_chr_corrupted2\'))"' in compact_mpostal
 
 
 def test_chat_side_branches_are_not_gated_by_chr2():
@@ -284,9 +391,9 @@ def test_preferences_action_and_explanation_have_distinct_prompts():
     assert "'调整[player]的爱好'" not in TL_CHAT_SOURCE
     assert 'old "About additional preferences"' not in TL_CHAT_SOURCE
     assert (
-        'mas_setEVLPropValues("maica_wants_preferences_reread", '
-        'prompt="关于[player]的偏好"'
-    ) in TL_DESCRIPTION_SOURCE
+        '"maica_wants_preferences_reread",prompt="关于[player]的偏好"'
+        in _without_whitespace(TL_DESCRIPTION_SOURCE)
+    )
 
 
 def test_location_action_and_explanation_have_distinct_prompts():
@@ -304,13 +411,13 @@ def test_location_action_and_explanation_have_distinct_prompts():
     assert 'new "关于[player]的住址"' in TL_CHAT_SOURCE
     assert 'old "[player]\'s address"' not in TL_CHAT_SOURCE
     assert (
-        'mas_setEVLPropValues("maica_mods_location", '
-        'prompt="修改[player]的住址"'
-    ) in TL_DESCRIPTION_SOURCE
+        '"maica_mods_location",prompt="修改[player]的住址"'
+        in _without_whitespace(TL_DESCRIPTION_SOURCE)
+    )
     assert (
-        'mas_setEVLPropValues("maica_wants_location_reread", '
-        'prompt="关于[player]的住址"'
-    ) in TL_DESCRIPTION_SOURCE
+        '"maica_wants_location_reread",prompt="关于[player]的住址"'
+        in _without_whitespace(TL_DESCRIPTION_SOURCE)
+    )
 
 
 def test_location_topics_match_the_preferences_topic_roles():

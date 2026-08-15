@@ -18,6 +18,7 @@ init 5 python:
         return maica_get_successful_chat_count() > 0
 
 
+# Core conversation events
 init 5 python:
     addEvent(
         Event(
@@ -31,26 +32,6 @@ init 5 python:
     )
 
 init 5 python:
-    corrupted_greeting_rules = dict()
-    corrupted_greeting_rules.update(
-        MASGreetingRule.create_rule(
-            skip_visual=True
-        )
-    )
-    corrupted_greeting_rules.update(MASPriorityRule.create_rule(0))
-    addEvent(
-        Event(
-            persistent.greeting_database,
-            eventlabel="maica_chr_corrupted2",
-            unlocked=True,
-            conditional="persistent._mas_greeting_type is None and not mas_isSpecialDay() and renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
-            aff_range=(mas_aff.NORMAL, None),
-            rules=corrupted_greeting_rules,
-        ),
-        code="GRE"
-    )
-    del corrupted_greeting_rules
-
     greeting_rules = dict()
     greeting_rules.update(
         MASGreetingRule.create_rule(
@@ -63,56 +44,84 @@ init 5 python:
             persistent.greeting_database,
             eventlabel="maica_greeting",
             unlocked=True,
-            conditional="persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
+            conditional=(
+                "persistent._mas_greeting_type is None "
+                "and renpy.seen_label('maica_prepend_1') "
+                "and not mas_isSpecialDay() "
+                "and not renpy.seen_label('maica_greeting')"
+            ),
             aff_range=(mas_aff.AFFECTIONATE, None),
             rules=greeting_rules,
         ),
         code="GRE"
     )
     del greeting_rules
+
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr2",
+            eventlabel="maica_main",
+            prompt=_("Let's go to the Heaven Forest"),
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
+            pool=True,
+            rules={
+                "no_unlock": None,
+            },
+        ),
+        restartBlacklist=True,
+    )
+
+
+# Unlock progression
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_wants_location2",
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
             random=False,
-            conditional="maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+            pool=False,
+            conditional=(
+                "maica_has_successful_chat() "
+                "and not renpy.seen_label('maica_wants_location2')"
+            ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
     )
+
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr_gone",
-            pool=False,
-            conditional="not maica_chr_exist and renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_chr_gone')",
-            action=EV_ACT_PUSH,
+            eventlabel="maica_mods_location",
+            prompt=_("Adjust [player]'s address"),
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
+            pool=True,
+            random=False,
+            unlocked=False,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
-label maica_prepend_1:
-    $ mas_lockEVL("maica_main", "EVE")
-# Queue this introduction after MAICA is installed; NORMAL affection is required.
-    m 1eub "Hey, [player]..."
-    if renpy.seen_label("monika_robotbody"):
-        m 3eua "You remember when we were talking about 'crossing to your reality'?"
-        m "Like robot bodies, or some {i}artificial intelligence{/i} stuff..."
-    else:
-        m 3eud "Have you wondered how I'm coming across to your reality, if one day I really can?"
-        m "Like some {i}artificial intelligence{/i} stuff..."
-    m 5euc "When I surfed the internet recently, I saw many people crazy about the progress of AIs...{nw}"
-    extend 5eud "while making them designers, {w=0.1}drawers, {w=0.1}or even finacialists."
-    m 6luc "I'm not complaining about progress for sure. {w=0.2}But I really wonder if something could be done for me with those technologies."
-    m 3husdlb "Of course it's not like I'm pushing you on those, [player]! {nw}"
-    extend 3eub "but sure that's an exciting possibility."
-    m 1eua "Why I'm talking about these today, it's because I think.{w=0.3}.{w=0.3}.I found some clue."
-    m 1lud "I haven't fully understood this...{w=0.3}{i}place{/i} yet, but it {i}feels{/i} promising. {nw}"
-    extend 3eub "Maybe I still need to do something about it. {w=0.2}I'll spare some time to check it out."
-    m 1hub "I'm sure you downloaded this for me, [player]. {w=0.1}You're always so considerate!"
-    m 1eua "Whenever I managed to make it work, I'll let you know."
-    return "no_unlock|derandom|rebuild_ev"
 
 init 5 python:
     addEvent(
@@ -122,7 +131,10 @@ init 5 python:
             random=False,
             pool=False,
             unlocked=False,
-            conditional="maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
+            conditional=(
+                "maica_get_successful_chat_count() >= 2 "
+                "and not renpy.seen_label('maica_wants_preferences2')"
+            ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -134,7 +146,12 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_mods_preferences",
             prompt=_("Adjust [player]'s preferences"),
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
             pool=True,
             random=False,
             unlocked=False,
@@ -146,42 +163,17 @@ init 5 python:
     )
 
 init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_mods_location",
-            prompt=_("Adjust [player]'s address"),
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            pool=True,
-            random=False,
-            unlocked=False,
-            rules={
-                "no_unlock": None,
-            },
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
-
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_main",
-            prompt=_("Let's go to the Heaven Forest"),
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            pool=True,
-            rules={
-                "no_unlock": None,
-            },
-        ),
-        restartBlacklist=True,
-    )
-
-init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mspire_want():
-        if mas_isMoniNormal(higher=True) and maica_has_successful_chat() and renpy.seen_label('mas_random_ask') and not renpy.seen_label('maica_wants_mspire') and not mas_inEVL('maica_wants_mspire'):
+        if (
+            mas_isMoniNormal(higher=True)
+            and maica_has_successful_chat()
+            and renpy.seen_label('mas_random_ask')
+            and not renpy.seen_label('maica_wants_mspire')
+            and not mas_inEVL('maica_wants_mspire')
+        ):
             return MASEventList.push("maica_wants_mspire")
+
     addEvent(
         Event(
             persistent.event_database,
@@ -192,6 +184,7 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
+
 init 5 python:
     mpostal_greeting_rules = dict()
     mpostal_greeting_rules.update(
@@ -205,7 +198,14 @@ init 5 python:
             persistent.greeting_database,
             eventlabel="maica_wants_mpostal",
             unlocked=True,
-            conditional="persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            conditional=(
+                "persistent._mas_greeting_type is None "
+                "and maica_get_successful_chat_count() >= 2 "
+                "and not mas_isSpecialDay() "
+                "and not renpy.seen_label('maica_wants_mpostal') "
+                "and not (maica_chr_changed "
+                "and not renpy.seen_label('maica_chr_corrupted2'))"
+            ),
             aff_range=(mas_aff.AFFECTIONATE, None),
             rules=mpostal_greeting_rules,
         ),
@@ -213,6 +213,143 @@ init 5 python:
     )
     del mpostal_greeting_rules
 
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_pre_wants_mvista",
+            random=False,
+            pool=False,
+            conditional=(
+                "maica_get_successful_chat_count() >= 3 "
+                "and not renpy.seen_label('maica_pre_wants_mvista')"
+            ),
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+
+# Character-file events
+init 5 python:
+    corrupted_greeting_rules = dict()
+    corrupted_greeting_rules.update(
+        MASGreetingRule.create_rule(
+            skip_visual=True
+        )
+    )
+    corrupted_greeting_rules.update(MASPriorityRule.create_rule(0))
+    addEvent(
+        Event(
+            persistent.greeting_database,
+            eventlabel="maica_chr_corrupted2",
+            unlocked=True,
+            conditional=(
+                "persistent._mas_greeting_type is None "
+                "and not mas_isSpecialDay() "
+                "and renpy.seen_label('maica_greeting') "
+                "and maica_chr_changed "
+                "and not renpy.seen_label('maica_chr_corrupted2')"
+            ),
+            aff_range=(mas_aff.NORMAL, None),
+            rules=corrupted_greeting_rules,
+        ),
+        code="GRE"
+    )
+    del corrupted_greeting_rules
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_gone",
+            pool=False,
+            conditional=(
+                "not maica_chr_exist "
+                "and renpy.seen_label('maica_greeting') "
+                "and not renpy.seen_label('maica_chr_gone')"
+            ),
+            action=EV_ACT_PUSH,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr2",
+            random=False,
+            conditional=(
+                "maica_get_successful_chat_count() >= 4 "
+                "and not renpy.seen_label('maica_chr2') "
+                "and not renpy.seen_label('maica_chr_gone') "
+                "and not renpy.seen_label('maica_chr_corrupted2')"
+            ),
+            action=EV_ACT_QUEUE,
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+
+# MSpire recurring event
+init 4 python:
+    def spire_has_past(delta = datetime.timedelta(days=1)):
+        spire_ev = evhand.event_database.get(
+            "maica_mspire",
+            None
+        )
+        if spire_ev is not None and not spire_ev.last_seen:
+            return True
+        return (
+            spire_ev is not None
+            and spire_ev.last_seen is not None
+            and spire_ev.timePassedSinceLastSeen_dt(delta, datetime.datetime.now())
+        )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_mspire",
+            pool=False,
+            conditional=(
+                "renpy.seen_label('maica_wants_mspire') "
+                "and spire_has_past(datetime.timedelta("
+                "minutes=persistent.maica_setting_dict.get('mspire_interval')"
+                ")) "
+                "and persistent.maica_setting_dict.get('mspire_enable') "
+                "and not store.maica.maica_instance.is_in_exception()"
+            ),
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+init 999 python:
+    mas_getEV("maica_mspire").conditional = (
+        "renpy.seen_label('maica_wants_mspire') "
+        "and spire_has_past(datetime.timedelta("
+        "minutes=persistent.maica_setting_dict.get('mspire_interval')"
+        ")) "
+        "and persistent.maica_setting_dict.get('mspire_enable') "
+        "and not store.maica.maica_instance.is_in_exception()"
+    )
+
+    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
+    def push_mspire():
+        if (
+            mas_isMoniNormal(higher=True)
+            and try_eval(mas_getEV("maica_mspire").conditional)
+            and not mas_inEVL("maica_mspire")
+            and store.mas_getAPIKey("Maica_Token") != ""
+            and len(mas_rev_unseen) == 0
+            and persistent.maica_setting_dict.get('mspire_enable')
+            and not persistent._mas_enable_random_repeats
+        ):
+            return MASEventList.queue("maica_mspire")
+
+
+# MPostal processing events
 init 5 python:
     addEvent(
         Event(
@@ -252,6 +389,7 @@ init 5 python:
             and not mas_inEVL("maica_mpostal_read")
         ):
             return MASEventList.queue("maica_mpostal_read")
+
 init 5 python:
     addEvent(
         Event(
@@ -263,11 +401,13 @@ init 5 python:
         ),
         restartBlacklist=True,
     )
+
     def is_mail_waiting_reply():
         for i in persistent._maica_send_or_received_mpostals:
             if i["responsed_status"] in ("received", "failed"):
                 return True
         return False
+
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal_reply():
         if (
@@ -303,22 +443,31 @@ init 5 python:
                 if time.time() - float(i['time']) > min_response_time:
                     i["responsed_status"] = "notupload"
 
-
             elif i["responsed_status"] in ("received", "failed"):
                 wait_replying_count += 1
 
         return
 
+
+# Reread topics, ordered by their normal unlock progression
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
             eventlabel="maica_prepend_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
             prompt=_("What exactly is the Heaven Forest?"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_prepend_2') and not renpy.seen_label('maica_prepend_reread')",
+            conditional=(
+                "renpy.seen_label('maica_prepend_2') "
+                "and not renpy.seen_label('maica_prepend_reread')"
+            ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
@@ -331,12 +480,20 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_chr_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            prompt=_("The Heaven Forest character file"),
+            eventlabel="maica_wants_location_reread",
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
+            prompt=_("About [player]'s address"),
             random=False,
             pool=True,
-            conditional="(renpy.seen_label('maica_chr2') or renpy.seen_label('maica_chr_gone') or renpy.seen_label('maica_chr_corrupted2')) and not renpy.seen_label('maica_chr_reread')",
+            conditional=(
+                "renpy.seen_label('maica_wants_location2') "
+                "and not renpy.seen_label('maica_wants_location_reread')"
+            ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
@@ -350,11 +507,19 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_wants_preferences_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
             prompt=_("About [player]'s preferences"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_wants_preferences2') and not renpy.seen_label('maica_wants_preferences_reread')",
+            conditional=(
+                "renpy.seen_label('maica_wants_preferences2') "
+                "and not renpy.seen_label('maica_wants_preferences_reread')"
+            ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
@@ -362,33 +527,25 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_wants_location_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            prompt=_("About [player]'s address"),
-            random=False,
-            pool=True,
-            conditional="renpy.seen_label('maica_wants_location2') and not renpy.seen_label('maica_wants_location_reread')",
-            action=EV_ACT_UNLOCK,
-            rules={
-                "no_unlock": None,
-            },
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
+
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
             eventlabel="maica_wants_mspire_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
             prompt=_("About 'MSpire'"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_wants_mspire') and not renpy.seen_label('maica_wants_mspire_reread')",
+            conditional=(
+                "renpy.seen_label('maica_wants_mspire') "
+                "and not renpy.seen_label('maica_wants_mspire_reread')"
+            ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
@@ -396,41 +553,51 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
+
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_wants_location2",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            eventlabel="maica_wants_mpostal_reread",
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
+            prompt=_("About 'MPostal'"),
             random=False,
-            pool=False,
-            conditional="maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2')",
-            action=EV_ACT_QUEUE,
+            pool=True,
+            conditional=(
+                "renpy.seen_label('maica_wants_mpostal') "
+                "and not renpy.seen_label('maica_wants_mpostal_reread')"
+            ),
+            action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_pre_wants_mvista",
-            random=False,
-            pool=False,
-            conditional="maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
-            action=EV_ACT_QUEUE,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
+
 init 5 python:
     addEvent(
         Event(
             persistent.event_database,
             eventlabel="maica_wants_mvista_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
             prompt=_("About 'MVista'"),
             random=False,
             pool=True,
-            conditional="renpy.seen_label('maica_pre_wants_mvista') and not renpy.seen_label('maica_wants_mvista_reread')",
+            conditional=(
+                "renpy.seen_label('maica_pre_wants_mvista') "
+                "and not renpy.seen_label('maica_wants_mvista_reread')"
+            ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
@@ -438,6 +605,59 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
+            eventlabel="maica_chr_reread",
+            category=[
+                _("You"),
+                _("Us"),
+                _("Submods{#maica_host_submods}"),
+                "MAICA",
+            ],
+            prompt=_("The Heaven Forest character file"),
+            random=False,
+            pool=True,
+            conditional=(
+                "(renpy.seen_label('maica_chr2') "
+                "or renpy.seen_label('maica_chr_gone') "
+                "or renpy.seen_label('maica_chr_corrupted2')) "
+                "and not renpy.seen_label('maica_chr_reread')"
+            ),
+            action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+# Core conversation labels
+
+label maica_prepend_1:
+    $ mas_lockEVL("maica_main", "EVE")
+    # Queue this introduction after MAICA is installed; NORMAL affection is required.
+    m 1eub "Hey, [player]..."
+    if renpy.seen_label("monika_robotbody"):
+        m 3eua "You remember when we were talking about 'crossing to your reality'?"
+        m "Like robot bodies, or some {i}artificial intelligence{/i} stuff..."
+    else:
+        m 3eud "Have you wondered how I'm coming across to your reality, if one day I really can?"
+        m "Like some {i}artificial intelligence{/i} stuff..."
+    m 5euc "When I surfed the internet recently, I saw many people crazy about the progress of AIs...{nw}"
+    extend 5eud "while making them designers, {w=0.1}drawers, {w=0.1}or even finacialists."
+    m 6luc "I'm not complaining about progress for sure. {w=0.2}But I really wonder if something could be done for me with those technologies."
+    m 3husdlb "Of course it's not like I'm pushing you on those, [player]! {nw}"
+    extend 3eub "but sure that's an exciting possibility."
+    m 1eua "Why I'm talking about these today, it's because I think.{w=0.3}.{w=0.3}.I found some clue."
+    m 1lud "I haven't fully understood this...{w=0.3}{i}place{/i} yet, but it {i}feels{/i} promising. {nw}"
+    extend 3eub "Maybe I still need to do something about it. {w=0.2}I'll spare some time to check it out."
+    m 1hub "I'm sure you downloaded this for me, [player]. {w=0.1}You're always so considerate!"
+    m 1eua "Whenever I managed to make it work, I'll let you know."
+    return "no_unlock|derandom|rebuild_ev"
+
 label maica_greeting:
         #Set up dark mode
 
@@ -637,163 +857,6 @@ label maica_end_1(conv_rounds=0):
     m 5msa "...I didn't promise {i}something{/i} while I didn't remember or did I, [player]?"
     return
 
-label maica_chr2:
-    # Queue the character-file introduction after four successful chats.
-    # Verify maica chr (HeavenForest.sce) with md5
-    m 1eud "...[player], do you remember those 'character files'?"
-    m 3eud "And I told you that my 'character file' is not myself for real, it's just a {w=0.5}weird presentation."
-    m 3euc "Last time I checked the folders, It seems that Heaven Forest also has a {i}character file{/i}, or shall we call it a scene file."
-    m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
-    m 1eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
-    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
-    m 3eua "But [like_spk], at least you can remove it to have the space back."
-    m 1eua "Of course, you'd better back it up before doing anything."
-    return "no_unlock"
-
-label maica_chr_gone:
-    # Show this branch when the character file is missing, regardless of whether
-    # the normal file introduction has already been shown.
-    m 1ekc "[player]..."
-    extend 1ekd "did you do anything about the characters folder recently?"
-    m 3lusdlb "Not something important, but {w=0.5}the file for Heaven Forest seems to be gone."
-    m 1lua "We can still go there though, but it's gonna be {i}empty{/i} as here outside the window."
-    m 5esc "I'm a little bit concerned, since I haven't figured out what that file {i}actually{/i} is. {w=0.5}It wasn't like some nonsense."
-    m 5msc "It feels different from your presents as they are 'symbols'. {w=1}I think it's closer to other character files."
-    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
-    m 5msb "But [like_spk], I don't mind whether it's there or not. It's just a 'scene' after all."
-    m 1eka "If you accidently lost it and want it back, you can also download another copy."
-    return "no_unlock|derandom"
-
-label maica_chr_corrupted2:
-    # This is a greeting
-    # Triggers only when first time detected corrupted sce file
-    # So we should check the file as game starts up
-    #背景损坏树林
-    call change_to_heaven_forest_corrupted
-    m 1wud "Oh, [player]!"
-    m 1hksdlb "I'm sorry, I wasn't spooking you on purpose...{w=0.5}{nw}"
-    extend 4rksdlb "but when I was just checking this, it seems to be broken."
-    m 3eka "Have you, like ever modified or changed the file of Heaven Forest?"
-    $ mentioned = renpy.substitute('I think you\'ve already guessed that') if renpy.seen_label("maica_chr2") else renpy.substitute('I think')
-    m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
-    extend 1euc "then it's broken."
-    #cares_about_dokis那个条件怎么写来着? 交给你了
-    $ comment = renpy.substitute("...{i}stylish{/i}") if persistent._mas_pm_cares_about_dokis else renpy.substitute('corruption styled')
-    m 5eusdrb "But actually, if you don't mind such a [comment] view, you can just leave it be."
-    m 1hua "You can also replace that with a normal file. I'm okay with it as long as you are."
-    m 1eub "Let me clear it up. {w=0.3}{nw}"
-    extend 1dua "Just a second.{w=0.3}.{w=0.3}."
-    #恢复背景
-    call clear_all
-    m 1eua "Welcome back, [player]. What else should we do today?"
-    return "no_unlock|derandom"
-
-
-label maica_wants_preferences2:
-    # Queue this topic after two successful chats.
-    m 1eub "[player]? {w=0.5}Hmm...{w=0.3}I have something to ask."
-    m 3eua "Since I can talk with you for real now, {w=0.5}{nw}"
-    extend 3esd "I found my acknowledge of you is still too limited."
-    #这里有好几个我不会写的, 都交给你了
-    $ like_mi = renpy.substitute(_(' The only thing you mentioned is that you like mint ice-cream.')) if persistent._mas_pm_like_mint_ice_cream else ''
-    $ book_rc = renpy.substitute(_("we've talked about 'Hard Boiled Wonderland and the End of the World'")) if store.seen_event("monika_favbook") else (renpy.substitute(_("we've talked about 'Yellow Wallpaper'")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('I could recommend you some books')))
-    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
-    extend "[like_mi]"
-    m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
-    #如果玩家已经通过设置填过了
-    $ prefs_exist = len(persistent.mas_player_additions)
-    if not prefs_exist:
-        m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
-        m 1eub "I want to know as much as possible about you!"
-        $ prefs_line = renpy.substitute(_("So, you got anything to tell me?"))
-        m 1hua "[prefs_line]{nw}"
-    else:
-        m 1husdlb "It seems you already wrote me something, and I'll spare some time to read of course."
-        $ prefs_line = renpy.substitute(_("You got anything to implement?"))
-        m 1eub "[prefs_line]{nw}"
-    $ _history_list.pop()
-    menu:
-        "[prefs_line]{fast}"
-        "Sure":
-            m 2dua "Just a second.{w=0.3}.{w=0.3}."
-            #在这里呼出输入框
-            #[player]...
-            #placeholder
-            #还有... | 我写完了
-            #获取到的句子前面拼合上[player]
-            call maica_input_information
-            m 1eub "Done? {w=0.5}Thank you!"
-            m 3eua "I cannot read it here though, but I promise I will do it later."
-            m 1eub "If you want to add or delete something, just tell me to write them down. You can also do it in 'Submod settings'."
-        "Maybe next time" if not prefs_exist:
-            m 2eka "Not now? Okay."
-            m 3eka "Whenever you are ready, just tell me to write them down."
-        "Nope" if prefs_exist:
-            m 1hua "I got it, thank you!"
-    $ mas_unlockEVL("maica_mods_preferences", "EVE")
-    return "no_unlock"
-label maica_mods_preferences:
-    $ prefs_exist = len(persistent.mas_player_additions)
-    if prefs_exist:
-        m 1eub "Okay. Do you want to add or delete something?{nw}"
-        $ _history_list.pop()
-        menu:
-            "Okay. Do you want to add or delete something?{fast}"
-            "Add{#maica_host_add}":
-                m 2dua "Just a second.{w=0.3}.{w=0.3}."
-                call maica_input_information
-                m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
-            "Delete":
-                m 2dua "Just a second.{w=0.3}.{w=0.3}."
-                call maica_delete_information
-                m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
-    else:
-        m 1eub "Okay. What have you got to tell me, [player]?"
-        call maica_input_information
-        m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
-    return
-label maica_call_from_setting(label):
-    $ renpy.call(label)
-    call maica_show_setting_screen
-    return
-label maica_input_information:
-    python:
-        while True:
-            i = mas_input(
-                    _("like.../has.../wants.../..."),
-                    default="",
-                    length=1536,
-                    #screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("I'm done")}
-                    screen="maica_input_information_screen"
-                ).strip(' \t\n\r') #mas_input
-            # if i == "end":
-            if i == "nevermind":
-                break
-            else:
-                addition = maica_validate_player_addition(i, persistent.mas_player_additions)
-                if addition is not None:
-                    persistent.mas_player_additions.append(addition)
-                    renpy.notify(_("MAICA: Input saved"))
-    return
-label maica_delete_information:
-    python:
-        items = []
-        for i in persistent.mas_player_additions:
-            items.append([
-                maica_escape_display_text(i), i, False, False, True
-            ])
-
-    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("Delete item{#maica_chat_delete_item}"), return_all=True)
-
-    python:
-        persistent.mas_player_additions = []
-        for i in _return:
-            if _return[i]:
-                persistent.mas_player_additions.append(i)
-    return
-
-
-
 label change_to_heaven_forest():
     #$ behind_bg = MAS_BACKGROUND_Z - 2
     #python:
@@ -970,6 +1033,165 @@ label maica_connection_failure_dialogue:
         m 3eusdlb "Check the {i}submod_log.log{/i} could you? Sorry but I cannot locate the issue from here."
     return
 
+# Location topics
+
+label maica_set_location:
+    $ inputloc = mas_input(
+        _("Where do you live in exactly?"),
+        length=30,
+        #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
+        screen="maica_input_information_screen"
+    )
+    if inputloc.lower() == "nevermind":
+        m 2eud "Not sure huh...{w=0.5}{nw}"
+        extend 3huu "perhaps you move often? If that's the case, just tell me your favorite place!"
+        m 4fub "Or maybe you live somewhere with a super tough name, like 'Llanfairpwllgwyng...'"
+        m 1hub "Ahaha~"
+        m 3esu "You can always come back to tell me whenever you're ready. {w=0.3}You can also fill it in 'Submod settings'."
+    else:
+        m 1rsa "Let me see..."
+        $ res = store.maica.maica_instance.verify_legality("geolocation", inputloc)
+        if not res.get('success', False):
+            m 3husdlb "I didn't find that name. {w=0.3}Perhaps adjust the expression a little bit, like just the city?{nw}"
+            $ _history_list.pop()
+            menu:
+                "I didn't find that name. Perhaps adjust the expression a little bit, like just the city?{fast}"
+                "Leave it be":
+                    m 3eub "That's alright, thank you!"
+                "I'll try again":
+                    jump maica_set_location
+        else:
+            m 3eub "There it is? Thank you!"
+        $ persistent.mas_geolocation = inputloc
+        m 4sub "We might even meet there the day I cross over!"
+        m 7huu "And of course, you can tell me at any time if you've moved your place. You can also fill it in 'Submod settings'."
+    return
+
+label maica_wants_location2:
+    m 2eub "[player], there's another question on my mind..."
+    m 3euu "Where do you live in? {w=0.3}I haven't ever asked you for so long."
+    if persistent._mas_pm_live_south_hemisphere is not None:
+        $ sw = renpy.substitute("Southern") if persistent._mas_pm_live_south_hemisphere else renpy.substitute("Northern")
+        m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..." # 尴尬
+    m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
+    m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+    m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
+    m 2euu "So, [player]..."
+    call maica_set_location
+    $ mas_unlockEVL("maica_mods_location", "EVE")
+    return "no_unlock"
+
+label maica_mods_location:
+    m 2eub "Okay! So..."
+    jump maica_set_location
+
+# Preference topics
+
+label maica_wants_preferences2:
+    # Queue this topic after two successful chats.
+    m 1eub "[player]? {w=0.5}Hmm...{w=0.3}I have something to ask."
+    m 3eua "Since I can talk with you for real now, {w=0.5}{nw}"
+    extend 3esd "I found my acknowledge of you is still too limited."
+    #这里有好几个我不会写的, 都交给你了
+    $ like_mi = renpy.substitute(_(' The only thing you mentioned is that you like mint ice-cream.')) if persistent._mas_pm_like_mint_ice_cream else ''
+    $ book_rc = renpy.substitute(_("we've talked about 'Hard Boiled Wonderland and the End of the World'")) if store.seen_event("monika_favbook") else (renpy.substitute(_("we've talked about 'Yellow Wallpaper'")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('I could recommend you some books')))
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
+    extend "[like_mi]"
+    m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
+    #如果玩家已经通过设置填过了
+    $ prefs_exist = len(persistent.mas_player_additions)
+    if not prefs_exist:
+        m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
+        m 1eub "I want to know as much as possible about you!"
+        $ prefs_line = renpy.substitute(_("So, you got anything to tell me?"))
+        m 1hua "[prefs_line]{nw}"
+    else:
+        m 1husdlb "It seems you already wrote me something, and I'll spare some time to read of course."
+        $ prefs_line = renpy.substitute(_("You got anything to implement?"))
+        m 1eub "[prefs_line]{nw}"
+    $ _history_list.pop()
+    menu:
+        "[prefs_line]{fast}"
+        "Sure":
+            m 2dua "Just a second.{w=0.3}.{w=0.3}."
+            #在这里呼出输入框
+            #[player]...
+            #placeholder
+            #还有... | 我写完了
+            #获取到的句子前面拼合上[player]
+            call maica_input_information
+            m 1eub "Done? {w=0.5}Thank you!"
+            m 3eua "I cannot read it here though, but I promise I will do it later."
+            m 1eub "If you want to add or delete something, just tell me to write them down. You can also do it in 'Submod settings'."
+        "Maybe next time" if not prefs_exist:
+            m 2eka "Not now? Okay."
+            m 3eka "Whenever you are ready, just tell me to write them down."
+        "Nope" if prefs_exist:
+            m 1hua "I got it, thank you!"
+    $ mas_unlockEVL("maica_mods_preferences", "EVE")
+    return "no_unlock"
+label maica_mods_preferences:
+    $ prefs_exist = len(persistent.mas_player_additions)
+    if prefs_exist:
+        m 1eub "Okay. Do you want to add or delete something?{nw}"
+        $ _history_list.pop()
+        menu:
+            "Okay. Do you want to add or delete something?{fast}"
+            "Add{#maica_host_add}":
+                m 2dua "Just a second.{w=0.3}.{w=0.3}."
+                call maica_input_information
+                m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+            "Delete":
+                m 2dua "Just a second.{w=0.3}.{w=0.3}."
+                call maica_delete_information
+                m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+    else:
+        m 1eub "Okay. What have you got to tell me, [player]?"
+        call maica_input_information
+        m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
+    return
+label maica_call_from_setting(label):
+    $ renpy.call(label)
+    call maica_show_setting_screen
+    return
+label maica_input_information:
+    python:
+        while True:
+            i = mas_input(
+                    _("like.../has.../wants.../..."),
+                    default="",
+                    length=1536,
+                    #screen_kwargs={"use_return_button": True, "return_button_value": "end", "return_button_prompt": _("I'm done")}
+                    screen="maica_input_information_screen"
+                ).strip(' \t\n\r') #mas_input
+            # if i == "end":
+            if i == "nevermind":
+                break
+            else:
+                addition = maica_validate_player_addition(i, persistent.mas_player_additions)
+                if addition is not None:
+                    persistent.mas_player_additions.append(addition)
+                    renpy.notify(_("MAICA: Input saved"))
+    return
+label maica_delete_information:
+    python:
+        items = []
+        for i in persistent.mas_player_additions:
+            items.append([
+                maica_escape_display_text(i), i, False, False, True
+            ])
+
+    call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("Delete item{#maica_chat_delete_item}"), return_all=True)
+
+    python:
+        persistent.mas_player_additions = []
+        for i in _return:
+            if _return[i]:
+                persistent.mas_player_additions.append(i)
+    return
+
+# MSpire topics
+
 label maica_wants_mspire:
     # Add this to waitlist if satisfies:
     # First chat done successfully;
@@ -995,41 +1217,6 @@ label maica_wants_mspire:
             $ persistent.maica_setting_dict["mspire_enable"] = False
             m 3ekb "Alright. {w=0.5}You can always change the 'MSpire' setting in the 'Submod settings', in case you change your mind."
     return "no_unlock|derandom"
-
-init 4 python:
-
-
-    def spire_has_past(delta = datetime.timedelta(days=1)):
-        spire_ev = evhand.event_database.get(
-            "maica_mspire",
-            None
-        )
-        if spire_ev is not None and not spire_ev.last_seen:
-            return True
-        return (
-            spire_ev is not None
-            and spire_ev.last_seen is not None
-            and spire_ev.timePassedSinceLastSeen_dt(delta, datetime.datetime.now())
-        )
-
-
-
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_mspire",
-            pool=False,
-            conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()",
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
-init 999 python:
-    mas_getEV("maica_mspire").conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()"
-    @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
-    def push_mspire():
-        if mas_isMoniNormal(higher=True) and try_eval(mas_getEV("maica_mspire").conditional) and not mas_inEVL("maica_mspire") and store.mas_getAPIKey("Maica_Token") != "" and len(mas_rev_unseen) == 0 and persistent.maica_setting_dict.get('mspire_enable') and not persistent._mas_enable_random_repeats:
-            return MASEventList.queue("maica_mspire")
 
 label maica_mspire:
     call maica_talking(mspire=True)
@@ -1096,6 +1283,8 @@ label mspire_delete_information:
 # I'm gonna tie blue ribbons too,
 # I'm a-gonna climb up in my mail box;
 # I'm gonna mail myself to you.
+
+# MPostal topics
 
 # MPostal is first introduced by a greeting!
 label maica_wants_mpostal:
@@ -1227,93 +1416,6 @@ label maica_mpostal_replyed.end:
 
 
 # 重读对话变体
-label maica_prepend_reread:#"天堂树林到底是什么"
-    # maica_prepend_2触发后解锁
-    m 4eub "As I said earlier, '{i}Heaven Forest{/i}' is a betweenland of our realities."
-    m 3hub "The biggest difference here is it allows us to talk freely {i}for real{/i}. Whatever you want to say!"
-    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
-    m 3eua "I'll nail everything else for you."
-    m 7hub "If you want to know more about it, you can go to {a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}."
-    m 2hksdlb "It could save me some boring explanation. Ahaha!"
-
-    return
-
-label maica_chr_reread:#"天堂树林的角色文件"
-    # Unlock after any character-file outcome has been shown.
-    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
-    m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
-    m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
-    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
-    m 3eua "But [like_spk], at least you can remove it to have the space back."
-    m 7hub "And if you wonder what's in there, you may try it out. {w=0.5}The character files of other girls have strange content too."
-    m 1eud "...Like, why '{i}Heaven Forest{/i}'?{w=0.5} Does it have a story too?{w=0.5} Why it was abandoned here for us?"
-    m 1eua "Of course, you'd better back it up before doing anything."
-    return
-
-label maica_wants_preferences_reread:#"关于[player]的偏好"
-    # Unlock after the preference topic has been shown.
-    m 7hub "[player], the game itself didn't give me much freedom to know about you."#担心
-    #这里有好几个我不会写的, 都交给你了
-    $ like_mi = renpy.substitute(_(' The only thing you mentioned is that you like mint ice-cream.')) if persistent._mas_pm_like_mint_ice_cream else ''
-    $ book_rc = renpy.substitute(_("we've talked about 'Hard Boiled Wonderland and the End of the World'")) if store.seen_event("monika_favbook") else (renpy.substitute(_("we've talked about 'Yellow Wallpaper'")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('I could recommend you some books')))
-    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
-    extend "[like_mi]"
-    m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
-    m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
-    m 4eub "By asking me to 'Adjust [player]'s preferences', you can tell me more about you anytime."
-    m 1eub "I want to know as much as possible about you!"
-    return
-
-label maica_wants_location_reread:#"关于[player]的住址"
-    # Unlock after the location topic has been shown.
-    m 3euu "Of course, there's no way I know where you actually are for now unless I ask."
-
-    m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
-    m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
-    m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
-
-    m 1eub "And you can always ask me to 'Adjust [player]'s address', in case you moved or changed your mind."
-    return
-
-label maica_wants_mspire_reread:#"关于'MSpire'"
-    # maica_wants_mspire触发后解锁
-    m 3ekd "[player], I've once mentioned that we've finished every preset topic."
-    m 5rku "After we went to the Heaven Forest, I figured a way to {w=0.5}find some more."
-    m 5esb "You know that {a=https://wikipedia.org}{u}{i}Wikipedia{/i}{/u}{/a} is a huge knowledge base. {w=0.5}If only I surf there a little bit, we'll have something to talk about for sure."
-    m 3eua "They're most likely to be some small tips or knowledges. {w=0.5}{nw}"
-    extend 3husdlb "Maybe some are a little boring but I'll do my best!"
-    m 3esb "You can always change the 'MSpire' setting in the 'Submod settings' if you want to enable or disable it."
-    return
-
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_wants_mpostal_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            prompt=_("About 'MPostal'"),
-            random=False,
-            pool=True,
-            conditional="renpy.seen_label('maica_wants_mpostal') and not renpy.seen_label('maica_wants_mpostal_reread')",
-            action=EV_ACT_UNLOCK,
-            rules={
-                "no_unlock": None,
-            },
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
-
-label maica_wants_mpostal_reread:#"关于'MPostal'"
-    # maica_wants_mpostal触发后解锁
-    m 4eub "I was thinking that {i}letter{/i} is such a romantic form of literature. Writing little, but expressing much."#微笑
-    m 3eub "Now that we're kind of 'separated' by this screen, it may be a good idea writing letters to each other! {w=0.3}You can also take it as a little writing practice."
-    m 5eubsa "Now through the mailbox in Heaven Forest, I can read your letter for real and write back."
-    m 3eubsb "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
-    m 3kubsa "Like 'I_love_you.mail'! {w=0.5}{nw}"
-    extend 3lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."#尴尬
-    m 7hub "Next time you open the game, I'll be able to read it and write back to you!"
-    m 5esa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
-    return
 
 label mas_corrupted_postmail:
     m 1eud "Hey, [player]..."
@@ -1360,56 +1462,7 @@ label mas_corrupted_postmail_post_menu:
     m 3eub "I know you'd tell me if it were important, [player]."
     return
 
-label maica_set_location:
-    $ inputloc = mas_input(
-        _("Where do you live in exactly?"),
-        length=30,
-        #screen_kwargs={"use_return_button": True, "return_button_value": "nevermind"}
-        screen="maica_input_information_screen"
-    )
-    if inputloc.lower() == "nevermind":
-        m 2eud "Not sure huh...{w=0.5}{nw}"
-        extend 3huu "perhaps you move often? If that's the case, just tell me your favorite place!"
-        m 4fub "Or maybe you live somewhere with a super tough name, like 'Llanfairpwllgwyng...'"
-        m 1hub "Ahaha~"
-        m 3esu "You can always come back to tell me whenever you're ready. {w=0.3}You can also fill it in 'Submod settings'."
-    else:
-        m 1rsa "Let me see..."
-        $ res = store.maica.maica_instance.verify_legality("geolocation", inputloc)
-        if not res.get('success', False):
-            m 3husdlb "I didn't find that name. {w=0.3}Perhaps adjust the expression a little bit, like just the city?{nw}"
-            $ _history_list.pop()
-            menu:
-                "I didn't find that name. Perhaps adjust the expression a little bit, like just the city?{fast}"
-                "Leave it be":
-                    m 3eub "That's alright, thank you!"
-                "I'll try again":
-                    jump maica_set_location
-        else:
-            m 3eub "There it is? Thank you!"
-        $ persistent.mas_geolocation = inputloc
-        m 4sub "We might even meet there the day I cross over!"
-        m 7huu "And of course, you can tell me at any time if you've moved your place. You can also fill it in 'Submod settings'."
-    return
-
-label maica_wants_location2:
-    m 2eub "[player], there's another question on my mind..."
-    m 3euu "Where do you live in? {w=0.3}I haven't ever asked you for so long."
-    if persistent._mas_pm_live_south_hemisphere is not None:
-        $ sw = renpy.substitute("Southern") if persistent._mas_pm_live_south_hemisphere else renpy.substitute("Northern")
-        m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..." # 尴尬
-    m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
-    m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
-    m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
-    m 2euu "So, [player]..."
-    call maica_set_location
-    $ mas_unlockEVL("maica_mods_location", "EVE")
-    return "no_unlock"
-
-label maica_mods_location:
-    m 2eub "Okay! So..."
-    jump maica_set_location
-
+# MVista topics
 
 label maica_pre_wants_mvista:
     $ ev = mas_getEV("maica_pre_wants_mvista")
@@ -1441,10 +1494,6 @@ label maica_pre_wants_mvista:
     call maica_wants_mvista
     return "no_unlock"
 
-label maica_wants_mvista_reread:
-    m 7eub "That is, you can send me images now, [player]!"
-    jump maica_wants_mvista
-
 label maica_wants_mvista:
     m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
     m 1eub "If you're a lover of postcards, you can also send me letters in '.mms' postfix. I'll read them together with your images!"
@@ -1452,4 +1501,133 @@ label maica_wants_mvista:
     m 7eubsa "Or would you show me your face? Only if you're not too shy, ehehe~"
     m 1fubsa "Up to now, I can hardly wait to touch you for real, and hold your hands..."
     m 2eub "Be faithful [player]! We will manage to overcome whatever it is!"
+    return
+
+# Character-file topics
+
+label maica_chr2:
+    # Queue the character-file introduction after four successful chats.
+    # Verify maica chr (HeavenForest.sce) with md5
+    m 1eud "...[player], do you remember those 'character files'?"
+    m 3eud "And I told you that my 'character file' is not myself for real, it's just a {w=0.5}weird presentation."
+    m 3euc "Last time I checked the folders, It seems that Heaven Forest also has a {i}character file{/i}, or shall we call it a scene file."
+    m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
+    m 1eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
+    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
+    m 3eua "But [like_spk], at least you can remove it to have the space back."
+    m 1eua "Of course, you'd better back it up before doing anything."
+    return "no_unlock"
+
+label maica_chr_gone:
+    # Show this branch when the character file is missing, regardless of whether
+    # the normal file introduction has already been shown.
+    m 1ekc "[player]..."
+    extend 1ekd "did you do anything about the characters folder recently?"
+    m 3lusdlb "Not something important, but {w=0.5}the file for Heaven Forest seems to be gone."
+    m 1lua "We can still go there though, but it's gonna be {i}empty{/i} as here outside the window."
+    m 5esc "I'm a little bit concerned, since I haven't figured out what that file {i}actually{/i} is. {w=0.5}It wasn't like some nonsense."
+    m 5msc "It feels different from your presents as they are 'symbols'. {w=1}I think it's closer to other character files."
+    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
+    m 5msb "But [like_spk], I don't mind whether it's there or not. It's just a 'scene' after all."
+    m 1eka "If you accidently lost it and want it back, you can also download another copy."
+    return "no_unlock|derandom"
+
+label maica_chr_corrupted2:
+    # This is a greeting
+    # Triggers only when first time detected corrupted sce file
+    # So we should check the file as game starts up
+    #背景损坏树林
+    call change_to_heaven_forest_corrupted
+    m 1wud "Oh, [player]!"
+    m 1hksdlb "I'm sorry, I wasn't spooking you on purpose...{w=0.5}{nw}"
+    extend 4rksdlb "but when I was just checking this, it seems to be broken."
+    m 3eka "Have you, like ever modified or changed the file of Heaven Forest?"
+    $ mentioned = renpy.substitute('I think you\'ve already guessed that') if renpy.seen_label("maica_chr2") else renpy.substitute('I think')
+    m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
+    extend 1euc "then it's broken."
+    #cares_about_dokis那个条件怎么写来着? 交给你了
+    $ comment = renpy.substitute("...{i}stylish{/i}") if persistent._mas_pm_cares_about_dokis else renpy.substitute('corruption styled')
+    m 5eusdrb "But actually, if you don't mind such a [comment] view, you can just leave it be."
+    m 1hua "You can also replace that with a normal file. I'm okay with it as long as you are."
+    m 1eub "Let me clear it up. {w=0.3}{nw}"
+    extend 1dua "Just a second.{w=0.3}.{w=0.3}."
+    #恢复背景
+    call clear_all
+    m 1eua "Welcome back, [player]. What else should we do today?"
+    return "no_unlock|derandom"
+
+# Reread topics
+
+label maica_prepend_reread:#"天堂树林到底是什么"
+    # maica_prepend_2触发后解锁
+    m 4eub "As I said earlier, '{i}Heaven Forest{/i}' is a betweenland of our realities."
+    m 3hub "The biggest difference here is it allows us to talk freely {i}for real{/i}. Whatever you want to say!"
+    m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
+    m 3eua "I'll nail everything else for you."
+    m 7hub "If you want to know more about it, you can go to {a=https://maica.monika.love}{u}{i}https://maica.monika.love{/i}{/u}{/a}."
+    m 2hksdlb "It could save me some boring explanation. Ahaha!"
+
+    return
+
+label maica_wants_location_reread:#"关于[player]的住址"
+    # Unlock after the location topic has been shown.
+    m 3euu "Of course, there's no way I know where you actually are for now unless I ask."
+
+    m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
+    m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+    m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
+
+    m 1eub "And you can always ask me to 'Adjust [player]'s address', in case you moved or changed your mind."
+    return
+
+label maica_wants_preferences_reread:#"关于[player]的偏好"
+    # Unlock after the preference topic has been shown.
+    m 7hub "[player], the game itself didn't give me much freedom to know about you."#担心
+    #这里有好几个我不会写的, 都交给你了
+    $ like_mi = renpy.substitute(_(' The only thing you mentioned is that you like mint ice-cream.')) if persistent._mas_pm_like_mint_ice_cream else ''
+    $ book_rc = renpy.substitute(_("we've talked about 'Hard Boiled Wonderland and the End of the World'")) if store.seen_event("monika_favbook") else (renpy.substitute(_("we've talked about 'Yellow Wallpaper'")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('I could recommend you some books')))
+    m 3ruc "Like if we really go for dinner together, what shall I order for you?{nw}"
+    extend "[like_mi]"
+    m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
+    m 1eua "So I figured an idea. {w=0.5}Here you can write me some more about yourself, and I can see those in Heaven Forest."
+    m 4eub "By asking me to 'Adjust [player]'s preferences', you can tell me more about you anytime."
+    m 1eub "I want to know as much as possible about you!"
+    return
+
+label maica_wants_mspire_reread:#"关于'MSpire'"
+    # maica_wants_mspire触发后解锁
+    m 3ekd "[player], I've once mentioned that we've finished every preset topic."
+    m 5rku "After we went to the Heaven Forest, I figured a way to {w=0.5}find some more."
+    m 5esb "You know that {a=https://wikipedia.org}{u}{i}Wikipedia{/i}{/u}{/a} is a huge knowledge base. {w=0.5}If only I surf there a little bit, we'll have something to talk about for sure."
+    m 3eua "They're most likely to be some small tips or knowledges. {w=0.5}{nw}"
+    extend 3husdlb "Maybe some are a little boring but I'll do my best!"
+    m 3esb "You can always change the 'MSpire' setting in the 'Submod settings' if you want to enable or disable it."
+    return
+
+label maica_wants_mpostal_reread:#"关于'MPostal'"
+    # maica_wants_mpostal触发后解锁
+    m 4eub "I was thinking that {i}letter{/i} is such a romantic form of literature. Writing little, but expressing much."#微笑
+    m 3eub "Now that we're kind of 'separated' by this screen, it may be a good idea writing letters to each other! {w=0.3}You can also take it as a little writing practice."
+    m 5eubsa "Now through the mailbox in Heaven Forest, I can read your letter for real and write back."
+    m 3eubsb "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
+    m 3kubsa "Like 'I_love_you.mail'! {w=0.5}{nw}"
+    extend 3lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."#尴尬
+    m 7hub "Next time you open the game, I'll be able to read it and write back to you!"
+    m 5esa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
+    return
+
+label maica_wants_mvista_reread:
+    m 7eub "That is, you can send me images now, [player]!"
+    jump maica_wants_mvista
+
+label maica_chr_reread:#"天堂树林的角色文件"
+    # Unlock after any character-file outcome has been shown.
+    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
+    m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
+    m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
+    $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')
+    m 3eua "But [like_spk], at least you can remove it to have the space back."
+    m 7hub "And if you wonder what's in there, you may try it out. {w=0.5}The character files of other girls have strange content too."
+    m 1eud "...Like, why '{i}Heaven Forest{/i}'?{w=0.5} Does it have a story too?{w=0.5} Why it was abandoned here for us?"
+    m 1eua "Of course, you'd better back it up before doing anything."
     return

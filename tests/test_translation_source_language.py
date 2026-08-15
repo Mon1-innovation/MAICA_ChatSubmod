@@ -204,6 +204,7 @@ def test_chinese_string_keys_do_not_conflict_with_known_host_translations():
 
 def test_maica_description_status_and_event_overrides_are_chinese():
     source = read(TL / "maica_description.rpy")
+    normalized_source = " ".join(source.split())
     expected_snippets = [
         'MaicaAiStatus.NOT_READY: u"等待账号设置"',
         'MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA已准备好接收询问"',
@@ -214,7 +215,9 @@ def test_maica_description_status_and_event_overrides_are_chinese():
         'prompt="关于\'MVista\'", category=["你", "我们", "模组", "MAICA"]',
     ]
 
-    missing = [snippet for snippet in expected_snippets if snippet not in source]
+    missing = [
+        snippet for snippet in expected_snippets if snippet not in normalized_source
+    ]
 
     assert not missing, "missing Chinese MAICA description overrides:\n{}".format(
         "\n".join(missing)
