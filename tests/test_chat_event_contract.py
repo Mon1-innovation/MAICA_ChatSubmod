@@ -47,6 +47,15 @@ def _event_block(eventlabel):
     return CHAT_SOURCE[start:] if end == -1 else CHAT_SOURCE[start:end]
 
 
+def _registration_block(eventlabel):
+    marker = 'eventlabel="{}"'.format(eventlabel)
+    event_start = CHAT_SOURCE.index(marker)
+    start = CHAT_SOURCE.rfind("\ninit ", 0, event_start)
+    start = 0 if start == -1 else start + 1
+    end = CHAT_SOURCE.find("\ninit ", event_start)
+    return CHAT_SOURCE[start:] if end == -1 else CHAT_SOURCE[start:end]
+
+
 def _function_block(function_name):
     marker = "    def {}(".format(function_name)
     start = CHAT_SOURCE.index(marker)
@@ -235,7 +244,7 @@ def test_chat_progression_uses_successful_entry_count():
     assert "maica_get_successful_chat_count() >= 4" in _event_block(
         "maica_chr2"
     )
-    assert "maica_get_successful_chat_count() >= 2" in _event_block(
+    assert "maica_get_successful_chat_count() >= 2" in _registration_block(
         "maica_wants_mpostal"
     )
     assert "mas_getEV('maica_main').shown_count" not in CHAT_SOURCE
@@ -276,10 +285,11 @@ def test_maica_greetings_use_the_mas_selection_contract():
         "maica_greeting",
         "maica_wants_mpostal",
     ):
-        event = _event_block(eventlabel)
+        event = _registration_block(eventlabel)
         assert "unlocked=True" in event
         assert "persistent._mas_greeting_type is None" in event
         assert "not mas_isSpecialDay()" in event
+        assert "not mas_isplayer_bday()" in event
         assert "action=EV_ACT_UNLOCK" not in event
         assert "prompt=" not in event
 
@@ -288,9 +298,9 @@ def test_maica_greetings_use_the_mas_selection_contract():
     assert 'functionplugin("ch30_post_exp_check"' not in CHAT_SOURCE
     assert "selected_greeting" not in CHAT_SOURCE
 
-    corruption = _event_block("maica_chr_corrupted2")
-    mpostal = _event_block("maica_wants_mpostal")
-    assert "renpy.seen_label('maica_greeting')" in corruption
+    corruption = _registration_block("maica_chr_corrupted2")
+    mpostal = _registration_block("maica_wants_mpostal")
+    assert "renpy.seen_label('maica_prepend_2')" in corruption
     compact_mpostal = _without_whitespace(mpostal)
     assert '"andnot(maica_chr_changed"' in compact_mpostal
     assert '"andnotrenpy.seen_label(\'maica_chr_corrupted2\'))"' in compact_mpostal
@@ -476,7 +486,8 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.8", migration_1_8_8)' in MIGRATION_SOURCE
     assert '("1.8.9", migration_1_8_9)' in MIGRATION_SOURCE
     assert '("1.8.10", migration_1_8_10)' in MIGRATION_SOURCE
-    assert "maica_ver = '1.8.10'" in API_SOURCE
+    assert '("1.8.11", migration_1_8_11)' in MIGRATION_SOURCE
+    assert "maica_ver = '1.8.11'" in API_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
     assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
@@ -496,3 +507,136 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '"maica_set_location_reread": "maica_mods_location"' in MIGRATION_SOURCE
     assert 'mas_unlockEVL("maica_wants_location_reread", "EVE")' in MIGRATION_SOURCE
     assert "persistent.event_database.pop(old_label, None)" in MIGRATION_SOURCE
+
+
+def test_greeting_retries_until_the_post_door_flow_starts():
+    greeting = _registration_block("maica_greeting")
+    gone = _event_block("maica_chr_gone")
+    label = _label_block("maica_greeting")
+
+    assert "not renpy.seen_label('maica_prepend_2')" in greeting
+    assert "not renpy.seen_label('maica_greeting')" not in greeting
+    assert "renpy.seen_label('maica_prepend_2')" in gone
+    assert "if mas_isplayer_bday():" in label
+    assert "jump i_greeting_monikaroom" in label
+    assert "call monikaroom_greeting_cleanup" in _label_block("maica_prepend_2")
+
+
+def test_greeting_lifecycle_matches_mas_closed_room_setup():
+    greeting = _label_block("maica_greeting")
+    _assert_in_order(
+        greeting,
+        (
+            "$ mas_progressFilter()",
+            "$ mas_enable_quit()",
+            "$ mas_RaiseShield_core()",
+            "scene black",
+        ),
+    )
+
+    for label_name in ("maica_prepend_2_open", "maica_prepend_2_knock"):
+        entrance = _label_block(label_name)
+        assert "$ mas_disable_quit()" in entrance
+        assert entrance.index("hide monika") < entrance.index("hide black")
+        assert entrance.index("$ monika_chr.reset_outfit(False)") < entrance.index(
+            "show monika 1esc"
+        )
+
+
+def test_greeting_visual_rules_match_the_scene_each_label_owns():
+    intro = _registration_block("maica_greeting")
+    corruption = _registration_block("maica_chr_corrupted2")
+    mpostal = _registration_block("maica_wants_mpostal")
+
+    assert "skip_visual=True" in intro
+    assert "skip_visual=True" in corruption
+    assert CHAT_SOURCE.count("skip_visual=True") == 2
+
+    assert 'forced_exp="monika 3hubsa"' in mpostal
+    assert "skip_visual=True" not in mpostal
+    assert "change_to_heaven_forest" not in _label_block("maica_wants_mpostal")
+
+
+def test_current_greeting_contract_is_applied_before_mas_selects_one():
+    registrations = {
+        "maica_greeting": ("greeting_ev", "greeting_conditional", "greeting_rules"),
+        "maica_wants_mpostal": (
+            "mpostal_ev",
+            "mpostal_greeting_conditional",
+            "mpostal_greeting_rules",
+        ),
+        "maica_chr_corrupted2": (
+            "corrupted_ev",
+            "corrupted_greeting_conditional",
+            "corrupted_greeting_rules",
+        ),
+    }
+    for eventlabel, (event_var, conditional_var, rules_var) in registrations.items():
+        registration = _registration_block(eventlabel)
+        assert 'persistent.greeting_database.get("{}")'.format(eventlabel) in registration
+        assert "{}.conditional = {}".format(event_var, conditional_var) in registration
+        assert "{}.rules.update({})".format(event_var, rules_var) in registration
+
+    assert 'mpostal_ev = mas_getEV("maica_wants_mpostal")' in MIGRATION_SOURCE
+    assert 'MASGreetingRule.create_rule(forced_exp="monika 3hubsa")' in MIGRATION_SOURCE
+
+
+def test_heaven_forest_round_trip_preserves_the_mas_room_state():
+    helper = _label_block("maica_change_to_heaven_forest")
+    cleanup = _label_block("clear_all")
+
+    _assert_in_order(
+        helper,
+        (
+            "if initialize_weather:",
+            "$ mas_startupWeather()",
+            "if maica_room_restore_state is None:",
+            "mas_current_background,",
+            "mas_current_weather,",
+            "mas_weather.force_weather,",
+            "store.maica.weather_trigger.can_change,",
+            "$ store.maica.weather_trigger.can_change = False",
+            "$ mas_changeWeather(weather, new_bg=mas_background_def)",
+            "$ bg_change_info = mas_changeBackground(mas_background_def",
+            "call spaceroom(",
+        ),
+    )
+    assert "mas_changeWeather(hf_weather, True)" not in CHAT_SOURCE
+    assert "mas_changeWeather(hf2_weather, True)" not in CHAT_SOURCE
+
+    _assert_in_order(
+        cleanup,
+        (
+            "if maica_room_restore_state is not None:",
+            "$ restore_background, restore_weather, restore_force_weather, restore_weather_trigger = maica_room_restore_state",
+            "$ mas_changeWeather(restore_weather, new_bg=restore_background)",
+            "$ bg_change_info_moi = mas_changeBackground(restore_background",
+            "call spaceroom(",
+            "$ mas_weather.force_weather = restore_force_weather",
+            "$ store.maica.weather_trigger.can_change = restore_weather_trigger",
+            "$ maica_room_restore_state = None",
+        ),
+    )
+    assert "$ store.maica.weather_trigger.can_change = True" not in cleanup
+
+
+def test_skip_visual_forest_greetings_restore_the_full_startup_lifecycle():
+    for label_name in ("maica_prepend_2_open", "maica_prepend_2_knock"):
+        assert "change_to_heaven_forest(initialize_weather=True)" in _label_block(
+            label_name
+        )
+
+    corruption = _label_block("maica_chr_corrupted2")
+    assert 'force_exp="monika 1wud"' in corruption
+    assert "initialize_weather=True" in corruption
+    _assert_in_order(
+        corruption,
+        (
+            "call change_to_heaven_forest_corrupted(",
+            "call clear_all",
+            "call monikaroom_greeting_cleanup",
+            'm 1eua "Welcome back, [player]. What else should we do today?"',
+            "return",
+        ),
+    )
+    assert 'return "no_unlock|derandom"' not in corruption

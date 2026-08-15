@@ -299,6 +299,29 @@ init 998 python:
 
         mas_rebuildEventLists()
 
+    def migration_1_8_11():
+        # Entering maica_greeting marks it seen before the player chooses a
+        # door action. Use the first shared post-door label as completion so a
+        # safe quit from the black-screen menu does not consume the intro.
+        event_conditions = {
+            "maica_greeting": "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
+            "maica_chr_corrupted2": "persistent._mas_greeting_type is None and not mas_isSpecialDay() and not mas_isplayer_bday() and renpy.seen_label('maica_prepend_2') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+            "maica_wants_mpostal": "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            "maica_chr_gone": "not maica_chr_exist and renpy.seen_label('maica_prepend_2') and not renpy.seen_label('maica_chr_gone')",
+        }
+        for eventlabel, conditional in event_conditions.items():
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.conditional = conditional
+
+        mpostal_ev = mas_getEV("maica_wants_mpostal")
+        if mpostal_ev is not None:
+            mpostal_ev.rules.update(
+                MASGreetingRule.create_rule(forced_exp="monika 3hubsa")
+            )
+
+        mas_rebuildEventLists()
+
     migration_queue = [
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
@@ -306,4 +329,5 @@ init 998 python:
         ("1.8.8", migration_1_8_8),
         ("1.8.9", migration_1_8_9),
         ("1.8.10", migration_1_8_10),
+        ("1.8.11", migration_1_8_11),
     ]

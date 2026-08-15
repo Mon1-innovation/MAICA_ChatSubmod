@@ -32,6 +32,13 @@ init 5 python:
     )
 
 init 5 python:
+    greeting_conditional = (
+        "persistent._mas_greeting_type is None "
+        "and renpy.seen_label('maica_prepend_1') "
+        "and not mas_isSpecialDay() "
+        "and not mas_isplayer_bday() "
+        "and not renpy.seen_label('maica_prepend_2')"
+    )
     greeting_rules = dict()
     greeting_rules.update(
         MASGreetingRule.create_rule(
@@ -44,17 +51,18 @@ init 5 python:
             persistent.greeting_database,
             eventlabel="maica_greeting",
             unlocked=True,
-            conditional=(
-                "persistent._mas_greeting_type is None "
-                "and renpy.seen_label('maica_prepend_1') "
-                "and not mas_isSpecialDay() "
-                "and not renpy.seen_label('maica_greeting')"
-            ),
+            conditional=greeting_conditional,
             aff_range=(mas_aff.AFFECTIONATE, None),
             rules=greeting_rules,
         ),
         code="GRE"
     )
+    greeting_ev = persistent.greeting_database.get("maica_greeting")
+    if greeting_ev is not None:
+        greeting_ev.conditional = greeting_conditional
+        greeting_ev.rules.update(greeting_rules)
+    del greeting_ev
+    del greeting_conditional
     del greeting_rules
 
 init 5 python:
@@ -186,10 +194,19 @@ init 5 python:
     )
 
 init 5 python:
+    mpostal_greeting_conditional = (
+        "persistent._mas_greeting_type is None "
+        "and maica_get_successful_chat_count() >= 2 "
+        "and not mas_isSpecialDay() "
+        "and not mas_isplayer_bday() "
+        "and not renpy.seen_label('maica_wants_mpostal') "
+        "and not (maica_chr_changed "
+        "and not renpy.seen_label('maica_chr_corrupted2'))"
+    )
     mpostal_greeting_rules = dict()
     mpostal_greeting_rules.update(
         MASGreetingRule.create_rule(
-            skip_visual=True
+            forced_exp="monika 3hubsa"
         )
     )
     mpostal_greeting_rules.update(MASPriorityRule.create_rule(20))
@@ -198,19 +215,20 @@ init 5 python:
             persistent.greeting_database,
             eventlabel="maica_wants_mpostal",
             unlocked=True,
-            conditional=(
-                "persistent._mas_greeting_type is None "
-                "and maica_get_successful_chat_count() >= 2 "
-                "and not mas_isSpecialDay() "
-                "and not renpy.seen_label('maica_wants_mpostal') "
-                "and not (maica_chr_changed "
-                "and not renpy.seen_label('maica_chr_corrupted2'))"
-            ),
+            conditional=mpostal_greeting_conditional,
             aff_range=(mas_aff.AFFECTIONATE, None),
             rules=mpostal_greeting_rules,
         ),
         code="GRE"
     )
+    # addEvent preserves fields from an existing persistent Event. Apply the
+    # current contract before MAS selects a greeting on this launch.
+    mpostal_ev = persistent.greeting_database.get("maica_wants_mpostal")
+    if mpostal_ev is not None:
+        mpostal_ev.conditional = mpostal_greeting_conditional
+        mpostal_ev.rules.update(mpostal_greeting_rules)
+    del mpostal_ev
+    del mpostal_greeting_conditional
     del mpostal_greeting_rules
 
 init 5 python:
@@ -232,6 +250,14 @@ init 5 python:
 
 # Character-file events
 init 5 python:
+    corrupted_greeting_conditional = (
+        "persistent._mas_greeting_type is None "
+        "and not mas_isSpecialDay() "
+        "and not mas_isplayer_bday() "
+        "and renpy.seen_label('maica_prepend_2') "
+        "and maica_chr_changed "
+        "and not renpy.seen_label('maica_chr_corrupted2')"
+    )
     corrupted_greeting_rules = dict()
     corrupted_greeting_rules.update(
         MASGreetingRule.create_rule(
@@ -244,18 +270,18 @@ init 5 python:
             persistent.greeting_database,
             eventlabel="maica_chr_corrupted2",
             unlocked=True,
-            conditional=(
-                "persistent._mas_greeting_type is None "
-                "and not mas_isSpecialDay() "
-                "and renpy.seen_label('maica_greeting') "
-                "and maica_chr_changed "
-                "and not renpy.seen_label('maica_chr_corrupted2')"
-            ),
+            conditional=corrupted_greeting_conditional,
             aff_range=(mas_aff.NORMAL, None),
             rules=corrupted_greeting_rules,
         ),
         code="GRE"
     )
+    corrupted_ev = persistent.greeting_database.get("maica_chr_corrupted2")
+    if corrupted_ev is not None:
+        corrupted_ev.conditional = corrupted_greeting_conditional
+        corrupted_ev.rules.update(corrupted_greeting_rules)
+    del corrupted_ev
+    del corrupted_greeting_conditional
     del corrupted_greeting_rules
 
 init 5 python:
@@ -266,7 +292,7 @@ init 5 python:
             pool=False,
             conditional=(
                 "not maica_chr_exist "
-                "and renpy.seen_label('maica_greeting') "
+                "and renpy.seen_label('maica_prepend_2') "
                 "and not renpy.seen_label('maica_chr_gone')"
             ),
             action=EV_ACT_PUSH,
@@ -659,7 +685,9 @@ label maica_prepend_1:
     return "no_unlock|derandom|rebuild_ev"
 
 label maica_greeting:
-        #Set up dark mode
+    # A stale persistent condition can select this before the migration runs.
+    if mas_isplayer_bday():
+        jump i_greeting_monikaroom
 
     # Progress the filter here so that the greeting uses the correct styles
     $ mas_progressFilter()
@@ -673,6 +701,8 @@ label maica_greeting:
     # 1 - if you quit here, monika doesnt know u here
     $ mas_enable_quit()
 
+    # all UI elements stopped
+    $ mas_RaiseShield_core()
 
     # 3 - keymaps not set (default)
     # 4 - overlays hidden (skip visual)
@@ -680,36 +710,31 @@ label maica_greeting:
 
     scene black
 
-
     $ has_listened = False
+
+# Fall through to the door menu. Unlike the regular greeting, this one-shot
+# surprise does not change affection for either opening or knocking.
+label maica_greeting_loop:
     $ _opendoor_text = renpy.substitute(_("...Gently open the door"))
-# Isn't really an open door event. guess shall not add afflos here
-# Add this greeting to waiting list after maica_prepend_1 was triggered. affection AFFECTIONATE at least to trigger.
-# Shouldn't trigger if today is special event like player bday. finish that for me p
-    #黑屏
-    label maica_greeting_loop:
-        menu:
-            "[_opendoor_text]{#maica_host_opendoor_text}" if not persistent.seen_monika_in_room and not mas_isplayer_bday():
-                jump maica_prepend_2_open
-            "Open the door.{#maica_host_open_door}" if persistent.seen_monika_in_room or mas_isplayer_bday():
-                jump maica_prepend_2_open
-            "Knock.{#maica_host_knock}":
-                jump maica_prepend_2_knock
-            "Listen.{#maica_host_listen}" if not has_listened and not mas_isMoniBroken():
-                $ has_listened = True
-                jump maica_prepend_2_listen
 
-
-    m 1eua ""
-    return
+    menu:
+        "[_opendoor_text]{#maica_host_opendoor_text}" if not persistent.seen_monika_in_room:
+            jump maica_prepend_2_open
+        "Open the door.{#maica_host_open_door}" if persistent.seen_monika_in_room:
+            jump maica_prepend_2_open
+        "Knock.{#maica_host_knock}":
+            jump maica_prepend_2_knock
+        "Listen.{#maica_host_listen}" if not has_listened and not mas_isMoniBroken():
+            $ has_listened = True
+            jump maica_prepend_2_listen
 
 label maica_prepend_2_open:
-    #点亮房间, 窗外背景替换heaven_forest.jpg
-    #no desk no monika
     hide monika
-    call change_to_heaven_forest
+    call change_to_heaven_forest(initialize_weather=True)
     pause 0.5
+    hide monika
     hide black
+    $ mas_disable_quit()
 
     m "Who's there--{w=0.3}[player]? {nw}"
     if persistent.seen_monika_in_room:
@@ -718,11 +743,10 @@ label maica_prepend_2_open:
         extend "Why didn't you knock?"
     m "Alright, I just finished working on this anyway. {w=0.5}I bet you would like this."
     m "Just a second, let me get my desk and chair.{w=0.3}.{w=0.3}."
-    #monika + desk in
+    $ monika_chr.reset_outfit(False)
+    $ monika_chr.wear_acs(mas_acs_ribbon_def)
     show monika 1esc at ls32 zorder MAS_MONIKA_Z
     jump maica_prepend_2
-    return
-
 
 label maica_prepend_2_knock:
     m "Who's there~"
@@ -732,28 +756,25 @@ label maica_prepend_2_knock:
             m "You're finally here, [player]!"
             m "I just finished preparing a little surprise for you. {w=0.5}Just a second.{w=0.3}.{w=0.3}."
 
-            #点亮房间, 窗外背景替换heaven_forest.jpg
-            call change_to_heaven_forest
+            call change_to_heaven_forest(initialize_weather=True)
             pause 0.5
-            hide black
             hide monika
-            show monika 1esc at ls32 zorder MAS_MONIKA_Z
+            hide black
             $ monika_chr.reset_outfit(False)
             $ monika_chr.wear_acs(mas_acs_ribbon_def)
-            #monika + desk in
+            show monika 1esc at ls32 zorder MAS_MONIKA_Z
             m 1hub "Tada~"
             jump maica_prepend_2
-    return
 
 label maica_prepend_2_listen:
-
     m "Here.{w=0.3}.{w=0.3}.it's done. {w=0.5}Huh, it wasn't so hard as I expected."
     m "It's looking good, I can stay here all day. {w=0.5}But..."
     m "Is it gonna {i}connect the reality{/i} for real?"
     jump maica_greeting_loop
-    return
 
 label maica_prepend_2:
+    # Restore the UI, music, keymaps, overlays, and normal quit handling.
+    call monikaroom_greeting_cleanup
     m 1eub "What do you say, [player]? {w=0.3}You like this place?{nw}"
     $ _history_list.pop()
     menu:
@@ -857,43 +878,51 @@ label maica_end_1(conv_rounds=0):
     m 5msa "...I didn't promise {i}something{/i} while I didn't remember or did I, [player]?"
     return
 
-label change_to_heaven_forest():
-    #$ behind_bg = MAS_BACKGROUND_Z - 2
-    #python:
-    #    if mas_isDayNow():
-    #        _background = "heaven_forest_day"
-    #    else:
-    #        _background = "heaven_forest_night"
+default maica_room_restore_state = None
 
-    #show expression _background as sp_mas_backbed zorder behind_bg
-    #$ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
-    $ mas_changeWeather(hf_weather, True)
-    $ store.maica.weather_trigger.can_change = False
-    $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
-    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
-    #$ behind_bg = MAS_BACKGROUND_Z - 2
-    #show expression _background as sp_mas_backbed zorder behind_bg
-    #$ renpy.show(_background, tag = "sp_mas_backbed", zorder=behind_bg)
-
-
+label change_to_heaven_forest(force_exp=None, initialize_weather=False):
+    call maica_change_to_heaven_forest(hf_weather, force_exp=force_exp, initialize_weather=initialize_weather)
     return
 
-label change_to_heaven_forest_corrupted():
+label change_to_heaven_forest_corrupted(force_exp=None, initialize_weather=False):
+    call maica_change_to_heaven_forest(hf2_weather, force_exp=force_exp, initialize_weather=initialize_weather)
+    return
+
+label maica_change_to_heaven_forest(weather, force_exp=None, initialize_weather=False):
+    # skip_visual greetings bypass the normal ch30 startup-weather call.
+    if initialize_weather:
+        $ mas_startupWeather()
+
+    if maica_room_restore_state is None:
+        $ maica_room_restore_state = (
+            mas_current_background,
+            mas_current_weather,
+            mas_weather.force_weather,
+            store.maica.weather_trigger.can_change,
+        )
+
     $ store.maica.weather_trigger.can_change = False
-    $ mas_changeWeather(hf2_weather, True)
+    # Pass the destination background so weather-capability checks do not use
+    # the room that is about to be replaced.
+    $ mas_changeWeather(weather, new_bg=mas_background_def)
     $ bg_change_info = mas_changeBackground(mas_background_def, by_user=None, set_persistent=False,)
-    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=None)
+    call spaceroom(scene_change=None, dissolve_all=True, bg_change_info=bg_change_info, force_exp=force_exp)
     return
 
 label clear_all:
     call maica_hide_console
     hide sp_mas_backbed
     $ HKBShowButtons()
-    $ store.maica.weather_trigger.can_change = True
-    $ mas_changeWeather(mas_weather_def)
-    $ bg_change_info_moi = mas_changeBackground(mas_background_def, set_persistent=False)
-    if maica_chr_exist:
+
+    if maica_room_restore_state is not None:
+        $ restore_background, restore_weather, restore_force_weather, restore_weather_trigger = maica_room_restore_state
+        $ mas_changeWeather(restore_weather, new_bg=restore_background)
+        $ bg_change_info_moi = mas_changeBackground(restore_background, set_persistent=False)
         call spaceroom(scene_change=True, dissolve_all=True, bg_change_info=bg_change_info_moi, force_exp=None)
+        $ mas_weather.force_weather = restore_force_weather
+        $ store.maica.weather_trigger.can_change = restore_weather_trigger
+        $ maica_room_restore_state = None
+
     $ mas_unlockEVL("maica_main", "EVE")
     return
 
@@ -1537,7 +1566,7 @@ label maica_chr_corrupted2:
     # Triggers only when first time detected corrupted sce file
     # So we should check the file as game starts up
     #背景损坏树林
-    call change_to_heaven_forest_corrupted
+    call change_to_heaven_forest_corrupted(force_exp="monika 1wud", initialize_weather=True)
     m 1wud "Oh, [player]!"
     m 1hksdlb "I'm sorry, I wasn't spooking you on purpose...{w=0.5}{nw}"
     extend 4rksdlb "but when I was just checking this, it seems to be broken."
@@ -1553,8 +1582,9 @@ label maica_chr_corrupted2:
     extend 1dua "Just a second.{w=0.3}.{w=0.3}."
     #恢复背景
     call clear_all
+    call monikaroom_greeting_cleanup
     m 1eua "Welcome back, [player]. What else should we do today?"
-    return "no_unlock|derandom"
+    return
 
 # Reread topics
 

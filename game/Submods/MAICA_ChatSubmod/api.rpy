@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.8.10'
+    maica_ver = '1.8.11'
     maica_is_dev = True
     # 如果是开发版本:
     # - workflow不会自动发布release
@@ -374,7 +374,7 @@ init 5 python in maica:
         if is_frontend_version_outdated():
             store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
 
-        if not renpy.seen_label("maica_greeting") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
+        if not renpy.seen_label("maica_prepend_2") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
         else:
