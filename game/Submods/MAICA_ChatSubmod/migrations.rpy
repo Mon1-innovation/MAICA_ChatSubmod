@@ -154,9 +154,73 @@ init 998 python:
             if ev is not None:
                 ev.conditional = conditional
 
+    def migration_1_8_9():
+        queued_event_conditions = {
+            "maica_chr2": "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+            "maica_wants_preferences2": "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
+            "maica_pre_set_location": "maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
+            "maica_pre_wants_mvista": "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
+        }
+        for eventlabel, conditional in queued_event_conditions.items():
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.conditional = conditional
+                ev.action = EV_ACT_QUEUE
+                ev.random = False
+
+        # MAS addEvent preserves existing persistent Event objects, including
+        # their old greeting and priority rules, so repair those explicitly.
+        greeting_repairs = {
+            "maica_chr_corrupted2": (
+                "persistent._mas_greeting_type is None and not mas_isSpecialDay() and renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+                0,
+            ),
+            "maica_greeting": (
+                "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
+                20,
+            ),
+            "maica_wants_mpostal": (
+                "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+                20,
+            ),
+        }
+        for eventlabel, (conditional, priority) in greeting_repairs.items():
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.conditional = conditional
+                ev.action = None
+                ev.unlocked = True
+                ev.rules.update(MASGreetingRule.create_rule(skip_visual=True))
+                ev.rules.update(MASPriorityRule.create_rule(priority))
+
+        reread_repairs = {
+            "maica_prepend_reread": (
+                "renpy.seen_label('maica_prepend_2') and not renpy.seen_label('maica_prepend_reread')",
+                renpy.seen_label("maica_prepend_2") or renpy.seen_label("maica_prepend_reread"),
+            ),
+            "maica_chr_reread": (
+                "(renpy.seen_label('maica_chr2') or renpy.seen_label('maica_chr_gone') or renpy.seen_label('maica_chr_corrupted2')) and not renpy.seen_label('maica_chr_reread')",
+                (
+                    renpy.seen_label("maica_chr2")
+                    or renpy.seen_label("maica_chr_gone")
+                    or renpy.seen_label("maica_chr_corrupted2")
+                    or renpy.seen_label("maica_chr_reread")
+                ),
+            ),
+        }
+        for eventlabel, (conditional, unlocked) in reread_repairs.items():
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.conditional = conditional
+                ev.action = EV_ACT_UNLOCK
+                ev.unlocked = unlocked
+
+        mas_rebuildEventLists()
+
     migration_queue = [
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
         ("1.8.7", migration_1_8_7),
         ("1.8.8", migration_1_8_8),
+        ("1.8.9", migration_1_8_9),
     ]

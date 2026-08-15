@@ -497,7 +497,7 @@ translate chinese maica_chr_corrupted2_e3c56680:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:604
 
 translate chinese maica_chr_corrupted2_b6f33963:
-    $ mentioned = renpy.substitute('我想我提过一嘴, ') if renpy.seen_label("maica_chr") else renpy.substitute('我想')
+    $ mentioned = renpy.substitute('我想我提过一嘴, ') if renpy.seen_label("maica_chr2") else renpy.substitute('我想')
     # m 1rud "[mentioned] it's an encoded file. {w=0.5}Which means, if you modify something in it--{w=0.3}{nw}"
     m 1rud "[mentioned]它是一个编码的文件. {w=0.5}也就是说, 如果它的内容改变了--{w=0.3}{nw}"
 
@@ -565,8 +565,7 @@ translate chinese maica_wants_preferences2_954037fe:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:629
 
 translate chinese maica_wants_preferences2_9a444e8a:
-    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_favbook") else None
-    $ book_rc = renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp and book_rc is None else renpy.substitute(_('我可以推荐几本书给你'))
+    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_favbook") else (renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('我可以推荐几本书给你')))
     # m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
 
@@ -1440,8 +1439,7 @@ translate chinese maica_wants_preferences_reread_954037fe:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1117
 
 translate chinese maica_wants_preferences_reread_9a444e8a:
-    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_brave_new_world") else None
-    $ book_rc = renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp and book_rc is None else renpy.substitute(_('我可以推荐几本书给你'))
+    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_favbook") else (renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('我可以推荐几本书给你')))
     # m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
 
@@ -1455,7 +1453,7 @@ translate chinese maica_wants_preferences_reread_b3c20223:
 
 translate chinese maica_wants_preferences_reread_1bbbb4ae:
     # m 4eub "By asking me to 'Adjust [player]'s preferences', you can tell me more about you anytime."
-    m 4eub "只用在对话里找到'调整[player]的爱好', 你就可以随时告诉我关于你的事情."
+    m 4eub "只用在对话里找到'修改[player]的偏好', 你就可以随时告诉我关于你的事情."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1120
 
@@ -2054,10 +2052,10 @@ translate chinese strings:
     new "天堂树林好像坏了"
 
     old "Learning about your preferences"
-    new "了解你的爱好"
+    new "了解你的偏好"
 
     old "Adjust [player]'s preferences"
-    new "调整[player]的爱好"
+    new "修改[player]的偏好"
 
     old "Let's go to the Heaven Forest"
     new "我们去天堂树林吧"
@@ -2066,10 +2064,10 @@ translate chinese strings:
     new "天堂树林到底是什么"
 
     old "The Heaven Forest character file"
-    new "天堂树林的角色文件"
+    new "关于HeavenForest.sce"
 
-    old "About additional preferences"
-    new "关于补充偏好"
+    old "About [player]'s preferences"
+    new "关于[player]的偏好"
 
     old "About 'MSpire'"
     new "关于'MSpire'"
