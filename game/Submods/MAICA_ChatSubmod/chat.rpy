@@ -61,7 +61,7 @@ init 5 python:
                 renpy.seen_label("maica_prepend_1")
                 and not mas_isSpecialDay()
                 and not renpy.seen_label("maica_greeting")
-                and _mas_getAffection() >= 100
+                and mas_isMoniAff(higher=True)
             ):
             store.selected_greeting = "maica_greeting"
 
@@ -160,7 +160,6 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_mods_preferences",
             prompt=_("Adjust [player]'s preferences"),
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
             pool=True,
             random=False,
             unlocked=False,
@@ -212,7 +211,7 @@ init 5 python:
                 and not mas_isSpecialDay()
                 and not renpy.seen_label("maica_wants_mpostal")
                 and not (maica_chr_changed and not renpy.seen_label("maica_chr_corrupted2"))
-                and _mas_getAffection() >= 100
+                and mas_isMoniAff(higher=True)
             ):
             store.selected_greeting = "maica_wants_mpostal"
 
@@ -256,12 +255,30 @@ init 5 python:
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal():
-        if mail_exist() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+        if (
+            mail_exist()
+            and mas_isMoniAff(higher=True)
+            and (
+                renpy.seen_label("maica_wants_mpostal")
+                or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None
+            )
+            and not mas_inEVL("maica_mpostal_received")
+            and not mas_inEVL("maica_mpostal_read")
+        ):
             return MASEventList.queue("maica_mpostal_received")
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=100)
     def push_mpostal_read():
-        if has_mail_waitsend() and _mas_getAffection() >= 100 and (renpy.seen_label("maica_wants_mpostal") or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None) and not mas_inEVL("maica_mpostal_received") and not mas_inEVL("maica_mpostal_read"):
+        if (
+            has_mail_waitsend()
+            and mas_isMoniAff(higher=True)
+            and (
+                renpy.seen_label("maica_wants_mpostal")
+                or getattr(mas_getEV("maica_wants_mpostal"), conditional, False) is None
+            )
+            and not mas_inEVL("maica_mpostal_received")
+            and not mas_inEVL("maica_mpostal_read")
+        ):
             return MASEventList.queue("maica_mpostal_read")
 init 5 python:
     addEvent(
@@ -284,7 +301,12 @@ init 5 python:
         return False
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal_reply():
-        if is_mail_waiting_reply() and _mas_getAffection() >= 100 and renpy.seen_label("maica_wants_mpostal") and not mas_inEVL("maica_mpostal_replyed"):
+        if (
+            is_mail_waiting_reply()
+            and mas_isMoniAff(higher=True)
+            and renpy.seen_label("maica_wants_mpostal")
+            and not mas_inEVL("maica_mpostal_replyed")
+        ):
             return MASEventList.queue("maica_mpostal_replyed")
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
@@ -393,7 +415,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_pre_set_location",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
             prompt=_("[player]'s address"),
             random=True,
             pool=False,
@@ -407,7 +428,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_pre_wants_mvista",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
             prompt=_("About 'MVista'"),
             random=True,
             pool=False,

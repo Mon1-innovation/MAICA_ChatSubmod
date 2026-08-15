@@ -1179,7 +1179,7 @@ screen maica_setting():
 
                 text "len(mas_rev_unseen): [len(mas_rev_unseen)]"
 
-                text "push_mpostal_read: [has_mail_waitsend() and _mas_getAffection() >= 100 and renpy.seen_label('maica_wants_mspire') and renpy.seen_label('maica_wants_mpostal') and not mas_inEVL('maica_mpostal_received') and not mas_inEVL('maica_mpostal_read')]"
+                text "push_mpostal_read: [has_mail_waitsend() and mas_isMoniAff(higher=True) and renpy.seen_label('maica_wants_mspire') and renpy.seen_label('maica_wants_mpostal') and not mas_inEVL('maica_mpostal_received') and not mas_inEVL('maica_mpostal_read')]"
 
                 text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]"
 
