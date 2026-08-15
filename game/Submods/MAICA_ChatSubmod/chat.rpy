@@ -1,11 +1,11 @@
-_GRE_HIGH_PRIO = [
-    "mas_crashed_start",
-    "ch30_reload_delegate",
-    "maica_chr_corrupted2"
-]
-
 init 5 python:
     import maica_chat_progress
+
+    _GRE_HIGH_PRIO = [
+        "mas_crashed_start",
+        "ch30_reload_delegate",
+        "maica_chr_corrupted2"
+    ]
 
     def maica_get_successful_chat_count():
         return max(0, persistent._maica_successful_chat_count or 0)
