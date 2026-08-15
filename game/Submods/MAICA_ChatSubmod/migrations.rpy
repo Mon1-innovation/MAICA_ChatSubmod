@@ -1,5 +1,6 @@
 default persistent._maica_v18_player_additions_backup = None
 default persistent._maica_v18_player_additions_notice_seen = False
+default persistent._maica_successful_chat_count = 0
 
 init 998 python:
     import copy
@@ -60,14 +61,14 @@ init 998 python:
         store.evhand.event_database.pop("maica_chr_corrupted2", None)
 
         event_conditions = {
-            "maica_chr2": "mas_getEV('maica_main').shown_count >= 3 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+            "maica_chr2": "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
             "maica_chr_gone": "not maica_chr_exist and renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_chr_gone')",
             "maica_chr_corrupted2": "renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
-            "maica_wants_preferences2": "renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
-            "maica_pre_set_location": "renpy.seen_label('maica_end_1') and not renpy.seen_label('maica_pre_set_location')",
-            "maica_pre_wants_mvista": "renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
+            "maica_wants_preferences2": "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
+            "maica_pre_set_location": "maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
+            "maica_pre_wants_mvista": "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
             "maica_greeting": "renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
-            "maica_wants_mpostal": "renpy.seen_label('maica_end_1') and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            "maica_wants_mpostal": "maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
         }
         event_actions = {
             "maica_chr2": EV_ACT_QUEUE,
@@ -117,10 +118,36 @@ init 998 python:
 
     def migration_1_8_7():
         event_conditions = {
-            "maica_wants_preferences2": "maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
+            "maica_wants_preferences2": "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
             "maica_pre_set_location": "maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
-            "maica_pre_wants_mvista": "maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
-            "maica_wants_mpostal": "maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            "maica_pre_wants_mvista": "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
+            "maica_wants_mpostal": "maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+        }
+        for eventlabel, conditional in event_conditions.items():
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.conditional = conditional
+
+    def migration_1_8_8():
+        # Older builds did not retain per-attempt results. Preserve their main
+        # event count as a compatibility baseline without assuming that the
+        # separate greeting conversation succeeded.
+        main_ev = mas_getEV("maica_main")
+        legacy_main_count = max(
+            0,
+            getattr(main_ev, "shown_count", 0) or 0
+        )
+        persistent._maica_successful_chat_count = max(
+            persistent._maica_successful_chat_count or 0,
+            legacy_main_count
+        )
+
+        event_conditions = {
+            "maica_chr2": "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+            "maica_wants_preferences2": "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
+            "maica_pre_set_location": "maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
+            "maica_pre_wants_mvista": "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
+            "maica_wants_mpostal": "maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
         }
         for eventlabel, conditional in event_conditions.items():
             ev = mas_getEV(eventlabel)
@@ -131,4 +158,5 @@ init 998 python:
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
         ("1.8.7", migration_1_8_7),
+        ("1.8.8", migration_1_8_8),
     ]

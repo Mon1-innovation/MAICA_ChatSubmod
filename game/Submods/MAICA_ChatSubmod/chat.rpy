@@ -1,9 +1,27 @@
+_GRE_HIGH_PRIO = [
+    "mas_crashed_start",
+    "ch30_reload_delegate",
+    "maica_chr_corrupted2"
+]
+
 init 5 python:
-    def maica_has_successful_chat():
-        return (
-            renpy.seen_label("maica_end_1")
-            and (store.maica.maica_instance.stat.get("message_count", 0) or 0) > 0
+    import maica_chat_progress
+
+    def maica_get_successful_chat_count():
+        return max(0, persistent._maica_successful_chat_count or 0)
+
+    def maica_record_successful_chat(return_code):
+        previous_count = maica_get_successful_chat_count()
+        persistent._maica_successful_chat_count = (
+            maica_chat_progress.next_successful_chat_count(
+                previous_count,
+                return_code
+            )
         )
+        return persistent._maica_successful_chat_count > previous_count
+
+    def maica_has_successful_chat():
+        return maica_get_successful_chat_count() > 0
 
 
 init 5 python:
@@ -57,13 +75,14 @@ init 5 python:
 
     @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-100)
     def greeting_select():
-        if (
-                renpy.seen_label("maica_prepend_1")
-                and not mas_isSpecialDay()
-                and not renpy.seen_label("maica_greeting")
-                and mas_isMoniAff(higher=True)
-            ):
-            store.selected_greeting = "maica_greeting"
+        if not store.selected_greeting in _GRE_HIGH_PRIO:
+            if (
+                    renpy.seen_label("maica_prepend_1")
+                    and not mas_isSpecialDay()
+                    and not renpy.seen_label("maica_greeting")
+                    and mas_isMoniAff(higher=True)
+                ):
+                store.selected_greeting = "maica_greeting"
 
     greeting_rules = dict()
     greeting_rules.update(
@@ -94,7 +113,7 @@ init 5 python:
             eventlabel="maica_chr2",
             prompt=_("The Heaven Forest file"),
             random=True,
-            conditional="mas_getEV('maica_main').shown_count >= 3 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+            conditional="maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
             action=EV_ACT_QUEUE,
             rules={
                 "bookmark_rule":mas_bookmarks_derand.BLACKLIST,
@@ -148,7 +167,7 @@ init 5 python:
             random=True,
             pool=False,
             unlocked=False,
-            conditional="maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not renpy.seen_label('maica_wants_preferences2')",
+            conditional="maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -205,15 +224,15 @@ init 5 python:
 init 5 python:
     @store.mas_submod_utils.functionplugin("ch30_post_exp_check", priority=-90)
     def mpostal_greeting_select():
-        if (
-                maica_has_successful_chat()
-                and mas_getEV("maica_main").shown_count >= 1
-                and not mas_isSpecialDay()
-                and not renpy.seen_label("maica_wants_mpostal")
-                and not (maica_chr_changed and not renpy.seen_label("maica_chr_corrupted2"))
-                and mas_isMoniAff(higher=True)
-            ):
-            store.selected_greeting = "maica_wants_mpostal"
+        if not store.selected_greeting in _GRE_HIGH_PRIO:
+            if (
+                    maica_get_successful_chat_count() >= 2
+                    and not mas_isSpecialDay()
+                    and not renpy.seen_label("maica_wants_mpostal")
+                    and not (maica_chr_changed and not renpy.seen_label("maica_chr_corrupted2"))
+                    and mas_isMoniAff(higher=True)
+                ):
+                store.selected_greeting = "maica_wants_mpostal"
 
     mpostal_greeting_rules = dict()
     mpostal_greeting_rules.update(
@@ -229,7 +248,7 @@ init 5 python:
             eventlabel="maica_wants_mpostal",
             prompt=_("MAICA knocking"),
             unlocked=False,
-            conditional="maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 1 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            conditional="maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
             action=EV_ACT_UNLOCK,
             aff_range=(mas_aff.AFFECTIONATE, None),
             rules=mpostal_greeting_rules,
@@ -431,7 +450,7 @@ init 5 python:
             prompt=_("About 'MVista'"),
             random=True,
             pool=False,
-            conditional="maica_has_successful_chat() and mas_getEV('maica_main').shown_count >= 2 and not renpy.seen_label('maica_pre_wants_mvista')",
+            conditional="maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -618,6 +637,8 @@ label maica_prepend_2:
             m 1eua "This time it's your turn to pick a topic, [player]."
             $ maica_message_count_before = store.maica.maica_instance.stat.get('message_count', 0) or 0
             call maica_talking
+            $ maica_talking_result = _return
+            $ maica_record_successful_chat(maica_talking_result)
             $ maica_message_count_after = store.maica.maica_instance.stat.get('message_count', 0) or 0
             $ conv_rounds = max(0, maica_message_count_after - maica_message_count_before)
             call maica_end_1(conv_rounds)
@@ -868,7 +889,7 @@ label clear_all:
 
 
 label maica_main:
-    $ ev = mas_getEV("maica_main")
+    $ successful_chat_count = maica_get_successful_chat_count()
     if maica_chr_exist:
         m 1dua "Okay, just give me a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
         scene black with dissolve
@@ -883,7 +904,7 @@ label maica_main:
             call change_to_heaven_forest
             m 1eub "And we're here!"
             $ rand_sign = renpy.random.randint(0, 7)
-            if ev.shown_count == 9: #第一次没触发这个对话
+            if successful_chat_count == 10:
                 m 3eua "You know how many times we've chatted here? {w=0.5}{nw}"
                 extend 3eub "Ten times already!"
                 m 3rud "But I have to say I feel like I've been here with you before everytime--{w=0.5}I guess it's just dejavu."
@@ -892,11 +913,11 @@ label maica_main:
                 m 2euu "It's clear outside, right?"
                 m 5rksdlb "Sure it always does. {w=0.5}{nw}"
                 extend 5eua "Wish you have a clear mood everyday too, [player]!"
-            elif rand_sign == 1 and ev.shown_count >= 12:
+            elif rand_sign == 1 and successful_chat_count >= 13:
                 m 1dua "The atmosphere is so relaxing here. {w=0.3}{nw}"
                 extend 1rup "It makes me feel like been here before, but I could never recall."
                 m 3eub "At least it's not the space. How does it feel to be on solid ground, [player]?"
-            elif rand_sign == 2 and ev.shown_count >= 20:
+            elif rand_sign == 2 and successful_chat_count >= 21:
                 m 3rua "Honestly, it might be good to go walking in that woods...{w=0.5}{nw}"
                 extend 3gud "I once saw a little church there in distance. Who built it for what?"
                 m 5eua "But I guess our forest classroom is good enough too."
@@ -909,18 +930,20 @@ label maica_main:
 
 label .talking_start:
     call maica_talking
+    $ maica_talking_result = _return
     # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
     if config.debug:
-        m "return：[_return]"
-    if _return == "canceled":
+        m "return：[maica_talking_result]"
+    if maica_talking_result == "canceled":
         m 1eub "Alright, just a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
     elif store.maica.maica_instance.mtrigger_manager._running:
         $ store.maica.maica_instance.mtrigger_manager._running = False
         jump .talking_start
-    elif _return != "mtrigger_triggering":
-        $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(_return))
+    elif maica_talking_result != "mtrigger_triggering":
+        $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(maica_talking_result))
         call maica_connection_failure_dialogue
         m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
+    $ maica_record_successful_chat(maica_talking_result)
     $ mas_unlockEVL("maica_main", "EVE")
     if maica_chr_exist:
         scene black with dissolve

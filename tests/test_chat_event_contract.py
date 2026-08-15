@@ -15,6 +15,13 @@ MIGRATION_SOURCE = (
     / "MAICA_ChatSubmod"
     / "migrations.rpy"
 ).read_text(encoding="utf-8")
+API_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "api.rpy"
+).read_text(encoding="utf-8")
 
 
 def _event_block(eventlabel):
@@ -25,7 +32,7 @@ def _event_block(eventlabel):
 
 
 def _function_block(function_name):
-    marker = "    def {}():".format(function_name)
+    marker = "    def {}(".format(function_name)
     start = CHAT_SOURCE.index(marker)
     end = CHAT_SOURCE.find("\n    def ", start + len(marker))
     return CHAT_SOURCE[start:] if end == -1 else CHAT_SOURCE[start:end]
@@ -61,40 +68,59 @@ def test_first_chat_end_uses_rounds_from_the_current_attempt():
     assert "stat.get('message_count')" not in end
 
 
-def test_zero_round_attempt_does_not_unlock_success_gated_events():
+def test_chat_success_is_recorded_from_the_talking_result_not_rounds():
+    recorder = _function_block("maica_record_successful_chat")
     helper = _function_block("maica_has_successful_chat")
+    greeting = _label_block("maica_prepend_2")
+    main_talking = _label_block(".talking_start")
 
-    assert 'renpy.seen_label("maica_end_1")' in helper
-    assert 'stat.get("message_count", 0) or 0' in helper
-    for eventlabel in (
-        "maica_wants_preferences2",
-        "maica_pre_set_location",
-        "maica_pre_wants_mvista",
-        "maica_wants_mpostal",
-    ):
-        assert "maica_has_successful_chat()" in _event_block(eventlabel)
-
-    assert "maica_has_successful_chat()" in _function_block("push_mspire_want")
-    assert "maica_has_successful_chat()" in _function_block(
-        "mpostal_greeting_select"
+    assert "next_successful_chat_count" in recorder
+    assert "message_count" not in recorder
+    assert "maica_get_successful_chat_count() > 0" in helper
+    assert "$ maica_talking_result = _return" in greeting
+    assert "$ maica_record_successful_chat(maica_talking_result)" in greeting
+    assert "$ maica_talking_result = _return" in main_talking
+    assert "$ maica_record_successful_chat(maica_talking_result)" in main_talking
+    assert main_talking.count("$ maica_record_successful_chat(") == 1
+    assert main_talking.index("jump .talking_start") < main_talking.index(
+        "$ maica_record_successful_chat("
     )
 
+    assert "maica_has_successful_chat()" in _function_block("push_mspire_want")
+    assert "maica_has_successful_chat()" in _event_block("maica_pre_set_location")
 
-def test_chat_progression_uses_main_shown_count_without_persistent_counter():
-    assert "persistent.maica_chat_success_count" not in CHAT_SOURCE
+
+def test_chat_progression_uses_successful_entry_count():
+    assert "persistent._maica_successful_chat_count" in CHAT_SOURCE
     assert "random=True" in _event_block("maica_chr2")
     assert "random=True" in _event_block("maica_wants_preferences2")
     assert "random=True" in _event_block("maica_pre_set_location")
     assert "random=True" in _event_block("maica_pre_wants_mvista")
-    assert "mas_getEV('maica_main').shown_count >= 1" in _event_block(
+    assert "maica_get_successful_chat_count() >= 2" in _event_block(
         "maica_wants_preferences2"
     )
-    assert "mas_getEV('maica_main').shown_count >= 2" in _event_block(
+    assert "maica_get_successful_chat_count() >= 3" in _event_block(
         "maica_pre_wants_mvista"
     )
-    assert "mas_getEV('maica_main').shown_count >= 3" in _event_block(
+    assert "maica_get_successful_chat_count() >= 4" in _event_block(
         "maica_chr2"
     )
+    assert "maica_get_successful_chat_count() >= 2" in _event_block(
+        "maica_wants_mpostal"
+    )
+    assert "maica_get_successful_chat_count() >= 2" in _function_block(
+        "mpostal_greeting_select"
+    )
+    assert "mas_getEV('maica_main').shown_count" not in CHAT_SOURCE
+
+
+def test_main_flavor_dialogue_uses_completed_successful_entries():
+    main = _label_block("maica_main")
+
+    assert "$ successful_chat_count = maica_get_successful_chat_count()" in main
+    assert "successful_chat_count == 10" in main
+    assert "successful_chat_count >= 13" in main
+    assert "successful_chat_count >= 21" in main
 
 
 def test_manually_gated_pool_topics_are_excluded_from_mas_auto_unlock():
@@ -186,7 +212,11 @@ def test_one_shot_and_reread_events_do_not_fall_through_to_other_topics():
 def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.6", migration_1_8_6)' in MIGRATION_SOURCE
     assert '("1.8.7", migration_1_8_7)' in MIGRATION_SOURCE
+    assert '("1.8.8", migration_1_8_8)' in MIGRATION_SOURCE
+    assert "maica_ver = '1.8.8'" in API_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
+    assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
+    assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
     assert 'persistent._seen_ever["maica_end_1"] = True' in MIGRATION_SOURCE
     assert '"maica_chr": "maica_chr2"' in MIGRATION_SOURCE
     assert '"maica_chr_corrupted": "maica_chr_corrupted2"' in MIGRATION_SOURCE

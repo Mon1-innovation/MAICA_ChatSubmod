@@ -32,7 +32,7 @@ translate chinese python in maica:
             maica_instance.MaicaAiStatus.TOKEN_GENERATION_FAILED: u"令牌生成失败",
             maica_instance.MaicaAiStatus.CONNECT_PROBLEM: u"无法连接服务器, 请检查网络和submod_log",
             maica_instance.MaicaAiStatus.RESPONSE_INVALID: u"服务器响应无效",
-            maica_instance.MaicaAiStatus.TOKEN_MAX_EXCEEDED:u"会话长度已超出限制, 部分会话已裁剪",
+            maica_instance.MaicaAiStatus.TOKEN_MAX_EXCEEDED:u"会话长度超出限制, 部分会话已裁剪",
             maica_instance.MaicaAiStatus.TOKEN_WARN_EXCEEDED:u"会话长度接近限制, 超出后将被裁剪",
             maica_instance.MaicaAiStatus.SERVER_MAINTAIN:u"服务器正在维护, 请等待后续公告",
             maica_instance.MaicaAiStatus.CERTIFI_BROKEN:u"SSL/TLS已损坏, 可能由其他子模组导致. 需要完全重新安装MAS",
