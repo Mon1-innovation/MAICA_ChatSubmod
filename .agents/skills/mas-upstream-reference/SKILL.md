@@ -10,6 +10,11 @@ Treat the Monika After Story repository as the authoritative upstream implementa
 
 - Upstream repository: https://github.com/monika-after-story/monikamoddev
 
+It has to also support the following forks of upstream:
+
+- Chinese translation: https://github.com/Mon1-innovation/MonikaModDev-zhCN
+- Mobile RenPy 8: https://github.com/Mon1-innovation/MonikaModDev-zhCN/tree/mobile-dev
+
 ## Verification Workflow
 
 1. Inspect the relevant MAICA ChatSubmod code first. Identify the exact MAS symbol, hook, lifecycle assumption, or behavior on which it depends.
