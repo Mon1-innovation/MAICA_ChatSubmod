@@ -255,7 +255,7 @@ label maica_init_connect(use_pause_instand_wait = False):
                         ai.error_message,
                     )
                 )
-                store.mas_ptod.write_command(ai.get_status_description())
+                ai.send_to_outside_func(ai.get_status_description())
                 renpy.pause(2.0)
                 _return = "disconnected"
                 break

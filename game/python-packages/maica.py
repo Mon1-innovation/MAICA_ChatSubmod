@@ -263,7 +263,27 @@ class MaicaAi(ChatBotInterface):
             self.leveling_filter = re.compile(r'^.*?<DISABLE_VERBOSITY>')
             super(MaicaAi.ExternalLoggingHandler, self).__init__()
         def emit(self, record):
-            log_message = self.format(record)
+            try:
+                log_message = self.format(record)
+            except UnicodeError:
+                message = bot_interface.to_unicode(record.msg)
+                if record.args:
+                    try:
+                        if isinstance(record.args, dict):
+                            format_args = dict(
+                                (bot_interface.to_unicode(key), bot_interface.to_unicode(value))
+                                for key, value in record.args.items()
+                            )
+                        else:
+                            format_args = tuple(
+                                bot_interface.to_unicode(value)
+                                for value in record.args
+                            )
+                        message = message % format_args
+                    except (TypeError, ValueError, UnicodeError):
+                        pass
+                log_message = u"<{}>|{}".format(record.levelname, message)
+            log_message = bot_interface.to_unicode(log_message)
             log_message = self.leveling_filter.sub('', log_message, re.I)
             self.maica_console_log_func(log_message)
 
@@ -643,8 +663,9 @@ class MaicaAi(ChatBotInterface):
             "mpostal_count":0
         }
     def send_to_outside_func(self, content):
-        content = key_replace(content, bot_interface.renpy_symbol_percentage)
-        content = u"{}".format(content)
+        content = bot_interface.to_unicode(
+            key_replace(content, bot_interface.renpy_symbol_percentage)
+        )
         import unicodedata
         if self.content_func is None:
             return
@@ -691,10 +712,10 @@ class MaicaAi(ChatBotInterface):
                     processed_list.append(line)
             return processed_list
         for i in process_lines(l, max_len):
-            if PY2:
-                self.content_func(str(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol)).decode())
-            elif PY3:
-                self.content_func(str(key_replace(i.replace("\n", ""), bot_interface.renpy_symbol)))
+            line = bot_interface.to_unicode(
+                key_replace(i.replace("\n", ""), bot_interface.renpy_symbol)
+            )
+            self.content_func(line)
 
     def update_stat(self, new):
         self.stat.update(new)

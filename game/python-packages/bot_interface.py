@@ -79,6 +79,23 @@ logger.info('正在使用logging - LoggerManager已初始化')
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
+
+def to_unicode(value):
+    """Return text without implicit Python 2 byte-string coercion."""
+    if PY2:
+        if isinstance(value, unicode):
+            return value
+        if isinstance(value, str):
+            return value.decode("utf-8", "replace")
+        try:
+            return unicode(value)
+        except UnicodeError:
+            return str(value).decode("utf-8", "replace")
+
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return str(value)
+
 import warnings
 import sys
 
@@ -202,10 +219,14 @@ def key_replace(*args):
 
         case_list = []  # 用于存储替换后的结果
         for case_data in str_main:
+            case_data = to_unicode(case_data)
             # 将所有字典应用到当前字符串
             for key_dict in rep_info:
                 for key_, value in key_dict.items():  # 遍历字典中的所有键值对
-                    case_data = str(case_data).replace(key_, str(value))  # 替换指定的关键词
+                    case_data = case_data.replace(
+                        to_unicode(key_),
+                        to_unicode(value)
+                    )  # 替换指定的关键词
 
             try:
                 result = ast.literal_eval(case_data)  # 尝试将替换后的字符串解析为对应数据类型
