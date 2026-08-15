@@ -77,7 +77,7 @@ class MaicaAi(ChatBotInterface):
     HTTP_TIMEOUT = (5.0, 30.0)
     CONNECTION_TIMEOUT = 30.0
     RESPONSE_TIMEOUT = 300.0
-    ascii_icon = """                                                             
+    ascii_icon = r"""
 
     __  ___ ___     ____ ______ ___ 
    /  |/  //   |   /  _// ____//   |
@@ -1430,27 +1430,27 @@ class MaicaAi(ChatBotInterface):
             }
         if not self.__accessable:
             logger.error("upload_save::Maica is not serving")
-            return {}
+            return {"success": False, "exception": "Maica is not serving"}
         if self.ciphertext in ("", None):
             logger.error("upload_save:: token is null")
-            return {}
+            return {"success": False, "exception": "Access token is null"}
         import requests, json
         content = {
                     "access_token": self.ciphertext,
                     "chat_session": self.chat_session,
                     "content": dict
                 }
-        res = requests.post(
-            self.provider_manager.get_api_url() + "/savefile",
-            json = content,
-            headers = {"Content-Type": "application/json"},
-            timeout=self.HTTP_TIMEOUT
-        )
         try:
+            res = requests.post(
+                self.provider_manager.get_api_url() + "/savefile",
+                json = content,
+                headers = {"Content-Type": "application/json"},
+                timeout=self.HTTP_TIMEOUT
+            )
             return res.json()
-        except Exception:
-            logger.error("upload_save:: return non json:: {}".format(res.text))
-            return {}
+        except Exception as e:
+            logger.error("upload_save:: request failed: {}".format(e))
+            return {"success": False, "exception": str(e)}
 
     def get_history(self, lines = 0):
         """
@@ -1471,24 +1471,24 @@ class MaicaAi(ChatBotInterface):
         """
         
         if not self.__accessable:
-            return logger.error("Maica is not serving")
+            logger.error("Maica is not serving")
+            return {"success": False, "content": [], "exception": "Maica is not serving"}
         import requests, json
-        res = requests.get(
-            self.provider_manager.get_api_url() + "/history",
-            params =
-                {
-                    "access_token": self.ciphertext,
-                    "chat_session": self.chat_session,
-                    "content": lines
-                },
-            timeout=self.HTTP_TIMEOUT
-        )
-
         try:
+            res = requests.get(
+                self.provider_manager.get_api_url() + "/history",
+                params =
+                    {
+                        "access_token": self.ciphertext,
+                        "chat_session": self.chat_session,
+                        "content": lines
+                    },
+                timeout=self.HTTP_TIMEOUT
+            )
             return res.json()
         except Exception as e:
             logger.error("get_history:: {}".format(e))
-            return []
+            return {"success": False, "content": [], "exception": str(e)}
 
     def upload_history(self, history):
         """
@@ -1504,27 +1504,27 @@ class MaicaAi(ChatBotInterface):
 
         if not self.__accessable:
             logger.error("Maica is not serving")
-            return {}
+            return {"success": False, "exception": "Maica is not serving"}
         if self.ciphertext in ("", None):
             logger.error("upload_history:: token is null")
-            return {}
+            return {"success": False, "exception": "Access token is null"}
         import requests, json
         content = {
             "access_token": self.ciphertext,
             "chat_session": self.chat_session,
             "content": history
         }
-        res = requests.put(
-            self.provider_manager.get_api_url() + "/history",
-            json = content,
-            headers = {"Content-Type": "application/json"},
-            timeout=self.HTTP_TIMEOUT
-        )
         try:
+            res = requests.put(
+                self.provider_manager.get_api_url() + "/history",
+                json = content,
+                headers = {"Content-Type": "application/json"},
+                timeout=self.HTTP_TIMEOUT
+            )
             return res.json()
-        except Exception:
-            logger.error("upload_history:: return non json:: {}".format(res.text))
-            return {}
+        except Exception as e:
+            logger.error("upload_history:: request failed: {}".format(e))
+            return {"success": False, "exception": str(e)}
         
     def reset_chat_session(self):
         """
@@ -1566,16 +1566,16 @@ class MaicaAi(ChatBotInterface):
             return None
 
         def task():
-            res = requests.get(self.provider_manager.get_api_url() + "/workload", timeout=self.HTTP_TIMEOUT)
             try:
+                res = requests.get(self.provider_manager.get_api_url() + "/workload", timeout=self.HTTP_TIMEOUT)
                 data = res.json()
                 if data["success"]:
                     self.workload_raw = data["content"]
                     #logger.debug("Workload updated successfully.")
                 else:
                     logger.error("Failed to update workload: {}".format(data))
-            except Exception:
-                logger.error("Failed to update workload.")
+            except Exception as e:
+                logger.error("Failed to update workload: {}".format(e))
 
         thread = threading.Thread(target=task)
         thread.daemon = True  # Optional: allow the program to exit even if the thread is running
@@ -1671,7 +1671,10 @@ class MaicaAi(ChatBotInterface):
         self.clear_error(self.MaicaAiStatus.NOT_READY)
     def del_mtrigger(self):
         import requests
-        requests.delete(self.provider_manager.get_api_url()+"/trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'}, timeout=self.HTTP_TIMEOUT)
+        try:
+            requests.delete(self.provider_manager.get_api_url()+"/trigger", json={"access_token": self.ciphertext, "chat_session": self.chat_session}, headers={'Content-Type': 'application/json'}, timeout=self.HTTP_TIMEOUT)
+        except Exception as e:
+            logger.error("del_mtrigger:: request failed: {}".format(e))
 
     def send_mtrigger(self):
         try:

@@ -22,6 +22,17 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+
+    - name: Install test dependencies
+      run: python -m pip install pytest
+
+    - name: Run project tests
+      run: python -m pytest tests -q
+
     - name: Extract build configuration from api.rpy
       id: get_version
       run: |

@@ -300,7 +300,7 @@ class MaicaTask(object):
 
         当manager不为None时，该任务会自动注册到manager的任务列表中。
         """
-        self.task_type = task_type,
+        self.task_type = task_type
         self.name = name
         self.status = MaicaTask.MAICATASK_STATUS_READY
         self.manager = manager
@@ -360,8 +360,13 @@ class MaicaTask(object):
         """
         if self.status == MaicaTask.MAICATASK_STATUS_READY:
             self.status = MaicaTask.MAICATASK_STATUS_RUNNING
-            self.on_manual_run(*args, **kwargs)
-            self.status = MaicaTask.MAICATASK_STATUS_READY
+            try:
+                self.on_manual_run(*args, **kwargs)
+            except Exception:
+                self.status = MaicaTask.MAICATASK_STATUS_ERROR
+                raise
+            else:
+                self.status = MaicaTask.MAICATASK_STATUS_READY
         else:
             if self.status == MaicaTask.MAICATASK_STATUS_RUNNING:
                 raise RuntimeError("MaicaTask {} is running".format(self.name))

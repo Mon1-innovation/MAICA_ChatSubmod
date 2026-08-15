@@ -6,7 +6,7 @@ init 999 python in maica:
     ai = store.maica.maica_instance
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
-            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("Intergrated | Adjust affection, 0~3 per time * 10 minutes cooldown"),method=MTriggerMethod.request)
+            super(AffTrigger, self).__init__(template, name, callback=callback, description = _("Integrated | Adjust affection, 0~3 per time * 10 minutes cooldown"),method=MTriggerMethod.request)
             self.last_triggered = time.time()
 
         def triggered(self, data):
@@ -52,6 +52,18 @@ init 999 python in maica:
             """
             return outfit_name in store.mas_selspr.CLOTH_SEL_MAP and store.mas_selspr.CLOTH_SEL_MAP[outfit_name].unlocked
 
+        def on_build_pre(self):
+            self.clothes_data = {
+                store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key
+                for key in store.mas_selspr.CLOTH_SEL_MAP
+                if self.outfit_has_and_unlocked(key)
+            }
+            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
+            self.clothes_data["__none__"] = "mas_pick_a_clothes"
+            self.exprop.item_list = list(self.clothes_data.keys())
+            current = store.mas_selspr.CLOTH_SEL_MAP.get(store.monika_chr.clothes.name)
+            self.exprop.curr_value = current.display_name if current is not None else "__none__"
+
         def triggered(self, data):
             clothes = data.get("choice", None)
             if clothes is not None:
@@ -59,7 +71,7 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                ai.console_logger.warning("<mtrigger> {} is not a vaild outfit".format(clothes))
+                ai.console_logger.warning("<mtrigger> {} is not a valid outfit".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid outfit".format(clothes))
                 return
             return store.renpy.call("mtrigger_change_clothes", self.clothes_data[clothes])
@@ -69,37 +81,53 @@ init 999 python in maica:
 
 #################################################################################
 
-    unlocked_games_dict = {
-        ev.prompt: ev.eventlabel
-        for ev in store.mas_games.game_db.values()
-        if store.mas_isGameUnlocked(ev.prompt)
-    }
+    def get_unlocked_games():
+        games = {
+            ev.prompt: ev.eventlabel
+            for ev in store.mas_games.game_db.values()
+            if store.mas_isGameUnlocked(ev.prompt)
+        }
+        games["玩家自行选择"] = "mas_pick_a_game"
+        games["__none__"] = "mas_pick_a_game"
+        games["Pong"] = "game_pong"
+        if "NOU" in games:
+            games["UNO"] = games["NOU"]
+        if store.mas_isGameUnlocked("Hangman") or store.mas_isGameUnlocked("上吊小人"):
+            games["Hangman"] = "game_hangman"
+        return games
 
-    unlocked_games_dict["玩家自行选择"] = "mas_pick_a_game"
-    unlocked_games_dict["__none__"] = "mas_pick_a_game"
-    unlocked_games_dict["Pong"] = "game_pong"
-    if "NOU" in unlocked_games_dict:
-        unlocked_games_dict["UNO"] = unlocked_games_dict["NOU"]
-    if store.mas_isGameUnlocked("Hangman") or store.mas_isGameUnlocked("上吊小人"):
-        unlocked_games_dict["Hangman"] = "game_hangman"
+    unlocked_games_dict = get_unlocked_games()
     def minigame_callback(item):
 
         if not item in unlocked_games_dict:
-            ai.console_logger.warning("<mtrigger> {} is not a vaild minigame".format(item))
+            ai.console_logger.warning("<mtrigger> {} is not a valid minigame".format(item))
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
         store.renpy.call("mttrigger_minigame", game_label)
 
-    minigame_trigger = MTriggerBase(common_switch_template, "minigame", callback=minigame_callback,
-        exprop=MTriggerExprop(
-            item_name_zh="玩小游戏",
-            item_name_en="play minigame",
-            item_list=list(unlocked_games_dict.keys()),
-            curr_value="__none__",
-        ),
-        description = _("Integrated | Starting minigames"),method=MTriggerMethod.table
-    )
+    class MinigameTrigger(MTriggerBase):
+        def __init__(self):
+            super(MinigameTrigger, self).__init__(
+                common_switch_template,
+                "minigame",
+                callback=minigame_callback,
+                exprop=MTriggerExprop(
+                    item_name_zh="玩小游戏",
+                    item_name_en="play minigame",
+                    item_list=list(unlocked_games_dict.keys()),
+                    curr_value="__none__",
+                ),
+                description = _("Integrated | Starting minigames"),
+                method=MTriggerMethod.table
+            )
+
+        def on_build_pre(self):
+            global unlocked_games_dict
+            unlocked_games_dict = get_unlocked_games()
+            self.exprop.item_list = list(unlocked_games_dict.keys())
+
+    minigame_trigger = MinigameTrigger()
     ai.mtrigger_manager.add_trigger(minigame_trigger)
 
 
@@ -163,17 +191,19 @@ init 999 python in maica:
                     curr_value=store.mas_current_weather.prompt
                 ),
                 callback = self.callback,
-                description = _("Intergrated | Change weather * Not effective in Heaven Forest"),
+                description = _("Integrated | Change weather * Not effective in Heaven Forest"),
                 condition = self.condition
             )
 
         def condition(self):
             return store.mas_isMoniAff(higher=True) and self.can_change
 
-        def build(self):
+        def on_build_pre(self):
             self.weathers = self.get_weather_dict()
             self.weathers_list = self.get_weather_list()
-            return super(WeatherTrigger, self).build()
+            self.exprop.item_list = self.weathers_list
+            current = getattr(store.mas_current_weather, "prompt", "__none__")
+            self.exprop.curr_value = current if current in self.weathers_list else self.weathers_list[0]
 
         def get_weather_list(self):
             return list(self.weathers.keys())
@@ -230,7 +260,7 @@ init 999 python in maica:
         store.renpy.call("mtrigger_backup")
 
     backup_trigger = MTriggerBase(customize_template, "backup", condition=mtrigger_backup_condition, callback=mtrigger_backup_callback,
-        description = _("Intergrated | Backup persistent * Extra Plus Submod required"), method=MTriggerMethod.table,
+        description = _("Integrated | Backup persistent * Extra Plus Submod required"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="备份存档", item_name_en="backup savefile"))
     ai.mtrigger_manager.add_trigger(backup_trigger)
 
@@ -310,7 +340,7 @@ init 999 python in maica:
                         store.renpy.call("mtrigger_neteasemusic_search", selection)
                         return
                     elif store.mas_submod_utils.isSubmodInstalled("Youtube Music"):
-                        store.renpy.call("mtrigger_youtubemusic_search")
+                        store.renpy.call("mtrigger_youtubemusic_search", selection)
                         return
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
                 ai.console_logger.warning("<mtrigger> {} is not a valid music!".format(selection))
@@ -343,6 +373,14 @@ init 999 python in maica:
             )
 
         def on_build_pre(self):
+            self.clothes_data = {
+                store.mas_selspr.HAIR_SEL_MAP[key].display_name:key
+                for key in store.mas_selspr.HAIR_SEL_MAP
+                if self.outfit_has_and_unlocked(key)
+            }
+            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
+            self.clothes_data["__none__"] = "mas_pick_a_clothes"
+            self.exprop.item_list = list(self.clothes_data.keys())
             self.exprop.curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name
 
         def outfit_has_and_unlocked(self, outfit_name):
@@ -358,7 +396,7 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                ai.console_logger.warning("<mtrigger> {} is not a vaild hair".format(clothes))
+                ai.console_logger.warning("<mtrigger> {} is not a valid hair".format(clothes))
                 store.mas_submod_utils.submod_log.error("maica: {} is not a valid hair".format(clothes))
                 return
             return store.renpy.call("mtrigger_change_hair", self.clothes_data[clothes])

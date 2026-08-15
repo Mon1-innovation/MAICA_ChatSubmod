@@ -186,12 +186,12 @@ class MTriggerManager(object):
 
         for i in self.triggers:
             if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
-                i.validate()
-                item_length = len(i)
+                built = i.build()
+                item_length = len(json.dumps(built, ensure_ascii=False))
                 if current_length + item_length > self.SIZE_LIMIT[method] and not full:
                     self.disable_trigger(i.name)
                     continue
-                res.append(i.build())
+                res.append(built)
                 current_length += item_length
 
         return res
@@ -221,15 +221,16 @@ class MTriggerManager(object):
         # Sort by priority (highest first)
         triggers_to_process.sort(key=lambda t: t[0].priority, reverse=True)
 
-        for t in triggers_to_process:
-            if remove:
-                self.triggered_list.remove(t)
-            res = t[0].triggered(t[1])
-            if check_and_search("stop", res):
-                doact["stop"] = True
-                break
-
-        self._running = False
+        try:
+            for t in triggers_to_process:
+                if remove:
+                    self.triggered_list.remove(t)
+                res = t[0].triggered(t[1])
+                if check_and_search("stop", res):
+                    doact["stop"] = True
+                    break
+        finally:
+            self._running = False
         return doact
                 
 

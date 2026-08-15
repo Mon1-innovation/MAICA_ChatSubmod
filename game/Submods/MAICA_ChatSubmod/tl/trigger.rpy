@@ -61,13 +61,13 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:8
-    old "Intergrated | Adjust affection, 0~3 per time * 10 minutes cooldown"
+    old "Integrated | Adjust affection, 0~3 per time * 10 minutes cooldown"
     new "内置 | 调整好感, 范围为单次0~3 * 有10分钟冷却"
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:152
-    old "Intergrated | Change weather * Not effective in Heaven Forest"
+    old "Integrated | Change weather * Not effective in Heaven Forest"
     new "内置 | 更换天气 * 在天堂树林内不生效"
     # game/Submods/MAICA_ChatSubmod/trigger.rpy:229
-    old "Intergrated | Backup persistent * Extra Plus Submod required"
+    old "Integrated | Backup persistent * Extra Plus Submod required"
     new "内置 | 备份存档 * 需要 Extra Plus 子模组"
 # TODO: Translation updated at 2025-10-12 14:34
 

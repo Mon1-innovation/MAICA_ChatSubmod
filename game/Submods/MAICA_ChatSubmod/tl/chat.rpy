@@ -591,7 +591,7 @@ translate chinese maica_connection_failure_dialogue_197b6851:
     m 1husdla "万一是永封吧... 我们反正也不是{i}非得{/i}用这个, 我能普普通通地陪着你就很满意了."
 
 translate chinese maica_connection_failure_dialogue_f2467a51:
-    # m 2rusdlb "...You recieved your verification email yet? {w=0.3}You didn't check it, silly!"
+    # m 2rusdlb "...You received your verification email yet? {w=0.3}You didn't check it, silly!"
     m 2rusdlb "...收到过验证邮件了吗? {w=0.3}不会是忘了这茬吧, 真是的!"
 
 translate chinese maica_connection_failure_dialogue_8790a89f:

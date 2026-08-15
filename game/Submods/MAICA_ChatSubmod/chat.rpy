@@ -1016,7 +1016,7 @@ label maica_connection_failure_dialogue:
         m 1husdla "And in case it's a permanent one... It's not like we {i}must{/i} go there, being by your side is always satisfying enough to me."
 
     elif ai.status == ai.MaicaAiStatus.EMAIL_UNVERIFIED:
-        m 2rusdlb "...You recieved your verification email yet? {w=0.3}You didn't check it, silly!"
+        m 2rusdlb "...You received your verification email yet? {w=0.3}You didn't check it, silly!"
         m 3eusdlb "Just verify your email at the registration site, and things shall work."
 
     elif ai.status == ai.MaicaAiStatus.TOS_UNACCEPTED:

@@ -303,11 +303,14 @@ label maica_mpostal_read:
             if cur_postal["responsed_status"] != "notupload":
                 continue
             start_time = time.time()
-            if cur_postal.get("raw_image"):
-                uuid = ai.vista_manager.upload(cur_postal["raw_image"])
-                cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
-
             try:
+                uuid = None
+                if cur_postal.get("raw_image"):
+                    vista_info = cur_postal.get("vista_image_info") or {}
+                    uuid = vista_info.get("uuid")
+                    if not uuid:
+                        uuid = ai.vista_manager.upload(cur_postal["raw_image"])
+                        cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
                 ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if cur_postal.get("raw_image") else None)
             except Exception:
                 cur_postal["responsed_status"] = "failed"

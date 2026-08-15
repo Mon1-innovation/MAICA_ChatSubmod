@@ -1002,7 +1002,7 @@ screen maica_setting_pane():
                     text _("> Warning: this is a {color=#ff0000}development build{/color} copy. {color=#ff0000}Stop using immediately{/color} if you're not MAICA official staff"):
                         style "main_menu_version_l"
 
-            if get_build_timescamp() < cn_mas_mobile_min_timescamp and renpy.android:
+            if get_build_timestamp() < cn_mas_mobile_min_timestamp and renpy.android:
                 hbox:
 
                     text _("> Your current MAS version is below the lowest compatible version, please update"):

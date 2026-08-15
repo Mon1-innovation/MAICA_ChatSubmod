@@ -73,7 +73,8 @@ class MAICAVistaFilesManager(object):
 
                 # BMP
                 elif head[:2] == b'BM':
-                    return struct.unpack('<II', head[18:26])
+                    f.seek(18)
+                    return struct.unpack('<II', f.read(8))
 
                 # WebP
                 elif head[:4] == b'RIFF' and head[8:12] == b'WEBP':
@@ -89,8 +90,8 @@ class MAICAVistaFilesManager(object):
                         return (width, height)
                     elif head[12:16] == b'VP8X':
                         f.seek(24)
-                        width = struct.unpack('<I', b'\x00' + f.read(3))[0] + 1
-                        height = struct.unpack('<I', b'\x00' + f.read(3))[0] + 1
+                        width = struct.unpack('<I', f.read(3) + b'\x00')[0] + 1
+                        height = struct.unpack('<I', f.read(3) + b'\x00')[0] + 1
                         return (width, height)
 
         except Exception:
@@ -205,14 +206,20 @@ class MAICAVistaFilesManager(object):
                         width, height = self._get_image_size(file_path)
                         max_side = max(width, height)
                         if max_side > 500:
-                            thumb_path = os.path.join(self.cache_path, 'thumb_' + uuid + ext)
+                            candidate_thumb_path = os.path.join(self.cache_path, 'thumb_' + uuid + ext)
                             if self.magick_path:
-                                startupinfo = subprocess.STARTUPINFO()
-                                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                                subprocess.call([self.magick_path, file_path, '-resize', '500x500', thumb_path], startupinfo=startupinfo)
+                                command = [self.magick_path, file_path, '-resize', '500x500', candidate_thumb_path]
+                                if os.name == 'nt':
+                                    startupinfo = subprocess.STARTUPINFO()
+                                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                                    subprocess.call(command, startupinfo=startupinfo)
+                                else:
+                                    subprocess.call(command)
                             else:
-                                if os.path.abspath(file_path) != os.path.abspath(thumb_path):
-                                    shutil.copy2(file_path, thumb_path)
+                                if os.path.abspath(file_path) != os.path.abspath(candidate_thumb_path):
+                                    shutil.copy2(file_path, candidate_thumb_path)
+                            if os.path.exists(candidate_thumb_path):
+                                thumb_path = candidate_thumb_path
                     except Exception as e:
                         logger.error("fail to generate thumbnail: {}".format(str(e)))
                 self.add(uuid, file_path=cached_path, thumb_path=thumb_path)
@@ -244,8 +251,11 @@ class MAICAVistaFilesManager(object):
         if not file_path:
             raise ValueError("No file path stored for this entry")
 
-        self.remove(identifier)
-        return self.upload(file_path)
+        new_uuid = self.upload(file_path)
+        self.files = [item for item in self.files if item is not entry]
+        if entry.get("uuid") in self.cloud_files:
+            self.cloud_files.remove(entry.get("uuid"))
+        return new_uuid
 
     def delete(self, identifier=None):
         """删除服务器上的图片（DELETE /vista）

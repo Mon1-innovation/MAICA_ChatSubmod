@@ -243,10 +243,10 @@ def is_a_talk(strs):
                     return index + 1
     return 0
 
-def fuckprint(*args, **kwargs):
+def silent_print(*args, **kwargs):
     return
 
-def is_precisely_a_talk(strin, debug_printfunc=fuckprint):
+def is_precisely_a_talk(strin, debug_printfunc=silent_print):
 
     def get_pos(relpos):
         # This method added 1
@@ -407,7 +407,7 @@ class TalkSplitV2(object):
     # 我知道你懒得做优化, 所以随你的便吧. 我能替你优化的部分基本都优化到最佳了
     # 理论上能规避小数点, 也会尽可能避免拆括号, 还有未封闭就不是我的锅了
 
-    def __init__(self, print_func = fuckprint):
+    def __init__(self, print_func = silent_print):
         self.sentence_present = ''
         if PY3:
             self.pattern_all_punc = re.compile(r'[.。!！?？；;，,—~-]+')

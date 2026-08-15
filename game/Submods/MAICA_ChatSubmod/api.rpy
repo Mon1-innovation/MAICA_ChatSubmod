@@ -14,9 +14,9 @@ init -1500 python:
     except:
         pass
 
-    cn_mas_mobile_min_timescamp = 1763049600
+    cn_mas_mobile_min_timestamp = 1763049600
 
-    def get_build_timescamp():
+    def get_build_timestamp():
         try:
             return build.time
         except:
@@ -114,7 +114,7 @@ init 5 python in maica:
         on_change=change_token,
     )
     maica_instance = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
-    maica_instance.ascii_icon = """
+    maica_instance.ascii_icon = r"""
     __  ___ ___     ____ ______ ___
    /  |/  //   |   /  _// ____//   |
   / /|_/ // /| |   / / / /    / /| |
@@ -271,6 +271,13 @@ init 5 python in maica:
 
     maica_certifi_download_thread_running = False
 
+    def maica_set_plain_provider():
+        persistent.maica_setting_dict['provider_id'] = 2
+        try:
+            store.maica.maica_instance.provider_id = 2
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("MAICA: failed to apply fallback provider: {}".format(e))
+
     def maica_download_certifi_files(fix_certifi, basedir, android, android_masbase):
         global maica_certifi_download_thread_running
         try:
@@ -299,7 +306,7 @@ init 5 python in maica:
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
 
                     else:
-                        store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}", res.status_code, res2.status_code)
+                        store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}".format(res.status_code, res2.status_code))
                         failed = True
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed: {}".format(e))
@@ -314,14 +321,16 @@ init 5 python in maica:
                         file.write(response.content)
                     store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
                 else:
-                    store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}", response.status_code)
+                    store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}".format(response.status_code))
                     failed = True
             except Exception as e:
                 store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror: {}".format(e))
                 failed = True
 
             if failed:
-                persistent.maica_setting_dict['provider_id'] = 2
+                maica_set_plain_provider()
+            else:
+                store.maica.maica_instance.accessable()
         finally:
             maica_certifi_download_thread_running = False
 
@@ -346,14 +355,14 @@ init 5 python in maica:
     def start_maica():
         # 如果从PC迁移到android，切换为plain节点
         if store.persistent._last_boot_os != "android" and renpy.android:
-            store.persistent.maica_setting_dict['provider_id'] = 2
+            maica_set_plain_provider()
         store.persistent._last_boot_os = "android" if renpy.android else "other"
 
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
 
         import time
-        store.mas_submod_utils.submod_log.info("MAICA: Game build timescamp: {}/{}".format(store.get_build_timescamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timescamp())))))
-        if renpy.android and store.get_build_timescamp() < store.cn_mas_mobile_min_timescamp:
+        store.mas_submod_utils.submod_log.info("MAICA: Game build timestamp: {}/{}".format(store.get_build_timestamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timestamp())))))
+        if renpy.android and store.get_build_timestamp() < store.cn_mas_mobile_min_timestamp:
             store.mas_submod_utils.submod_log.warning("MAICA: Your game maybe too old!")
         if store.mas_submod_utils.isSubmodInstalled("Better Loading"):
             store.mas_submod_utils.submod_log.warning("MAICA: Better Loading detected, this may cause MAICA not work")
@@ -363,7 +372,7 @@ init 5 python in maica:
         # certifi修复，仅在MAS原生导入失败时启动
         certifi_broken = not store.mas_can_import.certifi()
         if certifi_broken:
-            persistent.maica_setting_dict['provider_id'] = 2
+            maica_set_plain_provider()
         if certifi_broken or store.maica_can_update_cacert:
             maica_start_certifi_download_in_background(certifi_broken)
 
@@ -414,8 +423,8 @@ init -700 python:
         if not os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem"))):
             res = mas_can_import.certifi._update_cert(force=True)
             if res is None or res < 0:
-                raise Exception("fuck")
-    except:
+                raise RuntimeError("MAS native certifi update failed")
+    except Exception:
         maica_can_update_cacert = True
         store.mas_submod_utils.submod_log.warning("MAS native function update cacert failed")
 

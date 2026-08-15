@@ -3,12 +3,7 @@ class migration_instance(object):
     def __init__(self, last_ver, curr_ver, force_current=False):
         self.last_ver, self.curr_ver = last_ver, curr_ver
         self.force_current = force_current
-        # Must be lined in sequence!
-        self.migration_queue = [
-            ("1.1.20", self.migration_1_1_20),
-            ("1.1.21", self.migration_1_1_21),
-            ("1.2.0", self.migration_1_2_0)
-        ]
+        self.migration_queue = []
 
     def migrate(self):
         def compare_vers(v1, v2):
@@ -51,16 +46,3 @@ class migration_instance(object):
                 is_current = self.force_current and c2 == 0
                 if is_pending or is_current:
                     p[1]()
-
-    def migration_1_1_20(self):
-        print(0)
-
-    def migration_1_1_21(self):
-        print(1)
-
-    def migration_1_2_0(self):
-        print(2)
-
-if __name__ == '__main__':
-    i = migration_instance('1.1.9', '1.2.0')
-    i.migrate()

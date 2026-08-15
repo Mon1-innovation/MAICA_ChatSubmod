@@ -1290,10 +1290,10 @@ screen maica_statics():
                 text _("Total MSpire rounds: [store.maica.maica_instance.stat.get('mspire_count')]"):
                     size 20
             hbox:
-                text _("Total chunks recieved: [store.maica.maica_instance.stat.get('received_token')]"):
+                text _("Total chunks received: [store.maica.maica_instance.stat.get('received_token')]"):
                     size 20
             hbox:
-                text _("Overall chunks recieved: [store.maica.maica_instance.stat.get('received_token_by_session')]"):
+                text _("Overall chunks received: [store.maica.maica_instance.stat.get('received_token_by_session')]"):
                     size 20
             hbox:
                 text _("MPostal sent count: [store.maica.maica_instance.stat.get('mpostal_count')]"):
