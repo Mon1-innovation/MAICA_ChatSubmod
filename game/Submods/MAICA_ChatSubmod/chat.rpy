@@ -42,7 +42,6 @@ init 5 python:
         Event(
             persistent.greeting_database,
             eventlabel="maica_chr_corrupted2",
-            prompt=_("The Heaven Forest seems broken"),
             unlocked=True,
             conditional="persistent._mas_greeting_type is None and not mas_isSpecialDay() and renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
             aff_range=(mas_aff.NORMAL, None),
@@ -63,7 +62,6 @@ init 5 python:
         Event(
             persistent.greeting_database,
             eventlabel="maica_greeting",
-            prompt=_("MAICA knocking"),
             unlocked=True,
             conditional="persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
             aff_range=(mas_aff.AFFECTIONATE, None),
@@ -189,7 +187,6 @@ init 5 python:
         Event(
             persistent.greeting_database,
             eventlabel="maica_wants_mpostal",
-            prompt=_("MAICA knocking"),
             unlocked=True,
             conditional="persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
             aff_range=(mas_aff.AFFECTIONATE, None),

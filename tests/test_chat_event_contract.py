@@ -172,6 +172,7 @@ def test_maica_greetings_use_the_mas_selection_contract():
         assert "persistent._mas_greeting_type is None" in event
         assert "not mas_isSpecialDay()" in event
         assert "action=EV_ACT_UNLOCK" not in event
+        assert "prompt=" not in event
 
     assert 'MASPriorityRule.create_rule(0)' in CHAT_SOURCE
     assert CHAT_SOURCE.count('MASPriorityRule.create_rule(20)') == 2
@@ -262,6 +263,8 @@ def test_internal_events_do_not_define_user_facing_prompts():
         "The Heaven Forest file",
         "Where did the Heaven Forest go?",
         "Learning about your preferences",
+        "MAICA knocking",
+        "The Heaven Forest seems broken",
     )
     for prompt in obsolete_prompt_sources:
         assert 'old "{}"'.format(prompt) not in TL_CHAT_SOURCE

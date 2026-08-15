@@ -2035,13 +2035,6 @@ translate chinese strings:
 
 translate chinese strings:
 
-
-    old "MAICA knocking"
-    new "maica敲门"
-
-    old "The Heaven Forest seems broken"
-    new "天堂树林好像坏了"
-
     old "Adjust [player]'s preferences"
     new "修改[player]的偏好"
 
