@@ -973,7 +973,7 @@ label .talking_start:
     $ maica_talking_result = _return
     # maica_talking 有返回值_return, 返回结果canceled(正常退出)/disconnect(断开连接且未启动自动重连)
     if config.debug:
-        m "return：[maica_talking_result]"
+        $ renpy.notify("MAICA DEV: return: {}".format(maica_talking_result))
     if maica_talking_result == "canceled":
         m 1eub "Alright, just a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
     elif store.maica.maica_instance.mtrigger_manager._running:
