@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAS Upstream Reference"
+  short_description: "Verify integrations against Monika After Story"
+  default_prompt: "Use $mas-upstream-reference to verify this submod against the relevant Monika After Story source."
