@@ -2036,23 +2036,11 @@ translate chinese strings:
 translate chinese strings:
 
 
-    old "Your reality?"
-    new "你的现实?"
-
     old "MAICA knocking"
     new "maica敲门"
 
-    old "The Heaven Forest file"
-    new "天堂树林的文件"
-
-    old "Where did the Heaven Forest go?"
-    new "天堂树林去哪了"
-
     old "The Heaven Forest seems broken"
     new "天堂树林好像坏了"
-
-    old "Learning about your preferences"
-    new "了解你的偏好"
 
     old "Adjust [player]'s preferences"
     new "修改[player]的偏好"
@@ -2072,8 +2060,8 @@ translate chinese strings:
     old "About 'MSpire'"
     new "关于'MSpire'"
 
-    old "[player]'s address"
-    new "[player]的住址"
+    old "Adjust [player]'s address"
+    new "修改[player]的住址"
 
     old "About 'MVista'"
     new "关于'MVista'"

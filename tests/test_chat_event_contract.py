@@ -240,6 +240,33 @@ def test_mspire_choices_and_dispatch_respect_the_registered_state():
     assert "mas_isMoniNormal(higher=True)" in _function_block("push_mspire")
 
 
+def test_internal_events_do_not_define_user_facing_prompts():
+    eventlabels = (
+        "maica_prepend_1",
+        "maica_chr2",
+        "maica_chr_gone",
+        "maica_wants_preferences2",
+        "maica_wants_mspire",
+        "maica_mpostal_received",
+        "maica_mpostal_replyed",
+        "maica_pre_set_location",
+        "maica_pre_wants_mvista",
+        "maica_mspire",
+    )
+
+    for eventlabel in eventlabels:
+        assert "prompt=" not in _event_block(eventlabel)
+
+    obsolete_prompt_sources = (
+        "Your reality?",
+        "The Heaven Forest file",
+        "Where did the Heaven Forest go?",
+        "Learning about your preferences",
+    )
+    for prompt in obsolete_prompt_sources:
+        assert 'old "{}"'.format(prompt) not in TL_CHAT_SOURCE
+
+
 def test_preferences_action_and_explanation_have_distinct_prompts():
     assert 'prompt=_("Adjust [player]\'s preferences")' in _event_block(
         "maica_mods_preferences"
@@ -249,14 +276,26 @@ def test_preferences_action_and_explanation_have_distinct_prompts():
     )
     assert 'old "About [player]\'s preferences"' in TL_CHAT_SOURCE
     assert 'new "关于[player]的偏好"' in TL_CHAT_SOURCE
-    assert 'new "了解你的偏好"' in TL_CHAT_SOURCE
-    assert 'new "了解你的爱好"' not in TL_CHAT_SOURCE
     assert "'修改[player]的偏好'" in TL_CHAT_SOURCE
     assert "'调整[player]的爱好'" not in TL_CHAT_SOURCE
     assert 'old "About additional preferences"' not in TL_CHAT_SOURCE
     assert (
         'mas_setEVLPropValues("maica_wants_preferences_reread", '
         'prompt="关于[player]的偏好"'
+    ) in TL_DESCRIPTION_SOURCE
+
+
+def test_location_reread_keeps_the_only_user_facing_address_prompt():
+    assert 'prompt=_("Adjust [player]\'s address")' in _event_block(
+        "maica_set_location_reread"
+    )
+    assert CHAT_SOURCE.count('prompt=_("Adjust [player]\'s address")') == 1
+    assert 'old "Adjust [player]\'s address"' in TL_CHAT_SOURCE
+    assert 'new "修改[player]的住址"' in TL_CHAT_SOURCE
+    assert 'old "[player]\'s address"' not in TL_CHAT_SOURCE
+    assert (
+        'mas_setEVLPropValues("maica_set_location_reread", '
+        'prompt="修改[player]的住址"'
     ) in TL_DESCRIPTION_SOURCE
 
 

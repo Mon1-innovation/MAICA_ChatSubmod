@@ -23,7 +23,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_prepend_1",
-            prompt=_("Your reality?"),
             random=True,
             conditional="not renpy.seen_label('maica_prepend_1')",
             action=EV_ACT_QUEUE,
@@ -78,7 +77,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr2",
-            prompt=_("The Heaven Forest file"),
             random=False,
             conditional="maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
             action=EV_ACT_QUEUE,
@@ -90,7 +88,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr_gone",
-            prompt=_("Where did the Heaven Forest go?"),
             pool=False,
             conditional="not maica_chr_exist and renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_chr_gone')",
             action=EV_ACT_PUSH,
@@ -124,7 +121,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_wants_preferences2",
-            prompt=_("Learning about your preferences"),
             random=False,
             pool=False,
             unlocked=False,
@@ -175,7 +171,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_wants_mspire",
-            prompt="spire",
             pool=False,
             random=False,
             unlocked=False,
@@ -375,7 +370,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_pre_set_location",
-            prompt=_("[player]'s address"),
             category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
             random=False,
             pool=False,
@@ -389,7 +383,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_pre_wants_mvista",
-            prompt=_("About 'MVista'"),
             random=False,
             pool=False,
             conditional="maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
@@ -403,7 +396,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_set_location_reread",
             category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            prompt=_("[player]'s address"),
+            prompt=_("Adjust [player]'s address"),
             random=False,
             pool=True,
             conditional="renpy.seen_label('maica_pre_set_location') and not renpy.seen_label('maica_set_location_reread')",
@@ -1012,7 +1005,6 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_mspire",
-            prompt="mspire",
             pool=False,
             conditional="renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()",
             aff_range=(mas_aff.NORMAL, None)
