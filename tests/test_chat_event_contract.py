@@ -573,7 +573,8 @@ def test_current_greeting_contract_is_applied_before_mas_selects_one():
     }
     for eventlabel, (event_var, conditional_var, rules_var) in registrations.items():
         registration = _registration_block(eventlabel)
-        assert 'persistent.greeting_database.get("{}")'.format(eventlabel) in registration
+        assert 'evhand.greeting_database.get("{}")'.format(eventlabel) in registration
+        assert 'persistent.greeting_database.get("{}")'.format(eventlabel) not in registration
         assert "{}.conditional = {}".format(event_var, conditional_var) in registration
         assert "{}.rules.update({})".format(event_var, rules_var) in registration
 

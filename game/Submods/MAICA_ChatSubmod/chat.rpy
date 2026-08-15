@@ -57,7 +57,7 @@ init 5 python:
         ),
         code="GRE"
     )
-    greeting_ev = persistent.greeting_database.get("maica_greeting")
+    greeting_ev = evhand.greeting_database.get("maica_greeting")
     if greeting_ev is not None:
         greeting_ev.conditional = greeting_conditional
         greeting_ev.rules.update(greeting_rules)
@@ -221,9 +221,9 @@ init 5 python:
         ),
         code="GRE"
     )
-    # addEvent preserves fields from an existing persistent Event. Apply the
-    # current contract before MAS selects a greeting on this launch.
-    mpostal_ev = persistent.greeting_database.get("maica_wants_mpostal")
+    # Apply the current contract to the runtime Event before MAS selects a
+    # greeting on this launch.
+    mpostal_ev = evhand.greeting_database.get("maica_wants_mpostal")
     if mpostal_ev is not None:
         mpostal_ev.conditional = mpostal_greeting_conditional
         mpostal_ev.rules.update(mpostal_greeting_rules)
@@ -276,7 +276,7 @@ init 5 python:
         ),
         code="GRE"
     )
-    corrupted_ev = persistent.greeting_database.get("maica_chr_corrupted2")
+    corrupted_ev = evhand.greeting_database.get("maica_chr_corrupted2")
     if corrupted_ev is not None:
         corrupted_ev.conditional = corrupted_greeting_conditional
         corrupted_ev.rules.update(corrupted_greeting_rules)
