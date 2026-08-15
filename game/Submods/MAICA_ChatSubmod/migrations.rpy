@@ -217,10 +217,93 @@ init 998 python:
 
         mas_rebuildEventLists()
 
+    def migration_1_8_10():
+        location_label_map = {
+            "maica_pre_set_location": "maica_wants_location2",
+            "maica_set_location_reread": "maica_mods_location",
+        }
+        location_seen = {}
+
+        for old_label, new_label in location_label_map.items():
+            old_ev = mas_getEV(old_label)
+            new_ev = mas_getEV(new_label)
+            old_seen = (
+                persistent._seen_ever.get(old_label, False)
+                or renpy.seen_label(old_label)
+                or (
+                    old_ev is not None
+                    and old_ev.shown_count > 0
+                )
+            )
+            location_seen[old_label] = old_seen
+
+            if old_seen:
+                persistent._seen_ever[new_label] = True
+            persistent._seen_ever.pop(old_label, None)
+
+            if old_ev is not None and new_ev is not None:
+                new_ev.shown_count = max(new_ev.shown_count, old_ev.shown_count)
+                if (
+                        old_ev.last_seen is not None
+                        and (
+                            new_ev.last_seen is None
+                            or old_ev.last_seen > new_ev.last_seen
+                        )
+                    ):
+                    new_ev.last_seen = old_ev.last_seen
+
+        # Preserve queued references created before the event labels were renamed.
+        for index, item in enumerate(persistent.event_list):
+            if isinstance(item, tuple) and item:
+                new_label = location_label_map.get(item[0])
+                if new_label is not None:
+                    persistent.event_list[index] = (new_label,) + item[1:]
+            elif item in location_label_map:
+                persistent.event_list[index] = location_label_map[item]
+
+        for attr_name in ("_mas_player_bookmarked", "_mas_player_derandomed"):
+            topic_list = getattr(persistent, attr_name, None)
+            if topic_list is not None:
+                setattr(
+                    persistent,
+                    attr_name,
+                    [location_label_map.get(label, label) for label in topic_list]
+                )
+
+        if persistent.flagged_monikatopic in location_label_map:
+            persistent.flagged_monikatopic = location_label_map[
+                persistent.flagged_monikatopic
+            ]
+
+        intro_ev = mas_getEV("maica_wants_location2")
+        if intro_ev is not None:
+            intro_ev.conditional = "maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2')"
+            intro_ev.action = EV_ACT_QUEUE
+            intro_ev.random = False
+
+        reread_ev = mas_getEV("maica_wants_location_reread")
+        if reread_ev is not None:
+            reread_ev.conditional = "renpy.seen_label('maica_wants_location2') and not renpy.seen_label('maica_wants_location_reread')"
+            reread_ev.action = EV_ACT_UNLOCK
+
+        intro_seen = (
+            location_seen.get("maica_pre_set_location", False)
+            or renpy.seen_label("maica_wants_location2")
+        )
+        if intro_seen:
+            mas_unlockEVL("maica_mods_location", "EVE")
+            mas_unlockEVL("maica_wants_location_reread", "EVE")
+
+        for old_label in location_label_map:
+            persistent.event_database.pop(old_label, None)
+
+        mas_rebuildEventLists()
+
     migration_queue = [
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
         ("1.8.7", migration_1_8_7),
         ("1.8.8", migration_1_8_8),
         ("1.8.9", migration_1_8_9),
+        ("1.8.10", migration_1_8_10),
     ]

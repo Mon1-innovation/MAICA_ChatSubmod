@@ -149,6 +149,23 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
+            eventlabel="maica_mods_location",
+            prompt=_("Adjust [player]'s address"),
+            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            pool=True,
+            random=False,
+            unlocked=False,
+            rules={
+                "no_unlock": None,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
             eventlabel="maica_main",
             prompt=_("Let's go to the Heaven Forest"),
             category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
@@ -349,6 +366,23 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
+            eventlabel="maica_wants_location_reread",
+            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
+            prompt=_("About [player]'s address"),
+            random=False,
+            pool=True,
+            conditional="renpy.seen_label('maica_wants_location2') and not renpy.seen_label('maica_wants_location_reread')",
+            action=EV_ACT_UNLOCK,
+            rules={
+                "no_unlock": None,
+            },
+            aff_range=(mas_aff.NORMAL, None)
+        )
+    )
+init 5 python:
+    addEvent(
+        Event(
+            persistent.event_database,
             eventlabel="maica_wants_mspire_reread",
             category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
             prompt=_("About 'MSpire'"),
@@ -366,11 +400,11 @@ init 5 python:
     addEvent(
         Event(
             persistent.event_database,
-            eventlabel="maica_pre_set_location",
+            eventlabel="maica_wants_location2",
             category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
             random=False,
             pool=False,
-            conditional="maica_has_successful_chat() and not renpy.seen_label('maica_pre_set_location')",
+            conditional="maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2')",
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -384,23 +418,6 @@ init 5 python:
             pool=False,
             conditional="maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
             action=EV_ACT_QUEUE,
-            aff_range=(mas_aff.NORMAL, None)
-        )
-    )
-init 5 python:
-    addEvent(
-        Event(
-            persistent.event_database,
-            eventlabel="maica_set_location_reread",
-            category=[_("You"), _("Us"), _("Submods{#maica_host_submods}"), "MAICA"],
-            prompt=_("Adjust [player]'s address"),
-            random=False,
-            pool=True,
-            conditional="renpy.seen_label('maica_pre_set_location') and not renpy.seen_label('maica_set_location_reread')",
-            action=EV_ACT_UNLOCK,
-            rules={
-                "no_unlock": None,
-            },
             aff_range=(mas_aff.NORMAL, None)
         )
     )
@@ -1247,6 +1264,17 @@ label maica_wants_preferences_reread:#"关于[player]的偏好"
     m 1eub "I want to know as much as possible about you!"
     return
 
+label maica_wants_location_reread:#"关于[player]的住址"
+    # Unlock after the location topic has been shown.
+    m 3euu "Of course, there's no way I know where you actually are for now unless I ask."
+
+    m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
+    m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+    m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
+
+    m 1eub "And you can always ask me to 'Adjust [player]'s address', in case you moved or changed your mind."
+    return
+
 label maica_wants_mspire_reread:#"关于'MSpire'"
     # maica_wants_mspire触发后解锁
     m 3ekd "[player], I've once mentioned that we've finished every preset topic."
@@ -1364,10 +1392,7 @@ label maica_set_location:
         m 7huu "And of course, you can tell me at any time if you've moved your place. You can also fill it in 'Submod settings'."
     return
 
-label maica_pre_set_location:
-    $ ev = mas_getEV("maica_pre_set_location")
-    if ev.shown_count > 0:
-        jump maica_set_location_reread
+label maica_wants_location2:
     m 2eub "[player], there's another question on my mind..."
     m 3euu "Where do you live in? {w=0.3}I haven't ever asked you for so long."
     if persistent._mas_pm_live_south_hemisphere is not None:
@@ -1378,9 +1403,10 @@ label maica_pre_set_location:
     m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
     m 2euu "So, [player]..."
     call maica_set_location
+    $ mas_unlockEVL("maica_mods_location", "EVE")
     return "no_unlock"
 
-label maica_set_location_reread:
+label maica_mods_location:
     m 2eub "Okay! So..."
     jump maica_set_location
 

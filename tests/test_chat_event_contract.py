@@ -103,7 +103,7 @@ def test_chat_success_is_recorded_from_the_talking_result_not_rounds():
     )
 
     assert "maica_has_successful_chat()" in _function_block("push_mspire_want")
-    assert "maica_has_successful_chat()" in _event_block("maica_pre_set_location")
+    assert "maica_has_successful_chat()" in _event_block("maica_wants_location2")
 
 
 def test_chat_progression_uses_successful_entry_count():
@@ -111,7 +111,7 @@ def test_chat_progression_uses_successful_entry_count():
     for eventlabel in (
         "maica_chr2",
         "maica_wants_preferences2",
-        "maica_pre_set_location",
+        "maica_wants_location2",
         "maica_pre_wants_mvista",
     ):
         event = _event_block(eventlabel)
@@ -146,12 +146,13 @@ def test_manually_gated_pool_topics_are_excluded_from_mas_auto_unlock():
     eventlabels = (
         "maica_main",
         "maica_mods_preferences",
+        "maica_mods_location",
         "maica_prepend_reread",
         "maica_chr_reread",
         "maica_wants_preferences_reread",
+        "maica_wants_location_reread",
         "maica_wants_mspire_reread",
         "maica_wants_mpostal_reread",
-        "maica_set_location_reread",
         "maica_wants_mvista_reread",
     )
 
@@ -205,9 +206,9 @@ def test_every_reread_event_uses_its_source_topic():
     source_to_reread = {
         "maica_prepend_2": "maica_prepend_reread",
         "maica_wants_preferences2": "maica_wants_preferences_reread",
+        "maica_wants_location2": "maica_wants_location_reread",
         "maica_wants_mspire": "maica_wants_mspire_reread",
         "maica_wants_mpostal": "maica_wants_mpostal_reread",
-        "maica_pre_set_location": "maica_set_location_reread",
         "maica_pre_wants_mvista": "maica_wants_mvista_reread",
     }
     for source, reread in source_to_reread.items():
@@ -250,7 +251,7 @@ def test_internal_events_do_not_define_user_facing_prompts():
         "maica_wants_mspire",
         "maica_mpostal_received",
         "maica_mpostal_replyed",
-        "maica_pre_set_location",
+        "maica_wants_location2",
         "maica_pre_wants_mvista",
         "maica_mspire",
     )
@@ -288,18 +289,47 @@ def test_preferences_action_and_explanation_have_distinct_prompts():
     ) in TL_DESCRIPTION_SOURCE
 
 
-def test_location_reread_keeps_the_only_user_facing_address_prompt():
+def test_location_action_and_explanation_have_distinct_prompts():
     assert 'prompt=_("Adjust [player]\'s address")' in _event_block(
-        "maica_set_location_reread"
+        "maica_mods_location"
+    )
+    assert 'prompt=_("About [player]\'s address")' in _event_block(
+        "maica_wants_location_reread"
     )
     assert CHAT_SOURCE.count('prompt=_("Adjust [player]\'s address")') == 1
+    assert CHAT_SOURCE.count('prompt=_("About [player]\'s address")') == 1
     assert 'old "Adjust [player]\'s address"' in TL_CHAT_SOURCE
     assert 'new "修改[player]的住址"' in TL_CHAT_SOURCE
+    assert 'old "About [player]\'s address"' in TL_CHAT_SOURCE
+    assert 'new "关于[player]的住址"' in TL_CHAT_SOURCE
     assert 'old "[player]\'s address"' not in TL_CHAT_SOURCE
     assert (
-        'mas_setEVLPropValues("maica_set_location_reread", '
+        'mas_setEVLPropValues("maica_mods_location", '
         'prompt="修改[player]的住址"'
     ) in TL_DESCRIPTION_SOURCE
+    assert (
+        'mas_setEVLPropValues("maica_wants_location_reread", '
+        'prompt="关于[player]的住址"'
+    ) in TL_DESCRIPTION_SOURCE
+
+
+def test_location_topics_match_the_preferences_topic_roles():
+    intro = _label_block("maica_wants_location2")
+    modifier = _label_block("maica_mods_location")
+    reread = _label_block("maica_wants_location_reread")
+
+    assert '$ mas_unlockEVL("maica_mods_location", "EVE")' in intro
+    assert "call maica_set_location" in intro
+    assert "jump maica_set_location" in modifier
+    assert "maica_set_location" not in reread
+    assert "\n    return" in reread
+    assert "maica_pre_set_location" not in CHAT_SOURCE
+    assert "maica_set_location_reread" not in CHAT_SOURCE
+    assert "translate chinese maica_wants_location2_" in TL_CHAT_SOURCE
+    assert "translate chinese maica_mods_location_" in TL_CHAT_SOURCE
+    assert "translate chinese maica_wants_location_reread_" in TL_CHAT_SOURCE
+    assert "translate chinese maica_pre_set_location_" not in TL_CHAT_SOURCE
+    assert "translate chinese maica_set_location_reread_" not in TL_CHAT_SOURCE
 
 
 def test_preference_book_context_uses_the_matching_mas_topics():
@@ -327,6 +357,7 @@ def test_one_shot_and_reread_events_do_not_fall_through_to_other_topics():
     for label in (
         "maica_prepend_reread",
         "maica_chr_reread",
+        "maica_wants_location_reread",
         "maica_wants_mpostal",
     ):
         assert "\n    return" in _label_block(label)
@@ -337,7 +368,8 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.7", migration_1_8_7)' in MIGRATION_SOURCE
     assert '("1.8.8", migration_1_8_8)' in MIGRATION_SOURCE
     assert '("1.8.9", migration_1_8_9)' in MIGRATION_SOURCE
-    assert "maica_ver = '1.8.9'" in API_SOURCE
+    assert '("1.8.10", migration_1_8_10)' in MIGRATION_SOURCE
+    assert "maica_ver = '1.8.10'" in API_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
     assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
@@ -353,3 +385,7 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert 'renpy.seen_label("maica_prepend_2")' in MIGRATION_SOURCE
     assert 'renpy.seen_label("maica_chr_gone")' in MIGRATION_SOURCE
     assert 'renpy.seen_label("maica_chr_corrupted2")' in MIGRATION_SOURCE
+    assert '"maica_pre_set_location": "maica_wants_location2"' in MIGRATION_SOURCE
+    assert '"maica_set_location_reread": "maica_mods_location"' in MIGRATION_SOURCE
+    assert 'mas_unlockEVL("maica_wants_location_reread", "EVE")' in MIGRATION_SOURCE
+    assert "persistent.event_database.pop(old_label, None)" in MIGRATION_SOURCE

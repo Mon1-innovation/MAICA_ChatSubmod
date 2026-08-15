@@ -55,7 +55,8 @@ translate chinese python in maica:
         store.mas_setEVLPropValues("maica_prepend_reread", prompt="天堂树林到底是什么", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="关于'MSpire'", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_wants_mpostal_reread", prompt="关于'MPostal'", category=["你", "我们", "模组", "MAICA"])
-        store.mas_setEVLPropValues("maica_set_location_reread", prompt="修改[player]的住址", category=["你", "我们", "模组", "MAICA"])
+        store.mas_setEVLPropValues("maica_mods_location", prompt="修改[player]的住址", category=["你", "我们", "模组", "MAICA"])
+        store.mas_setEVLPropValues("maica_wants_location_reread", prompt="关于[player]的住址", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_wants_mvista_reread", prompt="关于'MVista'", category=["你", "我们", "模组", "MAICA"])
     except Exception as e:
         import store

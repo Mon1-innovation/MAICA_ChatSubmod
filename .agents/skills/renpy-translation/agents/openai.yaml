@@ -1,0 +1,4 @@
+interface:
+  display_name: "RenPy Translation"
+  short_description: "Generate and validate RenPy translation placeholders"
+  default_prompt: "Use $renpy-translation to generate safe placeholder translations for selected RenPy source lines."

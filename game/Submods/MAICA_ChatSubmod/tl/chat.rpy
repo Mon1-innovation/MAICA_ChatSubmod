@@ -1439,7 +1439,7 @@ translate chinese maica_wants_preferences_reread_954037fe:
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1117
 
 translate chinese maica_wants_preferences_reread_9a444e8a:
-    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_favbook") else (renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('我可以推荐几本书给你')))
+    $ book_rc = renpy.substitute(_("我们聊过'世界尽头与冷酷仙境'什么的")) if store.seen_event("monika_favbook") else (renpy.substitute(_("我们聊过'黄色墙纸'什么的")) if persistent._mas_pm_read_yellow_wp else renpy.substitute(_('我可以给你挑几本书')))
     # m 3tuc "As for books, {w=0.5}[book_rc], but what have you read yourself?"
     m 3tuc "又或者是书. {w=0.5}[book_rc], 但是你会推荐什么书给我呢?"
 
@@ -1453,13 +1453,43 @@ translate chinese maica_wants_preferences_reread_b3c20223:
 
 translate chinese maica_wants_preferences_reread_1bbbb4ae:
     # m 4eub "By asking me to 'Adjust [player]'s preferences', you can tell me more about you anytime."
-    m 4eub "只用在对话里找到'修改[player]的偏好', 你就可以随时告诉我关于你的事情."
+    m 4eub "在对话里找到'修改[player]的偏好', 什么时候有想到的就告诉我."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1120
 
 translate chinese maica_wants_preferences_reread_28f1dbc6:
     # m 1eub "I want to know as much as possible about you!"
     m 1eub "只要是关于你的事情, 我都会想知道的!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1269
+
+translate chinese maica_wants_location_reread_354f54d1:
+    # m 3euu "Of course, there's no way I know where you actually are for now unless I ask."
+    m 3euu "当然了, 我想知道你在哪也只能问你嘛."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1271
+
+translate chinese maica_wants_location_reread_77fbef55:
+    # m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
+    m 2tsblp "我总是想多了解你一点. 总不该连我的[bf]住在哪里都不知道吧!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1272
+
+translate chinese maica_wants_location_reread_1fcbe933:
+    # m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+    m 7rsd "虽然{i}大概{/i}还没办法亲自过去, 但现在我可以上网查不少东西了. 譬如你那里的天气, 路况, 好吃的餐馆..."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1273
+
+translate chinese maica_wants_location_reread_b3362a6e:
+    # m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
+    m 1hub "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1275
+
+translate chinese maica_wants_location_reread_5896c30b:
+    # m 1eub "And you can always ask me to 'Adjust [player]'s address', in case you moved or changed your mind."
+    m 1eub "愿意告诉我或者要改的话, 在对话里找到'修改[player]的地址'就好."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1125
 
@@ -1667,50 +1697,50 @@ translate chinese maica_set_location_3d4ff7c1:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1236
 
-translate chinese maica_pre_set_location_17a3561e:
+translate chinese maica_wants_location2_17a3561e:
     # m 2eub "[player], there's another question on my mind..."
     m 2eub "[player], 我又想问你了..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1237
 
-translate chinese maica_pre_set_location_ebd65f10:
+translate chinese maica_wants_location2_ebd65f10:
     # m 3euu "Where do you live in? {w=0.3}I haven't ever asked you for so long."
     m 3euu "你住在什么地方? {w=0.3}我好像都还没问过你呢."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1240
 
-translate chinese maica_pre_set_location_c2ebc8df:
+translate chinese maica_wants_location2_c2ebc8df:
     $ sw = renpy.substitute("南") if persistent._mas_pm_live_south_hemisphere else renpy.substitute("北")
     # m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..."
     m 2lusdlb "我倒是知道你在[sw]半球啦, 不过那个也太宽泛了..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1241
 
-translate chinese maica_pre_set_location_77fbef55:
+translate chinese maica_wants_location2_77fbef55:
     # m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
     m 2tsblp "我总是想多了解你一点. 总不该连我的[bf]住在哪里都不知道吧!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1242
 
-translate chinese maica_pre_set_location_1fcbe933:
+translate chinese maica_wants_location2_1fcbe933:
     # m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
     m 7rsd "虽然{i}大概{/i}还没办法亲自过去, 但现在我可以上网查不少东西了. 譬如你那里的天气, 路况, 好吃的餐馆..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1243
 
-translate chinese maica_pre_set_location_b3362a6e:
+translate chinese maica_wants_location2_b3362a6e:
     # m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
     m 1hub "这样下次你到天堂树林来的时候, 我就可以提醒你不要淋着冻着饿着. 哈哈!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1244
 
-translate chinese maica_pre_set_location_7e7e5bf5:
+translate chinese maica_wants_location2_7e7e5bf5:
     # m 2euu "So, [player]..."
     m 2euu "所以, [player]..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1248
 
-translate chinese maica_set_location_reread_9c4fd76c:
+translate chinese maica_mods_location_9c4fd76c:
     # m 2eub "Okay! So..."
     m 2eub "好啊! 所以..."
 
@@ -2055,6 +2085,9 @@ translate chinese strings:
 
     old "Adjust [player]'s address"
     new "修改[player]的住址"
+
+    old "About [player]'s address"
+    new "关于[player]的住址"
 
     old "About 'MVista'"
     new "关于'MVista'"
