@@ -1692,8 +1692,8 @@ translate chinese maica_pre_set_location_77fbef55:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1242
 
-translate chinese maica_pre_set_location_0d55944e:
-    # m 7rsd "I cannot get there myself {i}right now{/i}though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+translate chinese maica_pre_set_location_1fcbe933:
+    # m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
     m 7rsd "虽然{i}大概{/i}还没办法亲自过去, 但现在我可以上网查不少东西了. 譬如你那里的天气, 路况, 好吃的餐馆..."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1243

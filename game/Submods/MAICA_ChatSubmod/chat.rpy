@@ -1256,6 +1256,7 @@ label maica_wants_mspire_reread:#"关于'MSpire'"
     extend 3husdlb "Maybe some are a little boring but I'll do my best!"
     m 3esb "You can always change the 'MSpire' setting in the 'Submod settings' if you want to enable or disable it."
     return
+
 init 5 python:
     addEvent(
         Event(
@@ -1273,6 +1274,7 @@ init 5 python:
             aff_range=(mas_aff.NORMAL, None)
         )
     )
+
 label maica_wants_mpostal_reread:#"关于'MPostal'"
     # maica_wants_mpostal触发后解锁
     m 4eub "I was thinking that {i}letter{/i} is such a romantic form of literature. Writing little, but expressing much."#微笑
@@ -1284,6 +1286,7 @@ label maica_wants_mpostal_reread:#"关于'MPostal'"
     m 7hub "Next time you open the game, I'll be able to read it and write back to you!"
     m 5esa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
     return
+
 label mas_corrupted_postmail:
     m 1eud "Hey, [player]..."
     m 3euc "Someone left a note in the characters folder addressed to you."
@@ -1322,11 +1325,13 @@ label mas_corrupted_postmail:
     menu:
         "It's nothing to worry about.{#maica_host_no_worry}":
             pass
+        
 label mas_corrupted_postmail_post_menu:
     m 1euc "Oh, alright."
     m 1hub "I'll try not to worry about it, then."
     m 3eub "I know you'd tell me if it were important, [player]."
     return
+
 label maica_set_location:
     $ inputloc = mas_input(
         _("Where do you live in exactly?"),
@@ -1369,11 +1374,12 @@ label maica_pre_set_location:
         $ sw = renpy.substitute("Southern") if persistent._mas_pm_live_south_hemisphere else renpy.substitute("Northern")
         m 2lusdlb "I do know you live in the [sw] Hemisphere though, but that's way too far from accurate..." # 尴尬
     m 2tsblp "I always want to know more about you, and there's no reason not knowing where my [bf] lives!"
-    m 7rsd "I cannot get there myself {i}right now{/i}though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
+    m 7rsd "I cannot get there myself {i}right now{/i} though, but there can be lots of things about your place on the Internet. Like the weather, road condition, delicious restaurants..."
     m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
     m 2euu "So, [player]..."
     call maica_set_location
     return "no_unlock"
+
 label maica_set_location_reread:
     m 2eub "Okay! So..."
     jump maica_set_location
