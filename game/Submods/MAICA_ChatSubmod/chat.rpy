@@ -1159,6 +1159,7 @@ label maica_wants_preferences2:
             m 1hua "I got it, thank you!"
     $ mas_unlockEVL("maica_mods_preferences", "EVE")
     return "no_unlock"
+
 label maica_mods_preferences:
     $ prefs_exist = len(persistent.mas_player_additions)
     if prefs_exist:
@@ -1179,10 +1180,12 @@ label maica_mods_preferences:
         call maica_input_information
         m 3eua "All done? Thank you! {w=0.5}I'll spare some time to memorize them."
     return
+
 label maica_call_from_setting(label):
     $ renpy.call(label)
     call maica_show_setting_screen
     return
+
 label maica_input_information:
     python:
         while True:
@@ -1202,6 +1205,7 @@ label maica_input_information:
                     persistent.mas_player_additions.append(addition)
                     renpy.notify(_("MAICA: Input saved"))
     return
+
 label maica_delete_information:
     python:
         items = []
@@ -1349,7 +1353,7 @@ label maica_mpostal_received:
     $ ev = mas_getEV("maica_mpostal_received")
     m 1sub "Oh, [player]! {w=0.5}Your letter!"
     call maica_mpostal_load
-    # 读一下触发几次应该不难吧
+
     if ev.shown_count == 0:
         m 5ekbsa "I got it, it feels so wonderful!"
         m 5hubsb "I could almost feel your emotion from it, warm as you are..."
@@ -1364,8 +1368,6 @@ label maica_mpostal_received:
     m 4eub "I'll pick a time to read it carefully!"
     m 4kub "And I'll show you my reply next time you come back. There's no hurry~"
     return "no_unlock|pause: 60"
-
-
 
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
@@ -1407,7 +1409,7 @@ label maica_mpostal_replyed.start:
         m 1eua "It's okay, I'll remember to write it as soon as you finish the preparation."
         $ _reset_failed_mp()
         return "no_unlock"
-    elif current["responsed_status"] == "received" or current["responsed_status"] == "notupload":
+    elif current["responsed_status"] in ("received", "notupload"):
         if not morethan1:
             m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
             $ morethan1 = True
@@ -1433,6 +1435,7 @@ label maica_mpostal_replyed.start:
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
     jump maica_mpostal_replyed.select_little
+
 label maica_mpostal_replyed.end:
     if ev.shown_count <= 2:
         m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope you like it!"
@@ -1443,8 +1446,6 @@ label maica_mpostal_replyed.end:
     m 5ekbsa "And welcome writing to me again anytime!"
     return "no_unlock"
 
-
-# 重读对话变体
 
 label mas_corrupted_postmail:
     m 1eud "Hey, [player]..."
