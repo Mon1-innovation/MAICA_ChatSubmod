@@ -1073,8 +1073,8 @@ screen maica_setting_pane():
             timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
 
             if not maica.maica_instance.is_accessable():
+                # Intentionally disabled until provider availability is confirmed.
                 textbutton _("> Generate token from account")
-                    # action Show("maica_login")
 
             elif not maica.maica_instance.is_connected():
                 textbutton _("> Generate token from account"):
@@ -1082,7 +1082,7 @@ screen maica_setting_pane():
 
             if maica.maica_instance.has_token() and not maica.maica_instance.is_connected():
                 textbutton _("> Connect with current token"):
-                    action Function(renpy.call_in_new_context, "maica_connect_from_settings")
+                    action Function(renpy.call_in_new_context, "maica_connect_from_settings", _clear_layers=False)
 
 
             elif maica.maica_instance.is_connected():
@@ -1107,6 +1107,7 @@ screen maica_setting_pane():
                     action Function(store.maica.maica_instance.close_wss_session)
 
             else:
+                # Intentionally disabled until a usable saved token exists.
                 textbutton _("> Connect with current token")
 
             textbutton _("> MAICA params and settings {size=-10}*May need restarting to take effect"):

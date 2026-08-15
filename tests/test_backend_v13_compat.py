@@ -649,13 +649,73 @@ def test_a_frontend_version_declaration_is_authoritative():
     assert not re.search(r"\bis_outdated\b", client + api + header)
     assert re.search(r"def\s+is_frontend_version_outdated\(version_info=None\)", api)
     assert 'get("fe_blessland_version")' in api
-    assert re.search(
-        r"compareVersionLists\(\s*store\.maica_ver\.strip\(\)\.split\('\.'\),"
-        r"\s*minver\.strip\(\)\.split\('\.'\)\s*\)\s*==\s*-1",
-        api,
-    )
+    assert "maica_version_parts(store.maica_ver)" in api
+    assert "maica_version_parts(minver)" in api
+    validate = function_body(api, "validate_version")
+    assert "maica_version_parts(libv)" in validate
+    assert "maica_version_parts(uiv)" in validate
     assert "if is_frontend_version_outdated():" in api
     assert "elif maica.is_frontend_version_outdated():" in header
+
+
+def test_a_frontend_version_comparison_uses_numeric_segments():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    init_block = api.split("init 5 python in maica:", 1)[1].split("\ninit ", 1)[0]
+    python_source = "\n".join(
+        line[4:] if line.startswith("    ") else line
+        for line in init_block.splitlines()
+    )
+    tree = ast.parse(python_source)
+    functions = [
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name in ("maica_version_parts", "is_frontend_version_outdated")
+    ]
+    assert {node.name for node in functions} == {
+        "maica_version_parts",
+        "is_frontend_version_outdated",
+    }
+
+    comparisons = []
+
+    def compare_versions(current, minimum):
+        comparisons.append((current, minimum))
+        return (current > minimum) - (current < minimum)
+
+    class MasUtilsStub(object):
+        compareVersionLists = staticmethod(compare_versions)
+
+    class StoreStub(object):
+        maica_ver = "1.8.11"
+        mas_utils = MasUtilsStub()
+
+    namespace = {"store": StoreStub()}
+    module = ast.Module(body=functions, type_ignores=[])
+    ast.fix_missing_locations(module)
+    exec(compile(module, "api.rpy", "exec"), namespace)
+
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": {"fe_blessland_version": "1.8.5"},
+    }) is False
+    assert comparisons[-1] == ([1, 8, 11], [1, 8, 5])
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": {"fe_blessland_version": "1.8.12"},
+    }) is True
+
+
+def test_a_settings_connection_preserves_the_submods_screen():
+    pane = named_screen(
+        source("game/Submods/MAICA_ChatSubmod/header.rpy"),
+        "maica_setting_pane",
+    )
+    assert re.search(
+        r"Function\(\s*renpy\.call_in_new_context\s*,\s*"
+        r"['\"]maica_connect_from_settings['\"]\s*,\s*"
+        r"_clear_layers\s*=\s*False\s*\)",
+        pane,
+    )
 
 
 def test_a_development_build_contract():

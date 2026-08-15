@@ -207,6 +207,9 @@ init 5 python in maica:
     def savefile_access_marker_exists():
         return maica.savefile_access_marker_exists()
 
+    def maica_version_parts(version):
+        return [int(part) for part in version.strip().split('.')]
+
     def validate_version(force=False):
         global _maica_version_check_cache
         if _maica_version_check_cache is not None and not force:
@@ -220,7 +223,14 @@ init 5 python in maica:
             with open(libv_path, 'r') as libv_file:
                 libv = libv_file.read()
             uiv = store.maica_ver
-            _maica_version_check_cache = (store.mas_utils.compareVersionLists(libv.strip().split('.'), uiv.strip().split('.')), libv, uiv)
+            _maica_version_check_cache = (
+                store.mas_utils.compareVersionLists(
+                    maica_version_parts(libv),
+                    maica_version_parts(uiv)
+                ),
+                libv,
+                uiv
+            )
 
         return _maica_version_check_cache
 
@@ -235,8 +245,8 @@ init 5 python in maica:
             return False
 
         return store.mas_utils.compareVersionLists(
-            store.maica_ver.strip().split('.'),
-            minver.strip().split('.')
+            maica_version_parts(store.maica_ver),
+            maica_version_parts(minver)
         ) == -1
 
     def refresh_setting_pane_cache(force_version=False):
