@@ -49,7 +49,8 @@ translate chinese python in maica:
             maica_instance.MaicaAiStatus.NO_INTERNET: u"检测到子模组离线. 请根据Readme重新检查安装和网络连接",  # 新增
         })
         store.mas_setEVLPropValues("maica_main", prompt="我们去天堂树林吧", category=["你", "我们", "模组", "MAICA"])
-        store.mas_setEVLPropValues("maica_wants_preferences_reread", prompt="[player]的偏好", category=["你", "我们", "模组", "MAICA"])
+        store.mas_setEVLPropValues("maica_mods_preferences", prompt="修改[player]的偏好", category=["你", "我们", "模组", "MAICA"])
+        store.mas_setEVLPropValues("maica_wants_preferences_reread", prompt="修改[player]的偏好", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_chr_reread", prompt="关于HeavenForest.sce", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_prepend_reread", prompt="天堂树林到底是什么", category=["你", "我们", "模组", "MAICA"])
         store.mas_setEVLPropValues("maica_wants_mspire_reread", prompt="关于'MSpire'", category=["你", "我们", "模组", "MAICA"])
