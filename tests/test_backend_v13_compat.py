@@ -725,17 +725,32 @@ def test_a_frontend_version_comparison_uses_numeric_segments():
     }) is True
 
 
-def test_a_settings_connection_preserves_the_submods_screen():
+def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     pane = named_screen(
-        source("game/Submods/MAICA_ChatSubmod/header.rpy"),
+        header,
         "maica_setting_pane",
     )
     assert re.search(
-        r"Function\(\s*renpy\.call_in_new_context\s*,\s*"
-        r"['\"]maica_connect_from_settings['\"]\s*,\s*"
-        r"_clear_layers\s*=\s*False\s*\)",
+        r"Function\(\s*_maica_call_in_new_context_preserve_layers\s*,\s*"
+        r"['\"]maica_connect_from_settings['\"]\s*\)",
         pane,
     )
+    assert "_clear_layers" not in pane
+
+    helper = function_body(
+        header,
+        r"_maica_call_in_new_context_preserve_layers",
+    )
+    assert "version >= (8, 3)" in helper
+    assert "(7, 8) <= version < (8, 0)" in helper
+    assert "renpy.call_in_new_context(label, _clear_layers=False)" in helper
+    assert re.search(
+        r"renpy\.execution\.Context\(\s*False\s*,\s*contexts\[-1\]\s*,\s*"
+        r"clear\s*=\s*False\s*\)",
+        helper,
+    )
+    assert "renpy.store._kwargs = None" in helper
 
 
 def test_a_development_build_contract():

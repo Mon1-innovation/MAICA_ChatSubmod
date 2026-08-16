@@ -967,6 +967,48 @@ init 10 python:
 
 
 init python:
+    def _maica_call_in_new_context_preserve_layers(label):
+        """Call a parameterless label in a new context without clearing layers."""
+        version = tuple(renpy.version_tuple[:2])
+
+        # `_clear_layers` was added in the paired Ren'Py 7.8/8.3 releases.
+        if version >= (8, 3) or (7, 8) <= version < (8, 0):
+            return renpy.call_in_new_context(label, _clear_layers=False)
+
+        # Older SDKs hard-code clear=True, so mirror their call path here.
+        contexts = renpy.game.contexts
+        uses_modern_context_lifecycle = hasattr(renpy, "revertable")
+        if uses_modern_context_lifecycle:
+            if renpy.game.log.current is not None:
+                renpy.game.log.complete()
+            renpy.display.focus.clear_focus()
+
+        context = renpy.execution.Context(False, contexts[-1], clear=False)
+        contexts.append(context)
+        interface = renpy.display.interface
+        if interface is not None:
+            interface.enter_context()
+
+        renpy.store._args = None
+        renpy.store._kwargs = None
+
+        try:
+            context.goto_label(label)
+            return renpy.execution.run_context(False)
+
+        except renpy.game.JumpOutException as exception:
+            outer_context = contexts[-2]
+            outer_context.force_checkpoint = True
+            if version >= (7, 0):
+                outer_context.abnormal = True
+            raise renpy.game.JumpException(exception.args[0])
+
+        finally:
+            contexts.pop()
+            contexts[-1].do_deferred_rollback()
+            if interface and interface.restart_interaction and contexts:
+                contexts[-1].scene_lists.focused = None
+
     def scr_nullfunc():
         return
 
@@ -1082,7 +1124,7 @@ screen maica_setting_pane():
 
             if maica.maica_instance.has_token() and not maica.maica_instance.is_connected():
                 textbutton _("> Connect with current token"):
-                    action Function(renpy.call_in_new_context, "maica_connect_from_settings", _clear_layers=False)
+                    action Function(_maica_call_in_new_context_preserve_layers, "maica_connect_from_settings")
 
 
             elif maica.maica_instance.is_connected():
