@@ -745,11 +745,13 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
     assert "version >= (8, 3)" in helper
     assert "(7, 8) <= version < (8, 0)" in helper
     assert "renpy.call_in_new_context(label, _clear_layers=False)" in helper
+    assert "renpy.call_in_new_context(label, *args, **call_kwargs)" in helper
     assert re.search(
         r"renpy\.execution\.Context\(\s*False\s*,\s*contexts\[-1\]\s*,\s*"
         r"clear\s*=\s*False\s*\)",
         helper,
     )
+    assert "renpy.store._args = args or None" in helper
     assert "renpy.store._kwargs = None" in helper
 
 

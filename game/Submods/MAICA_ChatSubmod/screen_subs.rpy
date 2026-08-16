@@ -1075,18 +1075,14 @@ screen maica_mpostals():
                         style_prefix "confirm"
                         textbutton _("Read [player]'s letter"):
                             action [
-                                    Hide("maica_mpostals"),
-                                    Hide("maica_setting"),
                                     Function(store.maica_apply_setting),
-                                    Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["raw_content"])
+                                    Function(_maica_call_in_new_context_preserve_layers, "maica_mpostal_show_backtoscreen", postal["raw_content"])
                             ]
                         if postal["responsed_content"] != "":
                             textbutton _("Read [m_name]'s reply"):
                                 action [
-                                        Hide("maica_mpostals"),
-                                        Hide("maica_setting"),
                                         Function(store.maica_apply_setting),
-                                        Function(renpy.call, "maica_mpostal_show_backtoscreen", content = postal["responsed_content"])
+                                        Function(_maica_call_in_new_context_preserve_layers, "maica_mpostal_show_backtoscreen", postal["responsed_content"])
                                 ]
 
                         if postal["responsed_status"] in ("fatal"):

@@ -967,13 +967,16 @@ init 10 python:
 
 
 init python:
-    def _maica_call_in_new_context_preserve_layers(label):
-        """Call a parameterless label in a new context without clearing layers."""
+    def _maica_call_in_new_context_preserve_layers(label, *args):
+        """Call a label in a new context without clearing layers."""
         version = tuple(renpy.version_tuple[:2])
 
         # `_clear_layers` was added in the paired Ren'Py 7.8/8.3 releases.
         if version >= (8, 3) or (7, 8) <= version < (8, 0):
-            return renpy.call_in_new_context(label, _clear_layers=False)
+            if not args:
+                return renpy.call_in_new_context(label, _clear_layers=False)
+            call_kwargs = {"_clear_layers": False}
+            return renpy.call_in_new_context(label, *args, **call_kwargs)
 
         # Older SDKs hard-code clear=True, so mirror their call path here.
         contexts = renpy.game.contexts
@@ -989,7 +992,7 @@ init python:
         if interface is not None:
             interface.enter_context()
 
-        renpy.store._args = None
+        renpy.store._args = args or None
         renpy.store._kwargs = None
 
         try:
