@@ -24,8 +24,12 @@ init -1 python:
     hf_weather = MASFilterableWeather(
         "hf_weather_id",
         "hf_weather_label",
-        ani_img_tag = "hf_weather",
-        img_tag = "hf_weather_fb",
+        ani_img_tag=(
+            "hf_weather"
+            if persistent.maica_setting_dict.get("use_anim_background", True)
+            else None
+        ),
+        img_tag="hf_weather_fb",
         precip_type=store.mas_weather.PRECIP_TYPE_DEF,
         unlocked=False
     )

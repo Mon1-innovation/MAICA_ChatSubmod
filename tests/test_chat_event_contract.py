@@ -23,6 +23,13 @@ API_SOURCE = (
     / "MAICA_ChatSubmod"
     / "api.rpy"
 ).read_text(encoding="utf-8")
+HEAVEN_FOREST_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "heaven_forest.rpy"
+).read_text(encoding="utf-8")
 TL_CHAT_SOURCE = (
     Path(__file__).resolve().parents[1]
     / "game"
@@ -703,6 +710,12 @@ def test_heaven_forest_round_trip_preserves_the_mas_room_state():
         ),
     )
     assert "$ store.maica.weather_trigger.can_change = True" not in cleanup
+
+
+def test_heaven_forest_animation_setting_controls_the_weather_mask():
+    assert 'img_tag="hf_weather_fb"' in HEAVEN_FOREST_SOURCE
+    assert '"hf_weather"\n            if persistent.maica_setting_dict.get(' in HEAVEN_FOREST_SOURCE
+    assert '"use_anim_background", True)\n            else None' in HEAVEN_FOREST_SOURCE
 
 
 def test_skip_visual_forest_greetings_restore_the_full_startup_lifecycle():
