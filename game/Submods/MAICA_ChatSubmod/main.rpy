@@ -400,6 +400,8 @@ label maica_mpostal_show(content = "no content"):
             text = content,
         )
     call mas_showpoem(store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
+    $ store.mas_poems.poem_map.pop(store._MP.poem_id, None)
+    $ persistent._mas_poems_seen.pop(store._MP.poem_id, None)
     return
 
 label maica_mpostal_show_backtoscreen(content = "no content"):
