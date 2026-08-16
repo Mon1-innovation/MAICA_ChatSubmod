@@ -799,34 +799,28 @@ label maica_prepend_2:
         "I think I know how to show you that. {w=0.2}Shall we try it now, [player]?{fast}"
         "Okay.{#maica_host_okay_period}":
             label init_maica:
-                if persistent.maica_setting_dict['console']:
-                    show monika at t22
-                    show screen mas_py_console_teaching
-                    $ store.maica.maica_instance.content_func = store.mas_ptod._update_console_history
-                    $ store.maica.maica_instance.console_logger.critical("<DISABLE_VERBOSITY>"+store.maica.maica_instance.ascii_icon)
-                    $ store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
-                    pause 2.3
-                call maica_init_connect(use_pause_instand_wait = True)
+                call maica_show_console
+                call maica_init_connect(use_pause_instand_wait = True, force_welcome = True)
                 pause 1.0
-                if persistent.maica_setting_dict['console']:
-                    $ store.mas_ptod.clear_console()
-                    hide screen mas_py_console_teaching
-                    show monika at t11
-                    $ store.maica.maica_instance.content_func = None
             # monika right - console appear left 简单格式化信息, 显示在控制台上
             m 2dua ".{w=0.3}.{w=0.3}."
             # 进入校验轮
             if _return == "disconnected":
                 call maica_connection_failure_dialogue
+                call maica_hide_console
+                if persistent.maica_setting_dict['console']:
+                    $ store.mas_ptod.clear_console()
+                $ store.maica.maica_instance.content_func = None
                 m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
                 m 1dua "Just a second.{w=0.3}.{w=0.3}."
                 # 黑屏清理背景
                 call clear_all
                 m 1eua "What else should we do today, [player]?"
                 return
+
             m 1eua "This time it's your turn to pick a topic, [player]."
             $ maica_message_count_before = store.maica.maica_instance.stat.get('message_count', 0) or 0
-            call maica_talking
+            call maica_talking(prepared = True)
             $ maica_talking_result = _return
             $ maica_record_successful_chat(maica_talking_result)
             $ maica_message_count_after = store.maica.maica_instance.stat.get('message_count', 0) or 0

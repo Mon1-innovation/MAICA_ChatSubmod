@@ -15,11 +15,12 @@ init python:
             renpy.say(m, new_text)
             self._history += text
 
-label maica_talking(mspire = False):
-    call maica_show_console
-    call maica_init_connect(use_pause_instand_wait = True)
-    if _return == "disconnected":
-        return "disconnected"
+label maica_talking(mspire = False, prepared = False):
+    if not prepared:
+        call maica_show_console
+        call maica_init_connect(use_pause_instand_wait = True)
+        if _return == "disconnected":
+            return "disconnected"
     $ return_code = None
     python:
         import time
@@ -238,13 +239,21 @@ label maica_mpostal_load:
                 )
     return
 
-label maica_init_connect(use_pause_instand_wait = False):
+label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
     python:
-        _return = None
+        maica_connect_result = None
         ai = store.maica.maica_instance
         ai.content_func = store.mas_ptod._update_console_history
-        if not ai.is_connected() and not ai.is_connecting():
-            ai.console_logger.critical("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" + ai.ascii_icon)
+        should_connect = not ai.is_connected() and not ai.is_connecting()
+        should_show_welcome = (
+            persistent.maica_setting_dict['console']
+            and (force_welcome or should_connect)
+        )
+        if should_show_welcome:
+            ai.send_to_outside_func(ai.ascii_icon)
+            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+            renpy.pause(2.3)
+        if should_connect:
             ai.init_connect()
         while True:
             if ai.is_failed():
@@ -257,7 +266,7 @@ label maica_init_connect(use_pause_instand_wait = False):
                 )
                 ai.send_to_outside_func(ai.get_status_description())
                 renpy.pause(2.0)
-                _return = "disconnected"
+                maica_connect_result = "disconnected"
                 break
             if not ai.is_connected() or not ai.is_ready_to_input():
                 store.mas_ptod.write_command("Init Connecting...")
@@ -271,10 +280,10 @@ label maica_init_connect(use_pause_instand_wait = False):
             if ai.is_ready_to_input():
                 maica_apply_setting(True)
                 store.mas_ptod.write_command("Login successful, ready to chat!")
-                _return = "success"
+                maica_connect_result = "success"
                 break
     call show_workload
-    return _return
+    return maica_connect_result
 
 label maica_connect_from_settings:
     call maica_init_connect(use_pause_instand_wait = True)

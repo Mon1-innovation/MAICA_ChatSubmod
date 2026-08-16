@@ -2183,6 +2183,39 @@ def test_logger_sync_does_not_clear_root_handlers():
         manager.set_log_level(logging.DEBUG)
 
 
+def test_logger_sync_does_not_copy_handlers_to_distinct_loggers():
+    manager = logger_manager.get_logger_manager()
+    if not isinstance(manager.logger, logging.Logger):
+        pytest.skip("requires the stdlib fallback logger")
+
+    child = logging.getLogger("test.distinct_logger")
+    handlers_before = list(child.handlers)
+    level_before = child.level
+    propagate_before = child.propagate
+    child_handler = logging.NullHandler()
+    child.addHandler(child_handler)
+    child.propagate = False
+    module = type("Module", (), {})()
+    module.logger = child
+    name = "test.distinct_logger_reference"
+    manager.register_injected_reference(name, module, "logger")
+    try:
+        manager.set_log_level(logging.INFO)
+        assert child.handlers == handlers_before + [child_handler]
+    finally:
+        manager._injected_references.pop(name, None)
+        for handler in list(child.handlers):
+            child.removeHandler(handler)
+            if handler not in handlers_before:
+                handler.close()
+        for handler in handlers_before:
+            if handler not in child.handlers:
+                child.addHandler(handler)
+        child.setLevel(level_before)
+        child.propagate = propagate_before
+        manager.set_log_level(logging.DEBUG)
+
+
 def test_accessable_checks_backend_before_external_network(monkeypatch):
     ai = maica.MaicaAi.__new__(maica.MaicaAi)
     ai.in_mas = False

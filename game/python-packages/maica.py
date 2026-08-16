@@ -260,6 +260,7 @@ class MaicaAi(ChatBotInterface):
     class ExternalLoggingHandler(logging.Handler):
         def __init__(self, maica_console_log_func):
             self.maica_console_log_func = maica_console_log_func
+            self._maica_console_handler = True
             self.leveling_filter = re.compile(r'^.*?<DISABLE_VERBOSITY>')
             super(MaicaAi.ExternalLoggingHandler, self).__init__()
         def emit(self, record):
@@ -421,9 +422,28 @@ class MaicaAi(ChatBotInterface):
         }
         self.console_logger = logging.getLogger(name="mas_console_logger")
         self.console_logger.setLevel(logging.DEBUG)
-        h = self.ExternalLoggingHandler(self.send_to_outside_func)
+        self.console_logger.propagate = False
+
+        # ``logging.getLogger`` returns the same named logger for every
+        # MaicaAi instance. Reuse the existing MAICA handler and rebind its
+        # output callback instead of stacking one handler per instance.
+        maica_handlers = [
+            handler for handler in list(self.console_logger.handlers)
+            if getattr(handler, "_maica_console_handler", False)
+        ]
+        if maica_handlers:
+            h = maica_handlers[0]
+            h.maica_console_log_func = self.send_to_outside_func
+            for duplicate in maica_handlers[1:]:
+                self.console_logger.removeHandler(duplicate)
+                duplicate.close()
+        else:
+            h = self.ExternalLoggingHandler(self.send_to_outside_func)
+            self.console_logger.addHandler(h)
+
+        h.setLevel(logging.NOTSET)
         h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
-        self.console_logger.addHandler(h)
+        self._console_handler = h
 
         # Create optimized logger_both using MultiLoggerWrapper
         from logger_manager import MultiLoggerWrapper
