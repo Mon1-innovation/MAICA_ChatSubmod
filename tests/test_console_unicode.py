@@ -11,11 +11,36 @@ import bot_interface
 import logger_manager
 import maica_provider_manager
 import maica
+import maica_tasker_sub
 
 
 def test_key_replace_preserves_unicode_text():
     assert bot_interface.to_unicode("错误".encode("utf-8")) == "错误"
     assert bot_interface.key_replace("状态: 中文", {"状态": "错误"}) == "错误: 中文"
+
+
+def test_to_unicode_falls_back_to_renpy_local_encoding(monkeypatch):
+    monkeypatch.setattr(bot_interface.sys, "getfilesystemencoding", lambda: "gbk")
+
+    assert bot_interface.to_unicode("中文错误".encode("gbk")) == "中文错误"
+
+
+def test_to_unicode_prefers_a_known_source_encoding_over_utf8():
+    local_bytes = "隆".encode("gbk")
+
+    assert local_bytes.decode("utf-8") == "¡"
+    assert bot_interface.to_unicode(local_bytes, "gbk") == "隆"
+
+
+def test_ws_message_formatter_keeps_unicode_for_console(monkeypatch):
+    monkeypatch.setattr(bot_interface.sys, "getfilesystemencoding", lambda: "gbk")
+
+    message = maica_tasker_sub._format_ws_message(
+        b"maica_server_error",
+        "中文错误".encode("gbk"),
+    )
+
+    assert message == "<maica_server_error> 中文错误"
 
 
 def test_send_to_outside_func_keeps_unicode_console_text():
@@ -39,6 +64,44 @@ def test_console_handler_falls_back_to_unicode_record_formatting():
     handler.emit(logging.LogRecord("test", logging.ERROR, __file__, 1, "中文错误", (), None))
 
     assert received == ["<ERROR>|中文错误"]
+
+
+def test_console_handler_decodes_renpy_default_encoding_bytes(monkeypatch):
+    monkeypatch.setattr(maica, "PY2", True)
+    monkeypatch.setattr(bot_interface.sys, "getdefaultencoding", lambda: "gbk")
+    received = []
+    handler = maica.MaicaAi.ExternalLoggingHandler(received.append)
+    handler.format = lambda record: record.msg
+
+    handler.emit(
+        logging.LogRecord(
+            "test",
+            logging.ERROR,
+            __file__,
+            1,
+            "隆".encode("gbk"),
+            (),
+            None,
+        )
+    )
+
+    assert received == ["隆"]
+
+
+def test_dialogue_queue_boundary_keeps_unicode_text():
+    class MessageQueueStub(object):
+        def __init__(self):
+            self.items = []
+
+        def put(self, item):
+            self.items.append(item)
+
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.message_list = MessageQueueStub()
+
+    ai._append_to_message_list("1eua", " 中文回复")
+
+    assert ai.message_list.items == [("1eua", "中文回复", False)]
 
 
 def test_console_logger_reuses_one_handler_and_isolated_propagation():
@@ -186,3 +249,15 @@ def test_python2_console_path_does_not_force_unicode_through_str():
 
     assert "self.content_func(str(key_replace" not in output_block
     assert "bot_interface.to_unicode" in output_block
+
+
+def test_python2_dialogue_paths_do_not_force_unicode_through_str():
+    maica_source = (PACKAGE_ROOT / "maica.py").read_text(encoding="utf-8")
+    append_block = maica_source[maica_source.index("    def _append_to_message_list"):]
+    append_block = append_block[:append_block.index("    def upload_save")]
+    mpostal_block = maica_source[maica_source.index("    def mpostal_callback"):]
+    mpostal_block = mpostal_block[:mpostal_block.index("    def _on_error")]
+
+    assert "str(message)" not in append_block
+    assert "str(message)" not in mpostal_block
+    assert "message = bot_interface.to_unicode(message)" in append_block

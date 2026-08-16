@@ -5,10 +5,19 @@ MAICA任务子模块 - WebSocket任务的具体实现
 """
 
 from maica_tasker import *
+import bot_interface
 import time
 import threading
 import json
 from maica_mtrigger import MTriggerAction
+
+
+def _format_ws_message(status, content, code=None):
+    status = bot_interface.to_unicode(status)
+    content = bot_interface.to_unicode(content)
+    if code is None:
+        return u"<{}> {}".format(status, content)
+    return u"<{}({})> {}".format(status, code, content)
 
 
 class GeneralTaskEventLogger(MaicaTask):
@@ -73,7 +82,9 @@ class GeneralWsErrorHandler(MaicaWSTask):
                 event.taskowner.close_ws()
                 if self.logger:
                     self.logger.error(
-                        "[GeneralWsErrorHandler] websocket error: " + wspack.content + "\nwebsocket connection closed"
+                        u"[GeneralWsErrorHandler] websocket error: {}\nwebsocket connection closed".format(
+                            bot_interface.to_unicode(wspack.content)
+                        )
                     )
 class GeneralWsConsoleLogger(MaicaWSTask):
 
@@ -107,22 +118,15 @@ class GeneralWsConsoleLogger(MaicaWSTask):
         else:
             wspack = event.data
             if self.console_logger:
+                log_message = _format_ws_message(wspack.status, wspack.content)
                 if wspack.type == 'info':
-                    self.console_logger.info(
-                        "<{}> {}".format(wspack.status, wspack.content)
-                    )
+                    self.console_logger.info(log_message)
                 elif wspack.type == 'warn':
-                    self.console_logger.warning(
-                        "<{}> {}".format(wspack.status, wspack.content)
-                    )
+                    self.console_logger.warning(log_message)
                 elif wspack.type == 'error':
-                    self.console_logger.error(
-                        "<{}> {}".format(wspack.status, wspack.content)
-                    )
+                    self.console_logger.error(log_message)
                 else:
-                    self.console_logger.debug(
-                        "<{}> {}".format(wspack.status, wspack.content)
-                    )
+                    self.console_logger.debug(log_message)
 
 
 
@@ -167,22 +171,19 @@ class GeneralWsLogger(MaicaWSTask):
         else:
             wspack = event.data
             if self.logger:
+                log_message = u"[GeneralWsLogger] " + _format_ws_message(
+                    wspack.status,
+                    wspack.content,
+                    wspack.code
+                )
                 if wspack.type == 'info':
-                    self.logger.info(
-                        "[GeneralWsLogger] " + "<{}({})> {}".format(wspack.status, wspack.code, wspack.content)
-                    )
+                    self.logger.info(log_message)
                 elif wspack.type == 'warn':
-                    self.logger.warning(
-                        "[GeneralWsLogger] " + "<{}({})> {}".format(wspack.status, wspack.code, wspack.content)
-                    )
+                    self.logger.warning(log_message)
                 elif wspack.type == 'error':
-                    self.logger.error(
-                        "[GeneralWsLogger] " + "<{}({})> {}".format(wspack.status, wspack.code, wspack.content)
-                    )
+                    self.logger.error(log_message)
                 else:
-                    self.logger.debug(
-                        "[GeneralWsLogger] " + "<{}({})> {}".format(wspack.status, wspack.code, wspack.content)
-                    )
+                    self.logger.debug(log_message)
 
 
 class MAICALoopWarnHandler(GeneralWsErrorHandler):

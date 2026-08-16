@@ -264,27 +264,39 @@ class MaicaAi(ChatBotInterface):
             self.leveling_filter = re.compile(r'^.*?<DISABLE_VERBOSITY>')
             super(MaicaAi.ExternalLoggingHandler, self).__init__()
         def emit(self, record):
+            preferred_encoding = (
+                bot_interface.sys.getdefaultencoding() if PY2 else None
+            )
             try:
                 log_message = self.format(record)
             except UnicodeError:
-                message = bot_interface.to_unicode(record.msg)
+                message = bot_interface.to_unicode(
+                    record.msg,
+                    preferred_encoding
+                )
                 if record.args:
                     try:
                         if isinstance(record.args, dict):
                             format_args = dict(
-                                (bot_interface.to_unicode(key), bot_interface.to_unicode(value))
+                                (
+                                    bot_interface.to_unicode(key, preferred_encoding),
+                                    bot_interface.to_unicode(value, preferred_encoding)
+                                )
                                 for key, value in record.args.items()
                             )
                         else:
                             format_args = tuple(
-                                bot_interface.to_unicode(value)
+                                bot_interface.to_unicode(value, preferred_encoding)
                                 for value in record.args
                             )
                         message = message % format_args
                     except (TypeError, ValueError, UnicodeError):
                         pass
                 log_message = u"<{}>|{}".format(record.levelname, message)
-            log_message = bot_interface.to_unicode(log_message)
+            log_message = bot_interface.to_unicode(
+                log_message,
+                preferred_encoding
+            )
             log_message = self.leveling_filter.sub('', log_message, re.I)
             self.maica_console_log_func(log_message)
 
@@ -743,7 +755,9 @@ class MaicaAi(ChatBotInterface):
         return self.provider_manager.get_api_url() + "/vista?content={}".format(uuid)
 
     def add_ana(self, ana_input):
-        emote_talk_zipped = self.MoodStatus.analyze(ana_input)
+        emote_talk_zipped = self.MoodStatus.analyze(
+            bot_interface.to_unicode(ana_input)
+        )
         for index, pair in enumerate(emote_talk_zipped):
             self._append_to_message_list(*pair, extend=False if index == 0 else True)
 
@@ -1350,10 +1364,13 @@ class MaicaAi(ChatBotInterface):
     def mpostal_callback(self, processor, event):
         core_output = processor.consume_core_output(event)
         for content in core_output:
-            message = ''.join([i[1] for i in self.MoodStatus.analyze(content)])
+            message = u''.join([
+                bot_interface.to_unicode(i[1])
+                for i in self.MoodStatus.analyze(bot_interface.to_unicode(content))
+            ])
             if len(message) > 0 and message[0] == " ":
                 message = message[1:]
-            message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
+            message_step1 = key_replace(message, bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
             self.message_list.put(('1eua', message_step1))
         if event.data.status == "maica_chat_loop_finished":
             processor.reset()
@@ -1444,11 +1461,12 @@ class MaicaAi(ChatBotInterface):
         return self.QualityStatusTasker.drain()
 
     def _append_to_message_list(self, emote, message, extend=False):
+        message = bot_interface.to_unicode(message)
         if len(message) == 0:
             return
         elif message[0] == " ":
             message = message[1:]
-        message_step1 = key_replace(str(message), bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
+        message_step1 = key_replace(message, bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
         self.message_list.put((emote, message_step1, extend))
     def upload_save(self, dict):
         """

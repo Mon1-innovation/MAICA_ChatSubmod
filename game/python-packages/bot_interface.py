@@ -80,20 +80,41 @@ PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
 
-def to_unicode(value):
+def _decode_bytes(value, preferred_encoding=None):
+    """Decode bytes using a known source encoding before common fallbacks."""
+    encodings = []
+    for encoding in (
+        preferred_encoding,
+        "utf-8",
+        sys.getfilesystemencoding(),
+        sys.getdefaultencoding()
+    ):
+        if encoding and encoding.lower() not in [item.lower() for item in encodings]:
+            encodings.append(encoding)
+
+    for encoding in encodings:
+        try:
+            return value.decode(encoding)
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    return value.decode("utf-8", "replace")
+
+
+def to_unicode(value, preferred_encoding=None):
     """Return text without implicit Python 2 byte-string coercion."""
     if PY2:
         if isinstance(value, unicode):
             return value
         if isinstance(value, str):
-            return value.decode("utf-8", "replace")
+            return _decode_bytes(value, preferred_encoding)
         try:
             return unicode(value)
         except UnicodeError:
-            return str(value).decode("utf-8", "replace")
+            return _decode_bytes(str(value), preferred_encoding)
 
     if isinstance(value, bytes):
-        return value.decode("utf-8", "replace")
+        return _decode_bytes(value, preferred_encoding)
     return str(value)
 
 import warnings
