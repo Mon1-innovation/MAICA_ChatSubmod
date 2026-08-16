@@ -137,6 +137,9 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     show_console_start = main_source.index("label maica_show_console:")
     show_console_end = main_source.index("\nlabel maica_hide_console:", show_console_start)
     show_console = main_source[show_console_start:show_console_end]
+    hide_console_start = show_console_end + 1
+    hide_console_end = main_source.index("\nlabel maica_reconnect:", hide_console_start)
+    hide_console = main_source[hide_console_start:hide_console_end]
 
     assert connect.count("ai.send_to_outside_func(ai.ascii_icon)") == 1
     assert connect.count('write_command("Thank you for using MAICA Blessland!")') == 1
@@ -155,6 +158,8 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
 
     assert "if persistent.maica_setting_dict['console']:" in show_console
     assert show_console.index("if persistent.maica_setting_dict['console']:") < show_console.index("show screen mas_py_console_teaching")
+    assert 'if renpy.showing("monika"):' in hide_console
+    assert hide_console.index('if renpy.showing("monika"):') < hide_console.index("show monika at t11")
 
     assert intro.count("call maica_show_console") == 1
     assert intro.count("call maica_init_connect(") == 1

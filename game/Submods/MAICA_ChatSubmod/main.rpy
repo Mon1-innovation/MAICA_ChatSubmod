@@ -211,7 +211,8 @@ label maica_hide_console:
     if persistent.maica_setting_dict['console']:
         $ maica_disableWorkLoadScreen()
         hide screen mas_py_console_teaching
-        show monika at t11
+        if renpy.showing("monika"):
+            show monika at t11
     return
 
 label maica_reconnect:
