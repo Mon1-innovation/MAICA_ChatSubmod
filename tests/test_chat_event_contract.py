@@ -1,3 +1,4 @@
+import textwrap
 from pathlib import Path
 
 
@@ -38,6 +39,19 @@ TL_DESCRIPTION_SOURCE = (
     / "tl"
     / "maica_description.rpy"
 ).read_text(encoding="utf-8")
+
+INTERNAL_EVENTLABELS = (
+    "maica_prepend_1",
+    "maica_chr2",
+    "maica_chr_gone",
+    "maica_wants_preferences2",
+    "maica_wants_mspire",
+    "maica_mpostal_received",
+    "maica_mpostal_replyed",
+    "maica_wants_location2",
+    "maica_pre_wants_mvista",
+    "maica_mspire",
+)
 
 
 def _event_block(eventlabel):
@@ -250,6 +264,11 @@ def test_chat_progression_uses_successful_entry_count():
     assert "mas_getEV('maica_main').shown_count" not in CHAT_SOURCE
 
 
+def test_internal_events_are_explicitly_locked_out_of_talk_menus():
+    for eventlabel in INTERNAL_EVENTLABELS:
+        assert "unlocked=False" in _event_block(eventlabel)
+
+
 def test_main_flavor_dialogue_uses_completed_successful_entries():
     main = _label_block("maica_main")
 
@@ -360,20 +379,7 @@ def test_mspire_choices_and_dispatch_respect_the_registered_state():
 
 
 def test_internal_events_do_not_define_user_facing_prompts():
-    eventlabels = (
-        "maica_prepend_1",
-        "maica_chr2",
-        "maica_chr_gone",
-        "maica_wants_preferences2",
-        "maica_wants_mspire",
-        "maica_mpostal_received",
-        "maica_mpostal_replyed",
-        "maica_wants_location2",
-        "maica_pre_wants_mvista",
-        "maica_mspire",
-    )
-
-    for eventlabel in eventlabels:
+    for eventlabel in INTERNAL_EVENTLABELS:
         assert "prompt=" not in _event_block(eventlabel)
 
     obsolete_prompt_sources = (
@@ -487,7 +493,8 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.9", migration_1_8_9)' in MIGRATION_SOURCE
     assert '("1.8.10", migration_1_8_10)' in MIGRATION_SOURCE
     assert '("1.8.11", migration_1_8_11)' in MIGRATION_SOURCE
-    assert "maica_ver = '1.8.11'" in API_SOURCE
+    assert '("1.8.12", migration_1_8_12)' in MIGRATION_SOURCE
+    assert "maica_ver = '1.8.12'" in API_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
     assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
@@ -507,6 +514,83 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '"maica_set_location_reread": "maica_mods_location"' in MIGRATION_SOURCE
     assert 'mas_unlockEVL("maica_wants_location_reread", "EVE")' in MIGRATION_SOURCE
     assert "persistent.event_database.pop(old_label, None)" in MIGRATION_SOURCE
+
+
+def test_latest_migration_repairs_internal_and_mvista_reread_state():
+    start = MIGRATION_SOURCE.index("    def migration_1_8_12():")
+    end = MIGRATION_SOURCE.index("\n    migration_queue =", start)
+    migration = MIGRATION_SOURCE[start:end]
+
+    for eventlabel in INTERNAL_EVENTLABELS:
+        assert '"{}"'.format(eventlabel) in migration
+
+    assert "ev.unlocked = False" in migration
+    assert "ev.unlock_date = None" in migration
+    assert "ev.pool = False" in migration
+    assert 'mvista_ev = mas_getEV("maica_pre_wants_mvista")' in migration
+    assert (
+        'mvista_reread_ev = mas_getEV("maica_wants_mvista_reread")'
+        in migration
+    )
+    assert 'renpy.seen_label("maica_pre_wants_mvista")' in migration
+    assert 'renpy.seen_label("maica_wants_mvista_reread")' in migration
+    assert "mvista_reread_ev.unlocked = (" in migration
+    assert "mas_rebuildEventLists()" in migration
+
+
+def test_latest_migration_repairs_persistent_event_objects_at_runtime():
+    start = MIGRATION_SOURCE.index("    def migration_1_8_12():")
+    end = MIGRATION_SOURCE.index("\n    migration_queue =", start)
+    migration = textwrap.dedent(MIGRATION_SOURCE[start:end])
+
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.shown_count = shown_count
+            self.unlocked = True
+            self.unlock_date = "legacy"
+            self.pool = True
+
+    class RenpyStub(object):
+        def __init__(self):
+            self.seen = set()
+
+        def seen_label(self, eventlabel):
+            return eventlabel in self.seen
+
+    events = {
+        eventlabel: EventStub()
+        for eventlabel in INTERNAL_EVENTLABELS
+    }
+    events["maica_pre_wants_mvista"].shown_count = 1
+    events["maica_wants_mvista_reread"] = EventStub()
+    renpy = RenpyStub()
+    rebuild_calls = []
+    namespace = {
+        "mas_getEV": events.get,
+        "mas_rebuildEventLists": lambda: rebuild_calls.append(True),
+        "renpy": renpy,
+    }
+    exec(migration, namespace)
+
+    migrate = namespace["migration_1_8_12"]
+    migrate()
+
+    for eventlabel in INTERNAL_EVENTLABELS:
+        event = events[eventlabel]
+        assert event.unlocked is False
+        assert event.unlock_date is None
+        assert event.pool is False
+    assert events["maica_wants_mvista_reread"].unlocked is True
+
+    events["maica_pre_wants_mvista"].shown_count = 0
+    events["maica_wants_mvista_reread"].shown_count = 0
+    migrate()
+    assert events["maica_wants_mvista_reread"].unlocked is False
+
+    renpy.seen.add("maica_pre_wants_mvista")
+    migrate()
+    assert events["maica_wants_mvista_reread"].unlocked is True
+    assert len(rebuild_calls) == 3
 
 
 def test_greeting_retries_until_the_post_door_flow_starts():

@@ -24,6 +24,7 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_prepend_1",
+            unlocked=False,
             random=True,
             conditional="not renpy.seen_label('maica_prepend_1')",
             action=EV_ACT_QUEUE,
@@ -100,6 +101,7 @@ init 5 python:
             ],
             random=False,
             pool=False,
+            unlocked=False,
             conditional=(
                 "maica_has_successful_chat() "
                 "and not renpy.seen_label('maica_wants_location2')"
@@ -238,6 +240,7 @@ init 5 python:
             eventlabel="maica_pre_wants_mvista",
             random=False,
             pool=False,
+            unlocked=False,
             conditional=(
                 "maica_get_successful_chat_count() >= 3 "
                 "and not renpy.seen_label('maica_pre_wants_mvista')"
@@ -290,6 +293,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_chr_gone",
             pool=False,
+            unlocked=False,
             conditional=(
                 "not maica_chr_exist "
                 "and renpy.seen_label('maica_prepend_2') "
@@ -306,6 +310,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_chr2",
             random=False,
+            unlocked=False,
             conditional=(
                 "maica_get_successful_chat_count() >= 4 "
                 "and not renpy.seen_label('maica_chr2') "
@@ -339,6 +344,7 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_mspire",
             pool=False,
+            unlocked=False,
             conditional=(
                 "renpy.seen_label('maica_wants_mspire') "
                 "and spire_has_past(datetime.timedelta("

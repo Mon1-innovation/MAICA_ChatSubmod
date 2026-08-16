@@ -1,7 +1,7 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.8.11'
+    maica_ver = '1.8.12'
     maica_is_dev = True
     # 如果是开发版本:
     # - workflow不会自动发布release

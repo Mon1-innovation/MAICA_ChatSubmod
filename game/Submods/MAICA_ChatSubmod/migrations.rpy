@@ -322,6 +322,47 @@ init 998 python:
 
         mas_rebuildEventLists()
 
+    def migration_1_8_12():
+        # MAS preserves these fields from existing persistent Event objects.
+        # Keep internal dispatch events out of both Talk menu branches even if
+        # an older registration left one unlocked or pooled.
+        internal_eventlabels = (
+            "maica_prepend_1",
+            "maica_wants_location2",
+            "maica_wants_preferences2",
+            "maica_wants_mspire",
+            "maica_pre_wants_mvista",
+            "maica_chr_gone",
+            "maica_chr2",
+            "maica_mspire",
+            "maica_mpostal_received",
+            "maica_mpostal_replyed",
+        )
+        for eventlabel in internal_eventlabels:
+            ev = mas_getEV(eventlabel)
+            if ev is not None:
+                ev.unlocked = False
+                ev.unlock_date = None
+                ev.pool = False
+
+        mvista_ev = mas_getEV("maica_pre_wants_mvista")
+        mvista_reread_ev = mas_getEV("maica_wants_mvista_reread")
+        mvista_seen = (
+            renpy.seen_label("maica_pre_wants_mvista")
+            or (
+                mvista_ev is not None
+                and mvista_ev.shown_count > 0
+            )
+        )
+        if mvista_reread_ev is not None:
+            mvista_reread_ev.unlocked = (
+                mvista_seen
+                or renpy.seen_label("maica_wants_mvista_reread")
+                or mvista_reread_ev.shown_count > 0
+            )
+
+        mas_rebuildEventLists()
+
     migration_queue = [
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
@@ -330,4 +371,5 @@ init 998 python:
         ("1.8.9", migration_1_8_9),
         ("1.8.10", migration_1_8_10),
         ("1.8.11", migration_1_8_11),
+        ("1.8.12", migration_1_8_12),
     ]
