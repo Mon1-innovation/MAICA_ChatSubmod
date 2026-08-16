@@ -152,14 +152,24 @@ def lex_source(text):
     return tokens
 
 
+def is_python2_string_prefix_error(error):
+    """Identify Python 3.14 rejecting Python 2's ``ur`` string prefix."""
+    return "prefixes are incompatible" in str(error)
+
+
 def strip_comments_and_strings(text, suffix):
     """Leave identifiers/operators while eliminating prose false positives."""
     if suffix == ".py":
-        tokens = tokenize.generate_tokens(io.StringIO(text).readline)
-        return tokenize.untokenize(
-            (kind, "" if kind in (tokenize.COMMENT, tokenize.STRING) else value)
-            for kind, value, _start, _end, _line in tokens
-        )
+        try:
+            tokens = tokenize.generate_tokens(io.StringIO(text).readline)
+            return tokenize.untokenize(
+                (kind, "" if kind in (tokenize.COMMENT, tokenize.STRING) else value)
+                for kind, value, _start, _end, _line in tokens
+            )
+        except (tokenize.TokenError, IndentationError, SyntaxError) as error:
+            if not is_python2_string_prefix_error(error):
+                raise
+            return " ".join(value for kind, value in lex_source(text) if kind != "STRING")
     return " ".join(value for kind, value in lex_source(text) if kind != "STRING")
 
 
@@ -429,6 +439,16 @@ def python_owner_names(text, context="synthetic Python source"):
                       if token.type not in (tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE,
                                             tokenize.INDENT, tokenize.DEDENT, tokenize.ENCODING)]
         except (tokenize.TokenError, IndentationError, SyntaxError) as tokenize_error:
+            if is_python2_string_prefix_error(tokenize_error):
+                try:
+                    return rpy_owner_names(text)
+                except AssertionError as lexer_error:
+                    snippet = text[:120].replace("\n", "\\n")
+                    raise AssertionError(
+                        "could not parse {} (AST: {}; tokenize: {}; fallback: {}; input: {!r})".format(
+                            context, ast_error, tokenize_error, lexer_error, snippet
+                        )
+                    )
             snippet = text[:120].replace("\n", "\\n")
             raise AssertionError(
                 "could not parse {} (AST: {}; tokenize: {}; input: {!r})".format(
@@ -1621,6 +1641,25 @@ def test_retired_owner_scanners_ignore_prose_and_detect_real_subscripts():
     assert "sfe_aggressive" not in rpy_owner_names(note)
     assert "sfe_aggressive" in rpy_owner_names(owner)
     assert "sfe_aggressive" in rpy_owner_names(compat)
+
+
+def test_python2_ur_literals_fall_back_when_tokenizer_rejects_prefix(monkeypatch):
+    text = (
+        "note = ur'maica_dscl_status and sfe_aggressive are prose'\n"
+        "data[ur'sfe_aggressive'] = value\n"
+        "maica_core_nostream_reply = value\n"
+    )
+
+    def reject_python2_prefix(_readline):
+        yield from ()
+        raise tokenize.TokenError("'u' and 'r' prefixes are incompatible", (1, 10))
+
+    monkeypatch.setattr(tokenize, "generate_tokens", reject_python2_prefix)
+
+    assert python_owner_names(text) == {"sfe_aggressive"}
+    identifiers = strip_comments_and_strings(text, ".py")
+    assert "maica_dscl_status" not in identifiers
+    assert "maica_core_nostream_reply" in identifiers
 
 
 def test_retired_python_scanner_rejects_unparseable_input():
