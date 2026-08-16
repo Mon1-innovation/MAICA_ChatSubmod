@@ -321,6 +321,10 @@ class MaicaAi(ChatBotInterface):
         self.version_info = {"success": False, "content": {}}
         self.stat = {}
         self.multi_lock = threading.Lock()
+        self._connection_state_lock = threading.Lock()
+        self._connection_in_progress = False
+        self._connection_cancel_requested = False
+        self._connection_close_in_progress = False
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
@@ -616,7 +620,7 @@ class MaicaAi(ChatBotInterface):
             name="auto_reconnector",
             manager=self.task_manager
         )
-        self.AutoReconnector.set_reconnect_func(self.init_connect)
+        self.AutoReconnector.set_reconnect_func(self._auto_reconnect_when_idle)
         self.AutoReconnector._reconnect_delay = 0.5
 
         self.AutoResumeTasker = maica_tasker_sub.AutoResumeTasker(
@@ -793,11 +797,15 @@ class MaicaAi(ChatBotInterface):
         self.status = self.MaicaAiStatus.from_protocol_status(status, fallback)
 
     def _handle_login_result(self, success, status=None, message=None, code=None):
+        if self._connection_cancelled():
+            self.Loginer.success = False
+            return
         if success:
             self.clear_error()
             self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
         else:
             self.set_error(status, message, code, self.MaicaAiStatus.TOKEN_INVALID)
+        self._mark_connection_handshake_complete()
 
     def _handle_ws_failure(self, status, message=None, code=None):
         login_failures = (
@@ -1057,8 +1065,72 @@ class MaicaAi(ChatBotInterface):
             return {"success": False, "exception": "Legality verification request failed"}
 
 
+    def _connection_cancelled(self):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            return False
+        with connection_lock:
+            return self._connection_cancel_requested
+
+    def _mark_connection_handshake_complete(self):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            return
+        with connection_lock:
+            self._connection_in_progress = False
+
+    def _run_connection_thread(self):
+        import threading
+        current_thread = threading.current_thread()
+        try:
+            self._init_connect()
+        finally:
+            with self._connection_state_lock:
+                if self.wss_thread is current_thread:
+                    if self._connection_cancel_requested:
+                        self.clear_error(self.MaicaAiStatus.NOT_READY)
+                    self._connection_in_progress = False
+                    self._connection_cancel_requested = False
+                    self.wss_thread = None
+
+    def wait_for_connection_shutdown(self, timeout=None):
+        """Wait for the current WebSocket driver thread to finish."""
+        import threading
+        with self._connection_state_lock:
+            connection_thread = self.wss_thread
+        if connection_thread is None:
+            return True
+        if connection_thread is threading.current_thread():
+            return False
+        connection_thread.join(timeout)
+        return not connection_thread.is_alive()
+
+    def _auto_reconnect_when_idle(self):
+        if not self.wait_for_connection_shutdown(self.CONNECTION_TIMEOUT):
+            logger.warning(
+                "Maica auto-reconnect skipped because the previous WebSocket "
+                "driver did not stop"
+            )
+            return False
+        if not self.AutoReconnector.is_enabled():
+            return False
+        return self.init_connect()
+
     def init_connect(self):
         import threading
+        import traceback
+
+        with self._connection_state_lock:
+            connection_thread = self.wss_thread
+            if (
+                self._connection_close_in_progress
+                or self._connection_in_progress
+                or self.is_connected()
+                or (connection_thread and connection_thread.is_alive())
+            ):
+                logger.debug("Maica::init_connect ignored duplicate connection request")
+                return False
+
         if not self.__accessable:
             self._preserve_or_set_availability_error(
                 "Maica server availability is unknown"
@@ -1071,28 +1143,64 @@ class MaicaAi(ChatBotInterface):
                 fallback=self.MaicaAiStatus.TOKEN_MISSING,
             )
             return False
-        self.clear_error(self.MaicaAiStatus.WEBSOCKET_CONNECTING)
-        self.wss_thread = threading.Thread(target=self._init_connect)
-        self.wss_thread.daemon = True
-        self.wss_thread.start()
+
+        with self._connection_state_lock:
+            connection_thread = self.wss_thread
+            if (
+                self._connection_close_in_progress
+                or self._connection_in_progress
+                or self.is_connected()
+                or (connection_thread and connection_thread.is_alive())
+            ):
+                logger.debug("Maica::init_connect ignored duplicate connection request")
+                return False
+
+            self._connection_in_progress = True
+            self._connection_cancel_requested = False
+            try:
+                self.task_manager.reset_all_task()
+                self._clear_response_timeouts()
+                self.Loginer.set_token(self.ciphertext)
+                self.clear_error(self.MaicaAiStatus.WEBSOCKET_CONNECTING)
+                connection_thread = threading.Thread(
+                    target=self._run_connection_thread
+                )
+                connection_thread.daemon = True
+                self.wss_thread = connection_thread
+                connection_thread.start()
+            except Exception:
+                self._connection_in_progress = False
+                self._connection_cancel_requested = False
+                self.wss_thread = None
+                self.set_error(
+                    "client_network_error",
+                    "Failed to start WebSocket connection thread",
+                )
+                logger.error(
+                    "Maica::init_connect failed to start thread: {}".format(
+                        traceback.format_exc()
+                    )
+                )
+                return False
         return True
         
     def _init_ws_client(self):
+        if self._connection_cancelled():
+            return False
         if not self.__accessable:
-            self._preserve_or_set_availability_error(
-                "Maica server became unavailable before WebSocket initialization"
-            )
+            if not self._connection_cancelled():
+                self._preserve_or_set_availability_error(
+                    "Maica server became unavailable before WebSocket initialization"
+                )
             logger.error("Maica server is not accessible.")
             return False
         if not self.multi_lock.acquire(False):
-            self.set_error(
-                "client_connection_in_progress",
-                "A connection attempt is already running",
-                fallback=self.MaicaAiStatus.CONNECT_PROBLEM,
-            )
-            logger.warning("Maica::_init_connect try to create multi connection")
+            logger.warning("Maica::_init_connect found an existing connection driver")
             return False
         try:
+            if self._connection_cancelled():
+                self.multi_lock.release()
+                return False
             self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
             import websocket
             url = self.provider_manager.get_wssurl()
@@ -1114,10 +1222,11 @@ class MaicaAi(ChatBotInterface):
             return True
         except Exception:
             import traceback
-            self.set_error(
-                "client_network_error",
-                "Failed to initialize WebSocket client",
-            )
+            if not self._connection_cancelled():
+                self.set_error(
+                    "client_network_error",
+                    "Failed to initialize WebSocket client",
+                )
             if self.multi_lock.locked():
                 self.multi_lock.release()
             logger.error("Maica::_init_ws_client failed: {}".format(traceback.format_exc()))
@@ -1126,14 +1235,14 @@ class MaicaAi(ChatBotInterface):
     def _init_connect(self):
         import threading
         if not self._init_ws_client():
-            return
-        self.Loginer.set_token(self.ciphertext)
-        self.task_manager.reset_all_task()
-        if self.auto_reconnect:
-            self.AutoReconnector.enable()
+            return False
         ws_client = self.task_manager.ws_client
         def connection_timeout():
-            if self.Loginer.success or self.task_manager.ws_client is not ws_client:
+            if (
+                self._connection_cancelled()
+                or self.Loginer.success
+                or self.task_manager.ws_client is not ws_client
+            ):
                 return
             self.set_error(
                 "client_network_error",
@@ -1148,19 +1257,36 @@ class MaicaAi(ChatBotInterface):
                 self.task_manager.close_ws()
             except Exception as error:
                 logger.error("Maica::_init_connect timeout close failed: {}".format(error))
-        connection_timer = threading.Timer(self.CONNECTION_TIMEOUT, connection_timeout)
-        connection_timer.daemon = True
-        connection_timer.start()
+        connection_timer = None
         try:
+            if self._connection_cancelled():
+                return False
+            if self.auto_reconnect:
+                self.AutoReconnector.enable()
+            if self._connection_cancelled():
+                self.AutoReconnector.disable()
+                return False
+            connection_timer = threading.Timer(
+                self.CONNECTION_TIMEOUT,
+                connection_timeout,
+            )
+            connection_timer.daemon = True
+            connection_timer.start()
             ws_client.run_forever()
         except Exception as e:
             import traceback
-            self.set_error("client_network_error", "WebSocket connection failed")
+            if not self._connection_cancelled():
+                self.set_error("client_network_error", "WebSocket connection failed")
             self.console_logger.error("wss_session.run_forever() failed: {}".format(e))
             logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
-            connection_timer.cancel()
-            if not self.Loginer.success and not self.is_failed():
+            if connection_timer is not None:
+                connection_timer.cancel()
+            if (
+                not self._connection_cancelled()
+                and not self.Loginer.success
+                and not self.is_failed()
+            ):
                 self.set_error(
                     "client_network_error",
                     "WebSocket closed before authentication completed",
@@ -1168,6 +1294,7 @@ class MaicaAi(ChatBotInterface):
             if self.multi_lock.locked():
                 self.multi_lock.release()
                 logger.info("Maica::_init_connect released lock because wss closed")
+        return self.Loginer.success
         
         
     def is_responding(self):
@@ -1178,14 +1305,26 @@ class MaicaAi(ChatBotInterface):
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
         #return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
-        return not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked() and self.Loginer.success
+        return bool(
+            self.is_connected()
+            and self.Loginer.success
+            and not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
+        )
 
     def is_connecting(self):
+        with self._connection_state_lock:
+            connection_close_in_progress = self._connection_close_in_progress
+            connection_in_progress = self._connection_in_progress
+            connection_thread = self.wss_thread
+        driver_is_stopping = bool(
+            connection_thread
+            and connection_thread.is_alive()
+            and not self.is_connected()
+        )
         return bool(
-            not self.is_connected()
-            and not self.is_failed()
-            and self.wss_thread
-            and self.wss_thread.is_alive()
+            connection_close_in_progress
+            or connection_in_progress
+            or driver_is_stopping
         )
 
     def is_accessable(self):
@@ -1230,7 +1369,7 @@ class MaicaAi(ChatBotInterface):
 
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
-        return self.task_manager.ws_client.keep_running if self.task_manager.ws_client else False #\
+        return bool(getattr(self.task_manager.ws_client, "keep_running", False)) #\
             #or self.wss_thread.is_alive() if self.wss_thread else False
 
     def get_status_description(self):
@@ -1376,7 +1515,7 @@ class MaicaAi(ChatBotInterface):
             processor.reset()
 
     def _on_error(self, wsapp, error):
-        if not self.is_failed():
+        if not self._connection_cancelled() and not self.is_failed():
             self.set_error("client_network_error", u"{}".format(error))
         self.task_manager._ws_onerror(wsapp, error)
         if wsapp:
@@ -1722,12 +1861,29 @@ class MaicaAi(ChatBotInterface):
             无返回值。
 
         """
-        self.AutoReconnector.disable()
-        if self.task_manager.ws_client:
-            self._intentional_ws_closes.add(self.task_manager.ws_client)
-            self.task_manager.close_ws()
-        self.task_manager.reset_all_task()
-        self.clear_error(self.MaicaAiStatus.NOT_READY)
+        with self._connection_state_lock:
+            self._connection_close_in_progress = True
+            connection_thread = self.wss_thread
+            self._connection_cancel_requested = bool(
+                self._connection_in_progress
+                or (connection_thread and connection_thread.is_alive())
+                or self.task_manager.ws_client
+            )
+            ws_client = self.task_manager.ws_client
+            if ws_client:
+                self._intentional_ws_closes.add(ws_client)
+        try:
+            self.AutoReconnector.disable()
+            self.task_manager.reset_all_task()
+            self.clear_error(self.MaicaAiStatus.NOT_READY)
+            if ws_client:
+                try:
+                    self.task_manager.close_ws()
+                except Exception as error:
+                    logger.error("Maica::close_wss_session failed: {}".format(error))
+        finally:
+            with self._connection_state_lock:
+                self._connection_close_in_progress = False
     def del_mtrigger(self):
         import requests
         try:

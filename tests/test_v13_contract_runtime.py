@@ -2,6 +2,7 @@ import json
 import logging
 import math
 import sys
+import threading
 import urllib.request
 from pathlib import Path
 
@@ -1516,6 +1517,187 @@ def test_init_connect_unknown_unavailability_is_connection_problem(
     assert ai.error_protocol_status == "client_availability_failed"
 
 
+def test_init_connect_is_single_flight_and_clears_stale_state_before_start(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = "token-value"
+    ai._MaicaAi__accessable = True
+    ai.Loginer.success = True
+    ai.ChatProcessor.status = maica_tasker.MaicaTask.MAICATASK_STATUS_ERROR
+    ai.ChatProcessor._request_timed_out = True
+    started = threading.Event()
+    release = threading.Event()
+
+    def hold_connection_driver():
+        started.set()
+        release.wait(2.0)
+
+    ai._init_connect = hold_connection_driver
+    try:
+        assert ai.init_connect() is True
+        assert started.wait(1.0)
+        connection_thread = ai.wss_thread
+        assert ai.status == ai.MaicaAiStatus.WEBSOCKET_CONNECTING
+        assert ai.error_protocol_status is None
+        assert ai.Loginer.success is False
+        assert ai.ChatProcessor.status == maica_tasker.MaicaTask.MAICATASK_STATUS_READY
+        assert ai.response_timed_out() is False
+        assert ai.is_connecting() is True
+
+        assert ai.init_connect() is False
+        assert ai.wss_thread is connection_thread
+        assert ai.status == ai.MaicaAiStatus.WEBSOCKET_CONNECTING
+        assert ai.error_protocol_status is None
+
+        ai.set_error("client_network_error", "real connection failure")
+        assert ai.is_failed() is True
+        assert ai.is_connecting() is True
+        assert ai.init_connect() is False
+        assert ai.error_message == "real connection failure"
+    finally:
+        release.set()
+        assert ai.wait_for_connection_shutdown(1.0)
+
+    assert ai.wss_thread is None
+    assert ai.is_connecting() is False
+
+
+def test_ready_to_input_requires_transport_auth_and_idle_processor(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    request_lock = threading.Lock()
+    monkeypatch.setattr(
+        maica_tasker_sub_sessionsender.SessionSenderAndReceiver,
+        "multi_lock",
+        request_lock,
+    )
+    ai.Loginer.success = True
+
+    assert ai.is_ready_to_input() is False
+
+    client = type("Client", (), {"keep_running": False})()
+    ai.task_manager.ws_client = client
+    assert ai.is_ready_to_input() is False
+
+    client.keep_running = True
+    assert ai.is_ready_to_input() is True
+
+    request_lock.acquire()
+    try:
+        assert ai.is_ready_to_input() is False
+    finally:
+        request_lock.release()
+
+
+def test_cancelled_connection_ignores_late_login_result(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.status = ai.MaicaAiStatus.NOT_READY
+    ai._connection_cancel_requested = True
+    ai._connection_in_progress = True
+    ai.Loginer.success = True
+
+    ai._handle_login_result(True)
+
+    assert ai.Loginer.success is False
+    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai._connection_in_progress is True
+
+
+def test_close_during_connection_is_intentional_and_does_not_set_13411(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = "token-value"
+    ai._MaicaAi__accessable = True
+    ai.auto_reconnect = True
+    started = threading.Event()
+    stopped = threading.Event()
+
+    class ConnectingClient:
+        url = "wss://example.invalid/ws"
+
+        def __init__(self):
+            self.keep_running = False
+            self.close_calls = 0
+
+        def run_forever(self):
+            self.keep_running = True
+            started.set()
+            stopped.wait(2.0)
+            self.keep_running = False
+
+        def close(self):
+            self.close_calls += 1
+            self.keep_running = False
+            stopped.set()
+
+    client = ConnectingClient()
+
+    def init_ws_client():
+        assert ai.multi_lock.acquire(False)
+        ai.task_manager.ws_client = client
+        ai.wss_session = client
+        return True
+
+    ai._init_ws_client = init_ws_client
+    try:
+        assert ai.init_connect() is True
+        assert started.wait(1.0)
+        assert ai.is_connecting() is True
+
+        ai.close_wss_session()
+        assert ai.wait_for_connection_shutdown(1.0)
+    finally:
+        stopped.set()
+        ai.wait_for_connection_shutdown(1.0)
+        if ai.multi_lock.locked():
+            ai.multi_lock.release()
+
+    assert client.close_calls == 1
+    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.error_protocol_status is None
+    assert ai.Loginer.success is False
+    assert ai.is_connecting() is False
+    assert not ai.multi_lock.locked()
+
+
+def test_init_connect_is_blocked_until_close_call_finishes(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = "token-value"
+    ai._MaicaAi__accessable = True
+    close_started = threading.Event()
+    allow_close = threading.Event()
+
+    class ClosingClient:
+        keep_running = False
+
+        def close(self):
+            close_started.set()
+            allow_close.wait(2.0)
+
+    ai.task_manager.ws_client = ClosingClient()
+    close_thread = threading.Thread(target=ai.close_wss_session)
+    close_thread.start()
+    try:
+        assert close_started.wait(1.0)
+        assert ai.is_connecting() is True
+        assert ai.init_connect() is False
+        assert ai.wss_thread is None
+        assert ai.status == ai.MaicaAiStatus.NOT_READY
+    finally:
+        allow_close.set()
+        close_thread.join(1.0)
+
+    assert not close_thread.is_alive()
+    assert ai.is_connecting() is False
+
+
 def test_token_generation_unavailability_survives_verification(
     isolated_maica_ai_globals,
 ):
@@ -1849,6 +2031,7 @@ def test_init_connect_does_not_run_or_release_an_existing_connection_lock(
     isolated_maica_ai_globals,
 ):
     ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
 
     class ExistingClient:
         def __init__(self, url):
@@ -1865,6 +2048,8 @@ def test_init_connect_does_not_run_or_release_an_existing_connection_lock(
         ai._init_connect()
         assert existing_client.run_calls == 0
         assert ai.multi_lock.locked()
+        assert ai.status != ai.MaicaAiStatus.CONNECT_PROBLEM
+        assert ai.error_protocol_status is None
     finally:
         if ai.multi_lock.locked():
             ai.multi_lock.release()

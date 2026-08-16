@@ -794,7 +794,7 @@ init 10 python:
         - 更新 provider_manager.provider_id
         - 断开当前已连接的 websocket (如有), 重新 accessable() 并重连
         """
-        import threading, time
+        import threading
         ai = store.maica.maica_instance
         try:
             pid = int(pid)
@@ -807,30 +807,26 @@ init 10 python:
         # 刷新 vista_manager 缓存的 base_url
         ai.vista_manager.base_url = ai.provider_manager.get_api_url()
 
-        # 如果已连接 websocket：先断开旧连接
+        # 断开旧连接，并取消可能仍在等待的自动重连
         if reconnect:
-            if ai.is_connected():
-                ai.close_wss_session()
+            ai.close_wss_session()
+            ai.disable(ai.MaicaAiStatus.WAIT_AVAILABILITY)
 
 
         # 后台处理的东西 (刷新节点列表、重新 accessable()、再重连) 走threading (避免卡住 UI)
         def _bg():
             try:
+                if reconnect and not ai.wait_for_connection_shutdown(6.0):
+                    store.mas_submod_utils.submod_log.error(
+                        "Failed to sync provider id: previous websocket did not stop"
+                    )
+                    return
                 ai.provider_manager.get_provider()
                 ai.disable()
                 ai.status = ai.MaicaAiStatus.WAIT_AVAILABILITY
                 ai.accessable()
 
                 if reconnect and ai.has_token():
-                    # 等待旧 ws loop 释放 multi_lock，再启动新连接（一次性短轮询，不是永久时钟循环）
-                    for _ in range(60):  # ~6s
-                        try:
-                            if not ai.multi_lock.locked():
-                                break
-                        except Exception:
-                            break
-                        time.sleep(0.1)
-
                     ai.init_connect()
 
             except Exception as e:
@@ -967,6 +963,8 @@ init 10 python:
 
 
 init python:
+    _maica_settings_connect_context_active = False
+
     def _maica_call_in_new_context_preserve_layers(label, *args):
         """Call a label in a new context without clearing layers."""
         version = tuple(renpy.version_tuple[:2])
@@ -1012,6 +1010,27 @@ init python:
             if interface and interface.restart_interaction and contexts:
                 contexts[-1].scene_lists.focused = None
 
+    def _maica_connect_from_settings_once():
+        """Open one settings connection context at a time."""
+        global _maica_settings_connect_context_active
+        ai = store.maica.maica_instance
+        if (
+            _maica_settings_connect_context_active
+            or not ai.is_accessable()
+            or not ai.has_token()
+            or ai.is_connected()
+            or ai.is_connecting()
+        ):
+            return False
+
+        _maica_settings_connect_context_active = True
+        try:
+            return _maica_call_in_new_context_preserve_layers(
+                "maica_connect_from_settings"
+            )
+        finally:
+            _maica_settings_connect_context_active = False
+
     def scr_nullfunc():
         return
 
@@ -1023,8 +1042,13 @@ screen maica_setting_pane():
     python:
         import store.maica as maica
         pane_cache = maica.maica_setting_pane_cache
-        stat = _("Not connected") if not maica.maica_instance.wss_session else _("Connection established") if maica.maica_instance.is_connected() else _("Connection closed")
-        store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
+        ai = maica.maica_instance
+        connection_busy = ai.is_connecting()
+        if connection_busy and not ai.is_failed():
+            stat = ai.get_status_description()
+        else:
+            stat = _("Not connected") if not ai.wss_session else _("Connection established") if ai.is_connected() else _("Connection closed")
+        ai.ciphertext = store.mas_getAPIKey("Maica_Token")
         log_hasupdate = persistent._maica_updatelog_version_seen < store.maica.update_info.get("version", 0)
         version_check = pane_cache.get("version_check", None)
 
@@ -1096,7 +1120,7 @@ screen maica_setting_pane():
                     text _("> Warning: current system 'non-unicode language' is not Chinese, expect possible encoding issues"):
                         style "main_menu_version_l"
 
-            if 13400 <= maica.maica_instance.status <= 13499:
+            if maica.maica_instance.status == maica.maica_instance.MaicaAiStatus.WEBSOCKET_CONNECTING or 13400 <= maica.maica_instance.status <= 13499:
                 hbox:
                     text _("> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
                         style "main_menu_version_l"
@@ -1117,7 +1141,7 @@ screen maica_setting_pane():
             use intro_tooltip()
             timer persistent.maica_setting_dict.get('status_update_time', 1.0) repeat True action Function(scr_nullfunc, _update_screens=True)
 
-            if not maica.maica_instance.is_accessable():
+            if not maica.maica_instance.is_accessable() or connection_busy:
                 # Intentionally disabled until provider availability is confirmed.
                 textbutton _("> Generate token from account")
 
@@ -1125,9 +1149,12 @@ screen maica_setting_pane():
                 textbutton _("> Generate token from account"):
                     action Show("maica_login")
 
-            if maica.maica_instance.has_token() and not maica.maica_instance.is_connected():
+            if connection_busy:
+                textbutton _("> Connect with current token")
+
+            elif maica.maica_instance.has_token() and maica.maica_instance.is_accessable() and not maica.maica_instance.is_connected():
                 textbutton _("> Connect with current token"):
-                    action Function(_maica_call_in_new_context_preserve_layers, "maica_connect_from_settings")
+                    action Function(_maica_connect_from_settings_once)
 
 
             elif maica.maica_instance.is_connected():

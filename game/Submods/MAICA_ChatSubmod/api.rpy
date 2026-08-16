@@ -103,7 +103,7 @@ init 5 python in maica:
 
     data = {}
     def change_token(content):
-        if store.maica.maica_instance.wss_session is not None and store.maica.maica_instance.is_connected():
+        if store.maica.maica_instance.is_connected() or store.maica.maica_instance.is_connecting():
             return False, _("MAICA is already connecting. Close connection first")
         store.maica.maica_instance.ciphertext = content.strip()
         renpy.notify(_("MAICA: Now you can reconnect with saved token"))

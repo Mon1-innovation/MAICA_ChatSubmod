@@ -732,11 +732,18 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
         "maica_setting_pane",
     )
     assert re.search(
-        r"Function\(\s*_maica_call_in_new_context_preserve_layers\s*,\s*"
-        r"['\"]maica_connect_from_settings['\"]\s*\)",
+        r"Function\(\s*_maica_connect_from_settings_once\s*\)",
         pane,
     )
     assert "_clear_layers" not in pane
+    assert "connection_busy = ai.is_connecting()" in pane
+    assert "MaicaAiStatus.WEBSOCKET_CONNECTING" in pane
+    assert re.search(
+        r"has_token\(\).*?is_accessable\(\).*?not\s+"
+        r"maica\.maica_instance\.is_connected\(\)",
+        pane,
+        re.S,
+    )
 
     helper = function_body(
         header,
@@ -753,6 +760,48 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
     )
     assert "renpy.store._args = args or None" in helper
     assert "renpy.store._kwargs = None" in helper
+
+    guarded_entry = function_body(
+        header,
+        r"_maica_connect_from_settings_once",
+    )
+    assert "_maica_settings_connect_context_active" in guarded_entry
+    assert "not ai.is_accessable()" in guarded_entry
+    assert "not ai.has_token()" in guarded_entry
+    assert "ai.is_connected()" in guarded_entry
+    assert "ai.is_connecting()" in guarded_entry
+    assert "\"maica_connect_from_settings\"" in guarded_entry
+    assert "finally:" in guarded_entry
+
+
+def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    main = source("game/Submods/MAICA_ChatSubmod/main.rpy")
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+
+    provider_sync = function_body(header, r"sync_provider_id")
+    assert re.search(r"if\s+reconnect:\s*ai\.close_wss_session\(\)", provider_sync)
+    assert "ai.disable(ai.MaicaAiStatus.WAIT_AVAILABILITY)" in provider_sync
+    assert "ai.wait_for_connection_shutdown(6.0)" in provider_sync
+    assert "ai.multi_lock" not in provider_sync
+
+    token_change = function_body(api, r"change_token")
+    assert re.search(
+        r"is_connected\(\)\s+or\s+store\.maica\.maica_instance\.is_connecting\(\)",
+        token_change,
+    )
+
+    connect_label = main.split(
+        "label maica_init_connect", 1
+    )[1].split("\nlabel maica_connect_from_settings", 1)[0]
+    assert connect_label.index("ai.init_connect()") < connect_label.index(
+        "renpy.pause(2.3)"
+    )
+    assert re.search(
+        r"not ai\.is_connected\(\) and not ai\.is_connecting\(\):\s*"
+        r"ai\.init_connect\(\)",
+        connect_label,
+    )
 
 
 def test_a_development_build_contract():

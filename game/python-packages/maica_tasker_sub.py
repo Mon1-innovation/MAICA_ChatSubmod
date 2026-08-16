@@ -883,6 +883,10 @@ class AutoReconnector(MaicaWSTask):
                 self._reconnect_cancel = threading.Event()
         self.logger.info("[AutoReconnector] auto-reconnect enabled")
 
+    def is_enabled(self):
+        with self._reconnect_lock:
+            return self._enabled
+
     def disable(self):
         """
         禁用自动重连功能。

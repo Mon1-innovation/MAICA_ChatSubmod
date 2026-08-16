@@ -250,12 +250,12 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
             persistent.maica_setting_dict['console']
             and (force_welcome or should_connect)
         )
+        if should_connect:
+            ai.init_connect()
         if should_show_welcome:
             ai.send_to_outside_func(ai.ascii_icon)
             store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
-        if should_connect:
-            ai.init_connect()
         while True:
             if ai.is_failed():
                 store.mas_submod_utils.submod_log.error(
@@ -270,6 +270,8 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                 maica_connect_result = "disconnected"
                 break
             if not ai.is_connected() or not ai.is_ready_to_input():
+                if not ai.is_connected() and not ai.is_connecting():
+                    ai.init_connect()
                 store.mas_ptod.write_command("Init Connecting...")
                 if use_pause_instand_wait:
                     renpy.pause(0.3, True)
