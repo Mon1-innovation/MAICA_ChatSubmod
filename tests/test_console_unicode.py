@@ -166,7 +166,7 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     assert intro.index("call maica_init_connect(") < intro.index("call maica_talking(prepared = True)")
     assert intro.count('if _return == "disconnected":') == 1
     assert intro.index('if _return == "disconnected":') < intro.index("call maica_hide_console")
-    assert intro.index("call maica_hide_console") < intro.index("call maica_connection_failure_dialogue")
+    assert intro.index("call maica_connection_failure_dialogue") < intro.index("call maica_hide_console")
 
     assert "label maica_talking(mspire = False, prepared = False):" in talking_setup
     assert "if not prepared:" in talking_setup
