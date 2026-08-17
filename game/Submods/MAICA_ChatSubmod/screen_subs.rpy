@@ -994,8 +994,9 @@ screen maica_triggers():
 
 screen maica_mpostals():
     python:
-        import time, os
+        import time
         maica_triggers = store.maica.maica_instance.mtrigger_manager
+        vista_manager = store.maica.maica_instance.vista_manager
         preview_len = 200
 
         def _delect_portal(title):
@@ -1004,21 +1005,8 @@ screen maica_mpostals():
                     persistent._maica_send_or_received_mpostals.remove(item)
                     break
 
-        def get_scaled_size(xy, max_width=600, max_height=300):
-            width, height = xy
-            width_ratio = float(max_width) / float(width)
-            height_ratio = float(max_height) / float(height)
-            scale_ratio = min(width_ratio, height_ratio)
-            return (int(width * scale_ratio), int(height * scale_ratio))
-
         def get_display_image(item):
-            thumb = item.get('thumb_path')
-            if thumb and os.path.exists(thumb):
-                return (thumb, True)
-            path = item.get('path')
-            if path and os.path.exists(path):
-                return (path, True)
-            return (None, False)
+            return vista_manager.get_thumbnail_info(item)
 
     $ _tooltip = store._tooltip
 
@@ -1055,17 +1043,20 @@ screen maica_mpostals():
                         text renpy.substitute(_("[m_name]: \n")) + preview_text  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
                             xalign 0.0
                             style "small_expl_hw"
-                    if postal.get('vista_image_info'):
-                        python:
-                            vista_info = postal['vista_image_info']
-                            img_path, img_exists = get_display_image(vista_info)
-                        if img_exists:
-                            add Transform(img_path, size=get_scaled_size((vista_info['width'], vista_info['height'])))
-                        else:
-                            text _("Image file does not exist: [img_path]")
-                    elif postal.get('raw_image'):
-                        if os.path.exists(postal['raw_image']):
-                            add Transform(postal['raw_image'], size=get_scaled_size((480, 360)))
+                    python:
+                        preview_info = None
+                        for preview_source in (
+                            postal.get('vista_image_info'),
+                            postal.get('raw_image_preview'),
+                        ):
+                            preview_info = get_display_image(preview_source)
+                            if preview_info:
+                                break
+                    if preview_info:
+                        $ img_path = preview_info[0]
+                        add img_path
+                    elif postal.get('vista_image_info') or postal.get('raw_image'):
+                        text _("Image preview unavailable")
                     hbox:
                         style_prefix "confirm"
                         textbutton _("Read [player]'s letter"):

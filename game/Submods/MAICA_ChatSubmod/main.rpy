@@ -274,18 +274,18 @@ label maica_mpostal_load:
             import time
             _postals = find_mail_files()
             for item in _postals:
-                persistent._maica_send_or_received_mpostals.append(
-                    {
-                        "raw_title": item["title"],
-                        "raw_content": item["content"],
-                        "raw_image": item.get("image"),
-                        "vista_image_info":None,
-                        "time": str(time.time()),
-                        "responsed_content": "",
-                        "responsed_status":"delaying",
-                        "failed_count":0,
-                    }
-                )
+                postal = {
+                    "raw_title": item["title"],
+                    "raw_content": item["content"],
+                    "raw_image": item.get("image"),
+                    "vista_image_info":None,
+                    "time": str(time.time()),
+                    "responsed_content": "",
+                    "responsed_status":"delaying",
+                    "failed_count":0,
+                }
+                store.maica.prepare_mpostal_preview(postal)
+                persistent._maica_send_or_received_mpostals.append(postal)
     return
 
 label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):

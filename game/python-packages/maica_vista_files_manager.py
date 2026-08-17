@@ -5,10 +5,28 @@ import shutil
 import requests
 import struct
 import subprocess
+import hashlib
 from bot_interface import logger
+
+
+try:
+    text_type = unicode
+except NameError:
+    text_type = str
+
 
 class MAICAVistaFilesManager(object):
     """MVista图片管理器，用于上传、删除、下载图片并管理本地UUID记录"""
+
+    THUMBNAIL_VERSION = 1
+    THUMBNAIL_MAX_WIDTH = 600
+    THUMBNAIL_MAX_HEIGHT = 300
+    _THUMBNAIL_KEYS = (
+        "thumb_path",
+        "thumb_width",
+        "thumb_height",
+        "thumb_version",
+    )
 
 
     def __init__(self, base_url, access_token, cache_path=None):
@@ -31,25 +49,20 @@ class MAICAVistaFilesManager(object):
         self.magick_path = None
 
     @staticmethod
-    def _get_image_size(file_path):
-        """获取图片尺寸（不使用第三方库）
+    def _probe_image_size(file_path):
+        """读取受支持图片的头部尺寸，无法确定时返回None。"""
+        image_size = None
 
-        Args:
-            file_path: 图片文件路径
-
-        Returns:
-            (width, height) 元组，失败时返回 (200, 200)
-        """
         try:
             with open(file_path, 'rb') as f:
                 head = f.read(24)
                 if len(head) < 24:
-                    return (200, 200)
+                    return None
 
                 # PNG
                 if head[:8] == b'\x89PNG\r\n\x1a\n':
                     f.seek(16)
-                    return struct.unpack('>II', f.read(8))
+                    image_size = struct.unpack('>II', f.read(8))
 
                 # JPEG
                 elif head[:2] == b'\xff\xd8':
@@ -65,39 +78,249 @@ class MAICAVistaFilesManager(object):
                         size = struct.unpack('>H', f.read(2))[0] - 2
                     f.seek(1, 1)
                     height, width = struct.unpack('>HH', f.read(4))
-                    return (width, height)
+                    image_size = (width, height)
 
                 # GIF
                 elif head[:6] in (b'GIF87a', b'GIF89a'):
-                    return struct.unpack('<HH', head[6:10])
+                    image_size = struct.unpack('<HH', head[6:10])
 
                 # BMP
                 elif head[:2] == b'BM':
                     f.seek(18)
-                    return struct.unpack('<II', f.read(8))
+                    width, height = struct.unpack('<ii', f.read(8))
+                    image_size = (width, abs(height))
 
                 # WebP
                 elif head[:4] == b'RIFF' and head[8:12] == b'WEBP':
                     if head[12:16] == b'VP8 ':
                         f.seek(26)
                         width, height = struct.unpack('<HH', f.read(4))
-                        return (width & 0x3fff, height & 0x3fff)
+                        image_size = (width & 0x3fff, height & 0x3fff)
                     elif head[12:16] == b'VP8L':
                         f.seek(21)
                         data = struct.unpack('<I', f.read(4))[0]
                         width = (data & 0x3fff) + 1
                         height = ((data >> 14) & 0x3fff) + 1
-                        return (width, height)
+                        image_size = (width, height)
                     elif head[12:16] == b'VP8X':
                         f.seek(24)
                         width = struct.unpack('<I', f.read(3) + b'\x00')[0] + 1
                         height = struct.unpack('<I', f.read(3) + b'\x00')[0] + 1
-                        return (width, height)
+                        image_size = (width, height)
 
         except Exception:
-            pass
+            return None
 
-        return (200, 200)
+        if image_size is None:
+            return None
+
+        width, height = image_size
+        if width <= 0 or height <= 0:
+            return None
+
+        return (width, height)
+
+    @staticmethod
+    def _get_image_size(file_path):
+        """获取图片尺寸；保留旧记录所需的200x200兼容回退。"""
+        return MAICAVistaFilesManager._probe_image_size(file_path) or (200, 200)
+
+    @staticmethod
+    def _digest(value):
+        if isinstance(value, bytes):
+            encoded = value
+        else:
+            encoded = text_type(value).encode('utf-8')
+        return hashlib.sha256(encoded).hexdigest()
+
+    def _thumbnail_output_path(self, identifier):
+        if not self.cache_path:
+            return None
+        filename = "thumb_{}.png".format(self._digest(identifier))
+        return os.path.join(self.cache_path, filename)
+
+    def _thumbnail_display_path(self, file_path):
+        if not self.android:
+            return file_path.replace('\\', '/')
+        return os.path.join(
+            "Submods",
+            "MAICA_ChatSubmod",
+            "vista_cache",
+            os.path.basename(file_path),
+        ).replace('\\', '/')
+
+    def _thumbnail_disk_path(self, file_path):
+        if not file_path:
+            return None
+        normalized = os.path.normpath(file_path)
+        if os.path.isabs(normalized) or not self.cache_path:
+            return normalized
+        return os.path.join(self.cache_path, os.path.basename(normalized))
+
+    def _thumbnail_path_is_managed(self, file_path):
+        if not self.cache_path or not file_path:
+            return False
+
+        disk_path = os.path.abspath(self._thumbnail_disk_path(file_path))
+        cache_path = os.path.abspath(self.cache_path)
+        try:
+            relative_path = os.path.relpath(disk_path, cache_path)
+        except (OSError, ValueError):
+            return False
+
+        if relative_path == os.pardir or relative_path.startswith(os.pardir + os.sep):
+            return False
+
+        filename = os.path.basename(disk_path)
+        return filename.startswith("thumb_") and filename.endswith(".png")
+
+    @classmethod
+    def _thumbnail_dimensions_are_safe(cls, width, height):
+        return (
+            width > 0
+            and height > 0
+            and width <= cls.THUMBNAIL_MAX_WIDTH
+            and height <= cls.THUMBNAIL_MAX_HEIGHT
+        )
+
+    def _clear_thumbnail_metadata(self, entry):
+        for key in self._THUMBNAIL_KEYS:
+            entry.pop(key, None)
+
+    def get_thumbnail_info(self, entry):
+        """返回经过头部校验的缩略图路径和尺寸，不会读取原图。"""
+        if not isinstance(entry, dict):
+            return None
+        if entry.get("thumb_version") != self.THUMBNAIL_VERSION:
+            return None
+
+        try:
+            width = int(entry.get("thumb_width"))
+            height = int(entry.get("thumb_height"))
+        except (TypeError, ValueError):
+            return None
+
+        if not self._thumbnail_dimensions_are_safe(width, height):
+            return None
+
+        thumb_path = entry.get("thumb_path")
+        if not self._thumbnail_path_is_managed(thumb_path):
+            return None
+
+        disk_path = self._thumbnail_disk_path(thumb_path)
+        if not disk_path or not os.path.exists(disk_path):
+            return None
+        if self._probe_image_size(disk_path) != (width, height):
+            return None
+
+        return (entry["thumb_path"], width, height)
+
+    def _remove_generated_file(self, file_path):
+        if file_path and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+
+    def _generate_thumbnail(self, source_path, identifier):
+        if not self.cache_path or not self.magick_path:
+            return None
+        if not source_path or not os.path.exists(source_path):
+            return None
+
+        output_path = self._thumbnail_output_path(identifier)
+        self._remove_generated_file(output_path)
+        geometry = "{}x{}>".format(
+            self.THUMBNAIL_MAX_WIDTH,
+            self.THUMBNAIL_MAX_HEIGHT,
+        )
+        command = [
+            self.magick_path,
+            source_path + "[0]",
+            '-auto-orient',
+            '-thumbnail',
+            geometry,
+            '-strip',
+            output_path,
+        ]
+
+        try:
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                return_code = subprocess.call(command, startupinfo=startupinfo)
+            else:
+                return_code = subprocess.call(command)
+
+            if return_code != 0:
+                raise RuntimeError("ImageMagick exited with status {}".format(return_code))
+
+            dimensions = self._probe_image_size(output_path)
+            if dimensions is None or not self._thumbnail_dimensions_are_safe(*dimensions):
+                raise ValueError("generated thumbnail has invalid dimensions")
+
+            return (output_path, dimensions[0], dimensions[1])
+
+        except Exception as e:
+            self._remove_generated_file(output_path)
+            logger.error("fail to generate thumbnail: {}".format(str(e)))
+            return None
+
+    def ensure_thumbnail(self, entry):
+        """确保记录拥有可安全交给Ren'Py解码的受限尺寸缩略图。"""
+        if self.get_thumbnail_info(entry) is not None:
+            return True
+
+        legacy_thumb_path = self._thumbnail_disk_path(entry.get("thumb_path"))
+        source_path = entry.get("path")
+        if not source_path or not os.path.exists(source_path):
+            source_path = legacy_thumb_path
+
+        identifier = entry.get("uuid") or source_path
+        generated = self._generate_thumbnail(source_path, identifier)
+        if generated is None:
+            self._clear_thumbnail_metadata(entry)
+            return False
+
+        thumb_path, width, height = generated
+        entry["thumb_path"] = self._thumbnail_display_path(thumb_path)
+        entry["thumb_width"] = width
+        entry["thumb_height"] = height
+        entry["thumb_version"] = self.THUMBNAIL_VERSION
+        return True
+
+    def prepare_thumbnails(self):
+        for entry in list(self.files):
+            try:
+                self.ensure_thumbnail(entry)
+            except Exception as e:
+                self._clear_thumbnail_metadata(entry)
+                logger.error("fail to prepare thumbnail: {}".format(str(e)))
+
+    def create_local_preview(self, file_path):
+        """为未上传的MPostal附件创建安全预览记录。"""
+        if not file_path:
+            return None
+
+        try:
+            stat = os.stat(file_path)
+            signature = "{}|{}|{}".format(
+                os.path.abspath(file_path),
+                stat.st_size,
+                stat.st_mtime,
+            )
+        except Exception:
+            signature = os.path.abspath(file_path)
+
+        entry = {"uuid": "local:" + signature, "path": file_path}
+        if not self.ensure_thumbnail(entry):
+            return None
+
+        return dict(
+            (key, entry[key])
+            for key in self._THUMBNAIL_KEYS
+            if key in entry
+        )
 
     @property
     def cache_path(self):
@@ -129,6 +352,7 @@ class MAICAVistaFilesManager(object):
             else:
                 entry["thumb_path"] = os.path.join("Submods", "MAICA_ChatSubmod", "vista_cache", os.path.basename(thumb_path))
         self.files.insert(0, entry)
+        return entry
 
     def remove(self, identifier):
         """从本地记录删除UUID
@@ -194,35 +418,15 @@ class MAICAVistaFilesManager(object):
             if result.get('success'):
                 uuid = result.get('content')
                 cached_path = file_path
-                thumb_path = None
                 if self.cache_path:
                     ext = os.path.splitext(file_path)[1]
                     cached_path = os.path.join(self.cache_path, uuid + ext)
                     # 只有当源文件不在缓存目录中时才复制
                     if os.path.abspath(file_path) != os.path.abspath(cached_path):
                         shutil.copy2(file_path, cached_path)
-                    # 生成缩略图
-                    try:
-                        width, height = self._get_image_size(file_path)
-                        max_side = max(width, height)
-                        if max_side > 500:
-                            candidate_thumb_path = os.path.join(self.cache_path, 'thumb_' + uuid + ext)
-                            if self.magick_path:
-                                command = [self.magick_path, file_path, '-resize', '500x500', candidate_thumb_path]
-                                if os.name == 'nt':
-                                    startupinfo = subprocess.STARTUPINFO()
-                                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                                    subprocess.call(command, startupinfo=startupinfo)
-                                else:
-                                    subprocess.call(command)
-                            else:
-                                if os.path.abspath(file_path) != os.path.abspath(candidate_thumb_path):
-                                    shutil.copy2(file_path, candidate_thumb_path)
-                            if os.path.exists(candidate_thumb_path):
-                                thumb_path = candidate_thumb_path
-                    except Exception as e:
-                        logger.error("fail to generate thumbnail: {}".format(str(e)))
-                self.add(uuid, file_path=cached_path, thumb_path=thumb_path)
+                entry = self.add(uuid, file_path=cached_path)
+                if self.cache_path and not self.ensure_thumbnail(entry):
+                    logger.error("thumbnail unavailable for MVista image {}".format(uuid))
                 if self.cloud_files and uuid not in self.cloud_files:
                     self.cloud_files.append(uuid)
                 return uuid

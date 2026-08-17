@@ -12,6 +12,7 @@ if str(PACKAGE_ROOT) not in sys.path:
 import maica
 import maica_mtrigger
 import maica_tasker
+import maica_vista_files_manager
 from maica_vista_files_manager import MAICAVistaFilesManager
 
 
@@ -114,6 +115,146 @@ def test_vista_image_size_parsers_handle_bmp_and_webp(tmp_path):
 
     assert MAICAVistaFilesManager._get_image_size(str(bmp)) == (640, 480)
     assert MAICAVistaFilesManager._get_image_size(str(webp)) == (300, 200)
+
+
+def _write_png_header(path, width, height):
+    path.write_bytes(
+        b"\x89PNG\r\n\x1a\n"
+        + struct.pack(">I", 13)
+        + b"IHDR"
+        + struct.pack(">II", width, height)
+    )
+
+
+def test_vista_thumbnail_generation_is_external_bounded_and_png(monkeypatch, tmp_path):
+    source = tmp_path / "letter.mms"
+    source.write_bytes(b"unrecognized source format")
+    manager = MAICAVistaFilesManager(
+        "https://example.invalid", "token", cache_path=str(tmp_path / "cache")
+    )
+    manager.magick_path = "magick"
+    calls = []
+
+    def fake_call(command, **kwargs):
+        calls.append((command, kwargs))
+        _write_png_header(Path(command[-1]), 533, 300)
+        return 0
+
+    monkeypatch.setattr(maica_vista_files_manager.subprocess, "call", fake_call)
+    entry = {"uuid": "vista-1", "path": str(source)}
+
+    assert manager.ensure_thumbnail(entry) is True
+    assert manager.get_thumbnail_info(entry) == (
+        entry["thumb_path"],
+        533,
+        300,
+    )
+    assert entry["thumb_path"].endswith(".png")
+    assert entry["thumb_version"] == manager.THUMBNAIL_VERSION
+    assert calls[0][0][1] == str(source) + "[0]"
+    assert "-auto-orient" in calls[0][0]
+    assert calls[0][0][calls[0][0].index("-thumbnail") + 1] == "600x300>"
+
+
+def test_vista_upload_generates_thumbnail_when_source_dimensions_are_unknown(
+    monkeypatch, tmp_path
+):
+    source = tmp_path / "attachment.mms"
+    source.write_bytes(b"format recognized only by ImageMagick")
+    manager = MAICAVistaFilesManager(
+        "https://example.invalid", "token", cache_path=str(tmp_path / "cache")
+    )
+    manager.magick_path = "magick"
+    calls = []
+
+    class ResponseStub(object):
+        def json(self):
+            return {"success": True, "content": "vista-upload"}
+
+    def fake_call(command, **kwargs):
+        calls.append(command)
+        _write_png_header(Path(command[-1]), 450, 300)
+        return 0
+
+    monkeypatch.setattr(
+        maica_vista_files_manager.requests,
+        "post",
+        lambda *args, **kwargs: ResponseStub(),
+    )
+    monkeypatch.setattr(maica_vista_files_manager.subprocess, "call", fake_call)
+
+    assert manager.upload(str(source)) == "vista-upload"
+    entry = manager.get_info("vista-upload")
+    assert calls
+    assert entry["thumb_width"] == 450
+    assert entry["thumb_height"] == 300
+    assert manager.get_thumbnail_info(entry) is not None
+
+
+def test_vista_thumbnail_failure_never_falls_back_to_original(monkeypatch, tmp_path):
+    source = tmp_path / "large-source.mms"
+    _write_png_header(source, 200, 200)
+    manager = MAICAVistaFilesManager(
+        "https://example.invalid", "token", cache_path=str(tmp_path / "cache")
+    )
+    manager.magick_path = "magick"
+    entry = {
+        "uuid": "vista-2",
+        "path": str(source),
+        "thumb_path": str(source),
+        "thumb_width": 200,
+        "thumb_height": 200,
+        "thumb_version": manager.THUMBNAIL_VERSION,
+    }
+
+    monkeypatch.setattr(
+        maica_vista_files_manager.subprocess,
+        "call",
+        lambda *args, **kwargs: 1,
+    )
+
+    assert manager.ensure_thumbnail(entry) is False
+    assert manager.get_thumbnail_info(entry) is None
+    assert "thumb_path" not in entry
+    assert entry["path"] == str(source)
+
+
+def test_vista_rejects_oversized_generated_thumbnail(monkeypatch, tmp_path):
+    source = tmp_path / "source.png"
+    _write_png_header(source, 1200, 600)
+    manager = MAICAVistaFilesManager(
+        "https://example.invalid", "token", cache_path=str(tmp_path / "cache")
+    )
+    manager.magick_path = "magick"
+
+    def fake_call(command, **kwargs):
+        _write_png_header(Path(command[-1]), 601, 300)
+        return 0
+
+    monkeypatch.setattr(maica_vista_files_manager.subprocess, "call", fake_call)
+    entry = {"uuid": "vista-3", "path": str(source)}
+
+    assert manager.ensure_thumbnail(entry) is False
+    assert manager.get_thumbnail_info(entry) is None
+    assert not list((tmp_path / "cache").glob("thumb_*.png"))
+
+
+def test_vista_screens_only_render_validated_thumbnails():
+    root = Path(__file__).resolve().parents[1]
+    vista_screen = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs_vista.rpy"
+    ).read_text(encoding="utf-8")
+    postal_screen = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs.rpy"
+    ).read_text(encoding="utf-8")
+    combined = vista_screen + postal_screen
+
+    assert "get_thumbnail_info" in vista_screen
+    assert "get_thumbnail_info" in postal_screen
+    assert "add Transform(img_path" not in combined
+    assert "add Transform(postal['raw_image']" not in combined
+    assert "return (path, True)" not in combined
+    assert "renpy.image_size" not in combined
 
 
 def test_reviewed_source_contracts_are_kept_in_sync():

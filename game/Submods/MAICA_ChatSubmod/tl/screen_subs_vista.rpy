@@ -20,6 +20,8 @@ translate chinese strings:
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:142
     old "Image file does not exist: [img_path]"
     new "图片文件不存在: [img_path]"
+    old "Image preview unavailable"
+    new "图片预览不可用"
     # game/Submods/MAICA_ChatSubmod/screen_subs_vista.rpy:147
     old "! MVista not unlocked"
     new "! MVista尚未解锁"

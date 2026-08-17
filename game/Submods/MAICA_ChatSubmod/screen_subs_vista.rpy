@@ -55,7 +55,8 @@ screen maica_upload_image_android():
 screen maica_vista_filelist(selecting=False):
     python:
         import time
-        files = store.maica.maica_instance.vista_manager.export_list()
+        vista_manager = store.maica.maica_instance.vista_manager
+        files = vista_manager.export_list()
         #store.maica.maica_instance.vista_manager.list_remote()
         def is_expired(item):
             global files
@@ -66,32 +67,6 @@ screen maica_vista_filelist(selecting=False):
 
         def selected_is_full():
             return len(store._maica_selected_visuals) >= 3
-
-        def get_scaled_size(xy, max_width=600, max_height=300):
-            """等比例缩放图片尺寸（过大则缩小，过小则拉伸）
-
-            Args:
-                xy: 原始尺寸元组 (width, height)
-                max_width: 目标最大宽度
-                max_height: 目标最大高度
-
-            Returns:
-                缩放后的尺寸元组 (width, height)
-            """
-            width, height = xy
-
-            # 计算宽度和高度的缩放比例
-            width_ratio = float(max_width) / float(width)
-            height_ratio = float(max_height) / float(height)
-
-            # 选择较小的比例以确保等比例缩放后两个维度都不超过最大值
-            scale_ratio = min(width_ratio, height_ratio)
-
-            # 计算缩放后的尺寸
-            new_width = int(width * scale_ratio)
-            new_height = int(height * scale_ratio)
-
-            return (new_width, new_height)
 
         def format_timestamp(timestamp):
             """将时间戳转换为可读的时间格式
@@ -105,22 +80,7 @@ screen maica_vista_filelist(selecting=False):
             return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
 
         def get_display_image(item):
-            """获取要显示的图片路径（优先缩略图）
-
-            Args:
-                item: 文件项字典
-
-            Returns:
-                (image_path, exists) 元组
-            """
-            import os
-            thumb = item.get('thumb_path')
-            if thumb and (os.path.exists(thumb) or renpy.android):
-                return (thumb, True)
-            path = item.get('path')
-            if path and os.path.exists(path):
-                return (path, True)
-            return (None, False)
+            return vista_manager.get_thumbnail_info(item)
 
     modal True
     zorder 92
@@ -141,11 +101,12 @@ screen maica_vista_filelist(selecting=False):
                         text _("This file is valid")
                     hbox:
                         python:
-                            img_path, img_exists = get_display_image(item)
-                        if img_exists:
-                            add Transform(img_path, size=get_scaled_size((item['width'], item['height'])))
+                            preview_info = get_display_image(item)
+                        if preview_info:
+                            $ img_path = preview_info[0]
+                            add img_path
                         else:
-                            text _("Image file does not exist: [img_path]")
+                            text _("Image preview unavailable")
                     if store.maica.maica_instance.is_connected():
                         if selecting:
                             if not is_expired(item):

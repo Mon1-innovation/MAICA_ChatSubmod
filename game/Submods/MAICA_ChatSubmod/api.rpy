@@ -149,6 +149,38 @@ init 5 python in maica:
         except:
             pass
 
+    def prepare_mpostal_preview(postal):
+        """Builds safe previews outside Ren'Py for current and legacy postals."""
+        if not isinstance(postal, dict):
+            return
+
+        manager = store.maica.maica_instance.vista_manager
+        try:
+            vista_info = postal.get("vista_image_info")
+            if vista_info and manager.ensure_thumbnail(vista_info):
+                return
+
+            local_preview = postal.get("raw_image_preview")
+            if manager.get_thumbnail_info(local_preview) is not None:
+                return
+
+            raw_image = postal.get("raw_image")
+            if raw_image:
+                postal["raw_image_preview"] = manager.create_local_preview(raw_image)
+            else:
+                postal.pop("raw_image_preview", None)
+        except Exception as e:
+            postal.pop("raw_image_preview", None)
+            store.mas_submod_utils.submod_log.error(
+                "MAICA: Failed to prepare MPostal image preview: {}".format(e)
+            )
+
+    def prepare_image_previews():
+        manager = store.maica.maica_instance.vista_manager
+        manager.prepare_thumbnails()
+        for postal in store.persistent._maica_send_or_received_mpostals:
+            prepare_mpostal_preview(postal)
+
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
     def init_selector():
@@ -371,6 +403,7 @@ init 5 python in maica:
         store.persistent._last_boot_os = "android" if renpy.android else "other"
 
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
+        prepare_image_previews()
 
         import time
         store.mas_submod_utils.submod_log.info("MAICA: Game build timestamp: {}/{}".format(store.get_build_timestamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timestamp())))))
