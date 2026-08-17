@@ -55,8 +55,7 @@ screen maica_upload_image_android():
 screen maica_vista_filelist(selecting=False):
     python:
         import time
-        vista_manager = store.maica.maica_instance.vista_manager
-        files = vista_manager.export_list()
+        files = store.maica.maica_instance.vista_manager.export_list()
         #store.maica.maica_instance.vista_manager.list_remote()
         def is_expired(item):
             global files
@@ -79,9 +78,6 @@ screen maica_vista_filelist(selecting=False):
             """
             return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
 
-        def get_display_image(item):
-            return vista_manager.get_thumbnail_info(item)
-
     modal True
     zorder 92
 
@@ -101,7 +97,7 @@ screen maica_vista_filelist(selecting=False):
                         text _("This file is valid")
                     hbox:
                         python:
-                            preview_info = get_display_image(item)
+                            preview_info = store.maica.maica_instance.vista_manager.get_thumbnail_info(item)
                         if preview_info:
                             $ img_path = preview_info[0]
                             add img_path

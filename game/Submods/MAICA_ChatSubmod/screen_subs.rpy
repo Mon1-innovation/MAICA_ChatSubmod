@@ -996,7 +996,6 @@ screen maica_mpostals():
     python:
         import time
         maica_triggers = store.maica.maica_instance.mtrigger_manager
-        vista_manager = store.maica.maica_instance.vista_manager
         preview_len = 200
 
         def _delect_portal(title):
@@ -1004,9 +1003,6 @@ screen maica_mpostals():
                 if title == item["raw_title"]:
                     persistent._maica_send_or_received_mpostals.remove(item)
                     break
-
-        def get_display_image(item):
-            return vista_manager.get_thumbnail_info(item)
 
     $ _tooltip = store._tooltip
 
@@ -1049,7 +1045,7 @@ screen maica_mpostals():
                             postal.get('vista_image_info'),
                             postal.get('raw_image_preview'),
                         ):
-                            preview_info = get_display_image(preview_source)
+                            preview_info = store.maica.maica_instance.vista_manager.get_thumbnail_info(preview_source)
                             if preview_info:
                                 break
                     if preview_info:

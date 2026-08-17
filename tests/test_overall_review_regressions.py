@@ -251,6 +251,7 @@ def test_vista_screens_only_render_validated_thumbnails():
 
     assert "get_thumbnail_info" in vista_screen
     assert "get_thumbnail_info" in postal_screen
+    assert "return vista_manager.get_thumbnail_info(item)" not in combined
     assert "add Transform(img_path" not in combined
     assert "add Transform(postal['raw_image']" not in combined
     assert "return (path, True)" not in combined
