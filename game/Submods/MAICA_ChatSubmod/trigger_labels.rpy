@@ -147,7 +147,7 @@ label mtrigger_kiss:
         call maica_show_console
     return
 
-label mttrigger_minigame(game):
+label mtrigger_minigame(game):
     call maica_pause_connection
     call maica_hide_console
     m "Then...shall we play a bit, [player]?{nw}"

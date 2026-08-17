@@ -104,7 +104,7 @@ init 999 python in maica:
             store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
             return
         game_label = unlocked_games_dict[item]
-        store.renpy.call("mttrigger_minigame", game_label)
+        store.renpy.call("mtrigger_minigame", game_label)
 
     class MinigameTrigger(MTriggerBase):
         def __init__(self):

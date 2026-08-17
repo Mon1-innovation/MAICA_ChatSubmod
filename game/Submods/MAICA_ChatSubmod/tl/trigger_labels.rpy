@@ -32,7 +32,7 @@ translate chinese mtrigger_kiss_b481b4c1:
 
 # game/Submods/MAICA_ChatSubmod/trigger_labels.rpy:153
 
-translate chinese mttrigger_minigame_78b205c6:
+translate chinese mtrigger_minigame_78b205c6:
     # m "Then...shall we play a bit, [player]?{nw}"
     m "嗯...那来玩玩吗, [player]?{nw}"
 
