@@ -1048,6 +1048,26 @@ def test_builtin_switches_are_six_and_accessory_keeps_wear_and_unwear_actions():
     assert 'store.renpy.call("mtrigger_unwear_acs"' in trigger_source
 
 
+def test_hair_trigger_keeps_nonselectable_current_hair_out_of_choices():
+    trigger_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+    hair_source = trigger_source.split(
+        "    class HairTrigger(MTriggerBase):", 1
+    )[1].split("    class AccessoryTrigger(MTriggerBase):", 1)[0]
+
+    assert "HAIR_SEL_MAP[store.monika_chr.hair.name]" not in hair_source
+    assert "HAIR_SEL_MAP.get(store.monika_chr.hair.name)" in hair_source
+    assert 'return "__none__"' in hair_source
+    assert "if self.outfit_has_and_unlocked(key)" in hair_source
+    assert "curr_value = self.current_item()" in hair_source
+    assert "self.exprop.curr_value = self.current_item()" in hair_source
+
+
 def test_general_query_accepts_exactly_4096_utf8_bytes():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAGeneralChatProcessor(

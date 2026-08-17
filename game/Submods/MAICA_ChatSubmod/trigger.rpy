@@ -366,11 +366,17 @@ init 999 python in maica:
                     item_name_zh = "更换游戏内发型",
                     item_name_en = "change in-game hair",
                     item_list = list(self.clothes_data.keys()),
-                    curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name,
+                    curr_value = self.current_item(),
                 ),
                 action = MTriggerAction.post,
                 method = MTriggerMethod.table
             )
+
+        def current_item(self):
+            current = store.mas_selspr.HAIR_SEL_MAP.get(store.monika_chr.hair.name)
+            if current is not None and current.display_name in self.clothes_data:
+                return current.display_name
+            return "__none__"
 
         def on_build_pre(self):
             self.clothes_data = {
@@ -381,7 +387,7 @@ init 999 python in maica:
             self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
             self.clothes_data["__none__"] = "mas_pick_a_clothes"
             self.exprop.item_list = list(self.clothes_data.keys())
-            self.exprop.curr_value = store.mas_selspr.HAIR_SEL_MAP[store.monika_chr.hair.name].display_name
+            self.exprop.curr_value = self.current_item()
 
         def outfit_has_and_unlocked(self, outfit_name):
             """
