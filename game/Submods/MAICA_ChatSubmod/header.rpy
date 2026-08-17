@@ -810,7 +810,7 @@ init 10 python:
         # 断开旧连接，并取消可能仍在等待的自动重连
         if reconnect:
             ai.close_wss_session()
-            ai.disable(ai.MaicaAiStatus.WAIT_AVAILABILITY)
+        ai.disable()
 
 
         # 后台处理的东西 (刷新节点列表、重新 accessable()、再重连) 走threading (避免卡住 UI)
@@ -822,8 +822,6 @@ init 10 python:
                     )
                     return
                 ai.provider_manager.get_provider()
-                ai.disable()
-                ai.status = ai.MaicaAiStatus.WAIT_AVAILABILITY
                 ai.accessable()
 
                 if reconnect and ai.has_token():
@@ -1120,7 +1118,7 @@ screen maica_setting_pane():
                     text _("> Warning: current system 'non-unicode language' is not Chinese, expect possible encoding issues"):
                         style "main_menu_version_l"
 
-            if maica.maica_instance.status == maica.maica_instance.MaicaAiStatus.WEBSOCKET_CONNECTING or 13400 <= maica.maica_instance.status <= 13499:
+            if maica.maica_instance.is_connecting() or maica.maica_instance.MaicaAiStatus.is_submod_exception(maica.maica_instance.status):
                 hbox:
                     text _("> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
                         style "main_menu_version_l"

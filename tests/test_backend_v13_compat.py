@@ -737,7 +737,9 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
     )
     assert "_clear_layers" not in pane
     assert "connection_busy = ai.is_connecting()" in pane
-    assert "MaicaAiStatus.WEBSOCKET_CONNECTING" in pane
+    assert "maica.maica_instance.is_connecting()" in pane
+    assert "MaicaAiStatus.is_submod_exception" in pane
+    assert "13400 <=" not in pane
     assert re.search(
         r"has_token\(\).*?is_accessable\(\).*?not\s+"
         r"maica\.maica_instance\.is_connected\(\)",
@@ -781,7 +783,9 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
 
     provider_sync = function_body(header, r"sync_provider_id")
     assert re.search(r"if\s+reconnect:\s*ai\.close_wss_session\(\)", provider_sync)
-    assert "ai.disable(ai.MaicaAiStatus.WAIT_AVAILABILITY)" in provider_sync
+    assert "ai.disable()" in provider_sync
+    assert "WAIT_AVAILABILITY" not in provider_sync
+    assert "ai.status" not in provider_sync
     assert "ai.wait_for_connection_shutdown(6.0)" in provider_sync
     assert "ai.multi_lock" not in provider_sync
 
@@ -801,6 +805,25 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
         r"not ai\.is_connected\(\) and not ai\.is_connecting\(\):\s*"
         r"ai\.init_connect\(\)",
         connect_label,
+    )
+
+
+def test_a_certificate_repair_and_version_disable_are_sticky():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    repair = function_body(api, r"maica_download_certifi_files")
+    startup = function_body(api, r"start_maica")
+
+    assert "13408" not in api
+    assert repair.count("CERTIFI_RESTART_REQUIRED") == 1
+    assert re.search(
+        r"disable\(\s*.*?CERTIFI_RESTART_REQUIRED\s*,\s*sticky\s*=\s*True",
+        repair,
+        re.S,
+    )
+    assert re.search(
+        r"disable\(\s*.*?VERSION_OLD\s*,\s*sticky\s*=\s*True",
+        startup,
+        re.S,
     )
 
 

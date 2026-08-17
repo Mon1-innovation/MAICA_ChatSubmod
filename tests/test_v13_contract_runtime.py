@@ -261,7 +261,7 @@ def test_login_result_maps_protocol_failure_to_numeric_status(
     protocol_status, expected_status
 ):
     ai = object.__new__(maica.MaicaAi)
-    ai.status = ai.MaicaAiStatus.NOT_READY
+    ai.status = ai.MaicaAiStatus.IDLE
 
     ai._handle_login_result(False, protocol_status, "detail", 400)
 
@@ -283,13 +283,79 @@ def test_clear_error_removes_stale_numeric_error_status():
 
     ai.clear_error()
 
-    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.status == ai.MaicaAiStatus.IDLE
     assert ai.get_error_result() == {
         "success": False,
         "status": None,
         "exception": None,
         "code": None,
     }
+
+
+def test_login_result_moves_authenticated_client_to_connected_state():
+    ai = object.__new__(maica.MaicaAi)
+    ai.status = ai.MaicaAiStatus.WAIT_AVAILABILITY
+    ai.error_protocol_status = "old_error"
+    ai.error_message = "old detail"
+    ai.error_protocol_code = 500
+
+    ai._handle_login_result(True)
+
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.get_error_result() == {
+        "success": False,
+        "status": None,
+        "exception": None,
+        "code": None,
+    }
+
+
+def test_maica_status_inventory_excludes_retired_state_machine_codes():
+    status = maica.MaicaAi.MaicaAiStatus
+    assert status.IDLE == 10000
+    assert status.WAIT_AVAILABILITY == 10010
+    assert status.WEBSOCKET_CONNECTING == 10020
+    assert status.CONNECTED == 10302
+    assert status.CERTIFI_RESTART_REQUIRED == 13418
+    assert status.CERTIFI_RESTART_REQUIRED != status.SERVER_REJECTED
+
+    retired_names = (
+        "WAIT_AUTH",
+        "WAIT_SERVER_TOKEN",
+        "WAIT_USE_TOKEN",
+        "SESSION_CREATED",
+        "WAIT_MODEL_INFOMATION",
+        "SSL_FAILED_BUT_OKAY",
+        "MESSAGE_WAIT_SEND",
+        "MESSAGE_WAIT_SEND_MSPIRE",
+        "MESSAGE_WAIT_SEND_MPOSTAL",
+        "MESSAGE_WAITING_RESPONSE",
+        "MESSAGE_DONE",
+        "REQUEST_RESET_SESSION",
+        "SESSION_RESETED",
+        "REQUEST_PING",
+        "SEND_SETTING",
+        "WAIT_SETTING_RESPONSE",
+        "TOKEN_MAX_EXCEEDED",
+        "TOKEN_WARN_EXCEEDED",
+    )
+    assert not [name for name in retired_names if hasattr(status, name)]
+    assert not hasattr(status, "MAIKA_PREFIX")
+    assert not hasattr(status, "is_1xx")
+
+    game_root = PACKAGE_ROOT.parent
+    sources = []
+    for pattern in ("*.py", "*.rpy"):
+        sources.extend(
+            path.read_text(encoding="utf-8-sig")
+            for path in game_root.rglob(pattern)
+        )
+    source = "\n".join(sources)
+    assert not [
+        name
+        for name in retired_names
+        if "MaicaAiStatus." + name in source
+    ]
 
 
 def test_connection_scripts_do_not_reference_retired_error_state_api():
@@ -365,9 +431,9 @@ def test_general_chat_completion_resets_mood_after_final_analysis():
         {
             "_in_mspire": True,
             "pprt": False,
+            "status": "connected",
             "TalkSpilter": TalkSplitterStub(),
             "MoodStatus": MoodStatusStub(),
-            "MaicaAiStatus": type("Status", (), {"MESSAGE_DONE": "done"}),
             "add_ana": lambda self, content: calls.append(("add_ana", content)),
         },
     )()
@@ -377,7 +443,7 @@ def test_general_chat_completion_resets_mood_after_final_analysis():
     )
 
     assert calls == [("add_ana", "final"), "mood.reset", "processor.reset"]
-    assert ai.status == "done"
+    assert ai.status == "connected"
     assert ai._in_mspire is False
 
 
@@ -1446,6 +1512,7 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     ai.mspire_use_cache = True
     ai.mspire_type = "fuzzy_page"
     ai._in_mspire = False
+    ai.status = ai.MaicaAiStatus.CONNECTED
 
     maica.MaicaAi.start_MSpire(ai)
 
@@ -1453,6 +1520,7 @@ def test_maica_start_mspire_forwards_weight_and_cache_to_processor():
     assert ai.MSpireProcessor.kwargs["use_cache"] is True
     assert ai.MSpireProcessor.kwargs["mspire_type"] == "fuzzy_page"
     assert ai.QualityStatusTasker.clear_count == 1
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
 
 
 def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
@@ -1486,6 +1554,25 @@ def test_init_connect_without_token_sets_explicit_failure(isolated_maica_ai_glob
     assert ai.status == ai.MaicaAiStatus.TOKEN_MISSING
     assert ai.get_error_result()["status"] == "client_token_missing"
     assert ai.wss_thread is None
+
+
+def test_init_connect_rechecks_sticky_disable_before_starting_thread(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
+    ai.ciphertext = "token-value"
+
+    def disable_during_token_check():
+        ai.disable(ai.MaicaAiStatus.VERSION_OLD, sticky=True)
+        return True
+
+    ai.has_token = disable_during_token_check
+
+    assert ai.init_connect() is False
+    assert ai.wss_thread is None
+    assert ai.status == ai.MaicaAiStatus.VERSION_OLD
+    assert ai.is_accessable() is False
 
 
 def test_init_connect_preserves_availability_failure_detail(
@@ -1530,7 +1617,7 @@ def test_init_connect_unknown_unavailability_is_connection_problem(
     ai = maica.MaicaAi("account", "password")
     ai.ciphertext = ""
     ai._MaicaAi__accessable = False
-    ai.clear_error(ai.MaicaAiStatus.NOT_READY)
+    ai.clear_error(ai.MaicaAiStatus.IDLE)
 
     assert ai.init_connect() is False
     assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
@@ -1615,7 +1702,7 @@ def test_cancelled_connection_ignores_late_login_result(
     isolated_maica_ai_globals,
 ):
     ai = maica.MaicaAi("account", "password")
-    ai.status = ai.MaicaAiStatus.NOT_READY
+    ai.status = ai.MaicaAiStatus.IDLE
     ai._connection_cancel_requested = True
     ai._connection_in_progress = True
     ai.Loginer.success = True
@@ -1623,7 +1710,7 @@ def test_cancelled_connection_ignores_late_login_result(
     ai._handle_login_result(True)
 
     assert ai.Loginer.success is False
-    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.status == ai.MaicaAiStatus.IDLE
     assert ai._connection_in_progress is True
 
 
@@ -1678,7 +1765,7 @@ def test_close_during_connection_is_intentional_and_does_not_set_13411(
             ai.multi_lock.release()
 
     assert client.close_calls == 1
-    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.status == ai.MaicaAiStatus.IDLE
     assert ai.error_protocol_status is None
     assert ai.Loginer.success is False
     assert ai.is_connecting() is False
@@ -1709,7 +1796,7 @@ def test_init_connect_is_blocked_until_close_call_finishes(
         assert ai.is_connecting() is True
         assert ai.init_connect() is False
         assert ai.wss_thread is None
-        assert ai.status == ai.MaicaAiStatus.NOT_READY
+        assert ai.status == ai.MaicaAiStatus.IDLE
     finally:
         allow_close.set()
         close_thread.join(1.0)
@@ -1779,7 +1866,7 @@ def test_intentional_close_clears_login_failure_state(isolated_maica_ai_globals)
 
     assert client.close_calls == 1
     assert ai.Loginer.success is False
-    assert ai.status == ai.MaicaAiStatus.NOT_READY
+    assert ai.status == ai.MaicaAiStatus.IDLE
     assert ai.get_error_result()["status"] is None
     assert client in ai._intentional_ws_closes
 
@@ -1795,7 +1882,7 @@ def test_unexpected_close_sets_numeric_connection_failure(
 
     client = Client()
     ai.Loginer.success = True
-    ai.status = ai.MaicaAiStatus.MESSAGE_WAIT_INPUT
+    ai.status = ai.MaicaAiStatus.CONNECTED
 
     ai._on_close(client, 1006, "network lost")
 
@@ -2419,6 +2506,50 @@ def test_logger_sync_does_not_copy_handlers_to_distinct_loggers():
         child.setLevel(level_before)
         child.propagate = propagate_before
         manager.set_log_level(logging.DEBUG)
+
+
+def test_accessable_preserves_sticky_version_disable_before_probe(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    provider_checks = []
+    ai.provider_manager.get_provider = lambda: provider_checks.append(True)
+    ai.disable(ai.MaicaAiStatus.VERSION_OLD, sticky=True)
+
+    ai.accessable()
+
+    assert provider_checks == []
+    assert ai.status == ai.MaicaAiStatus.VERSION_OLD
+    assert ai.is_accessable() is False
+
+
+def test_accessable_rechecks_sticky_disable_before_committing_success(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+    ai._MaicaAi__accessable = True
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        def json(self):
+            assert ai.is_accessable() is False
+            ai.disable(ai.MaicaAiStatus.VERSION_OLD, sticky=True)
+            return {"success": True, "content": "serving"}
+
+    ai.provider_manager = Provider()
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: Response())
+
+    ai.accessable()
+
+    assert ai.status == ai.MaicaAiStatus.VERSION_OLD
+    assert ai.is_accessable() is False
 
 
 def test_accessable_checks_backend_before_external_network(monkeypatch):

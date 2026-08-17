@@ -1045,6 +1045,10 @@ label maica_connection_failure_dialogue:
         m 2rusdlb "...Certification issue? Maybe this isn't a clean installation?"
         m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
 
+    elif ai.status == ai.MaicaAiStatus.CERTIFI_RESTART_REQUIRED:
+        m 2rusdlb "...Uh, seems I have to apply a quick fix on the certification."
+        m 3eua "It needs a restart to take effect, then we can try again."
+
     elif ai.status == ai.MaicaAiStatus.VERSION_OLD:
         m 2rusdlb "...You have to update the submod once in a while, [player]!"
         m 3eusdlb "This version is too old to work already, update it whenever you have some time."

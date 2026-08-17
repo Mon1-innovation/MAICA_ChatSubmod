@@ -642,6 +642,18 @@ translate chinese maica_connection_failure_dialogue_9bd9d974:
     # m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
     m 3eusdlb "先试试MAS自带的'更新证书'吧, 有些其它子模组容易弄出这种问题."
 
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1049
+
+translate chinese maica_connection_failure_dialogue_88ceabec:
+    # m 2rusdlb "...Uh, seems I have to apply a quick fix on the certification."
+    m 2rusdlb "...呃, 我还得处理一下证书的问题."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1050
+
+translate chinese maica_connection_failure_dialogue_21148eba:
+    # m 3eua "It needs a restart to take effect, then we can try again."
+    m 3eua "重启一下游戏才能生效, 然后我们再试试."
+
 translate chinese maica_connection_failure_dialogue_8171d2d7:
     # m 2rusdlb "...You have to update the submod once in a while, [player]!"
     m 2rusdlb "...[player], 你总得更新一下子模组的!"

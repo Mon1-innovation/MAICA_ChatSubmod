@@ -98,49 +98,15 @@ class MaicaAi(ChatBotInterface):
         in_fuzzy_all = "in_fuzzy_all"
 
     class MaicaAiStatus:
-        # 未准备好
-        NOT_READY = 10000
-        # websocket正在连接
-        WEBSOCKET_CONNECTING = 10020
-        # 账户信息已准备好，准备令牌验证
-        WAIT_AUTH = 10100
-        # 等待令牌验证结果
-        WAIT_SERVER_TOKEN = 10101
-        # 传入令牌
-        WAIT_USE_TOKEN = 10102
-        # 令牌已传入，session已开启，应该选择模型了
-        SESSION_CREATED = 10106
-        # 等待模型信息
-        WAIT_MODEL_INFOMATION = 10110
-        # maica 已准备好，等待玩家输入
-        MESSAGE_WAIT_INPUT = 10302
-        # ssl证书获取错误, 但使用plain能够连接
-        SSL_FAILED_BUT_OKAY = 10322
-        # 已输入消息，等待消息发送
-        MESSAGE_WAIT_SEND = 10300
-        # 发送MSpire请求
-        MESSAGE_WAIT_SEND_MSPIRE = 10304
-        # 发送MPostal请求
-        MESSAGE_WAIT_SEND_MPOSTAL = 10305
-        # 已发送消息，等待MAICA回应
-        MESSAGE_WAITING_RESPONSE = 10301
-        # MAICA 已经输出完毕
-        MESSAGE_DONE = 10303
-
-        # 请求重置session
-        REQUEST_RESET_SESSION = 11000
-
-        # session已重置，websocket已关闭
-        SESSION_RESETED = 12000
-
-        # 请求心跳包
-        REQUEST_PING = 11100
-        # 发送设置项
-        SEND_SETTING = 11200
-        # 等待设置结果
-        WAIT_SETTING_RESPONSE = 11201
+        # 空闲，等待建立连接
+        IDLE = 10000
         # 等待可用性验证
         WAIT_AVAILABILITY = 10010
+        # WebSocket正在连接
+        WEBSOCKET_CONNECTING = 10020
+        # WebSocket已通过认证，可以接受请求
+        CONNECTED = 10302
+
         #############################Submod 错误状态码
         TOKEN_MISSING = 13400
         TOKEN_CORRUPTED = 13401
@@ -160,11 +126,7 @@ class MaicaAi(ChatBotInterface):
         FAILED_GET_NODE = 13415
         VERSION_OLD = 13416
         NO_INTERNET = 13417
-        ######################### MAICA 服务器状态码
-        MAIKA_PREFIX = 5000
-        @classmethod
-        def is_1xx(cls, code):
-            return 100 <= int(code) - cls.MAIKA_PREFIX <= 199
+        CERTIFI_RESTART_REQUIRED = 13418
 
         @classmethod
         def is_submod_exception(cls, code):
@@ -198,30 +160,11 @@ class MaicaAi(ChatBotInterface):
                 status,
                 cls.SERVER_REJECTED if fallback is None else fallback,
             )
-        
-        # session 已超过 32768token
-        TOKEN_MAX_EXCEEDED = MAIKA_PREFIX + 204
-        # session > 24000token
-        TOKEN_WARN_EXCEEDED = MAIKA_PREFIX + 200
-
         _descriptions = {
-            NOT_READY: u"Waiting for account configuration",
-            WAIT_AVAILABILITY:u"Core is not initialized. If the problem persists, check mas.log",
-            WAIT_AUTH: u"Account details received, validating",
-            WAIT_SERVER_TOKEN: u"Waiting for token validation",
-            WAIT_USE_TOKEN: u"Waiting for token",
-            SESSION_CREATED: u"Session started, waiting for model selection",
-            WAIT_MODEL_INFOMATION: u"Waiting for model information",
-            MESSAGE_WAIT_INPUT: u"MAICA is ready to receive queries",
-            SSL_FAILED_BUT_OKAY: u"MAICA is falling back to a normal connection. This can usually be considered normal",
-            MESSAGE_WAIT_SEND: u"Message received, waiting to send",
-            MESSAGE_WAITING_RESPONSE: u"Message sent, waiting for the server response",
-            MESSAGE_WAIT_SEND_MSPIRE: u"Waiting to send MSpire request",
-            MESSAGE_WAIT_SEND_MPOSTAL: u"Waiting to send MPostal request",
-            MESSAGE_DONE: u"MAICA streaming transfer has ended",
-            REQUEST_RESET_SESSION: u"Requesting session reset",
-            SESSION_RESETED: u"Session reset, connection closed",
-            REQUEST_PING: u"Sending PING",
+            IDLE: u"MAICA is idle",
+            WAIT_AVAILABILITY: u"Checking service availability",
+            WEBSOCKET_CONNECTING: u"WebSocket is connecting (this should finish quickly)",
+            CONNECTED: u"MAICA is connected and ready",
             TOKEN_MISSING: u"No token is configured",
             TOKEN_CORRUPTED: u"The token is corrupted",
             TOKEN_INVALID: u"The account or password is invalid",
@@ -235,15 +178,12 @@ class MaicaAi(ChatBotInterface):
             TOKEN_GENERATION_FAILED: u"Token generation failed",
             CONNECT_PROBLEM: u"Unable to connect to the server",
             RESPONSE_INVALID: u"The server returned an invalid response",
-            TOKEN_MAX_EXCEEDED:u"Session length has exceeded limit; part of the conversation truncated",
-            TOKEN_WARN_EXCEEDED:u"Session length is approaching limit and will be truncated once exceeded",
             SERVER_MAINTAIN:u"The server is unavailable or under maintenance",
             CERTIFI_BROKEN:u"SSL/TLS support is not working correctly",
-            SEND_SETTING:u"Uploading settings",
             FAILED_GET_NODE:u"Failed to retrieve an available service provider",
-            WEBSOCKET_CONNECTING:u"WebSocket is connecting (this should finish quickly)",
             VERSION_OLD:u"The submod version is outdated",
-            NO_INTERNET:u"No internet connection is available"
+            NO_INTERNET:u"No internet connection is available",
+            CERTIFI_RESTART_REQUIRED:u"Restart to apply certificate fix",
         }
 
         @classmethod
@@ -321,10 +261,11 @@ class MaicaAi(ChatBotInterface):
         self.version_info = {"success": False, "content": {}}
         self.stat = {}
         self.multi_lock = threading.Lock()
-        self._connection_state_lock = threading.Lock()
+        self._connection_state_lock = threading.RLock()
         self._connection_in_progress = False
         self._connection_cancel_requested = False
         self._connection_close_in_progress = False
+        self._sticky_disable_status = None
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
         self.ciphertext = None
@@ -780,29 +721,49 @@ class MaicaAi(ChatBotInterface):
             pass
         return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1], res[2] if len(res) >= 3 else False)
 
-    def clear_error(self, status=None):
-        """Clear protocol failure details and move to a non-error status."""
+    def _clear_error_unlocked(self, status=None):
         self.error_protocol_status = None
         self.error_message = None
         self.error_protocol_code = None
-        if status is not None:
+        sticky_status = getattr(self, "_sticky_disable_status", None)
+        if sticky_status is not None:
+            self.status = sticky_status
+        elif status is not None:
             self.status = status
         elif self.MaicaAiStatus.is_submod_exception(getattr(self, "status", None)):
-            self.status = self.MaicaAiStatus.NOT_READY
+            self.status = self.MaicaAiStatus.IDLE
 
-    def set_error(self, status, message=None, code=None, fallback=None):
+    def clear_error(self, status=None):
+        """Clear protocol failure details and move to a non-error status."""
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            return self._clear_error_unlocked(status)
+        with connection_lock:
+            return self._clear_error_unlocked(status)
+
+    def _set_error_unlocked(self, status, message=None, code=None, fallback=None):
+        sticky_status = getattr(self, "_sticky_disable_status", None)
+        if sticky_status is not None:
+            self.status = sticky_status
+            return
         self.error_protocol_status = status
         self.error_message = message
         self.error_protocol_code = code
         self.status = self.MaicaAiStatus.from_protocol_status(status, fallback)
+
+    def set_error(self, status, message=None, code=None, fallback=None):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            return self._set_error_unlocked(status, message, code, fallback)
+        with connection_lock:
+            return self._set_error_unlocked(status, message, code, fallback)
 
     def _handle_login_result(self, success, status=None, message=None, code=None):
         if self._connection_cancelled():
             self.Loginer.success = False
             return
         if success:
-            self.clear_error()
-            self.status = self.MaicaAiStatus.MESSAGE_WAIT_INPUT
+            self.clear_error(self.MaicaAiStatus.CONNECTED)
         else:
             self.set_error(status, message, code, self.MaicaAiStatus.TOKEN_INVALID)
         self._mark_connection_handshake_complete()
@@ -839,6 +800,7 @@ class MaicaAi(ChatBotInterface):
             self.MaicaAiStatus.VERSION_OLD,
             self.MaicaAiStatus.NO_INTERNET,
             self.MaicaAiStatus.CONNECT_PROBLEM,
+            self.MaicaAiStatus.CERTIFI_RESTART_REQUIRED,
         )
         if self.status not in availability_failures:
             self.set_error(
@@ -1088,7 +1050,7 @@ class MaicaAi(ChatBotInterface):
             with self._connection_state_lock:
                 if self.wss_thread is current_thread:
                     if self._connection_cancel_requested:
-                        self.clear_error(self.MaicaAiStatus.NOT_READY)
+                        self.clear_error(self.MaicaAiStatus.IDLE)
                     self._connection_in_progress = False
                     self._connection_cancel_requested = False
                     self.wss_thread = None
@@ -1149,6 +1111,7 @@ class MaicaAi(ChatBotInterface):
             if (
                 self._connection_close_in_progress
                 or self._connection_in_progress
+                or not self.__accessable
                 or self.is_connected()
                 or (connection_thread and connection_thread.is_alive())
             ):
@@ -1201,7 +1164,11 @@ class MaicaAi(ChatBotInterface):
             if self._connection_cancelled():
                 self.multi_lock.release()
                 return False
-            self.status = self.MaicaAiStatus.WEBSOCKET_CONNECTING
+            with self._connection_state_lock:
+                if not self.__accessable:
+                    self.multi_lock.release()
+                    return False
+                self.clear_error(self.MaicaAiStatus.WEBSOCKET_CONNECTING)
             import websocket
             url = self.provider_manager.get_wssurl()
             self.vista_manager.base_url = self.provider_manager.get_api_url()
@@ -1299,12 +1266,10 @@ class MaicaAi(ChatBotInterface):
         
     def is_responding(self):
         """返回maica是否正在返回消息"""
-        #return self.status in (self.MaicaAiStatus.MESSAGE_WAITING_RESPONSE, self.MaicaAiStatus.MESSAGE_WAIT_SEND, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE, self.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL)
         return maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
 
     def is_ready_to_input(self):
         """返回maica是否可以接受输入消息了"""
-        #return self.status in (self.MaicaAiStatus.MESSAGE_WAIT_INPUT, self.MaicaAiStatus.SSL_FAILED_BUT_OKAY, self.MaicaAiStatus.MESSAGE_DONE) and self.is_connected()
         return bool(
             self.is_connected()
             and self.Loginer.success
@@ -1389,7 +1354,6 @@ class MaicaAi(ChatBotInterface):
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.stat['mspire_count'] += 1
-        self.status = self.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE
         self.mspire_type = maica_tasker_sub_sessionsender.normalize_mspire_type(
             getattr(self, "mspire_type", self.MaicaMSpiretype.in_fuzzy_all)
         )
@@ -1495,7 +1459,6 @@ class MaicaAi(ChatBotInterface):
                 talks = self.TalkSpilter.announce_stop()
             for item in talks:
                 self.add_ana(item)
-            self.status = self.MaicaAiStatus.MESSAGE_DONE
             self.MoodStatus.reset()
             # 释放聊天锁，允许下一个聊天请求
             processor.reset()
@@ -1875,7 +1838,7 @@ class MaicaAi(ChatBotInterface):
         try:
             self.AutoReconnector.disable()
             self.task_manager.reset_all_task()
-            self.clear_error(self.MaicaAiStatus.NOT_READY)
+            self.clear_error(self.MaicaAiStatus.IDLE)
             if ws_client:
                 try:
                     self.task_manager.close_ws()
@@ -1974,6 +1937,23 @@ class MaicaAi(ChatBotInterface):
             logger.error("check_certifi(): local CA bundle is unusable: {}".format(e))
             return False
 
+    def _set_accessibility_state_unlocked(self, accessible, status):
+        sticky_status = getattr(self, "_sticky_disable_status", None)
+        if sticky_status is not None:
+            self.__accessable = False
+            self.status = sticky_status
+            return False
+        self.__accessable = accessible
+        self._clear_error_unlocked(status)
+        return True
+
+    def _set_accessibility_state(self, accessible, status):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            return self._set_accessibility_state_unlocked(accessible, status)
+        with connection_lock:
+            return self._set_accessibility_state_unlocked(accessible, status)
+
     def accessable(self):
         """
         检查Maica服务是否可访问
@@ -1988,11 +1968,11 @@ class MaicaAi(ChatBotInterface):
         Raises:
             无
         """
-        self.clear_error(self.MaicaAiStatus.WAIT_AVAILABILITY)
-
-        #self.__accessable = True
-        #self.status = self.MaicaAiStatus.NOT_READY
-        #return
+        if not self._set_accessibility_state(
+            False,
+            self.MaicaAiStatus.WAIT_AVAILABILITY,
+        ):
+            return
 
         # 检测证书是否是MAS版本/证书是否工作正常
         if self.in_mas:
@@ -2006,7 +1986,6 @@ class MaicaAi(ChatBotInterface):
                     "certifi is missing the MAS integration",
                     fallback=self.MaicaAiStatus.CERTIFI_BROKEN,
                 )
-                self.__accessable = False
                 return
             if not self.check_certifi():
                 self.set_error(
@@ -2014,7 +1993,6 @@ class MaicaAi(ChatBotInterface):
                     "SSL/TLS certificate validation is unavailable",
                     fallback=self.MaicaAiStatus.CERTIFI_BROKEN,
                 )
-                self.__accessable = False
                 return
 
         # 获取服务节点
@@ -2033,7 +2011,6 @@ class MaicaAi(ChatBotInterface):
                             "External network check failed",
                             fallback=self.MaicaAiStatus.NO_INTERNET,
                         )
-                    self.__accessable = False
                     return
 
         except Exception as e:
@@ -2051,7 +2028,6 @@ class MaicaAi(ChatBotInterface):
                         u"{}".format(e),
                         fallback=self.MaicaAiStatus.NO_INTERNET,
                     )
-                self.__accessable = False
                 return
 
         #获取节点可用性
@@ -2062,7 +2038,6 @@ class MaicaAi(ChatBotInterface):
             res = requests.get(accessibility_url, timeout=self.HTTP_TIMEOUT)
             d = res.json()
         except Exception as e:
-            self.__accessable = False
             if self.can_access_internet():
                 self.set_error("client_network_error", u"{}".format(e))
                 logger.error("accessable(): backend is unreachable: {}".format(e))
@@ -2082,18 +2057,19 @@ class MaicaAi(ChatBotInterface):
                     u"{}".format(d["content"]),
                     fallback=self.MaicaAiStatus.SERVER_MAINTAIN,
                 )
-                self.__accessable = False
                 logger.error("accessable(): Maica is not serving: {}".format(d["content"]))
             else:
-                self.__accessable = True
-                self.clear_error(self.MaicaAiStatus.NOT_READY)
+                if not self._set_accessibility_state(
+                    True,
+                    self.MaicaAiStatus.IDLE,
+                ):
+                    return
         else:
             self.set_error(
                 "client_availability_failed",
                 d.get("exception") or "Accessibility request failed",
                 fallback=self.MaicaAiStatus.CONNECT_PROBLEM,
             )
-            self.__accessable = False
             logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
         
         # 版本信息获取
@@ -2109,10 +2085,25 @@ class MaicaAi(ChatBotInterface):
         
 
 
-    def disable(self, status=None):
-        if status is not None:
+    def _disable_unlocked(self, status=None, sticky=False):
+        if sticky and status is not None:
+            self._sticky_disable_status = status
+        sticky_status = getattr(self, "_sticky_disable_status", None)
+        if sticky_status is not None:
+            self.error_protocol_status = None
+            self.error_message = None
+            self.error_protocol_code = None
+            self.status = sticky_status
+        elif status is not None:
             self.status = status
         self.__accessable = False
+
+    def disable(self, status=None, sticky=False):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            return self._disable_unlocked(status, sticky)
+        with connection_lock:
+            return self._disable_unlocked(status, sticky)
 
 
 

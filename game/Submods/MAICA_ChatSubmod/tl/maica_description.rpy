@@ -3,22 +3,10 @@ translate chinese python in maica:
 
     try:
         maica_instance.MaicaAiStatus._descriptions.update({
-            maica_instance.MaicaAiStatus.NOT_READY: u"等待账号设置",
-            maica_instance.MaicaAiStatus.WAIT_AVAILABILITY:u"核心尚未初始化, 如果问题持续请检查mas.log",
-            maica_instance.MaicaAiStatus.WAIT_AUTH: u"已获取账号, 正在验证",
-            maica_instance.MaicaAiStatus.WAIT_SERVER_TOKEN: u"正在等待Token验证",
-            maica_instance.MaicaAiStatus.WAIT_USE_TOKEN: u"正在等待Token",
-            maica_instance.MaicaAiStatus.SESSION_CREATED: u"会话已开启, 等待选择模型",
-            maica_instance.MaicaAiStatus.WAIT_MODEL_INFOMATION: u"正在等待模型信息",
-            maica_instance.MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA已准备好接收询问",
-            maica_instance.MaicaAiStatus.SSL_FAILED_BUT_OKAY: u"MAICA正在回退到普通连接. 这通常可以视为正常情况",
-            maica_instance.MaicaAiStatus.MESSAGE_WAIT_SEND: u"已获取消息, 等待发送",
-            maica_instance.MaicaAiStatus.MESSAGE_WAITING_RESPONSE: u"消息已发送, 正在等待服务器响应",
-            maica_instance.MaicaAiStatus.MESSAGE_WAIT_SEND_MSPIRE: u"正在等待发送MSpire请求",
-            maica_instance.MaicaAiStatus.MESSAGE_DONE: u"MAICA流式传输已结束",
-            maica_instance.MaicaAiStatus.REQUEST_RESET_SESSION: u"正在请求重置会话",
-            maica_instance.MaicaAiStatus.SESSION_RESETED: u"会话已重置, 连接已关闭",
-            maica_instance.MaicaAiStatus.REQUEST_PING: u"正在发送PING",
+            maica_instance.MaicaAiStatus.IDLE: u"MAICA当前空闲",
+            maica_instance.MaicaAiStatus.WAIT_AVAILABILITY: u"正在检查服务可用性",
+            maica_instance.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket正在连接(这应该很快完成)",
+            maica_instance.MaicaAiStatus.CONNECTED: u"MAICA已连接并准备就绪",
             maica_instance.MaicaAiStatus.TOKEN_MISSING: u"尚未配置令牌",
             maica_instance.MaicaAiStatus.TOKEN_CORRUPTED: u"令牌已损坏",
             maica_instance.MaicaAiStatus.TOKEN_INVALID: u"账号或密码无效",
@@ -32,21 +20,12 @@ translate chinese python in maica:
             maica_instance.MaicaAiStatus.TOKEN_GENERATION_FAILED: u"令牌生成失败",
             maica_instance.MaicaAiStatus.CONNECT_PROBLEM: u"无法连接服务器, 请检查网络和submod_log",
             maica_instance.MaicaAiStatus.RESPONSE_INVALID: u"服务器响应无效",
-            maica_instance.MaicaAiStatus.TOKEN_MAX_EXCEEDED:u"会话长度超出限制, 部分会话已裁剪",
-            maica_instance.MaicaAiStatus.TOKEN_WARN_EXCEEDED:u"会话长度接近限制, 超出后将被裁剪",
-            maica_instance.MaicaAiStatus.SERVER_MAINTAIN:u"服务器正在维护, 请等待后续公告",
-            maica_instance.MaicaAiStatus.CERTIFI_BROKEN:u"SSL/TLS已损坏, 可能由其他子模组导致. 需要完全重新安装MAS",
-
-        })
-        maica_instance.MaicaAiStatus._descriptions.update({
-            maica_instance.MaicaAiStatus.MESSAGE_WAIT_SEND_MPOSTAL: u"正在等待发送MPostal请求",  # 新增
-            maica_instance.MaicaAiStatus.SEND_SETTING: u"正在上传设置",  # 新增
-            maica_instance.MaicaAiStatus.FAILED_GET_NODE: u"获取服务节点失败, 服务器可能正在维护或离线",  # 新增
-            maica_instance.MaicaAiStatus.WEBSOCKET_CONNECTING: u"WebSocket正在连接(这应该很快完成)",  # 新增
-            maica_instance.MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版",  # 新增
-        })
-        maica_instance.MaicaAiStatus._descriptions.update({
-            maica_instance.MaicaAiStatus.NO_INTERNET: u"检测到子模组离线. 请根据Readme重新检查安装和网络连接",  # 新增
+            maica_instance.MaicaAiStatus.SERVER_MAINTAIN: u"服务器正在维护, 请等待后续公告",
+            maica_instance.MaicaAiStatus.CERTIFI_BROKEN: u"SSL/TLS已损坏, 可能由其他子模组导致. 需要完全重新安装MAS",
+            maica_instance.MaicaAiStatus.FAILED_GET_NODE: u"获取服务节点失败, 服务器可能正在维护或离线",
+            maica_instance.MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版",
+            maica_instance.MaicaAiStatus.NO_INTERNET: u"检测到子模组离线. 请根据Readme重新检查安装和网络连接",
+            maica_instance.MaicaAiStatus.CERTIFI_RESTART_REQUIRED: u"重启游戏以应用证书修复",
         })
         store.mas_setEVLPropValues(
             "maica_main",

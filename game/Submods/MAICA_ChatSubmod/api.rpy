@@ -307,13 +307,15 @@ init 5 python in maica:
                     if res.status_code == 200 and res2.status_code == 200:
                         with open(os.path.normpath(os.path.join(basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
                             file.write(res.content)
-                            store.maica.maica_instance.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
 
                         with open(os.path.normpath(os.path.join(basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
                             file.write(res2.content)
-                            store.maica.maica_instance.status = 13408
                             store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
+                        store.maica.maica_instance.disable(
+                            store.maica.maica_instance.MaicaAiStatus.CERTIFI_RESTART_REQUIRED,
+                            sticky=True,
+                        )
 
                     else:
                         store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}".format(res.status_code, res2.status_code))
@@ -391,7 +393,10 @@ init 5 python in maica:
         store.maica.maica_instance.accessable()
 
         if is_frontend_version_outdated():
-            store.maica.maica_instance.disable(store.maica.maica_instance.MaicaAiStatus.VERSION_OLD)
+            store.maica.maica_instance.disable(
+                store.maica.maica_instance.MaicaAiStatus.VERSION_OLD,
+                sticky=True,
+            )
 
         if not renpy.seen_label("maica_prepend_2") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
             store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")

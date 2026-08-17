@@ -206,11 +206,12 @@ def test_maica_description_status_and_event_overrides_are_chinese():
     source = read(TL / "maica_description.rpy")
     normalized_source = " ".join(source.split())
     expected_snippets = [
-        'MaicaAiStatus.NOT_READY: u"等待账号设置"',
-        'MaicaAiStatus.MESSAGE_WAIT_INPUT: u"MAICA已准备好接收询问"',
+        'MaicaAiStatus.IDLE: u"MAICA当前空闲"',
+        'MaicaAiStatus.CONNECTED: u"MAICA已连接并准备就绪"',
         'MaicaAiStatus.TOKEN_INVALID: u"账号或密码无效"',
         'MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版"',
         'MaicaAiStatus.NO_INTERNET: u"检测到子模组离线',
+        'MaicaAiStatus.CERTIFI_RESTART_REQUIRED: u"证书修复已完成, 请重启游戏使其生效"',
         'prompt="我们去天堂树林吧", category=["你", "我们", "模组", "MAICA"]',
         'prompt="关于\'MVista\'", category=["你", "我们", "模组", "MAICA"]',
     ]
