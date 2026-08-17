@@ -86,15 +86,31 @@ def test_maica_talking_owns_mtrigger_dispatch_and_post_processing():
     assert dispatch < quality < reconnect < resume
 
     dispatcher = _label_block(source, "maica_run_mtriggers")
-    default_action = dispatcher.index(
+    dynamic = dispatcher.index(
+        'renpy.dynamic("mtrigger_manager", "mtrigger_action", "mtrigger_step_action")'
+    )
+    manager_default = dispatcher.index("        mtrigger_manager = None")
+    action_default = dispatcher.index(
+        '        mtrigger_action = {"stop": False}'
+    )
+    step_default = dispatcher.index(
+        '        mtrigger_step_action = {"stop": False}'
+    )
+    manager_binding = dispatcher.index(
+        "mtrigger_manager = store.maica.maica_instance.mtrigger_manager"
+    )
+    empty_check = dispatcher.index("if not mtrigger_manager.has_triggered()")
+    per_run_default = dispatcher.index(
         '$ mtrigger_step_action = {"stop": False}'
     )
     run_action = dispatcher.index(
         "$ mtrigger_step_action = mtrigger_manager.run_trigger()"
     )
-    assert default_action < run_action
-    assert "mtrigger_manager.has_triggered()" in dispatcher
-    assert 'renpy.dynamic("mtrigger_manager", "mtrigger_action", "mtrigger_step_action")' in dispatcher
+    assert all(
+        dynamic < default < manager_binding
+        for default in (manager_default, action_default, step_default)
+    )
+    assert manager_binding < empty_check < per_run_default < run_action
 
 
 def test_mtrigger_early_returns_restore_console():

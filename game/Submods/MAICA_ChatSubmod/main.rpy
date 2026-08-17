@@ -227,8 +227,11 @@ label maica_talking.ask_mspire_continue:
 label maica_run_mtriggers:
     python:
         renpy.dynamic("mtrigger_manager", "mtrigger_action", "mtrigger_step_action")
-        mtrigger_manager = store.maica.maica_instance.mtrigger_manager
+        # Ren'Py 6.99 requires every declared dynamic name to exist before return.
+        mtrigger_manager = None
         mtrigger_action = {"stop": False}
+        mtrigger_step_action = {"stop": False}
+        mtrigger_manager = store.maica.maica_instance.mtrigger_manager
 label .next:
     if not mtrigger_manager.has_triggered():
         return mtrigger_action
