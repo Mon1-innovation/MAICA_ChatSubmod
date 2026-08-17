@@ -675,19 +675,14 @@ screen maica_location_input(addition="", edittarget=None):
             persistent.mas_geolocation = persistent._mas_geolocation
         def verify(position):
             res = store.maica.maica_instance.verify_legality("geolocation", position)
-            if res.get("success", False):
-                content = res.get("content") or {}
-                if not isinstance(content, dict):
-                    content = {}
-                latitude = content.get("latitude", content.get("lat"))
-                longitude = content.get("longitude", content.get("lng", content.get("lon")))
-                if latitude is None or longitude is None:
-                    coordinate_text = renpy.substitute(_("Coordinates unavailable"))
-                else:
-                    coordinate_text = renpy.substitute(_("Latitude: {0}\nLongitude: {1}")).format(latitude, longitude)
-                renpy.show_screen("maica_message", message=renpy.substitute(_("Verification passed")) + "\n" + renpy.substitute(_("Location geocode: ")) + str(content.get("geocode", "")) + "\n" + coordinate_text)
+            coordinates = store.maica.maica_instance.extract_legality_coordinates(res)
+            if res.get("success", False) and coordinates is not None:
+                latitude, longitude = coordinates
+                coordinate_text = renpy.substitute(_("Latitude: {0}\nLongitude: {1}")).format(latitude, longitude)
+                renpy.show_screen("maica_message", message=renpy.substitute(_("Verification passed")) + "\n" + coordinate_text)
             else:
-                renpy.show_screen("maica_message", message=renpy.substitute(_("Verification failed")) + "\n" + renpy.substitute(_("Reason: ")) + res.get("exception"))
+                reason = res.get("exception") or renpy.substitute(_("Coordinates unavailable"))
+                renpy.show_screen("maica_message", message=renpy.substitute(_("Verification failed")) + "\n" + renpy.substitute(_("Reason: ")) + reason)
 
 
     modal True

@@ -1499,21 +1499,24 @@ def test_f_nickname_has_default_and_ui_owner():
 
 
 def test_f_legality_response_displays_distinct_latitude_and_longitude():
-    runtime = source("game/python-packages/maica.py") + source("game/Submods/MAICA_ChatSubmod/api.rpy")
-    legality = function_body(runtime, r"\w*legality\w*")
-    latitude = re.search(
-        r"(?P<var>\w+)\s*=\s*[^\n]*(?:content|result|res)[^\n]*(?:get\s*\(\s*['\"](?:latitude|lat)['\"]|\[['\"](?:latitude|lat)['\"]\])",
-        legality,
+    client = source("game/python-packages/maica.py")
+    extractor = function_body(client, r"extract_legality_coordinates")
+    screen_source = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    location_screen = named_screen(screen_source, "maica_location_input")
+    translation = source("game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy")
+
+    assert 'get("latitude")' in extractor
+    assert 'get("longitude")' in extractor
+    for retired_key in ('get("lat"', 'get("lng"', 'get("lon"'):
+        assert retired_key not in extractor
+
+    assert "extract_legality_coordinates" in location_screen
+    assert re.search(
+        r"format\s*\(\s*latitude\s*,\s*longitude\s*\)",
+        location_screen,
     )
-    longitude = re.search(
-        r"(?P<var>\w+)\s*=\s*[^\n]*(?:content|result|res)[^\n]*(?:get\s*\(\s*['\"](?:longitude|lng|lon)['\"]|\[['\"](?:longitude|lng|lon)['\"]\])",
-        legality,
-    )
-    assert latitude, "legality success path does not read latitude from response content"
-    assert longitude, "legality success path does not read longitude from response content"
-    lat_var, lon_var = latitude.group("var"), longitude.group("var")
-    displays = re.findall(r"(?:format\s*\([^)]*\)|%\s*\([^)]*\)|f['\"][^'\"]*['\"])", legality, re.S)
-    assert any(lat_var in display and lon_var in display for display in displays), "latitude and longitude must enter the same displayed success string"
+    assert "geocode" not in location_screen.lower()
+    assert 'old "Location geocode: "' not in translation
 
 
 def test_g_header_shared_additions_helper_enforces_both_byte_limits():

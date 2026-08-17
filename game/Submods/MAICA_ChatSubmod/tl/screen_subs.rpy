@@ -186,9 +186,6 @@ translate chinese strings:
 
 translate chinese strings:
 
-    # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:493
-    old "Location geocode: "
-    new "地区编码: "
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:495
     old "Verification failed"
     new "验证失败"

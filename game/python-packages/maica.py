@@ -955,6 +955,22 @@ class MaicaAi(ChatBotInterface):
             "content": [self.MoodStatus.fallback_selector.predict(), 0.0],
         }
 
+    def extract_legality_coordinates(self, result):
+        """Return the canonical latitude/longitude pair from a legality result."""
+        if not isinstance(result, dict):
+            return None
+
+        content = result.get("content")
+        if not isinstance(content, dict):
+            return None
+
+        latitude = content.get("latitude")
+        longitude = content.get("longitude")
+        if latitude is None or longitude is None:
+            return None
+
+        return latitude, longitude
+
     def verify_legality(self, verification_object=None, verification_value=None):
         """
         进行在线执行验证。
@@ -985,12 +1001,31 @@ class MaicaAi(ChatBotInterface):
             logger.error("verify_legality: access_token is null")
             return {"success": False, "exception": "Access token is null"}
 
+        token_only = verification_object is None and verification_value is None
+        if not token_only:
+            try:
+                string_types = (basestring,)
+            except NameError:
+                string_types = (str,)
+
+            if (
+                not isinstance(verification_object, string_types)
+                or not isinstance(verification_value, string_types)
+                or not verification_object.strip()
+                or not verification_value.strip()
+            ):
+                logger.warning("verify_legality: object and value must be non-empty strings")
+                return {
+                    "success": False,
+                    "exception": "Legality verification requires non-empty object and value",
+                }
+
         try:
             # 构建请求参数
             params = {"access_token": self.ciphertext}
 
             # 如果提供了验证内容，添加到参数中
-            if verification_object and verification_value:
+            if not token_only:
                 content = {
                     "object": verification_object,
                     "value": verification_value
@@ -1006,12 +1041,20 @@ class MaicaAi(ChatBotInterface):
             try:
                 res_data = res.json()
                 if res_data.get("success", False):
-                    content = res_data.get("content") or {}
-                    if isinstance(content, dict):
-                        latitude = content.get("latitude", content.get("lat"))
-                        longitude = content.get("longitude", content.get("lng", content.get("lon")))
-                        if latitude is not None and longitude is not None:
-                            content["coordinate_text"] = "Latitude: {0}, Longitude: {1}".format(latitude, longitude)
+                    if (
+                        not token_only
+                        and verification_object == "geolocation"
+                        and self.extract_legality_coordinates(res_data) is None
+                    ):
+                        logger.warning(
+                            "Legality verification response missing latitude/longitude: {}".format(
+                                res_data
+                            )
+                        )
+                        return {
+                            "success": False,
+                            "exception": "Legality verification response missing latitude/longitude",
+                        }
                     logger.debug("Legality verification successful: {}".format(res_data))
                     return res_data
                 else:

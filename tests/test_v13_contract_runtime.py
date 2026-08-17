@@ -383,7 +383,7 @@ def test_connection_scripts_do_not_reference_retired_error_state_api():
     assert 'if _return == "disconnected":' in raw_example
 
 
-def test_maica_legality_preserves_backend_status_from_http_error(monkeypatch):
+def test_verify_token_preserves_backend_status_from_http_error(monkeypatch):
     class Response:
         def json(self):
             return {
@@ -405,6 +405,139 @@ def test_maica_legality_preserves_backend_status_from_http_error(monkeypatch):
 
     assert result["status"] == "maica_login_email_unchecked"
     assert result["exception"] == "Email not verified"
+
+
+def _make_legality_client():
+    class Provider:
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    ai = object.__new__(maica.MaicaAi)
+    ai._MaicaAi__accessable = True
+    ai.ciphertext = "token-value"
+    ai.provider_manager = Provider()
+    return ai
+
+
+@pytest.mark.parametrize(
+    ("latitude", "longitude"),
+    ((30.5928, 114.3055), (0.0, 0.0)),
+)
+def test_verify_legality_preserves_canonical_coordinates(
+    monkeypatch, latitude, longitude
+):
+    calls = []
+    payload = {
+        "success": True,
+        "exception": None,
+        "content": {"latitude": latitude, "longitude": longitude},
+    }
+
+    class Response:
+        status_code = 200
+        text = ""
+
+        def json(self):
+            return payload
+
+    def fake_get(url, **kwargs):
+        calls.append((url, kwargs))
+        return Response()
+
+    monkeypatch.setattr("requests.get", fake_get)
+    ai = _make_legality_client()
+
+    result = ai.verify_legality("geolocation", "Wuhan")
+
+    assert result == payload
+    assert result["content"] == {
+        "latitude": latitude,
+        "longitude": longitude,
+    }
+    assert ai.extract_legality_coordinates(result) == (latitude, longitude)
+    assert calls[0][0] == "https://backend.test/api/legality"
+    assert json.loads(calls[0][1]["params"]["content"]) == {
+        "object": "geolocation",
+        "value": "Wuhan",
+    }
+
+
+@pytest.mark.parametrize(
+    "content",
+    (
+        {"lat": 30.5928, "lng": 114.3055},
+        {"lat": 30.5928, "lon": 114.3055},
+        {"latitude": 30.5928},
+        {"longitude": 114.3055},
+        "test-user",
+    ),
+)
+def test_verify_legality_rejects_noncanonical_coordinate_payload(
+    monkeypatch, content
+):
+    class Response:
+        status_code = 200
+        text = ""
+
+        def json(self):
+            return {"success": True, "exception": None, "content": content}
+
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: Response())
+    result = _make_legality_client().verify_legality("geolocation", "Wuhan")
+
+    assert result["success"] is False
+    assert "latitude/longitude" in result["exception"]
+
+
+@pytest.mark.parametrize(
+    ("verification_object", "verification_value"),
+    (
+        ("geolocation", ""),
+        ("geolocation", "   "),
+        ("", "Wuhan"),
+        (None, "Wuhan"),
+        ("geolocation", 114),
+        (114, "Wuhan"),
+    ),
+)
+def test_verify_legality_rejects_incomplete_content_without_request(
+    monkeypatch, verification_object, verification_value
+):
+    calls = []
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+
+    result = _make_legality_client().verify_legality(
+        verification_object, verification_value
+    )
+
+    assert result["success"] is False
+    assert calls == []
+
+
+def test_verify_legality_without_content_keeps_token_only_check(monkeypatch):
+    calls = []
+
+    class Response:
+        status_code = 200
+        text = ""
+
+        def json(self):
+            return {"success": True, "exception": None, "content": "test-user"}
+
+    def fake_get(url, **kwargs):
+        calls.append((url, kwargs))
+        return Response()
+
+    monkeypatch.setattr("requests.get", fake_get)
+
+    result = _make_legality_client().verify_legality()
+
+    assert result["success"] is True
+    assert result["content"] == "test-user"
+    assert calls[0][1]["params"] == {"access_token": "token-value"}
 
 
 def test_general_chat_completion_resets_mood_after_final_analysis():
@@ -2708,7 +2841,7 @@ def test_accessable_reports_missing_certifi_module_as_certificate_failure(monkey
     assert ai.error_protocol_status == "client_certifi_broken"
 
 
-def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
+def test_legality_ui_uses_canonical_coordinate_result_without_legacy_geocode():
     screen = (
         Path(__file__).resolve().parents[1]
         / "game"
@@ -2716,10 +2849,15 @@ def test_legality_ui_accepts_canonical_and_alias_coordinate_fields():
         / "MAICA_ChatSubmod"
         / "screen_subs.rpy"
     ).read_text(encoding="utf-8")
-    assert 'get("latitude"' in screen and 'get("lat"' in screen
-    assert 'get("longitude"' in screen
-    assert 'get("lng"' in screen and 'get("lon"' in screen
-    assert "latitude" in screen and "longitude" in screen
+    location_screen = screen.split("screen maica_location_input", 1)[1].split(
+        "screen maica_addition_setting", 1
+    )[0]
+    assert "extract_legality_coordinates" in location_screen
+    assert "latitude, longitude" in location_screen
+    assert "format(latitude, longitude)" in location_screen
+    assert "geocode" not in location_screen.lower()
+    for legacy_key in ('get("lat"', 'get("lng"', 'get("lon"'):
+        assert legacy_key not in location_screen
 
 
 def test_setting_migration_renames_tristates_and_is_idempotent():
