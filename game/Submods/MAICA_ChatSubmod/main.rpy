@@ -27,7 +27,6 @@ label maica_talking(mspire = False, prepared = False):
         import copy
         from store.maica import maica_instance as ai
         import bot_interface
-        from maica_mtrigger import MTriggerAction
         import traceback
         ai.content_func = store.mas_ptod._update_console_history
         store.action = {}
@@ -161,21 +160,44 @@ label maica_talking.asking:
                 break
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             return_code = "mtrigger_triggering"
-            store.action = ai.mtrigger_manager.run_trigger(MTriggerAction.post)
+
+            # MTrigger callbacks can transfer control to Ren'Py labels.
+            # Leave the Python loop so the script-level dispatcher can resume them.
+            break
+
+    if return_code == "mtrigger_triggering":
+        # This means we're in "mtrigger processing status", not necessarily have any trigger.
+        # So we ALWAYS enter this while main dialogues finished.
+
+        call maica_run_mtriggers
+        $ store.action = _return
+        python:
             for quality_reasonable, quality_confidence in ai.consume_quality_statuses():
                 store.maica_handle_quality_status(quality_reasonable, quality_confidence)
             ai.console_logger.debug("<chat_action> {}".format(store.action))
-            if store.action['stop']:
-                return_code = "canceled"
-                break
-            if mspire:
-                if ai.mspire_session == 0:
-                    afm_pref = renpy.game.preferences.afm_enable
-                    renpy.game.preferences.afm_enable = False
-                    break
-                else:
-                    mspire = False
-                    renpy.jump("maica_talking.ask_mspire_continue")
+
+        if store.action['stop']:
+            $ return_code = "canceled"
+            jump maica_talking.end
+
+        if not ai.is_connected() or not ai.is_ready_to_input():
+            call maica_init_connect(use_pause_instand_wait = True)
+            if _return == "disconnected":
+                $ return_code = "disconnected"
+                jump maica_talking.end
+
+        if mspire:
+            if ai.mspire_session == 0:
+                $ afm_pref = renpy.game.preferences.afm_enable
+                $ renpy.game.preferences.afm_enable = False
+                $ return_code = "canceled"
+                jump maica_talking.end
+            else:
+                $ mspire = False
+                jump maica_talking.ask_mspire_continue
+
+        $ return_code = None
+        jump maica_talking.asking
 
     # store.mas_ptod.write_command()
 
@@ -183,7 +205,7 @@ label maica_talking.asking:
 
 label maica_talking.end:
     call maica_hide_console
-    if persistent.maica_setting_dict['console'] and return_code != "mtrigger_triggering":
+    if persistent.maica_setting_dict['console']:
         $ store.mas_ptod.clear_console()
     # if mspire_user_responsed:
     #     $ maica_apply_setting(True)
@@ -201,6 +223,22 @@ label maica_talking.ask_mspire_continue:
             $ return_code = "canceled"
             jump maica_talking.end
     return
+
+label maica_run_mtriggers:
+    python:
+        renpy.dynamic("mtrigger_manager", "mtrigger_action", "mtrigger_step_action")
+        mtrigger_manager = store.maica.maica_instance.mtrigger_manager
+        mtrigger_action = {"stop": False}
+label .next:
+    if not mtrigger_manager.has_triggered():
+        return mtrigger_action
+    $ mtrigger_step_action = {"stop": False}
+    $ mtrigger_step_action = mtrigger_manager.run_trigger()
+    if mtrigger_step_action.get("stop"):
+        $ mtrigger_action["stop"] = True
+        return mtrigger_action
+    jump .next
+
 label maica_show_console:
     if persistent.maica_setting_dict['console']:
         $ maica_enableWorkLoadScreen()
@@ -215,10 +253,17 @@ label maica_hide_console:
             show monika at t11
     return
 
-label maica_reconnect:
+label maica_pause_connection:
     python:
-        store.maica.maica_instance.close_wss_session()
+        ai = store.maica.maica_instance
+        if ai.is_connected():
+            ai.close_wss_session()
     return
+
+label maica_reconnect:
+    call maica_pause_connection
+    call maica_init_connect(use_pause_instand_wait = True)
+    return _return
 
 label maica_mpostal_load:
     python:

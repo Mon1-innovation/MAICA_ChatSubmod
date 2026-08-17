@@ -210,6 +210,9 @@ class MTriggerManager(object):
                 logger.debug("triggered {} <- {}".format(name, param))
                 self.triggered_list.append((t, param))
 
+    def has_triggered(self, action=MTriggerAction.post):
+        return any(t[0].action == action for t in self.triggered_list)
+
     def run_trigger(self, action=MTriggerAction.post, remove=True):
         doact = {
             "stop":False,

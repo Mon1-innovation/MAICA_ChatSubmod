@@ -976,10 +976,9 @@ label .talking_start:
         $ renpy.notify("MAICA DEV: return: {}".format(maica_talking_result))
     if maica_talking_result == "canceled":
         m 1eub "Alright, just a second.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
-    elif store.maica.maica_instance.mtrigger_manager._running:
-        $ store.maica.maica_instance.mtrigger_manager._running = False
+    elif maica_talking_result == "mtrigger_triggering":
         jump .talking_start
-    elif maica_talking_result != "mtrigger_triggering":
+    else:
         $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(maica_talking_result))
         call maica_connection_failure_dialogue
         m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."

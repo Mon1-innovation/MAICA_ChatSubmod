@@ -1,5 +1,5 @@
 label mtrigger_change_clothes(outfit_name):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
@@ -30,7 +30,7 @@ label mtrigger_change_clothes(outfit_name):
     return
 
 label mtrigger_change_hair(outfit_name):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
@@ -60,7 +60,7 @@ label mtrigger_change_hair(outfit_name):
     call maica_show_console
     return
 label mtrigger_unwear_acs(outfit_to_wear):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
@@ -80,7 +80,7 @@ label mtrigger_unwear_acs(outfit_to_wear):
     return
 
 label mtrigger_change_acs(outfit_name):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Should I change it now, [player]?{nw}"
     $ _history_list.pop()
@@ -133,7 +133,7 @@ label mtrigger_acs_select:
     return
 
 label mtrigger_kiss:
-    call maica_reconnect
+    call maica_pause_connection
     if mas_shouldKiss(1, datetime.timedelta(0)):
         call maica_hide_console
         m "Then...want a kiss?{nw}"
@@ -148,7 +148,7 @@ label mtrigger_kiss:
     return
 
 label mttrigger_minigame(game):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Then...shall we play a bit, [player]?{nw}"
     $ _history_list.pop()
@@ -162,7 +162,7 @@ label mttrigger_minigame(game):
     return
 
 label mtrigger_leave:
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Leaving already?{nw}"
     $ _history_list.pop()
@@ -184,13 +184,20 @@ label mtrigger_quit:
     return
 
 label mtrigger_location:
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     if mas_isMoniEnamored(higher=True):
         call monika_change_background
     else:
         m 1eua "Seems we don't have anywhere to go right now..."
         m 1eksdlb "Sorry for that, [player]."
+    call maica_show_console
+    return
+
+label mtrigger_weather(weather):
+    call maica_pause_connection
+    call maica_hide_console
+    call mas_change_weather(weather, by_user=True, set_persistent=True)
     call maica_show_console
     return
 
@@ -225,7 +232,7 @@ label mtrigger_brb:
     return
 
 label mtrigger_hold:
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Then...want a hug?{nw}"
     $ _history_list.pop()
@@ -234,6 +241,7 @@ label mtrigger_hold:
         "Hold [m_name]":
             pass
         "Nevermind{#maica_host_nevermind}":
+            call maica_show_console
             return
     call monika_holdme_prep
     call monika_holdme_start
@@ -243,7 +251,7 @@ label mtrigger_hold:
     return
 
 label mtrigger_music_menu:
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Wanna change the music now, [player]?{nw}"
     $ _history_list.pop()
@@ -257,7 +265,7 @@ label mtrigger_music_menu:
     return
 
 label mtrigger_music_auto(cls, selection):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Shall I play '[selection]' now, [player]?{nw}"
     $ _history_list.pop()
@@ -271,7 +279,7 @@ label mtrigger_music_auto(cls, selection):
     return
 
 label mtrigger_neteasemusic_search(keyword):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     $ store.np_util.Music_Search(keyword)
     call np_menu_display
@@ -279,7 +287,7 @@ label mtrigger_neteasemusic_search(keyword):
     return
 
 label mtrigger_youtubemusic_search(keyword):
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     if ytm_utils.is_online():
         if not ytm_globals.is_playing:
@@ -287,6 +295,7 @@ label mtrigger_youtubemusic_search(keyword):
     else:
         m 1rksdla "..."
         m 1rksdlb "We need an internet connection to listen to music online, [player]..."
+        call maica_show_console
         return
 
     python:
@@ -374,7 +383,7 @@ label mtrigger_youtubemusic_search(keyword):
     return
 
 label mtrigger_takeout:
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     m "Are we going now, [player]?{nw}"
     $ _history_list.pop()
@@ -389,7 +398,7 @@ label mtrigger_takeout:
     return
 
 label mtrigger_backup:
-    call maica_reconnect
+    call maica_pause_connection
     call maica_hide_console
     if renpy.has_label('extra_mas_backup'):
         call extra_mas_backup
@@ -397,7 +406,7 @@ label mtrigger_backup:
         call mas_backup
     else:
         m "Something might went wrong...could you do it yourself please?"
-        call maica_show_console
+    call maica_show_console
     return
 
 # Quality status is handled independently in screen_subs.rpy.

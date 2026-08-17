@@ -1632,7 +1632,8 @@ def test_h_quality_status_has_a_separate_listener_and_post_response_consumer():
         r"QualityStatusTasker\s*=\s*maica_tasker_sub\.QualityStatusWsHandler",
         runtime,
     )
-    trigger_run = main.index("ai.mtrigger_manager.run_trigger")
+    assert "mtrigger_manager.run_trigger()" in main
+    trigger_run = main.index("call maica_run_mtriggers")
     quality_consume = main.index("ai.consume_quality_statuses")
     stop_check = main.index("if store.action['stop']")
     assert trigger_run < quality_consume < stop_check

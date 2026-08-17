@@ -234,7 +234,7 @@ init 999 python in maica:
                 ai.console_logger.warning("<mtrigger> {} is not a valid weather!".format(selection))
                 return
             weather = self.weathers[selection]
-            store.renpy.call("mas_change_weather", weather, by_user=True, set_persistent=True)
+            store.renpy.call("mtrigger_weather", weather)
     weather_trigger = WeatherTrigger()
     ai.mtrigger_manager.add_trigger(weather_trigger)
 
