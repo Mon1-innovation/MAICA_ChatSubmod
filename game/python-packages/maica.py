@@ -181,9 +181,9 @@ class MaicaAi(ChatBotInterface):
             SERVER_MAINTAIN:u"The server is unavailable or under maintenance",
             CERTIFI_BROKEN:u"SSL/TLS support is not working correctly",
             FAILED_GET_NODE:u"Failed to retrieve an available service provider",
-            VERSION_OLD:u"The submod version is outdated",
-            NO_INTERNET:u"No internet connection is available",
-            CERTIFI_RESTART_REQUIRED:u"Restart to apply certificate fix",
+            VERSION_OLD:u"Submod version outdated, update required",
+            NO_INTERNET:u"No internet connection available",
+            CERTIFI_RESTART_REQUIRED:u"An certification fix applied, restart game to apply",
         }
 
         @classmethod

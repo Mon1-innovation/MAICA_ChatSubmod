@@ -25,7 +25,7 @@ translate chinese python in maica:
             maica_instance.MaicaAiStatus.FAILED_GET_NODE: u"获取服务节点失败, 服务器可能正在维护或离线",
             maica_instance.MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版",
             maica_instance.MaicaAiStatus.NO_INTERNET: u"检测到子模组离线. 请根据Readme重新检查安装和网络连接",
-            maica_instance.MaicaAiStatus.CERTIFI_RESTART_REQUIRED: u"重启游戏以应用证书修复",
+            maica_instance.MaicaAiStatus.CERTIFI_RESTART_REQUIRED: u"执行了证书修复, 请重启以生效",
         })
         store.mas_setEVLPropValues(
             "maica_main",
