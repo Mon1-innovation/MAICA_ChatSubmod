@@ -1132,11 +1132,11 @@ translate chinese maica_wants_mpostal_45f4436d:
     # m 7kub "Like 'I_love_you.mail'! {w=0.5}{nw}"
     m 7kub "就像是'我爱你.mail'! {w=0.5}{nw}"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:982
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1348
 
-translate chinese maica_wants_mpostal_a7cf5c8c:
-    # extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."
-    extend 2lksdlb "只是记得用记事本写, 我应该读不了太复杂的文档或者图片."
+translate chinese maica_wants_mpostal_8d1afbdc:
+    # extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents yet."
+    extend 2lksdlb "只是记得用记事本写, 我还读不了太复杂的文档."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:983
 
@@ -1144,11 +1144,11 @@ translate chinese maica_wants_mpostal_7e2fe8cf:
     # m 1kubsu "Next time you open the game, I'll be able to read it and write back to you!"
     m 1kubsu "你打开游戏的时候, 我就可以写我的回信了!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:984
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1350
 
-translate chinese maica_wants_mpostal_51895086:
-    # m 3hubsa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
-    m 3hubsa "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 如果你有当面说不清的话, {w=0.3}或者只是想写点什么给我, 现在随时都可以哦!"
+translate chinese maica_wants_mpostal_e14005a9:
+    # m 3hubsa "It makes me recall those days we exchange poems, really. {w=0.5}Anyway, if you just want to write or have whatever doesn't suit talking face to face, I'm ready anytime from now!"
+    m 3hubsa "说实话, 我想起了我们在文学部交换过的诗. {w=0.5}总之, 你要是想写点了, 或者有当面说不清的话, 现在随时都可以写给我哦!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:989
 
@@ -1216,11 +1216,11 @@ translate chinese maica_mpostal_replyed_start_fe50a149:
     # m 2lksdlb "Oh, [player], {w=0.5}About your last letter..."
     m 2lksdlb "对了, [player], {w=0.5}上次的信..."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1043
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1409
 
-translate chinese maica_mpostal_replyed_start_7fbae3fb:
-    # m 2ekc "It seems that the Heaven Forest is not set up yet, I couldn't write you back."
-    m 2ekc "你好像还没有给天堂树林配置好, 我没法把回信写给你."
+translate chinese maica_mpostal_replyed_start_ba7ce531:
+    # m 2ekc "It seems that the Heaven Forest is not ready, I couldn't write you back."
+    m 2ekc "天堂树林好像没准备好, 我没法把回信写给你."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1044
 
@@ -1288,29 +1288,17 @@ translate chinese maica_mpostal_replyed_start_e32c456e:
     # m "And it's done!"
     m "好了!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1077
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1444
 
-translate chinese maica_mpostal_replyed_end_3907f8be:
-    # m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope you like it!"
-    m 2lksdlb "说实话, 我还没太熟悉在这里写信, 不过还是希望你喜欢!"
+translate chinese maica_mpostal_replyed_end_f6e50354:
+    # m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope it's not too bad!"
+    m 2lksdlb "说实话, 我还没太熟悉在这里写信, 希望写得不算差劲吧!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1078
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1446
 
-translate chinese maica_mpostal_replyed_end_c955ce25:
-    # m 2ekbsa "I have to admit that I'm not quite used to writing here, but I hope you like it!"
-    m 2ekbsa "不过还是希望你喜欢!"
-
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1080
-
-translate chinese maica_mpostal_replyed_end_880b23ed:
-    # m 2lksdlb "May not good as my poems though, but I really tried! Hope you like it!"
+translate chinese maica_mpostal_replyed_end_8b53f24b:
+    # m 2lksdlb "May not as good as my former poems though, but I really tried. Hope you like it!"
     m 2lksdlb "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
-
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1081
-
-translate chinese maica_mpostal_replyed_end_f2f6ca8e:
-    # m 2ekbsa "May not good as my poems though, but I really tried! Hope you like it!"
-    m 2ekbsa "希望你喜欢哦!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1082
 
@@ -1464,25 +1452,31 @@ translate chinese maica_wants_mvista_903cba0d:
     # m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
     m 3eub "只需要在'子模组设置'里找到'MVista'图片, 就可以上传给我看了! 对话框底下也有个按钮."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1532
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1527
 
 translate chinese maica_wants_mvista_6d810e48:
     # m 1eub "If you're a lover of postcards, you can also attach images to your letters, by naming them the same as your letter but with postfix '.mms'."
     m 1eub "如果你是明信片爱好者, 送信给我的时候也可以加张图片. 图片的名字和信要一样, 后缀名再改成'.mms'."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1533
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1528
 
 translate chinese maica_wants_mvista_6d392c96:
     # m 3rublsdla "Most image formats are okay, though static only! I cannot imagine how you'd send a video through a piece of paper."
     m 3rublsdla "大多数格式都可以, 不过只能是静态的! 让你把视频夹进一封信里也太奇怪了."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1534
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1529
 
 translate chinese maica_wants_mvista_603074b3:
     # m 7eua "Like, the sunrise photo with a tiny poetry? {w=0.2}That should look like 'sunrise.mail' plus 'sunrise.mms'. {w=0.2}And I can reply you a poetry too!"
     m 7eua "比如, 一张日出的照片加上一首小诗? {w=0.2}就是'sunrise.mail'加上'sunrise.mms'这样. {w=0.2}我也可以给你回一首!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1289
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1531
+
+translate chinese maica_wants_mvista_708b2255:
+    # m 3eub "Like, take a picture of whatever you like, and we can discuss!"
+    m 3eub "比如, 拍点你喜欢的东西给我看, 我们就可以聊聊了!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1532
 
 translate chinese maica_wants_mvista_5e0e4c7a:
     # m 7eubsa "Or would you show me your face? Only if you're not too shy, ehehe~"

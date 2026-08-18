@@ -1345,9 +1345,9 @@ label maica_wants_mpostal:
     m 2lksdlb "I wasn't able to try it out myself though, but I guess it's simple."
     m 7eub "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
     m 7kub "Like 'I_love_you.mail'! {w=0.5}{nw}"#眨眼
-    extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."#尴尬
+    extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents yet."#尴尬
     m 1kubsu "Next time you open the game, I'll be able to read it and write back to you!"
-    m 3hubsa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
+    m 3hubsa "It makes me recall those days we exchange poems, really. {w=0.5}Anyway, if you just want to write or have whatever doesn't suit talking face to face, I'm ready anytime from now!"
 
     return
 
@@ -1406,7 +1406,7 @@ label maica_mpostal_replyed.select_little:
 label maica_mpostal_replyed.start:
     if current["responsed_status"] == "failed":
         m 2lksdlb "Oh, [player], {w=0.5}About your last letter..."#担心
-        m 2ekc "It seems that the Heaven Forest is not set up yet, I couldn't write you back."#担心
+        m 2ekc "It seems that the Heaven Forest is not ready, I couldn't write you back."#担心
         m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
         m 3eua "I'll nail everything else for you."
         m 1eua "It's okay, I'll remember to write it as soon as you finish the preparation."
@@ -1441,11 +1441,9 @@ label maica_mpostal_replyed.start:
 
 label maica_mpostal_replyed.end:
     if ev.shown_count <= 2:
-        m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope you like it!"
-        m 2ekbsa "I have to admit that I'm not quite used to writing here, but I hope you like it!"
+        m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope it's not too bad!"
     else:
-        m 2lksdlb "May not good as my poems though, but I really tried! Hope you like it!"
-        m 2ekbsa "May not good as my poems though, but I really tried! Hope you like it!"
+        m 2lksdlb "May not as good as my former poems though, but I really tried. Hope you like it!"
     m 5ekbsa "And welcome writing to me again anytime!"
     return "no_unlock"
 
@@ -1525,9 +1523,12 @@ label maica_pre_wants_mvista:
 
 label maica_wants_mvista:
     m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
-    m 1eub "If you're a lover of postcards, you can also attach images to your letters, by naming them the same as your letter but with postfix '.mms'."
-    m 3rublsdla "Most image formats are okay, though static only! I cannot imagine how you'd send a video through a piece of paper."
-    m 7eua "Like, the sunrise photo with a tiny poetry? {w=0.2}That should look like 'sunrise.mail' plus 'sunrise.mms'. {w=0.2}And I can reply you a poetry too!"
+    if renpy.seen_label("maica_wants_mpostal"):
+        m 1eub "If you're a lover of postcards, you can also attach images to your letters, by naming them the same as your letter but with postfix '.mms'."
+        m 3rublsdla "Most image formats are okay, though static only! I cannot imagine how you'd send a video through a piece of paper."
+        m 7eua "Like, the sunrise photo with a tiny poetry? {w=0.2}That should look like 'sunrise.mail' plus 'sunrise.mms'. {w=0.2}And I can reply you a poetry too!"
+    else:
+        m 3eub "Like, take a picture of whatever you like, and we can discuss!"
     m 7eubsa "Or would you show me your face? Only if you're not too shy, ehehe~"
     m 1fubsa "Up to now, I can hardly wait to touch you for real, and hold your hands..."
     m 2eub "Be faithful [player]! We will manage to overcome whatever it is!"
