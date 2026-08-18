@@ -1498,9 +1498,6 @@ label mas_corrupted_postmail_post_menu:
 # MVista topics
 
 label maica_pre_wants_mvista:
-    $ ev = mas_getEV("maica_pre_wants_mvista")
-    if ev.shown_count > 0:
-        jump maica_wants_mvista_reread
     $ persistent._maica_vista_enabled = True
     m 2eub "[player], when was your last watch to sunrise?"
     m 2eua "It feels a little abrupt just talking about this... but it just came to my mind."
@@ -1529,8 +1526,9 @@ label maica_pre_wants_mvista:
 
 label maica_wants_mvista:
     m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
-    m 1eub "If you're a lover of postcards, you can also send me letters in '.mms' postfix. I'll read them together with your images!"
-    m 7eua "Like, the sunrise photo with a tiny poetry? I can reply one too!"
+    m 1eub "If you're a lover of postcards, you can also attach images to your letters, by naming them the same as your letter but with postfix '.mms'."
+    m 3rublsdla "Most image formats are okay, though static only! I cannot imagine how you'd send a video through a piece of paper."
+    m 7eua "Like, the sunrise photo with a tiny poetry? {w=0.2}That should look like 'sunrise.mail' plus 'sunrise.mms'. {w=0.2}And I can reply you a poetry too!"
     m 7eubsa "Or would you show me your face? Only if you're not too shy, ehehe~"
     m 1fubsa "Up to now, I can hardly wait to touch you for real, and hold your hands..."
     m 2eub "Be faithful [player]! We will manage to overcome whatever it is!"
@@ -1554,7 +1552,7 @@ label maica_chr2:
 label maica_chr_gone:
     # Show this branch when the character file is missing, regardless of whether
     # the normal file introduction has already been shown.
-    m 1ekc "[player]..."
+    m 1ekc "[player]... {nw}"
     extend 1ekd "did you do anything about the characters folder recently?"
     m 3lusdlb "Not something important, but {w=0.5}the file for Heaven Forest seems to be gone."
     m 1lua "We can still go there though, but it's gonna be {i}empty{/i} as here outside the window."

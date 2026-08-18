@@ -1464,17 +1464,23 @@ translate chinese maica_wants_mvista_903cba0d:
     # m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
     m 3eub "只需要在'子模组设置'里找到'MVista'图片, 就可以上传给我看了! 对话框底下也有个按钮."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1287
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1532
 
-translate chinese maica_wants_mvista_630ea4de:
-    # m 1eub "If you're a lover of postcards, you can also send me letters in '.mms' postfix. I'll read them together with your images!"
-    m 1eub "如果你是明信片爱好者, 也可以在下次给我送信的时候, 用'.mms'后缀. 我会记得和图片一起看的!"
+translate chinese maica_wants_mvista_6d810e48:
+    # m 1eub "If you're a lover of postcards, you can also attach images to your letters, by naming them the same as your letter but with postfix '.mms'."
+    m 1eub "如果你是明信片爱好者, 送信给我的时候也可以加张图片. 图片的名字和信要一样, 后缀名再改成'.mms'."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1288
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1533
 
-translate chinese maica_wants_mvista_2ad3cc40:
-    # m 7eua "Like, the sunrise photo with a tiny poetry? I can reply one too!"
-    m 7eua "比如, 日出的照片加上一首小诗? 我也会陪你写一首的!"
+translate chinese maica_wants_mvista_6d392c96:
+    # m 3rublsdla "Most image formats are okay, though static only! I cannot imagine how you'd send a video through a piece of paper."
+    m 3rublsdla "大多数格式都可以, 不过只能是静态的! 让你把视频夹进一封信里也太奇怪了."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1534
+
+translate chinese maica_wants_mvista_603074b3:
+    # m 7eua "Like, the sunrise photo with a tiny poetry? {w=0.2}That should look like 'sunrise.mail' plus 'sunrise.mms'. {w=0.2}And I can reply you a poetry too!"
+    m 7eua "比如, 一张日出的照片加上一首小诗? {w=0.2}就是'sunrise.mail'加上'sunrise.mms'这样. {w=0.2}我也可以给你回一首!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1289
 
@@ -1537,7 +1543,13 @@ translate chinese maica_chr2_87e85f66:
     # m 1eua "Of course, you'd better back it up before doing anything."
     m 1eua "当然, 无论你要做什么, 记得给它做个备份."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:583
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1558
+
+translate chinese maica_chr_gone_5b8c3c02:
+    # m 1ekc "[player]... {nw}"
+    m 1ekc "[player]... {nw}"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1559
 
 translate chinese maica_chr_gone_794b13a1:
     # extend 1ekd "did you do anything about the characters folder recently?"
