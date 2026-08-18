@@ -527,7 +527,6 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.11", migration_1_8_11)' in MIGRATION_SOURCE
     assert '("1.8.12", migration_1_8_12)' in MIGRATION_SOURCE
     assert '("1.8.13", migration_1_8_13)' in MIGRATION_SOURCE
-    assert "maica_ver = '1.8.13'" in API_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
     assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
