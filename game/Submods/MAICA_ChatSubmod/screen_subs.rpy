@@ -1001,6 +1001,7 @@ screen maica_mpostals():
         def _delect_portal(title):
             for item in persistent._maica_send_or_received_mpostals:
                 if title == item["raw_title"]:
+                    store.maica.delete_mpostal_image(item)
                     persistent._maica_send_or_received_mpostals.remove(item)
                     break
 

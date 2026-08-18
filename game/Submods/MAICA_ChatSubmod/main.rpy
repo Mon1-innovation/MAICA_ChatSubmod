@@ -420,6 +420,9 @@ label maica_mpostal_read:
                 _return = "failed"
                 store.mas_submod_utils.submod_log.error("label maica_mpostal_read: response timed out")
 
+            if _return == "success" and cur_postal["responsed_status"] == "received":
+                store.maica.cache_mpostal_image(cur_postal)
+
             if _return != 'success':
                 if cur_postal.get("failed_count", 0) >= 3:
                     cur_postal["responsed_status"] = "fatal"
