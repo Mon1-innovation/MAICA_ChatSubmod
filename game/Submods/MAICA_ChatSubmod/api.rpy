@@ -528,70 +528,6 @@ init -700 python:
     import os
     import chardet
 
-    def _mpostal_cache_dir():
-        cache_dir = os.path.join(
-            renpy.config.basedir,
-            "game",
-            "Submods",
-            "MAICA_ChatSubmod",
-            "mpostal_cache",
-        )
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
-        return os.path.normpath(cache_dir)
-
-    def _is_mpostal_cache_path(file_path):
-        if not file_path:
-            return False
-        try:
-            relative_path = os.path.relpath(
-                os.path.abspath(file_path),
-                os.path.abspath(_mpostal_cache_dir()),
-            )
-        except (TypeError, ValueError, OSError):
-            return False
-        return (
-            relative_path != os.pardir
-            and not relative_path.startswith(os.pardir + os.sep)
-        )
-
-    def cache_mpostal_image(postal):
-        image_path = postal.get("raw_image") if isinstance(postal, dict) else None
-        if not image_path or _is_mpostal_cache_path(image_path):
-            return True
-        if not os.path.exists(image_path):
-            return False
-
-        import shutil
-        import uuid
-        extension = os.path.splitext(image_path)[1] or ".mms"
-        cached_path = os.path.join(
-            _mpostal_cache_dir(), uuid.uuid4().hex + extension
-        )
-        try:
-            shutil.move(image_path, cached_path)
-        except Exception as e:
-            store.mas_submod_utils.submod_log.error(
-                "MAICA: Failed to cache MPostal attachment: {}".format(e)
-            )
-            return False
-        postal["raw_image"] = cached_path.replace("\\", "/")
-        return True
-
-    def delete_mpostal_image(postal):
-        image_path = postal.get("raw_image") if isinstance(postal, dict) else None
-        if not _is_mpostal_cache_path(image_path):
-            return False
-        try:
-            if os.path.exists(image_path):
-                os.remove(image_path)
-        except Exception as e:
-            store.mas_submod_utils.submod_log.error(
-                "MAICA: Failed to delete MPostal attachment cache: {}".format(e)
-            )
-            return False
-        return True
-
     def find_mail_files():
         """
         查找邮件文件。
@@ -758,6 +694,10 @@ init -700 python:
 
                 # 删除邮件文件
                 os.remove(file_path)
+
+                ## 如果存在图片文件，也删除它
+                #if image_file and os.path.exists(image_file):
+                #    os.remove(image_file)
 
         return mail_files
     def has_mail_waitsend():
