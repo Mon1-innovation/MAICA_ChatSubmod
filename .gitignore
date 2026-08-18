@@ -7,4 +7,6 @@ MAICA_ChatSubmod**.zip
 CLAUDE.md
 .vscode
 game/Submods/MAICA_ChatSubmod/dev_enable.rpy
+game/Submods/MAICA_ChatSubmod/vista_cache/
+game/Submods/MAICA_ChatSubmod/mpostal_cache/
 .worktrees/

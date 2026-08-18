@@ -62,3 +62,128 @@ def test_mpostal_reread_uses_the_game_scene_and_restores_the_history_menu():
     # The old event-queue callback reopened the settings context after a poem.
     assert "label maica_mpostal_show_mpscreen" not in main_source
     assert 'functionplugin("maica_mpostal_show_backtoscreen")' not in main_source
+
+
+def test_mpostal_receipt_stages_attachment_before_removing_mail():
+    root = Path(__file__).resolve().parents[1]
+    api_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "api.rpy"
+    ).read_text(encoding="utf-8")
+    intake = api_source[
+        api_source.index("def find_mail_files():"):
+        api_source.index("def has_mail_waitsend():")
+    ]
+
+    stage = "image_file = store.maica.stage_mpostal_image(image_path)"
+    remove_mail = "os.remove(file_path)"
+    append_record = "mail_files.append({"
+    assert stage in intake
+    assert '"attachment_path": image_file' in intake
+    assert intake.index(stage) < intake.index(remove_mail) < intake.index(append_record)
+    assert "_mpostal_attachment_store().restore(image_file, image_path)" in intake
+
+
+def test_mpostal_original_and_preview_have_separate_cleanup_lifetimes():
+    root = Path(__file__).resolve().parents[1]
+    api_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "api.rpy"
+    ).read_text(encoding="utf-8")
+    main_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "main.rpy"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs.rpy"
+    ).read_text(encoding="utf-8")
+
+    read_flow = main_source[
+        main_source.index("label maica_mpostal_read:"):
+        main_source.index("label maica_mpostal_read.failed:")
+    ]
+    success_guard = (
+        'if _return == "success" and '
+        'cur_postal["responsed_status"] == "received":'
+    )
+    assert success_guard in read_flow
+    assert "store.maica.delete_mpostal_original(cur_postal)" in read_flow
+    assert "delete_mpostal_preview" not in read_flow
+    assert read_flow.index("if ai.response_timed_out():") < read_flow.index(success_guard)
+
+    original_cleanup = api_source[
+        api_source.index("def delete_mpostal_original(postal):"):
+        api_source.index("def delete_mpostal_preview(postal):")
+    ]
+    preview_cleanup = api_source[
+        api_source.index("def delete_mpostal_preview(postal):"):
+        api_source.index("def prepare_mpostal_preview(postal):")
+    ]
+    assert "delete_thumbnail" not in original_cleanup
+    assert "delete_thumbnail(preview)" in preview_cleanup
+
+    postal_screen = screen_source[
+        screen_source.index("screen maica_mpostals():"):
+        screen_source.index("screen maica_support():")
+    ]
+    assert "store.maica.delete_mpostal_record_files(postal)" in postal_screen
+    assert "Function(_delete_postal, postal)" in postal_screen
+    assert "if item is postal:" in postal_screen
+    assert postal_screen.index("pop(index)") < postal_screen.index(
+        "delete_mpostal_record_files(postal)"
+    )
+    assert "postal[\"raw_title\"]" not in postal_screen[
+        postal_screen.index('textbutton _("Delete")'):
+    ]
+
+
+def test_mpostal_list_prefers_its_record_owned_preview():
+    root = Path(__file__).resolve().parents[1]
+    api_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "api.rpy"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs.rpy"
+    ).read_text(encoding="utf-8")
+
+    prepare_preview = api_source[
+        api_source.index("def prepare_mpostal_preview(postal):"):
+        api_source.index("def prepare_image_previews():")
+    ]
+    assert prepare_preview.index('postal.get("raw_image_preview")') < prepare_preview.index(
+        'postal.get("vista_image_info")'
+    )
+    assert 'postal.pop("raw_image_preview"' not in prepare_preview
+
+    postal_screen = screen_source[
+        screen_source.index("screen maica_mpostals():"):
+        screen_source.index("screen maica_support():")
+    ]
+    assert postal_screen.index("postal.get('raw_image_preview')") < postal_screen.index(
+        "postal.get('vista_image_info')"
+    )
+
+
+def test_mpostal_startup_adopts_only_known_legacy_attachment_roots():
+    api_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "api.rpy"
+    ).read_text(encoding="utf-8")
+    adoption = api_source[
+        api_source.index("def adopt_legacy_mpostal_image(postal):"):
+        api_source.index("def delete_mpostal_original(postal):")
+    ]
+    startup = api_source[
+        api_source.index("def prepare_image_previews():"):
+        api_source.index("maica_basedir =")
+    ]
+
+    assert "path_is_within" in adoption
+    assert "in_characters" in adoption
+    assert "in_legacy_cache" in adoption
+    assert 'os.path.splitext(raw_image)[1].lower() != ".mms"' in adoption
+    assert "if in_characters and os.path.exists" in adoption
+    assert startup.index("adopt_legacy_mpostal_image(postal)") < startup.index(
+        "prepare_mpostal_preview(postal)"
+    )
+    assert "store.maica.prepare_image_previews()" in api_source

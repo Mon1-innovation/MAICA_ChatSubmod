@@ -998,10 +998,11 @@ screen maica_mpostals():
         maica_triggers = store.maica.maica_instance.mtrigger_manager
         preview_len = 200
 
-        def _delect_portal(title):
-            for item in persistent._maica_send_or_received_mpostals:
-                if title == item["raw_title"]:
-                    persistent._maica_send_or_received_mpostals.remove(item)
+        def _delete_postal(postal):
+            for index, item in enumerate(persistent._maica_send_or_received_mpostals):
+                if item is postal:
+                    persistent._maica_send_or_received_mpostals.pop(index)
+                    store.maica.delete_mpostal_record_files(postal)
                     break
 
     $ _tooltip = store._tooltip
@@ -1042,8 +1043,8 @@ screen maica_mpostals():
                     python:
                         preview_info = None
                         for preview_source in (
-                            postal.get('vista_image_info'),
                             postal.get('raw_image_preview'),
+                            postal.get('vista_image_info'),
                         ):
                             preview_info = store.maica.maica_instance.vista_manager.get_thumbnail_info(preview_source)
                             if preview_info:
@@ -1072,7 +1073,7 @@ screen maica_mpostals():
                                 action SetDict(postal, "responsed_status", "delaying")
                         hbox:
                             textbutton _("Delete"):
-                                action Function(_delect_portal, postal["raw_title"])
+                                action Function(_delete_postal, postal)
 
         hbox:
             xpos 10

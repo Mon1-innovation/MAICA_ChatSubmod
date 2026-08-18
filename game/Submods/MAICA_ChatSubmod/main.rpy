@@ -278,6 +278,7 @@ label maica_mpostal_load:
                     "raw_title": item["title"],
                     "raw_content": item["content"],
                     "raw_image": item.get("image"),
+                    "mpostal_attachment_path": item.get("attachment_path"),
                     "vista_image_info":None,
                     "time": str(time.time()),
                     "responsed_content": "",
@@ -364,14 +365,14 @@ label maica_mpostal_read:
                 continue
             start_time = time.time()
             try:
-                uuid = None
-                if cur_postal.get("raw_image"):
-                    vista_info = cur_postal.get("vista_image_info") or {}
-                    uuid = vista_info.get("uuid")
+                vista_info = cur_postal.get("vista_image_info") or {}
+                uuid = vista_info.get("uuid")
+                image_source = cur_postal.get("mpostal_attachment_path") or cur_postal.get("raw_image")
+                if image_source:
                     if not uuid:
-                        uuid = ai.vista_manager.upload(cur_postal["raw_image"])
+                        uuid = ai.vista_manager.upload(image_source)
                         cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
-                ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if cur_postal.get("raw_image") else None)
+                ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if uuid else None)
             except Exception:
                 cur_postal["responsed_status"] = "failed"
                 cur_postal["failed_count"] = cur_postal.get("failed_count", 0) + 1
@@ -419,6 +420,9 @@ label maica_mpostal_read:
                 cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
                 _return = "failed"
                 store.mas_submod_utils.submod_log.error("label maica_mpostal_read: response timed out")
+
+            if _return == "success" and cur_postal["responsed_status"] == "received":
+                store.maica.delete_mpostal_original(cur_postal)
 
             if _return != 'success':
                 if cur_postal.get("failed_count", 0) >= 3:

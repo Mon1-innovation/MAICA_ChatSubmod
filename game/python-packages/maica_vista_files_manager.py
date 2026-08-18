@@ -322,6 +322,26 @@ class MAICAVistaFilesManager(object):
             if key in entry
         )
 
+    def delete_thumbnail(self, entry):
+        """Delete a managed thumbnail without touching its source image."""
+        if not isinstance(entry, dict):
+            return False
+
+        thumb_path = entry.get("thumb_path")
+        if not self._thumbnail_path_is_managed(thumb_path):
+            return False
+
+        disk_path = self._thumbnail_disk_path(thumb_path)
+        try:
+            if os.path.exists(disk_path):
+                os.remove(disk_path)
+        except Exception as e:
+            logger.error("fail to delete thumbnail: {}".format(str(e)))
+            return False
+
+        self._clear_thumbnail_metadata(entry)
+        return True
+
     @property
     def cache_path(self):
         return self._cache_path
