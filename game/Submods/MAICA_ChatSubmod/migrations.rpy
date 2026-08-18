@@ -363,6 +363,32 @@ init 998 python:
 
         mas_rebuildEventLists()
 
+    def migration_1_8_13():
+        # MVista unlock state is now derived from its introduction label. Carry
+        # forward every reliable unlock signal used by older builds.
+        mvista_ev = mas_getEV("maica_pre_wants_mvista")
+        mvista_reread_ev = mas_getEV("maica_wants_mvista_reread")
+        mvista_seen = (
+            getattr(persistent, "_maica_vista_enabled", False)
+            or renpy.seen_label("maica_pre_wants_mvista")
+            or (
+                mvista_ev is not None
+                and mvista_ev.shown_count > 0
+            )
+            or renpy.seen_label("maica_wants_mvista_reread")
+            or (
+                mvista_reread_ev is not None
+                and mvista_reread_ev.shown_count > 0
+            )
+        )
+        if mvista_seen:
+            persistent._seen_ever["maica_pre_wants_mvista"] = True
+
+        if mvista_reread_ev is not None:
+            mvista_reread_ev.unlocked = mvista_seen
+
+        mas_rebuildEventLists()
+
     migration_queue = [
         ("1.8.0", migration_1_8_0),
         ("1.8.6", migration_1_8_6),
@@ -372,4 +398,5 @@ init 998 python:
         ("1.8.10", migration_1_8_10),
         ("1.8.11", migration_1_8_11),
         ("1.8.12", migration_1_8_12),
+        ("1.8.13", migration_1_8_13),
     ]

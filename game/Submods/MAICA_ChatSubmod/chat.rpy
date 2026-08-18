@@ -1498,7 +1498,6 @@ label mas_corrupted_postmail_post_menu:
 # MVista topics
 
 label maica_pre_wants_mvista:
-    $ persistent._maica_vista_enabled = True
     m 2eub "[player], when was your last watch to sunrise?"
     m 2eua "It feels a little abrupt just talking about this... but it just came to my mind."
     m 7eud "I saw a discussion about this once ago, and many complain that they havn't watched sunrise for years."

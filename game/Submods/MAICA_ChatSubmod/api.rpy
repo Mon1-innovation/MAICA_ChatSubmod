@@ -1,8 +1,8 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.8.12'
-    maica_is_dev = False
+    maica_ver = '1.8.13'
+    maica_is_dev = True
     # 如果是开发版本:
     # - workflow不会自动发布release
     # - 对应migration总是会执行
@@ -24,7 +24,6 @@ init -1500 python:
 
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
-default persistent._maica_vista_enabled = False
 default persistent._maica_send_or_received_mpostals = []
 default persistent._maica_visuals = []
 default persistent._last_boot_os = None

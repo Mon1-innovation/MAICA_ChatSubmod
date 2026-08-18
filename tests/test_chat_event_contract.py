@@ -23,6 +23,20 @@ API_SOURCE = (
     / "MAICA_ChatSubmod"
     / "api.rpy"
 ).read_text(encoding="utf-8")
+HEADER_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "header.rpy"
+).read_text(encoding="utf-8")
+VISTA_SCREEN_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "screen_subs_vista.rpy"
+).read_text(encoding="utf-8")
 HEAVEN_FOREST_SOURCE = (
     Path(__file__).resolve().parents[1]
     / "game"
@@ -271,6 +285,17 @@ def test_chat_progression_uses_successful_entry_count():
     assert "mas_getEV('maica_main').shown_count" not in CHAT_SOURCE
 
 
+def test_mvista_unlock_is_derived_from_its_intro_seen_state():
+    seen_check = 'renpy.seen_label("maica_pre_wants_mvista")'
+
+    assert "default persistent._maica_vista_enabled" not in API_SOURCE
+    assert "persistent._maica_vista_enabled" not in CHAT_SOURCE
+    assert "persistent._maica_vista_enabled" not in HEADER_SOURCE
+    assert "persistent._maica_vista_enabled" not in VISTA_SCREEN_SOURCE
+    assert HEADER_SOURCE.count(seen_check) == 2
+    assert VISTA_SCREEN_SOURCE.count(seen_check) == 1
+
+
 def test_internal_events_are_explicitly_locked_out_of_talk_menus():
     for eventlabel in INTERNAL_EVENTLABELS:
         assert "unlocked=False" in _event_block(eventlabel)
@@ -501,7 +526,8 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.10", migration_1_8_10)' in MIGRATION_SOURCE
     assert '("1.8.11", migration_1_8_11)' in MIGRATION_SOURCE
     assert '("1.8.12", migration_1_8_12)' in MIGRATION_SOURCE
-    assert "maica_ver = '1.8.12'" in API_SOURCE
+    assert '("1.8.13", migration_1_8_13)' in MIGRATION_SOURCE
+    assert "maica_ver = '1.8.13'" in API_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
     assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
@@ -598,6 +624,49 @@ def test_latest_migration_repairs_persistent_event_objects_at_runtime():
     migrate()
     assert events["maica_wants_mvista_reread"].unlocked is True
     assert len(rebuild_calls) == 3
+
+
+def test_mvista_seen_migration_preserves_legacy_unlock_state():
+    start = MIGRATION_SOURCE.index("    def migration_1_8_13():")
+    end = MIGRATION_SOURCE.index("\n    migration_queue =", start)
+    migration = textwrap.dedent(MIGRATION_SOURCE[start:end])
+
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.shown_count = shown_count
+            self.unlocked = False
+
+    class PersistentStub(object):
+        def __init__(self):
+            self._maica_vista_enabled = True
+            self._seen_ever = {}
+
+    class RenpyStub(object):
+        def __init__(self):
+            self.seen = set()
+
+        def seen_label(self, eventlabel):
+            return eventlabel in self.seen
+
+    events = {
+        "maica_pre_wants_mvista": EventStub(),
+        "maica_wants_mvista_reread": EventStub(),
+    }
+    persistent = PersistentStub()
+    rebuild_calls = []
+    namespace = {
+        "mas_getEV": events.get,
+        "mas_rebuildEventLists": lambda: rebuild_calls.append(True),
+        "persistent": persistent,
+        "renpy": RenpyStub(),
+    }
+    exec(migration, namespace)
+
+    namespace["migration_1_8_13"]()
+
+    assert persistent._seen_ever["maica_pre_wants_mvista"] is True
+    assert events["maica_wants_mvista_reread"].unlocked is True
+    assert rebuild_calls == [True]
 
 
 def test_greeting_retries_until_the_post_door_flow_starts():

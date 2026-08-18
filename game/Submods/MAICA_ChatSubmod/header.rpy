@@ -1576,7 +1576,7 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("Configure MTrigger triggers"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
-            if persistent._maica_vista_enabled:
+            if renpy.seen_label("maica_pre_wants_mvista"):
                 hbox:
                     style_prefix "maica_check"
                     textbutton _("MVista images"):
@@ -1747,7 +1747,7 @@ screen maica_input_screen(prompt):
             textbutton _("Paste{#maica_host_paste}"):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
-            if persistent._maica_vista_enabled:
+            if renpy.seen_label("maica_pre_wants_mvista"):
                 textbutton renpy.substitute(_("Choose images | ")) + str(len(store._maica_selected_visuals)) + renpy.substitute(_(" chosen")):
                     selected False
                     action [Show("maica_vista_filelist", selecting=True), NullAction()]
