@@ -1,3 +1,4 @@
+import importlib.util
 import struct
 import sys
 from pathlib import Path
@@ -18,6 +19,27 @@ def _write_png_header(path, width, height):
         + b"IHDR"
         + struct.pack(">II", width, height)
     )
+
+
+def test_mpostal_attachment_module_loads_without_uuid(monkeypatch, tmp_path):
+    module_path = PACKAGE_ROOT / "maica_mpostal_files.py"
+    spec = importlib.util.spec_from_file_location(
+        "maica_mpostal_files_without_uuid",
+        str(module_path),
+    )
+    module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, "uuid", None)
+    spec.loader.exec_module(module)
+
+    source = tmp_path / "letter.mms"
+    source.write_bytes(b"attachment")
+    store = module.MPostalAttachmentStore(str(tmp_path / "pending"))
+
+    staged = Path(store.stage(str(source)))
+
+    assert staged.read_bytes() == b"attachment"
+    assert len(staged.stem) == 32
+    assert all(character in "0123456789abcdef" for character in staged.stem)
 
 
 def test_mpostal_attachment_store_moves_restores_and_deletes_only_managed_files(tmp_path):

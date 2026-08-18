@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+import binascii
 import os
 import shutil
-import uuid
+
+
+def _random_hex():
+    value = binascii.hexlify(os.urandom(16))
+    if not isinstance(value, str):
+        value = value.decode("ascii")
+    return value
 
 
 def path_is_within(file_path, root_path):
@@ -62,7 +69,7 @@ class MPostalAttachmentStore(object):
         extension = os.path.splitext(source_path)[1] or '.mms'
         destination = os.path.join(
             self.root_path,
-            uuid.uuid4().hex + extension,
+            _random_hex() + extension,
         )
         try:
             shutil.move(source_path, destination)
