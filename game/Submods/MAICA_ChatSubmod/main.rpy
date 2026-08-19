@@ -16,12 +16,13 @@ init python:
             self._history += text
 
 label maica_talking(mspire = False, prepared = False):
+    $ return_code = None
     if not prepared:
         call maica_show_console
         call maica_init_connect(use_pause_instand_wait = True)
         if _return == "disconnected":
-            return "disconnected"
-    $ return_code = None
+            $ return_code = "disconnected"
+            jump maica_talking.end
     python:
         import time
         import copy
@@ -249,7 +250,7 @@ label maica_show_console:
         show monika at t22
     return
 label maica_hide_console:
-    if persistent.maica_setting_dict['console']:
+    if renpy.get_screen("mas_py_console_teaching") is not None:
         $ maica_disableWorkLoadScreen()
         hide screen mas_py_console_teaching
         if renpy.showing("monika"):

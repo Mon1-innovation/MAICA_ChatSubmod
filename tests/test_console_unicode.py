@@ -195,7 +195,7 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     intro_end = chat_source.index('        "Better next time.":', intro_start)
     intro = chat_source[intro_start:intro_end]
     talking_start = main_source.index("label maica_talking")
-    talking_setup_end = main_source.index("    $ return_code = None", talking_start)
+    talking_setup_end = main_source.index("\n    python:", talking_start)
     talking_setup = main_source[talking_start:talking_setup_end]
     show_console_start = main_source.index("label maica_show_console:")
     show_console_end = main_source.index("\nlabel maica_hide_console:", show_console_start)
@@ -237,9 +237,49 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     assert intro.index("call maica_connection_failure_dialogue") < intro.index("call maica_hide_console")
 
     assert "label maica_talking(mspire = False, prepared = False):" in talking_setup
+    assert talking_setup.index("$ return_code = None") < talking_setup.index("if not prepared:")
     assert "if not prepared:" in talking_setup
     assert talking_setup.index("if not prepared:") < talking_setup.index("call maica_show_console")
     assert talking_setup.index("call maica_show_console") < talking_setup.index("call maica_init_connect")
+
+
+def test_initial_disconnect_uses_common_console_cleanup_for_mspire():
+    root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
+    main_source = (root / "main.rpy").read_text(encoding="utf-8")
+    chat_source = (root / "chat.rpy").read_text(encoding="utf-8")
+
+    talking_start = main_source.index("label maica_talking(")
+    talking_setup_end = main_source.index("\n    python:", talking_start)
+    talking_setup = main_source[talking_start:talking_setup_end]
+    talking_end_start = main_source.index("label maica_talking.end:")
+    talking_end_end = main_source.index("\nlabel maica_talking.ask_mspire_continue:", talking_end_start)
+    talking_end = main_source[talking_end_start:talking_end_end]
+    mspire_start = chat_source.index("label maica_mspire:")
+    mspire_end = chat_source.index("\nlabel mspire_mods_preferences:", mspire_start)
+    mspire = chat_source[mspire_start:mspire_end]
+
+    disconnected = talking_setup.index('if _return == "disconnected":')
+    set_result = talking_setup.index('$ return_code = "disconnected"', disconnected)
+    cleanup_jump = talking_setup.index("jump maica_talking.end", set_result)
+    assert disconnected < set_result < cleanup_jump
+    assert 'return "disconnected"' not in talking_setup
+    assert "call maica_hide_console" in talking_end
+    assert "call maica_talking(mspire=True)" in mspire
+
+
+def test_hide_console_uses_actual_screen_state_instead_of_current_setting():
+    root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
+    main_source = (root / "main.rpy").read_text(encoding="utf-8")
+
+    hide_start = main_source.index("label maica_hide_console:")
+    hide_end = main_source.index("\nlabel maica_pause_connection:", hide_start)
+    hide_console = main_source[hide_start:hide_end]
+
+    screen_check = 'renpy.get_screen("mas_py_console_teaching") is not None'
+    assert screen_check in hide_console
+    assert "persistent.maica_setting_dict['console']" not in hide_console
+    assert hide_console.index(screen_check) < hide_console.index("maica_disableWorkLoadScreen()")
+    assert hide_console.index("maica_disableWorkLoadScreen()") < hide_console.index("hide screen mas_py_console_teaching")
 
 
 def test_python2_console_path_does_not_force_unicode_through_str():
