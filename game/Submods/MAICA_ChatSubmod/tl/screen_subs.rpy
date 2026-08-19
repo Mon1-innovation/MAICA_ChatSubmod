@@ -42,6 +42,8 @@ translate chinese strings:
     old "MAICA: Advanced settings reset (local default)"
     new "MAICA: 已重置高级设置(缺省值)"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:386
+    old "Game language default"
+    new "根据游戏语言自动选择"
     old "zh | Chinese simplified"
     new "zh | 简体中文"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:389

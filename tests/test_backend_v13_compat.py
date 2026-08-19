@@ -1188,20 +1188,74 @@ def test_c_regular_settings_use_renpy_language_and_system_timezone_defaults():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     target_default = function_body(header, r"maica_get_default_target_lang")
+    timezone_default = function_body(header, r"maica_get_language_default_timezone")
+    refresh_automatic = function_body(header, r"maica_refresh_automatic_settings")
     assert re.search(r"['\"]chinese['\"]\s*:\s*['\"]zh['\"]", target_default)
     assert re.search(r"['\"]english['\"]\s*:\s*['\"]en['\"]", target_default)
     assert re.search(r"\.get\s*\([^,]+,\s*['\"]auto['\"]\s*\)", target_default)
+    assert 'if target_lang == "zh"' in timezone_default
+    assert 'return "Asia/Shanghai"' in timezone_default
+    assert 'return "America/Indiana/Vincennes"' in timezone_default
     assert re.search(r"['\"]target_lang['\"]\s*:\s*maica_get_default_target_lang\s*\(\s*\)", header)
     assert re.search(r"['\"]tz['\"]\s*:\s*maica_get_system_timezone\s*\(\s*\)", header)
-    assert 'persistent._maica_target_lang_mode == "renpy"' in header
-    assert 'persistent._maica_tz_mode == "system"' in header
+    assert 'persistent._maica_target_lang_mode == "renpy"' in refresh_automatic
+    assert 'persistent._maica_tz_mode == "system"' in refresh_automatic
+    assert 'persistent._maica_tz_mode == "language"' in refresh_automatic
     assert "current_tz = store.maica_get_system_timezone()" in screen
+    assert "language_tz = store.maica_get_language_default_timezone(" in screen
+
+
+def test_c_language_and_timezone_selectors_use_explicit_two_level_highlights():
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    language = named_screen(screen, "maica_select_language")
+    timezone = named_screen(screen, "maica_tz_setting")
+
+    assert 'use maica_setter_medium_frame(' in language
+    assert language.count("use divider_plain_small()") == 1
+    assert timezone.count("use divider_plain_small()") == 1
+    assert 'style_prefix "maica_check"' not in language
+    assert 'style_prefix "maica_check"' not in timezone
+
+    assert 'selected persistent._maica_target_lang_mode == "renpy"' in language
+    assert language.count("selected current_target_lang ==") == 3
+    assert 'selected persistent._maica_tz_mode == "language"' in timezone
+    assert 'selected persistent._maica_tz_mode == "system"' in timezone
+    assert "selected selected_tz == timezone_dict[item]" in timezone
+
+    assert "SetField(persistent, \"_maica_target_lang_mode\"" not in language
+    assert "SetField(persistent, \"_maica_tz_mode\"" not in timezone
+
+
+def test_c_automatic_language_and_timezone_modes_sync_and_roll_back():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    target_select = function_body(header, r"maica_select_target_lang")
+    timezone_select = function_body(header, r"maica_select_timezone")
+    reset = function_body(header, r"maica_reset_setting")
+    discard = function_body(header, r"maica_discard_setting")
+    apply_setting = function_body(header, r"maica_apply_setting")
+    setting_screen = named_screen(header, "maica_setting")
+
+    assert 'persistent.maica_setting_dict["target_lang"] = target_lang' in target_select
+    assert "persistent._maica_target_lang_mode = mode" in target_select
+    assert 'persistent._maica_tz_mode == "language"' in target_select
+    assert "maica_get_language_default_timezone(target_lang)" in target_select
+    assert 'persistent.maica_setting_dict["tz"] = timezone' in timezone_select
+    assert "persistent._maica_tz_mode = mode" in timezone_select
+
+    assert 'persistent._maica_target_lang_mode = "renpy"' in reset
+    assert 'persistent._maica_tz_mode = "system"' in reset
+    assert "maica_refresh_automatic_settings(persistent.maica_setting_dict)" in reset
+    assert "maica_refresh_automatic_settings(persistent.maica_setting_dict)" in apply_setting
+
+    assert "persistent._maica_target_lang_mode = target_lang_mode" in discard
+    assert "persistent._maica_tz_mode = tz_mode" in discard
+    assert "default target_lang_mode_before_edit" in setting_screen
+    assert "default tz_mode_before_edit" in setting_screen
     assert re.search(
-        r"SetDict\s*\(\s*persistent\.maica_setting_dict\s*,\s*['\"]target_lang['\"]\s*,[^\n]*MaicaAiLang\.auto",
-        screen,
+        r"Function\s*\(\s*store\.maica_discard_setting\s*,\s*"
+        r"target_lang_mode_before_edit\s*,\s*tz_mode_before_edit",
+        setting_screen,
     )
-    assert re.search(r"SetField\s*\(\s*persistent\s*,\s*['\"]_maica_target_lang_mode['\"]\s*,\s*['\"]manual['\"]", screen)
-    assert re.search(r"SetField\s*\(\s*persistent\s*,\s*['\"]_maica_tz_mode['\"]\s*,\s*['\"]system['\"]", screen)
 
 
 def test_c_prompt_allow_nickname_uses_backend_default_true():

@@ -117,6 +117,16 @@ init 10 python:
             "english": "en",
         }.get(config.language, "auto")
 
+    def maica_get_language_default_timezone(target_lang=None):
+        if target_lang is None:
+            target_lang = persistent.maica_setting_dict.get(
+                "target_lang",
+                maica_get_default_target_lang()
+            )
+        if target_lang == "zh":
+            return "Asia/Shanghai"
+        return "America/Indiana/Vincennes"
+
     def maica_get_system_timezone():
         import os
         import time
@@ -175,6 +185,28 @@ init 10 python:
         persistent._maica_tz_mode = (
             "manual" if "tz" in persistent.maica_setting_dict else "system"
         )
+
+    def maica_refresh_automatic_settings(settings):
+        if persistent._maica_target_lang_mode == "renpy":
+            settings["target_lang"] = maica_get_default_target_lang()
+        if persistent._maica_tz_mode == "system":
+            settings["tz"] = maica_get_system_timezone()
+        elif persistent._maica_tz_mode == "language":
+            settings["tz"] = maica_get_language_default_timezone(
+                settings["target_lang"]
+            )
+
+    def maica_select_target_lang(target_lang, mode):
+        persistent.maica_setting_dict["target_lang"] = target_lang
+        persistent._maica_target_lang_mode = mode
+        if persistent._maica_tz_mode == "language":
+            persistent.maica_setting_dict["tz"] = (
+                maica_get_language_default_timezone(target_lang)
+            )
+
+    def maica_select_timezone(timezone, mode):
+        persistent.maica_setting_dict["tz"] = timezone
+        persistent._maica_tz_mode = mode
 
     maica_default_dict = {
         "auto_reconnect":True,
@@ -463,10 +495,7 @@ init 10 python:
     maica_default_dict.update(persistent.maica_setting_dict)
     maica_advanced_setting.update(persistent.maica_advanced_setting)
     maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
-    if persistent._maica_target_lang_mode == "renpy":
-        maica_default_dict["target_lang"] = maica_get_default_target_lang()
-    if persistent._maica_tz_mode == "system":
-        maica_default_dict["tz"] = maica_get_system_timezone()
+    maica_refresh_automatic_settings(maica_default_dict)
 
     persistent.maica_setting_dict = maica_default_dict.copy()
     persistent.maica_advanced_setting = maica_advanced_setting.copy()
@@ -525,6 +554,9 @@ init 10 python:
 
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
+        persistent._maica_target_lang_mode = "renpy"
+        persistent._maica_tz_mode = "system"
+        maica_refresh_automatic_settings(persistent.maica_setting_dict)
         sync_provider_id(persistent.maica_setting_dict["provider_id"])
         persistent.mas_geolocation = ''
         persistent.mas_player_additions = []
@@ -734,6 +766,7 @@ init 10 python:
     def maica_apply_setting(ininit=False):
         import copy
         run_migrations()
+        maica_refresh_automatic_settings(persistent.maica_setting_dict)
 
         store.maica.maica_instance.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if store.maica.maica_instance.auto_reconnect:
@@ -786,7 +819,7 @@ init 10 python:
         if not ininit:
             renpy.notify(_("MAICA: Settings uploaded") if send_success else _("MAICA: Do a manual upload after connection ready"))
 
-    def maica_discard_setting():
+    def maica_discard_setting(target_lang_mode=None, tz_mode=None):
         persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica_instance.auto_reconnect
         persistent.maica_setting_dict["auto_resume"] = store.maica.maica_instance.auto_resume
         persistent.maica_setting_dict["keep_alive"] = store.maica.maica_instance.keep_alive
@@ -810,6 +843,11 @@ init 10 python:
         persistent.maica_setting_dict["input_lang_detect"] = store.maica.maica_instance.input_lang_detect
         persistent.maica_setting_dict["pprt"] = store.maica.maica_instance.pprt
         store.maica.maica_instance.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
+
+        if target_lang_mode is not None:
+            persistent._maica_target_lang_mode = target_lang_mode
+        if tz_mode is not None:
+            persistent._maica_tz_mode = tz_mode
 
         renpy.notify(_("MAICA: Settings discarded"))
 
@@ -1252,6 +1290,8 @@ screen maica_setting():
 
 
     default tooltip = Tooltip("")
+    default target_lang_mode_before_edit = persistent._maica_target_lang_mode
+    default tz_mode_before_edit = persistent._maica_tz_mode
 
     on "show" action Show("maica_setting_tooltip", tooltip=tooltip)
     on "hide" action Hide("maica_setting_tooltip")
@@ -1755,7 +1795,11 @@ screen maica_setting():
                         ]
             textbutton _("Discard modifications"):
                 action [
-                        Function(store.maica_discard_setting),
+                        Function(
+                            store.maica_discard_setting,
+                            target_lang_mode_before_edit,
+                            tz_mode_before_edit
+                        ),
                         Hide("maica_setting")
                         ]
             textbutton _("Reset defaults"):

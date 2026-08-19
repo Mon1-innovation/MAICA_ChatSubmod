@@ -137,6 +137,10 @@ screen maica_tz_setting():
         store.timezone_dict = store.maica_timezone_dict
         store.timezone_list = sorted(list(store.timezone_dict.keys()))
         current_tz = store.maica_get_system_timezone()
+        language_tz = store.maica_get_language_default_timezone(
+            persistent.maica_setting_dict.get("target_lang")
+        )
+        selected_tz = persistent.maica_setting_dict.get("tz")
 
     modal True
     zorder 92
@@ -148,28 +152,34 @@ screen maica_tz_setting():
             text _("{size=-10}If your timezone is not listed here, decide by your local UTC timezone.")
 
             hbox:
-                style_prefix "maica_check"
                 textbutton _("Language default"):
-                    action [
-                        SetDict(persistent.maica_setting_dict, "tz", 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes'),
-                        SetField(persistent, "_maica_tz_mode", "manual")
-                    ]
+                    action Function(
+                        store.maica_select_timezone,
+                        language_tz,
+                        "language"
+                    )
+                    selected persistent._maica_tz_mode == "language"
 
             hbox:
-                style_prefix "maica_check"
                 textbutton _("System default"):
-                    action [
-                        SetDict(persistent.maica_setting_dict, "tz", current_tz),
-                        SetField(persistent, "_maica_tz_mode", "system")
-                    ]
+                    action Function(
+                        store.maica_select_timezone,
+                        current_tz,
+                        "system"
+                    )
+                    selected persistent._maica_tz_mode == "system"
+
+            use divider_plain_small()
 
             for item in timezone_list:
                 hbox:
                     textbutton "UTC" + "{}".format("+" if item >= 0 else "") + str(item) + "|" + timezone_dict[item]:
-                        action [
-                            SetDict(persistent.maica_setting_dict, "tz", timezone_dict[item]),
-                            SetField(persistent, "_maica_tz_mode", "manual")
-                        ]
+                        action Function(
+                            store.maica_select_timezone,
+                            timezone_dict[item],
+                            "manual"
+                        )
+                        selected selected_tz == timezone_dict[item]
         hbox:
             xpos 10
             style_prefix "confirm"
@@ -449,29 +459,49 @@ screen maica_advance_setting():
 
 
 screen maica_select_language():
+    $ current_target_lang = persistent.maica_setting_dict.get("target_lang")
+    $ default_target_lang = store.maica_get_default_target_lang()
+
     modal True
     zorder 92
 
-    use maica_setter_small_frame(ok_action=Hide("maica_select_language")):
+    use maica_setter_medium_frame(ok_action=Hide("maica_select_language")):
         style_prefix "generic_fancy_check"
         hbox:
+            textbutton _("Game language default"):
+                action Function(
+                    store.maica_select_target_lang,
+                    default_target_lang,
+                    "renpy"
+                )
+                selected persistent._maica_target_lang_mode == "renpy"
+
+        use divider_plain_small()
+
+        hbox:
             textbutton _("zh | Chinese simplified"):
-                action [
-                    SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.zh_cn),
-                    SetField(persistent, "_maica_target_lang_mode", "manual")
-                ]
+                action Function(
+                    store.maica_select_target_lang,
+                    store.maica.maica_instance.MaicaAiLang.zh_cn,
+                    "manual"
+                )
+                selected current_target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn
         hbox:
             textbutton _("en | English"):
-                action [
-                    SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.en),
-                    SetField(persistent, "_maica_target_lang_mode", "manual")
-                ]
+                action Function(
+                    store.maica_select_target_lang,
+                    store.maica.maica_instance.MaicaAiLang.en,
+                    "manual"
+                )
+                selected current_target_lang == store.maica.maica_instance.MaicaAiLang.en
         hbox:
             textbutton _("auto | Auto"):
-                action [
-                    SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.auto),
-                    SetField(persistent, "_maica_target_lang_mode", "manual")
-                ]
+                action Function(
+                    store.maica_select_target_lang,
+                    store.maica.maica_instance.MaicaAiLang.auto,
+                    "manual"
+                )
+                selected current_target_lang == store.maica.maica_instance.MaicaAiLang.auto
 
 
 screen maica_select_preset(preset_type):
