@@ -1566,6 +1566,18 @@ def test_e_list_setting_selection_is_screen_local_and_index_based():
         assert re.search(r"Function\s*\(\s*maica_delete_selected_items\s*,", setting_screen)
 
 
+def test_e_editable_list_items_expand_for_wrapped_text():
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+
+    for name in ("maica_addition_setting", "maica_mspire_category_setting"):
+        setting_screen = named_screen(screen, name)
+        assert re.search(
+            r"textbutton\s+maica_escape_display_text\s*\(\s*item\s*\)\s*:\s*"
+            r"yminimum\s+36\s*ymaximum\s+None",
+            setting_screen,
+        )
+
+
 def test_f_vista_list_and_download_routes_are_distinct():
     vista = source("game/python-packages/maica_vista_files_manager.py")
     listing = block_after(vista, r"def\s+list_remote\s*\(", 1600)

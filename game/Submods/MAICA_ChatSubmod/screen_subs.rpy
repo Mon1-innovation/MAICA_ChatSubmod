@@ -744,6 +744,8 @@ screen maica_addition_setting():
             for index, item in enumerate(additions):
                 hbox:
                     textbutton maica_escape_display_text(item):
+                        yminimum 36
+                        ymaximum None
                         action ToggleSetMembership(selected_indices, index)
 
         hbox:
@@ -782,6 +784,8 @@ screen maica_mspire_category_setting():
             for index, item in enumerate(categories):
                 hbox:
                     textbutton maica_escape_display_text(item):
+                        yminimum 36
+                        ymaximum None
                         action ToggleSetMembership(selected_indices, index)
 
         hbox:
