@@ -31,7 +31,7 @@ label maica_talking(mspire = False, prepared = False):
         ai.content_func = store.mas_ptod._update_console_history
         store.action = {}
         if mspire:
-            ai.console_logger.info("<submod> MSpire init...")
+            ai.console_logger.info("<Function> MSpire init...")
             renpy.pause(2.3)
         printed = False
         is_retry_before_sendmessage = False
@@ -387,7 +387,7 @@ label maica_mpostal_read:
             not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
             current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
-            ai.console_logger.info("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
+            ai.console_logger.info("<Function> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
             cur_postal["responsed_status"] = "failed"
             gen_time = 0
             while ai.is_responding() or ai.len_message_queue() > 0 :
