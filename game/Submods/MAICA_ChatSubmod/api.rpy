@@ -24,8 +24,8 @@ init -1500 python:
 
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
-default persistent._maica_send_or_received_mpostals = []
-default persistent._maica_visuals = []
+default -1499 persistent._maica_send_or_received_mpostals = []
+default -1499 persistent._maica_visuals = []
 default persistent._last_boot_os = None
 define _maica_selected_visuals = []
 #{
@@ -127,17 +127,17 @@ init 5 python in maica:
 
 """.format(store.maica_ver)
 
-    if store.persistent.maica_stat is None:
+    if not isinstance(store.persistent.maica_stat, dict):
         store.persistent.maica_stat = maica_instance.stat.copy()
     else:
         maica_instance.update_stat(store.persistent.maica_stat)
 
-    if store.persistent.maica_mtrigger_status is None:
+    if not isinstance(store.persistent.maica_mtrigger_status, dict):
         store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
     else:
         maica_instance.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
 
-    if store.persistent._maica_visuals is None:
+    if not isinstance(store.persistent._maica_visuals, list):
         store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
     else:
         maica_instance.vista_manager.import_list(store.persistent._maica_visuals)

@@ -18,7 +18,7 @@ init -989 python:
             attachment_id=0
         )
 
-default persistent.maica_setting_dict = {
+default -1499 persistent.maica_setting_dict = {
     "auto_reconnect":True,
     "auto_resume":True,
     "keep_alive":True,
@@ -31,18 +31,54 @@ default persistent.maica_setting_dict = {
     "input_lang_detect":True,
     "pprt":True
 }
-default persistent.maica_advanced_setting = {}
-default persistent.maica_advanced_setting_status = {}
-default persistent.mas_player_additions = []
+default -1499 persistent.maica_advanced_setting = {}
+default -1499 persistent.maica_advanced_setting_status = {}
+default -1499 persistent.mas_player_additions = []
 default persistent._maica_reseted = False
 default persistent._maica_target_lang_mode = None
 default persistent._maica_tz_mode = None
+
+init -1498 python:
+    def maica_repair_persistent_containers():
+        repaired = []
+        container_types = (
+            ("maica_setting_dict", dict),
+            ("maica_advanced_setting", dict),
+            ("maica_advanced_setting_status", dict),
+            ("mas_player_additions", list),
+            ("_maica_send_or_received_mpostals", list),
+            ("_maica_visuals", list),
+        )
+        for name, expected_type in container_types:
+            value = getattr(persistent, name, None)
+            if not isinstance(value, expected_type):
+                setattr(persistent, name, expected_type())
+                repaired.append("{} ({})".format(name, type(value).__name__))
+
+        mspire_category = persistent.maica_setting_dict.get("mspire_category", [])
+        if not isinstance(mspire_category, list):
+            persistent.maica_setting_dict.pop("mspire_category", None)
+            repaired.append(
+                "maica_setting_dict.mspire_category ({})".format(
+                    type(mspire_category).__name__
+                )
+            )
+        return repaired
+
+    _maica_repaired_persistent_containers = maica_repair_persistent_containers()
 
 define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     import logging
     import maica_v13_migration
+
+    if _maica_repaired_persistent_containers:
+        store.mas_submod_utils.submod_log.warning(
+            "MAICA: repaired invalid persistent containers: {}".format(
+                ", ".join(_maica_repaired_persistent_containers)
+            )
+        )
 
     maica_timezone_dict = {
         -12: "Etc/GMT+12",
