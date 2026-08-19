@@ -117,6 +117,88 @@ def to_unicode(value, preferred_encoding=None):
         return _decode_bytes(value, preferred_encoding)
     return str(value)
 
+
+RENPY_DIALOGUE_SUBSTITUTIONS = (
+    u"[mas_get_player_nickname()]",
+    u"[player]",
+    u"[m_name]",
+)
+
+
+def escape_renpy_text(value, allowed_substitutions=(), interpolation_passes=1):
+    """Escape external text for one or more Ren'Py interpolation passes."""
+    if value is None:
+        return u""
+
+    source = to_unicode(value)
+    interpolation_passes = int(interpolation_passes)
+    if interpolation_passes < 1:
+        raise ValueError("interpolation_passes must be at least 1")
+
+    literal_opening = u"[" * (2 ** interpolation_passes)
+    trusted_opening = u"[" * (2 ** (interpolation_passes - 1))
+    allowed = sorted(
+        (to_unicode(item) for item in allowed_substitutions if item),
+        key=len,
+        reverse=True,
+    )
+    escaped = []
+    index = 0
+    while index < len(source):
+        char = source[index]
+        if char == u"[":
+            matched = None
+            for substitution in allowed:
+                if source.startswith(substitution, index):
+                    matched = substitution
+                    break
+            if matched is not None:
+                escaped.append(trusted_opening + matched[1:])
+                index += len(matched)
+                continue
+            escaped.append(literal_opening)
+        elif char == u"{":
+            escaped.append(u"{{")
+        else:
+            escaped.append(char)
+        index += 1
+    return u"".join(escaped)
+
+
+def trim_unclosed_renpy_markers(value):
+    """Remove a trailing fragment that starts an unclosed substitution or tag."""
+    text = u"" if value is None else to_unicode(value)
+    pairs = ((u"[", u"]"), (u"{", u"}"))
+
+    while text:
+        cut_at = len(text)
+        for opening, closing in pairs:
+            unclosed = []
+            for index, char in enumerate(text):
+                if char == opening:
+                    unclosed.append(index)
+                elif char == closing and unclosed:
+                    unclosed.pop()
+            if unclosed:
+                cut_at = min(cut_at, unclosed[0])
+
+        if cut_at == len(text):
+            break
+        text = text[:cut_at]
+
+    return text
+
+
+def build_renpy_text_preview(value, limit, allowed_substitutions=()):
+    """Build a short display-safe preview without partial Ren'Py markers."""
+    source = u"" if value is None else to_unicode(value)
+    limit = max(0, int(limit))
+    truncated = len(source) > limit
+    preview = source[:limit].replace(u"\r", u"").replace(u"\n", u"")
+    preview = trim_unclosed_renpy_markers(preview)
+    preview = escape_renpy_text(preview, allowed_substitutions)
+    return preview + (u"..." if truncated else u"")
+
 import warnings
 import sys
 

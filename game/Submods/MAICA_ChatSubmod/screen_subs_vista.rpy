@@ -40,7 +40,7 @@ screen maica_upload_image_android():
                 text _("Selecting images...")
             else:
                 if imageselector.image_path:
-                    text _("Image chosen: [imageselector.image_path]")
+                    text maica_escape_display_text(renpy.substitute(_("Image chosen: [imageselector.image_path]")))
                 else:
                     text _("No image chosen")
         hbox:

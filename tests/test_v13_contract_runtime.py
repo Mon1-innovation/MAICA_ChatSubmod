@@ -3110,3 +3110,16 @@ def test_get_message_normalizes_ellipsis_before_pause_processing():
     message = ai.get_message()
 
     assert message[1] == "..."
+
+
+def test_prepare_message_normalizes_values_in_raw_and_display_modes():
+    class TalkSplitterStub:
+        def add_pauses(self, value):
+            return value + "{w=0.3}"
+
+    ai = object.__new__(maica.MaicaAi)
+    ai.TalkSpilter = TalkSplitterStub()
+
+    assert ai.prepare_message_for_renpy(Ellipsis, escape_for_renpy=False) == "..."
+    assert ai.prepare_message_for_renpy(12, escape_for_renpy=False) == "12"
+    assert ai.prepare_message_for_renpy(Ellipsis) == "...{w=0.3}"

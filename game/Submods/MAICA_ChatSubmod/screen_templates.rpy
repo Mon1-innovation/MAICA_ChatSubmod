@@ -368,7 +368,7 @@ init -1:
                 yfill False
                 spacing 5
 
-                label _(message):
+                label maica_escape_display_text(_(message)):
                     style "confirm_prompt"
                     xalign 0.5
 

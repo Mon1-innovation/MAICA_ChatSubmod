@@ -706,20 +706,45 @@ class MaicaAi(ChatBotInterface):
         for index, pair in enumerate(emote_talk_zipped):
             self._append_to_message_list(*pair, extend=False if index == 0 else True)
 
-    def get_message(self, add_pause = True):
+    @staticmethod
+    def _prepare_message_for_renpy(message):
+        if message is Ellipsis:
+            message = "..."
+        elif type(message) in (int, float):
+            message = str(message)
+        message = bot_interface.to_unicode(message)
+        return message
+
+    def prepare_message_for_renpy(
+        self,
+        message,
+        add_pause=True,
+        escape_for_renpy=True,
+    ):
+        """Normalize a message and optionally escape it for Ren'Py display.
+
+        Raw mode keeps source markup and skips pause insertion while retaining
+        the value normalization used by the display path.
+        """
+        message = self._prepare_message_for_renpy(message)
+
+        if escape_for_renpy:
+            message = bot_interface.escape_renpy_text(
+                message,
+                bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS
+            )
+            if add_pause:
+                message = self.TalkSpilter.add_pauses(message)
+        return message
+
+    def get_message(self):
         res = self.message_list.get()
         if len(self.message_list) < 1:
             talk = self.TalkSpilter.split_present_sentence()
             if talk:
                 self.add_ana(talk)
-        try:
-            if res[1] is Ellipsis:
-                res[1] = "..."
-            if type(res[1]) in (int, float):
-                res[1] = str(res[1])
-        except Exception:
-            pass
-        return (res[0], self.TalkSpilter.add_pauses(res[1]) if add_pause else res[1], res[2] if len(res) >= 3 else False)
+        message = self._prepare_message_for_renpy(res[1])
+        return (res[0], message, res[2] if len(res) >= 3 else False)
 
     def _clear_error_unlocked(self, status=None):
         self.error_protocol_status = None
@@ -1515,7 +1540,7 @@ class MaicaAi(ChatBotInterface):
             ])
             if len(message) > 0 and message[0] == " ":
                 message = message[1:]
-            message_step1 = key_replace(message, bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage)
+            message_step1 = key_replace(message, bot_interface.renpy_symbol_percentage)
             self.message_list.put(('1eua', message_step1))
         if event.data.status == "maica_chat_loop_finished":
             processor.reset()
@@ -1611,7 +1636,7 @@ class MaicaAi(ChatBotInterface):
             return
         elif message[0] == " ":
             message = message[1:]
-        message_step1 = key_replace(message, bot_interface.renpy_symbol_big_bracket_only, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
+        message_step1 = key_replace(message, bot_interface.renpy_symbol_percentage, bot_interface.renpy_symbol_enter)
         self.message_list.put((emote, message_step1, extend))
     def upload_save(self, dict):
         """

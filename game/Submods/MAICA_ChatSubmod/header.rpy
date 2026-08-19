@@ -71,6 +71,7 @@ define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     import logging
+    import bot_interface
     import maica_v13_migration
 
     if _maica_repaired_persistent_containers:
@@ -552,7 +553,21 @@ init 10 python:
             persistent.maica_advanced_setting_status[key] = False
 
     def maica_escape_display_text(text):
-        return text.replace("[", "[[").replace("{", "{{")
+        return bot_interface.escape_renpy_text(text)
+
+    def maica_escape_dialogue_text(text, interpolation_passes=1):
+        return bot_interface.escape_renpy_text(
+            text,
+            bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+            interpolation_passes
+        )
+
+    def maica_build_display_preview(text, limit):
+        return bot_interface.build_renpy_text_preview(
+            text,
+            limit,
+            bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS
+        )
 
     def maica_selected_item(items, selected_indices):
         if len(selected_indices) != 1:
@@ -597,7 +612,7 @@ init 10 python:
             status_text = renpy.substitute(_("Authentication failed: ")) + ai.get_status_description()
             detail = u"{}".format(res.get("exception") or "")
             if detail:
-                status_text += "\n" + renpy.substitute(_("Reason: ")) + maica_escape_display_text(detail)
+                status_text += "\n" + renpy.substitute(_("Reason: ")) + detail
             renpy.show_screen("maica_message", message=status_text)
 
 
@@ -1290,7 +1305,7 @@ screen maica_setting():
 
                 text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]"
 
-                $ triggered_list = str(store.maica.maica_instance.mtrigger_manager.triggered_list).replace("[", "[[").replace("{", "{{").replace("【", "【【")
+                $ triggered_list = maica_escape_display_text(store.maica.maica_instance.mtrigger_manager.triggered_list)
                 text "triggered_list: [triggered_list]"
 
                 textbutton _("Write Event information to the log"):
@@ -1348,14 +1363,14 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("Current provider: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"):
+                textbutton maica_escape_display_text(renpy.substitute(_("Current provider: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"))):
                     action Show("maica_node_setting")
                     hovered SetField(_tooltip, "value", _("Choose provider"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "maica_check_nohover"
                 $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
-                textbutton _("Current user: [user_disp]"):
+                textbutton maica_escape_display_text(renpy.substitute(_("Current user: [user_disp]"))):
                     action NullAction()
                     hovered SetField(_tooltip, "value", _("To change account or logout, navigate to Submods menu.\n* To change account properties or password, navigate to registration site"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -1503,7 +1518,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("Geolocation: [persistent.mas_geolocation]"):
+                textbutton maica_escape_display_text(renpy.substitute(_("Geolocation: [persistent.mas_geolocation]"))):
                     action Show("maica_location_input", addition = persistent.mas_geolocation)
 
             hbox:

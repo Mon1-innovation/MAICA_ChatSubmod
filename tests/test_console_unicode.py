@@ -19,6 +19,69 @@ def test_key_replace_preserves_unicode_text():
     assert bot_interface.key_replace("状态: 中文", {"状态": "错误"}) == "错误: 中文"
 
 
+def test_renpy_text_escape_handles_external_markup_and_none():
+    assert bot_interface.escape_renpy_text(None) == ""
+    assert bot_interface.escape_renpy_text("[field] {value}") == "[[field] {{value}"
+    assert bot_interface.escape_renpy_text(
+        '{"loc": ["x"]}'
+    ) == '{{"loc": [["x"]}'
+
+
+def test_renpy_dialogue_escape_preserves_only_trusted_substitutions():
+    text = "[player] [m_name] [mas_get_player_nickname()] [unknown] {w=0.3}"
+    escaped = bot_interface.escape_renpy_text(
+        text,
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+    )
+
+    assert "[player]" in escaped
+    assert "[m_name]" in escaped
+    assert "[mas_get_player_nickname()]" in escaped
+    assert "[[unknown]" in escaped
+    assert "{{w=0.3}" in escaped
+
+
+def test_renpy_dialogue_escape_accounts_for_multiple_interpolation_passes():
+    escaped = bot_interface.escape_renpy_text(
+        "[player] [unknown] {w=0.3}",
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+        interpolation_passes=2,
+    )
+
+    assert escaped == "[[player] [[[[unknown] {{w=0.3}"
+
+
+def test_prepare_message_escapes_external_tags_before_adding_trusted_pauses():
+    class TalkSplitterStub(object):
+        def add_pauses(self, value):
+            assert value == "external {{w=9}"
+            return value + "{w=0.3}"
+
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.TalkSpilter = TalkSplitterStub()
+
+    assert ai.prepare_message_for_renpy("external {w=9}") == (
+        "external {{w=9}{w=0.3}"
+    )
+
+
+def test_renpy_preview_drops_only_partial_markers_before_escaping():
+    assert bot_interface.build_renpy_text_preview(
+        "prefix [player] suffix",
+        12,
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+    ) == "prefix ..."
+    assert bot_interface.build_renpy_text_preview(
+        "prefix [player] suffix",
+        200,
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+    ) == "prefix [player] suffix"
+    assert bot_interface.build_renpy_text_preview(
+        '{"loc": ["x"]}',
+        200,
+    ) == '{{"loc": [["x"]}'
+
+
 def test_to_unicode_falls_back_to_renpy_local_encoding(monkeypatch):
     monkeypatch.setattr(bot_interface.sys, "getfilesystemencoding", lambda: "gbk")
 

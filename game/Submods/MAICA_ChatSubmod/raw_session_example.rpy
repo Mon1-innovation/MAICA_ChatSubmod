@@ -193,7 +193,7 @@ label maica_raw_session(context, visions=None):
 
                 # 使用 ExtendSayer 输出消息
                 # extend_sayer.say() 会根据上下文决定是续接还是新建对话
-                extend_sayer.say(message[1])
+                extend_sayer.say(ai.prepare_message_for_renpy(message[1]))
 
             except Exception as e:
                 # 错误处理: 记录异常信息

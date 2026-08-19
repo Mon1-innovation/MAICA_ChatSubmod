@@ -148,7 +148,7 @@ label maica_talking.asking:
 
                     if not is_extend:
                         extend_sayer = ExtendSayer()
-                    extend_sayer.say(message[1])
+                    extend_sayer.say(ai.prepare_message_for_renpy(message[1]))
 
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
@@ -410,9 +410,9 @@ label maica_mpostal_read:
                     store.mas_ptod.write_command("Wait message...")
                     renpy.pause(1.0)
                     continue
-                message = ai.get_message(add_pause = False)
+                message = ai.get_message()
                 store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
-                cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol_big_bracket_only)
+                cur_postal["responsed_content"] = message[1]
                 cur_postal["responsed_status"] = "received"
                 _return = "success"
 
@@ -452,7 +452,7 @@ label maica_mpostal_show(content = "no content"):
             poem_id = "mpostal_response_{}".format(time.time()),
             category = "mpostal",
             prompt = "mpostal",
-            text = content,
+            text = maica_escape_dialogue_text(content, interpolation_passes=2),
         )
     call mas_showpoem(store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
     $ store.mas_poems.poem_map.pop(store._MP.poem_id, None)

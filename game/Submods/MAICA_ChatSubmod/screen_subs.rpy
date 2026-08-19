@@ -120,10 +120,10 @@ screen maica_log():
         use maica_common_inner_frame():
             style_prefix "console_font"
 
-            use divider_small(maica_log.get("title"))
+            use divider_small(maica_escape_display_text(maica_log.get("title")))
 
-            for content in maica_log.get("content"):
-                text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
+            for content in maica_log.get("content") or []:
+                text maica_escape_display_text(content):
                     size 18
                 use divider_plain_small()
         hbox:
@@ -681,7 +681,7 @@ screen maica_location_input(addition="", edittarget=None):
                 coordinate_text = renpy.substitute(_("Latitude: {0}\nLongitude: {1}")).format(latitude, longitude)
                 renpy.show_screen("maica_message", message=renpy.substitute(_("Verification passed")) + "\n" + coordinate_text)
             else:
-                reason = res.get("exception") or renpy.substitute(_("Coordinates unavailable"))
+                reason = u"{}".format(res.get("exception") or renpy.substitute(_("Coordinates unavailable")))
                 renpy.show_screen("maica_message", message=renpy.substitute(_("Verification failed")) + "\n" + renpy.substitute(_("Reason: ")) + reason)
 
 
@@ -791,13 +791,13 @@ screen maica_node_setting():
 
             for provider in store.maica.maica_instance.provider_manager._servers:
                 use maica_l2_subframe():
-                    text str(provider.get('id')) + ' | ' + provider.get('name')
+                    text maica_escape_display_text(provider.get('id')) + ' | ' + maica_escape_display_text(provider.get('name'))
 
 
                     hbox:
-                        text renpy.substitute(_("Intro: ")) + provider.get('description', 'Device not provided')
+                        text renpy.substitute(_("Intro: ")) + maica_escape_display_text(provider.get('description', 'Device not provided'))
                     hbox:
-                        text renpy.substitute(_("Model: ")) + provider.get('servingModel', 'No model provided')
+                        text renpy.substitute(_("Model: ")) + maica_escape_display_text(provider.get('servingModel', 'No model provided'))
 
 
                 hbox:
@@ -812,8 +812,8 @@ screen maica_node_setting():
                             selected persistent.maica_setting_dict["provider_id"] == provider.get('id')
                     hbox:
                         style_prefix "maica_check"
-                        textbutton renpy.substitute(_("> Go to portal page")) + "(" + provider.get('portalPage') + ")":
-                            action OpenURL(provider.get('portalPage'))
+                        textbutton renpy.substitute(_("> Go to portal page")) + "(" + maica_escape_display_text(provider.get('portalPage')) + ")":
+                            action OpenURL(provider.get('portalPage') or "")
 
                     if provider.get("isOfficial", False):
                         hbox:
@@ -1018,7 +1018,7 @@ screen maica_mpostals():
                 text ""
             for postal in persistent._maica_send_or_received_mpostals:
                 use maica_l2_subframe():
-                    label postal["raw_title"]:
+                    label maica_escape_display_text(postal.get("raw_title")):
                         style "maica_check_nohover_label"
                     text "":
                         style "small_link"
@@ -1028,16 +1028,11 @@ screen maica_mpostals():
                     text renpy.substitute(_("Last post sent at: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
                         xalign 0.0
                         style "small_link"
-                    text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  ""):
+                    text renpy.substitute(_("\n[player]: \n")) + maica_build_display_preview(postal.get("raw_content"), preview_len):
                         xalign 0.0
                         style "small_expl_hw"
                     if postal["responsed_content"] != "":
-                        python:
-                            preview_text = postal["responsed_content"][:preview_len].replace("\n", "")
-                            for pair in [(r'[', r']'), (r'{', r'}')]:
-                                while preview_text.count(pair[0]) > preview_text.count(pair[1]):
-                                    preview_text = preview_text[:preview_text.rfind(pair[0])]
-                        text renpy.substitute(_("[m_name]: \n")) + preview_text  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
+                        text renpy.substitute(_("[m_name]: \n")) + maica_build_display_preview(postal.get("responsed_content"), preview_len) + "\n":
                             xalign 0.0
                             style "small_expl_hw"
                     python:
@@ -1188,11 +1183,11 @@ screen maica_workload_stat():
 
             for server in stat:
 
-                use divider_small(server)
+                use divider_small(maica_escape_display_text(server))
 
                 for card in stat[server]:
                     hbox:
-                        text stat[server][card]["name"]:
+                        text maica_escape_display_text(stat[server][card]["name"]):
                             size 15
                         text store.maica.progress_bar(stat[server][card]["mean_utilization"], total=int(stat[server][card]["tflops"]), unit="TFlops"):
                             size 10
@@ -1279,7 +1274,7 @@ screen maica_statics():
                     size 20
             hbox:
                 $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
-                text _("Current user: [user_disp]"):
+                text maica_escape_display_text(renpy.substitute(_("Current user: [user_disp]"))):
                     size 20
 
             hbox:

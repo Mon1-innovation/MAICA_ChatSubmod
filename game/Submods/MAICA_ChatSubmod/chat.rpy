@@ -1301,7 +1301,7 @@ label mspire_delete_information:
         items = []
         for i in persistent.maica_setting_dict['mspire_category']:
             items.append([
-                i, i, False, False, True
+                maica_escape_display_text(i), i, False, False, True
             ])
 
     call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("Delete item{#maica_chat_delete_item}"), return_all=True)

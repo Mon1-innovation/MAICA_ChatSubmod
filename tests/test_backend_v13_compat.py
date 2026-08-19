@@ -1441,8 +1441,7 @@ def test_e_player_addition_ui_escapes_markup_without_changing_values():
     chat = source("game/Submods/MAICA_ChatSubmod/chat.rpy")
 
     escape_helper = function_body(header, r"maica_escape_display_text")
-    assert re.search(r"\.replace\(\s*['\"]\[['\"]\s*,\s*['\"]\[\[['\"]\s*\)", escape_helper)
-    assert re.search(r"\.replace\(\s*['\"]\{['\"]\s*,\s*['\"]\{\{['\"]\s*\)", escape_helper)
+    assert "bot_interface.escape_renpy_text(text)" in escape_helper
 
     addition_screen = named_screen(screen, "maica_addition_setting")
     assert re.search(r"textbutton\s+maica_escape_display_text\s*\(\s*item\s*\)", addition_screen)
@@ -1453,6 +1452,48 @@ def test_e_player_addition_ui_escapes_markup_without_changing_values():
         delete_label,
         re.S,
     )
+
+
+def test_e_dynamic_error_and_external_fields_use_display_escape_boundaries():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    templates = source("game/Submods/MAICA_ChatSubmod/screen_templates.rpy")
+
+    location_screen = named_screen(screen, "maica_location_input")
+    provider_screen = named_screen(screen, "maica_node_setting")
+    log_screen = named_screen(screen, "maica_log")
+    message_screen = templates
+
+    assert "res.get(\"exception\")" in location_screen
+    assert 'renpy.show_screen("maica_message"' in location_screen
+    assert "screen maica_message" in message_screen
+    assert "label maica_escape_display_text(_(message))" in message_screen
+    assert "maica_escape_display_text(maica_log.get(\"title\"))" in log_screen
+    assert "maica_escape_display_text(content)" in log_screen
+    for field in ("name", "description", "servingModel", "portalPage"):
+        assert re.search(
+            r"maica_escape_display_text\(\s*provider\.get\(\s*['\"]{}['\"]".format(field),
+            provider_screen,
+        )
+
+    token_helper = function_body(header, r"_maica_verify_token")
+    assert "maica_escape_display_text(detail)" not in token_helper
+
+
+def test_e_chat_and_mpostal_escape_only_at_renpy_display_edges():
+    main = source("game/Submods/MAICA_ChatSubmod/main.rpy")
+    raw = source("game/Submods/MAICA_ChatSubmod/raw_session_example.rpy")
+    runtime = source("game/python-packages/maica.py")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+
+    assert "ai.prepare_message_for_renpy(message[1])" in main
+    assert "ai.prepare_message_for_renpy(message[1])" in raw
+    assert "def prepare_message_for_renpy" in runtime
+    assert "RENPY_DIALOGUE_SUBSTITUTIONS" in runtime
+    assert 'cur_postal["responsed_content"] = message[1]' in main
+    assert "maica_escape_dialogue_text(content, interpolation_passes=2)" in main
+    assert "maica_build_display_preview" in screen
+    assert "preview_text.count" not in screen
 
 
 def test_e_list_setting_selection_is_screen_local_and_index_based():
