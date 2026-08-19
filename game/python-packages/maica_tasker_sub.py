@@ -23,11 +23,31 @@ def _format_ws_message(status, content, code=None):
 class GeneralTaskEventLogger(MaicaTask):
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
-            self.logger.debug("[GeneralTaskEventLogger] {}".format(event))
+            data = getattr(event, "data", None)
+            event_name = getattr(data, "name", type(data).__name__)
+            content = getattr(data, "content", None)
+            if event_name == "websocket_closed" and isinstance(content, dict):
+                content = {
+                    "close_status_code": content.get("close_status_code"),
+                    "close_msg": content.get("close_msg"),
+                }
+            owner = getattr(getattr(event, "taskowner", None), "name", None)
+            self.logger.debug(
+                "[TaskEvent] owner={} name={} content={}".format(
+                    owner or type(getattr(event, "taskowner", None)).__name__,
+                    event_name,
+                    content,
+                )
+            )
 class GeneralTaskErrorHandler(MaicaTask):
     def on_event(self, event):
         if event.event_type == MAICATASKEVENT_TYPE_TASK and event.type == 'error':
-            self.logger.debug("[GeneralTaskErrorHandler] {}".format(event))
+            data = getattr(event, "data", None)
+            self.logger.debug(
+                "[GeneralTaskErrorHandler] handling task error {}".format(
+                    getattr(data, "name", type(data).__name__)
+                )
+            )
             self.manager.close_ws()
 
 class GeneralWsErrorHandler(MaicaWSTask):
@@ -79,13 +99,14 @@ class GeneralWsErrorHandler(MaicaWSTask):
                 if self._error_callback:
                     if self._error_callback(wspack.status, wspack.content, wspack.code) is False:
                         return
-                event.taskowner.close_ws()
                 if self.logger:
-                    self.logger.error(
-                        u"[GeneralWsErrorHandler] websocket error: {}\nwebsocket connection closed".format(
-                            bot_interface.to_unicode(wspack.content)
+                    self.logger.debug(
+                        u"[GeneralWsErrorHandler] requesting close after status={} code={}".format(
+                            wspack.status,
+                            wspack.code,
                         )
                     )
+                event.taskowner.close_ws()
 class GeneralWsConsoleLogger(MaicaWSTask):
 
     def __init__(self, task_type, name, manager, except_ws_status=None, console_logger=None):
@@ -115,18 +136,17 @@ class GeneralWsConsoleLogger(MaicaWSTask):
                 event.data.content = welcome_zh if self.ui_lang_zh else welcome_en
             except Exception:
                 pass
-        else:
-            wspack = event.data
-            if self.console_logger:
-                log_message = _format_ws_message(wspack.status, wspack.content)
-                if wspack.type == 'info':
-                    self.console_logger.info(log_message)
-                elif wspack.type == 'warn':
-                    self.console_logger.warning(log_message)
-                elif wspack.type == 'error':
-                    self.console_logger.error(log_message)
-                else:
-                    self.console_logger.debug(log_message)
+        wspack = event.data
+        if self.console_logger:
+            log_message = _format_ws_message(wspack.status, wspack.content)
+            if wspack.type == 'info':
+                self.console_logger.info(log_message)
+            elif wspack.type == 'warn':
+                self.console_logger.warning(log_message)
+            elif wspack.type == 'error':
+                self.console_logger.error(log_message)
+            else:
+                self.console_logger.debug(log_message)
 
 
 
@@ -204,8 +224,11 @@ class MAICALoopWarnHandler(GeneralWsErrorHandler):
         """
         wspack = event.data
         if self.logger:
-            self.logger.warning(
-                "[MAICALoopWarnHandler] " + "<{}> {}".format(wspack.status, wspack.content)
+            self.logger.debug(
+                "[MAICALoopWarnHandler] requesting close after status={} code={}".format(
+                    wspack.status,
+                    wspack.code,
+                )
             )
         event.taskowner.close_ws()
 
@@ -349,9 +372,12 @@ class MTriggerWsHandler(MaicaWSTask):
             event (MaicaTaskEvent): WebSocket事件对象
         """
         content = event.data.content
-        self.logger.debug('[MTriggerWsHandler] received trigger {}'.format(content))
         if not isinstance(content, dict):
-            self.logger.error('[MTriggerWsHandler] trigger payload is not a dict')
+            self.logger.error(
+                '[MTriggerWsHandler] trigger payload is not a dict (type={})'.format(
+                    type(content).__name__
+                )
+            )
             return
         name = content.get('name')
         arguments = content.get('arguments')
@@ -360,7 +386,12 @@ class MTriggerWsHandler(MaicaWSTask):
         except NameError:
             string_types = (str,)
         if not isinstance(name, string_types) or not isinstance(arguments, dict):
-            self.logger.error('[MTriggerWsHandler] invalid trigger payload: {}'.format(content))
+            self.logger.error(
+                '[MTriggerWsHandler] invalid trigger fields (name_type={}, arguments_type={})'.format(
+                    type(name).__name__,
+                    type(arguments).__name__,
+                )
+            )
             return
         try:
             self._trigger_func(name, arguments)
@@ -386,7 +417,10 @@ class QualityStatusWsHandler(MaicaWSTask):
         content = event.data.content
         if not isinstance(content, (list, tuple)) or len(content) != 2:
             self.logger.error(
-                '[QualityStatusWsHandler] invalid quality payload: {}'.format(content)
+                '[QualityStatusWsHandler] invalid quality payload shape (type={}, length={})'.format(
+                    type(content).__name__,
+                    len(content) if isinstance(content, (list, tuple)) else "n/a",
+                )
             )
             return
 
@@ -403,16 +437,16 @@ class QualityStatusWsHandler(MaicaWSTask):
             or not 0.0 <= confidence <= 1.0
         ):
             self.logger.error(
-                '[QualityStatusWsHandler] invalid quality payload: {}'.format(content)
+                '[QualityStatusWsHandler] invalid quality fields (reasonable_type={}, confidence={})'.format(
+                    type(reasonable).__name__,
+                    confidence,
+                )
             )
             return
 
         result = (reasonable, float(confidence))
         with self._pending_lock:
             self._pending.append(result)
-        self.logger.debug(
-            '[QualityStatusWsHandler] received quality status {}'.format(result)
-        )
 
     def drain(self):
         with self._pending_lock:
@@ -492,7 +526,7 @@ class MAICALoginTasker(MaicaWSTask):
             raise RuntimeError("MAICALoginTasker: manager is None")
         if self.manager.ws_client is None:
             raise RuntimeError("MAICALoginTasker: manager.ws_client is None")
-        self.logger.info("[MAICALoginTasker] login: {}...".format(data[:15]))
+        self.logger.info("[MAICALoginTasker] sending authentication request")
         self.manager.ws_client.send(data)
 
     def set_token(self, token):
@@ -605,9 +639,7 @@ class MAICASessionResetTasker(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        self.logger.debug(
-            "[MAICASessionResetTasker] received: {}".format(self.name, event.data.content)
-        )
+        return None
 
 
 class MAICASettingSendTasker(MaicaWSTask):
@@ -649,10 +681,10 @@ class MAICASettingSendTasker(MaicaWSTask):
         Args:
             request_body (dict): 包含配置参数的请求体字典
         """
-        self.logger.debug(
-            "[MAICASettingSendTasker] sended: {}".format(request_body)
-        )
         request_body['reset']=True
+        self.logger.debug(
+            "[MAICASettingSendTasker] sending settings: {}".format(request_body)
+        )
         self.manager.ws_client.send(json.dumps(request_body, ensure_ascii=False))
 
     def on_event(self, event):
@@ -671,7 +703,6 @@ class MAICASettingSendTasker(MaicaWSTask):
            event.data.name == 'maica_login_successful':
             if self._generate_setting_func is not None:
                 settings = self._generate_setting_func()
-                self.logger.debug("[MAICASettingSendTasker] auto-sending settings on maica_login_successful")
                 self.on_manual_run(settings)
         return super(MAICASettingSendTasker, self).on_event(event)
 
@@ -684,9 +715,7 @@ class MAICASettingSendTasker(MaicaWSTask):
         Args:
             event (MaicaTaskEvent): WebSocket事件对象
         """
-        self.logger.debug(
-            "[MAICASettingSendTasker] received: {}".format(self.name, event.data.content)
-        )
+        return None
 
     def set_generate_setting_func(self, func):
         """
@@ -876,12 +905,16 @@ class AutoReconnector(MaicaWSTask):
 
         启用后，当WebSocket连接关闭时会自动触发重连。
         """
+        changed = False
         with self._reconnect_lock:
             if not self._enabled:
                 self._enabled = True
                 self._reconnect_attempts = 0
                 self._reconnect_cancel = threading.Event()
-        self.logger.info("[AutoReconnector] auto-reconnect enabled")
+                changed = True
+        if changed:
+            self.logger.info("[AutoReconnector] auto-reconnect enabled")
+        return changed
 
     def is_enabled(self):
         with self._reconnect_lock:
@@ -899,7 +932,8 @@ class AutoReconnector(MaicaWSTask):
             self._reconnect_cancel.set()
         if was_enabled:
             self._emit_task_event('auto_reconnector_stopped')
-        self.logger.info("[AutoReconnector] auto-reconnect disabled")
+            self.logger.info("[AutoReconnector] auto-reconnect disabled")
+        return was_enabled
 
     def reset(self):
         super(AutoReconnector, self).reset()
@@ -1012,8 +1046,11 @@ class AutoResumeTasker(MaicaWSTask):
 
         启用后，在WebSocket重连成功时会自动发送恢复会话请求。
         """
+        if self._enabled:
+            return False
         self._enabled = True
         self.logger.info("[AutoResumeTasker] auto-resume enabled")
+        return True
 
     def disable(self):
         """
@@ -1021,9 +1058,12 @@ class AutoResumeTasker(MaicaWSTask):
 
         禁用后，重连成功时不会自动发送恢复会话请求。
         """
+        was_enabled = self._enabled
         self._enabled = False
         self._clear_resume_state()
-        self.logger.info("[AutoResumeTasker] auto-resume disabled")
+        if was_enabled:
+            self.logger.info("[AutoResumeTasker] auto-resume disabled")
+        return was_enabled
 
     def reset(self):
         super(AutoResumeTasker, self).reset()
@@ -1086,14 +1126,12 @@ class KeepWsAliveTasker(MaicaWSTask):
         if event.event_type == MAICATASKEVENT_TYPE_TASK:
             if event.data.name == 'maica_login_successful':
                 self._logged_in = True
-                if self._enabled:
-                    self._start_timer()
-                    self.logger.info("[KeepWsAliveTasker] started after login")
+                if self._enabled and self._start_timer():
+                    self.logger.info("[KeepWsAliveTasker] keep-alive started after login")
             elif event.data.name == 'websocket_closed':
                 self._logged_in = False
                 self._stop_timer_thread()
                 self._pong_event.set()  # 唤醒可能在等待的ping()调用
-                self.logger.debug("[KeepWsAliveTasker] stopped due to websocket closed")
         elif event.event_type == MAICATASKEVENT_TYPE_WS:
             if event.data.status == 'pong':
                 self.on_received(event)
@@ -1118,7 +1156,7 @@ class KeepWsAliveTasker(MaicaWSTask):
     def _start_timer(self):
         """启动定时器线程，定期发送静默心跳。"""
         if self._timer_thread is not None and self._timer_thread.is_alive():
-            return
+            return False
 
         self._stop_timer = False
         import threading
@@ -1126,13 +1164,19 @@ class KeepWsAliveTasker(MaicaWSTask):
         self._timer_thread.daemon = True
         self._timer_thread.start()
         self.logger.debug("[KeepWsAliveTasker] timer thread started")
+        return True
 
     def _stop_timer_thread(self):
         """停止定时器线程。"""
+        was_running = bool(
+            self._timer_thread is not None and self._timer_thread.is_alive()
+        )
         self._stop_timer = True
         if self._timer_thread is not None:
             self._timer_thread = None
-        self.logger.debug("[KeepWsAliveTasker] timer thread stopped")
+        if was_running:
+            self.logger.debug("[KeepWsAliveTasker] timer stop requested")
+        return was_running
 
     def _timer_loop(self):
         """定时器循环，定期发送静默心跳。"""
@@ -1222,10 +1266,13 @@ class KeepWsAliveTasker(MaicaWSTask):
 
         如果已登录，则立即启动定时器。
         """
+        if self._enabled:
+            return False
         self._enabled = True
         if self._logged_in:
             self._start_timer()
-        self.logger.info("[KeepWsAliveTasker] enabled")
+        self.logger.info("[KeepWsAliveTasker] keep-alive enabled")
+        return True
 
     def disable(self):
         """
@@ -1233,9 +1280,12 @@ class KeepWsAliveTasker(MaicaWSTask):
 
         停止定时器线程。
         """
+        was_enabled = self._enabled
         self._enabled = False
         self._stop_timer_thread()
-        self.logger.info("[KeepWsAliveTasker] disabled")
+        if was_enabled:
+            self.logger.info("[KeepWsAliveTasker] keep-alive disabled")
+        return was_enabled
 
     def reset(self):
         """重置心跳保活状态。"""

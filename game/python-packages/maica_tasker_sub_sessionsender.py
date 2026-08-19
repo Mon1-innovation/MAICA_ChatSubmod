@@ -404,9 +404,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
         self._start_request_timeout()
         try:
             self.process_request(*args, **kwargs)
-        except Exception as e:
-            import traceback
-            self.logger.error("[SessionSenderAndReceiver] start_request error: {}".format(traceback.format_exc()))
+        except Exception:
             # 如果发生异常，立即释放锁
             self.processing = False
             self._cancel_request_timeout()

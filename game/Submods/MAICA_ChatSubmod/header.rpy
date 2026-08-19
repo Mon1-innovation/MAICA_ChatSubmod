@@ -651,7 +651,7 @@ init 10 python:
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def _upload_persistent_dict():
         if not store.maica.savefile_access_marker_exists():
-            store.mas_submod_utils.submod_log.info("MAICA: Skip savefile upload because savefile_access marker is missing")
+            store.mas_submod_utils.submod_log.debug("MAICA: Skip savefile upload because savefile_access marker is missing")
             return
 
         max_bytes = 1536
@@ -728,8 +728,6 @@ init 10 python:
         for key in keys_to_remove:
             del d[key]
         res = store.maica.maica_instance.upload_save(d)
-        if not res.get("success", False):
-            store.mas_submod_utils.submod_log.error("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
         renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA; Savefile failed to upload"))
 
     def reset_session():
@@ -746,17 +744,17 @@ init 10 python:
         if not os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt")):
             renpy.notify(_("MAICA: History not found at game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
-        with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
-            #history = json.load(f)
-            try:
+        try:
+            with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
                 history = json.load(f)
-                res = store.maica.maica_instance.upload_history(history)
-                if not res.get("success", False):
-                    raise Exception(str(res))
-            except Exception as e:
-                store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(e))
-                renpy.notify(_("MAICA: Failed to upload history, check submod_log.log for details."))
-                return
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("upload_chat_history: failed to read history file: {}".format(e))
+            renpy.notify(_("MAICA: Failed to read history, check submod_log.log for details."))
+            return
+        res = store.maica.maica_instance.upload_history(history)
+        if not res.get("success", False):
+            renpy.notify(_("MAICA: Failed to upload history, check submod_log.log for details."))
+            return
         renpy.notify(_("MAICA: History uploaded"))
 
     def run_migrations():
@@ -767,6 +765,10 @@ init 10 python:
         import copy
         run_migrations()
         maica_refresh_automatic_settings(persistent.maica_setting_dict)
+
+        # Apply user-selected levels before initialization actions emit logs.
+        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
+        store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
 
         store.maica.maica_instance.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if store.maica.maica_instance.auto_reconnect:
@@ -797,8 +799,6 @@ init 10 python:
         store.maica.maica_instance.target_lang = persistent.maica_setting_dict["target_lang"]
         store.maica.maica_instance.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.maica.maica_instance.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
-        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-        store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
         store.maica.maica_instance.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica_instance.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica_instance.max_history_token = min(persistent.maica_setting_dict["session_len_limit"], 28672)
@@ -815,7 +815,9 @@ init 10 python:
             store.maica.maica_instance.MoodStatus.emote_translate = json_exporter.emotion_etz
         if not persistent.maica_setting_dict.get('mspire_enable') and mas_inEVL("maica_mspire"):
             store.MASEventList.clean()
-        send_success = store.maica.maica_instance.send_settings()
+        send_success = False
+        if store.maica.maica_instance.is_ready_to_input():
+            send_success = bool(store.maica.maica_instance.send_settings())
         if not ininit:
             renpy.notify(_("MAICA: Settings uploaded") if send_success else _("MAICA: Do a manual upload after connection ready"))
 
@@ -858,7 +860,7 @@ init 10 python:
             persistent.maica_advanced_setting_status
         )
         store.maica.maica_instance.modelconfig = settings_dict
-        store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
+        store.mas_submod_utils.submod_log.debug("Applied custom advanced settings")
 
     def maica_discard_advanced_setting():
         settings_dict = maica_v13_migration.filter_advanced_settings(
@@ -1030,15 +1032,15 @@ init 10 python:
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("Failed to get conditional: {}".format(e))
                     return None
-            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_greeting')), renpy.seen_label('maica_greeting')))
-            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr2')), renpy.seen_label('maica_chr2')))
-            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_gone')), renpy.seen_label('maica_chr_gone')))
-            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_corrupted2')), renpy.seen_label('maica_chr_corrupted2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_preferences2')), renpy.seen_label('maica_wants_preferences2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
-            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
-            store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
-            store.mas_submod_utils.submod_log.info("maica_wants_mpostal.conditional:{}|seen: {}".format(try_eval(get_conditional('maica_wants_mpostal')), renpy.seen_label('maica_wants_mpostal')) )
+            store.mas_submod_utils.submod_log.debug("maica_greeting.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_greeting')), renpy.seen_label('maica_greeting')))
+            store.mas_submod_utils.submod_log.debug("maica_chr2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr2')), renpy.seen_label('maica_chr2')))
+            store.mas_submod_utils.submod_log.debug("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_gone')), renpy.seen_label('maica_chr_gone')))
+            store.mas_submod_utils.submod_log.debug("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_corrupted2')), renpy.seen_label('maica_chr_corrupted2')))
+            store.mas_submod_utils.submod_log.debug("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_preferences2')), renpy.seen_label('maica_wants_preferences2')))
+            store.mas_submod_utils.submod_log.debug("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
+            store.mas_submod_utils.submod_log.debug("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
+            store.mas_submod_utils.submod_log.debug("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
+            store.mas_submod_utils.submod_log.debug("maica_wants_mpostal.conditional:{}|seen: {}".format(try_eval(get_conditional('maica_wants_mpostal')), renpy.seen_label('maica_wants_mpostal')) )
 
 
 

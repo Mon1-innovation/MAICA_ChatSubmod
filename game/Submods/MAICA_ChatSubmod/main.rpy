@@ -42,7 +42,6 @@ label maica_talking(mspire = False, prepared = False):
 
         extend_sayer = ExtendSayer()
 label maica_talking.asking:
-    $ store.mas_submod_utils.submod_log.debug("current triggers: {}".format(ai.mtrigger_manager.build_data()))
     python:
         while True:
             if is_retry_before_sendmessage:
@@ -110,7 +109,10 @@ label maica_talking.asking:
                     mspire_is_started = True
             else:
                 return_code = "disconnected"
-                store.mas_submod_utils.submod_log.warning("label maica_talking::disconnected maybe unexpected")
+                store.mas_submod_utils.submod_log.warning(
+                    "label maica_talking: input loop stopped because the connection is not ready "
+                    "(status={} / {})".format(ai.status, ai.get_status_description())
+                )
                 break
 
 
@@ -140,7 +142,6 @@ label maica_talking.asking:
                         _history_list.pop()
                     continue
                 message = ai.get_message()
-                store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}', extend={}".format(message[0], message[1], message[2] if len(message) >= 3 else False))
                 received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
                 try:
@@ -154,7 +155,6 @@ label maica_talking.asking:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.console_logger.error("!!SUBMOD ERROR when chatting: {}".format(e))
             if ai.response_timed_out():
-                store.mas_submod_utils.submod_log.error("label maica_talking: response timed out")
                 # renpy.say(m, _("Something may went wrong..."))
                 return_code = "disconnected"
             if return_code == "disconnected":
@@ -331,7 +331,7 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                         _history_list.pop()
                 continue
             if ai.is_ready_to_input():
-                maica_apply_setting(True)
+                ai.send_mtrigger()
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 maica_connect_result = "success"
                 break
@@ -361,9 +361,13 @@ label maica_mpostal_read:
         ai = store.maica.maica_instance
         import time
         import traceback
-        for cur_postal in persistent._maica_send_or_received_mpostals:
-            if cur_postal["responsed_status"] != "notupload":
-                continue
+        pending_postals = [
+            postal
+            for postal in persistent._maica_send_or_received_mpostals
+            if postal["responsed_status"] == "notupload"
+        ]
+        total_pending = len(pending_postals)
+        for current_index, cur_postal in enumerate(pending_postals, 1):
             start_time = time.time()
             try:
                 vista_info = cur_postal.get("vista_image_info") or {}
@@ -378,17 +382,15 @@ label maica_mpostal_read:
                 cur_postal["responsed_status"] = "failed"
                 cur_postal["failed_count"] = cur_postal.get("failed_count", 0) + 1
                 _return = "failed"
-                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: request send failed: {}".format(traceback.format_exc()))
+                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: request setup failed: {}".format(traceback.format_exc()))
                 if cur_postal["failed_count"] >= 3:
                     cur_postal["responsed_status"] = "fatal"
                     cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" + cur_postal["responsed_content"]
-                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
+                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: retry limit reached for '{}'".format(cur_postal["raw_title"]))
                     break
                 continue
-            not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
-            current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
-            ai.console_logger.info("<Function> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
+            ai.console_logger.info("<Function> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, total_pending))
             cur_postal["responsed_status"] = "failed"
             gen_time = 0
             while ai.is_responding() or ai.len_message_queue() > 0 :
@@ -404,14 +406,12 @@ label maica_mpostal_read:
                         cur_postal["responsed_content"] = cur_postal["responsed_content"] + renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]" + "\nt{}".format(time.time()))) + ("\n" if len(cur_postal["responsed_content"]) else "")
 
                         _return = "failed"
-                        store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")
                         break
                 if ai.len_message_queue() == 0:
                     store.mas_ptod.write_command("Wait message...")
                     renpy.pause(1.0)
                     continue
                 message = ai.get_message()
-                store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
                 cur_postal["responsed_content"] = message[1]
                 cur_postal["responsed_status"] = "received"
                 _return = "success"
@@ -420,7 +420,6 @@ label maica_mpostal_read:
                 cur_postal["responsed_status"] = "failed"
                 cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
                 _return = "failed"
-                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: response timed out")
 
             if _return == "success" and cur_postal["responsed_status"] == "received":
                 store.maica.delete_mpostal_original(cur_postal)
@@ -429,7 +428,7 @@ label maica_mpostal_read:
                 if cur_postal.get("failed_count", 0) >= 3:
                     cur_postal["responsed_status"] = "fatal"
                     cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" +cur_postal["responsed_content"]
-                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
+                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: retry limit reached for '{}'".format(cur_postal["raw_title"]))
                     break
                 else:
                     if "failed_count" not in cur_postal:

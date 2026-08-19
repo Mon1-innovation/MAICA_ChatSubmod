@@ -582,7 +582,7 @@ init 5 python in maica:
             )
 
         if not renpy.seen_label("maica_prepend_2") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
-            store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
+            store.mas_submod_utils.submod_log.debug("MAICA: maica_main locked because it should not be unlocked now")
             store.mas_lockEVL("maica_main", "EVE")
         else:
             # A one-shot intro or a side event may leave the main topic locked.

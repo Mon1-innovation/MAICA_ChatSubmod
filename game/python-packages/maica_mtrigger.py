@@ -207,7 +207,7 @@ class MTriggerManager(object):
                     logger.error("triggered param is not dict! ({}:{})".format(name, param))
                     return
             if t.name == name:
-                logger.debug("triggered {} <- {}".format(name, param))
+                logger.debug("[MTriggerManager] queued trigger: {}".format(name))
                 self.triggered_list.append((t, param))
 
     def has_triggered(self, action=MTriggerAction.post):

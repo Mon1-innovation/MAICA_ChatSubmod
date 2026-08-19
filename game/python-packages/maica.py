@@ -173,8 +173,8 @@ class MaicaAi(ChatBotInterface):
             EMAIL_UNVERIFIED: u"The account email is not verified",
             TOS_UNACCEPTED: u"The latest terms are not accepted",
             CONNECTION_REUSE_DENIED: u"The account already has an active connection",
-            SERVER_REJECTED: u"An user level exception happened",
-            SERVER_ERROR: u"An server level exception happened",
+            SERVER_REJECTED: u"A user-level error occurred",
+            SERVER_ERROR: u"A server-side error occurred",
             TOKEN_GENERATION_FAILED: u"Token generation failed",
             CONNECT_PROBLEM: u"Unable to connect to the server",
             RESPONSE_INVALID: u"The server returned an invalid response",
@@ -183,7 +183,7 @@ class MaicaAi(ChatBotInterface):
             FAILED_GET_NODE:u"Failed to retrieve an available service provider",
             VERSION_OLD:u"Submod version outdated, update required",
             NO_INTERNET:u"No internet connection available",
-            CERTIFI_RESTART_REQUIRED:u"An certification fix applied, restart game to apply",
+            CERTIFI_RESTART_REQUIRED:u"A certificate fix was applied; restart the game to apply it",
         }
 
         @classmethod
@@ -377,6 +377,7 @@ class MaicaAi(ChatBotInterface):
             },
             "onliners":0
         }
+        self._workload_failure_state = None
         self.console_logger = logging.getLogger(name="mas_console_logger")
         self.console_logger.setLevel(logging.DEBUG)
         self.console_logger.propagate = False
@@ -845,7 +846,11 @@ class MaicaAi(ChatBotInterface):
             self._preserve_or_set_availability_error(
                 "Maica server availability is unknown"
             )
-            return logger.error("_gen_token: Maica server is not accessible.")
+            self._log_operation_skipped(
+                "_gen_token",
+                "service availability has not been established",
+            )
+            return
         self.ciphertext = ""
         self.clear_error()
         import requests
@@ -882,7 +887,9 @@ class MaicaAi(ChatBotInterface):
             return
         except Exception as e:
             self.set_error("client_network_error", "Maica::_gen_token failed")
-            logger.error("Maica::_gen_token requests.post failed because can't connect to server: {}".format(e))
+            logger.error(
+                "Maica::_gen_token POST /register failed: {}".format(e)
+            )
             return
         self.ciphertext = response_data.get("content")
         if not self.ciphertext:
@@ -943,13 +950,20 @@ class MaicaAi(ChatBotInterface):
                     logger.warning("Maica::_verify_token not passed: {}".format(result))
                     return result
             except Exception:
-                logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(res.text))
+                logger.error(
+                    "Maica::_verify_token GET /legality returned a non-JSON response "
+                    "(HTTP {}): {}".format(res.status_code, res.text)
+                )
                 self.set_error("client_response_invalid", "Maica::_verify_token response was not valid JSON")
                 return self.get_error_result()
 
         except Exception as e:
             import traceback
-            logger.error("Maica::_verify_token requests.post failed because can't connect to server: {}".format(traceback.format_exc()))
+            logger.error(
+                "Maica::_verify_token GET /legality failed: {}".format(
+                    traceback.format_exc()
+                )
+            )
             self.set_error("client_network_error", "Maica::_verify_token failed")
             return self.get_error_result()
 
@@ -1021,8 +1035,7 @@ class MaicaAi(ChatBotInterface):
         import traceback
 
         if not self.__accessable:
-            logger.error("verify_legality: Maica server not serving.")
-            return {"success": False, "exception": "Maica server not serving"}
+            return self._unavailable_result("verify_legality")
 
         if not self.ciphertext:
             logger.error("verify_legality: access_token is null")
@@ -1225,7 +1238,10 @@ class MaicaAi(ChatBotInterface):
                 self._preserve_or_set_availability_error(
                     "Maica server became unavailable before WebSocket initialization"
                 )
-            logger.error("Maica server is not accessible.")
+            self._log_operation_skipped(
+                "_init_ws_client",
+                "service became unavailable before WebSocket initialization",
+            )
             return False
         if not self.multi_lock.acquire(False):
             logger.warning("Maica::_init_connect found an existing connection driver")
@@ -1330,7 +1346,7 @@ class MaicaAi(ChatBotInterface):
                 )
             if self.multi_lock.locked():
                 self.multi_lock.release()
-                logger.info("Maica::_init_connect released lock because wss closed")
+                logger.debug("Maica::_init_connect released lock because WebSocket closed")
         return self.Loginer.success
         
         
@@ -1411,6 +1427,41 @@ class MaicaAi(ChatBotInterface):
         """返回maica当前状态描述"""
         return self.MaicaAiStatus.get_description(self.status)
 
+    def _log_operation_skipped(self, operation, prerequisite):
+        """Record a skipped operation without mislabeling the backend state."""
+        status = getattr(self, "status", self.MaicaAiStatus.WAIT_AVAILABILITY)
+        status_description = self.MaicaAiStatus.get_description(status)
+        protocol_status = getattr(self, "error_protocol_status", None)
+        protocol_detail = (
+            " / protocol_status={}".format(protocol_status)
+            if protocol_status else ""
+        )
+        logger.debug(
+            "MaicaAi.{} skipped: {} (status={} / {}{}).".format(
+                operation,
+                prerequisite,
+                status,
+                status_description,
+                protocol_detail,
+            )
+        )
+
+    def _unavailable_result(self, operation, content=None):
+        """Build the common response for an operation blocked by client state."""
+        self._log_operation_skipped(
+            operation,
+            "the current client state does not permit this request",
+        )
+        result = {
+            "success": False,
+            "exception": self.MaicaAiStatus.get_description(
+                getattr(self, "status", self.MaicaAiStatus.WAIT_AVAILABILITY)
+            ),
+        }
+        if content is not None:
+            result["content"] = content
+        return result
+
     def len_message_queue(self):
         """返回maica已接收并完成分句的台词数"""
         return self.message_list.size()
@@ -1418,9 +1469,17 @@ class MaicaAi(ChatBotInterface):
     def start_MSpire(self, ctg_weight=None):
         """启动 MSpire；分类权重默认为实例配置的 10。"""
         if not self.__accessable:
-            return logger.error("Maica server not serving.")
+            self._log_operation_skipped(
+                "start_MSpire",
+                "service availability is not ready",
+            )
+            return
         if not self.is_ready_to_input():
-            return logger.error("Maica is not ready to input")
+            self._log_operation_skipped(
+                "start_MSpire",
+                "the WebSocket is not ready to accept input",
+            )
+            return
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.stat['mspire_count'] += 1
@@ -1443,9 +1502,17 @@ class MaicaAi(ChatBotInterface):
     
     def start_MPostal(self, content, title="", visions=None):
         if not self.__accessable:
-            return logger.error("Maica server not serving.")
+            self._log_operation_skipped(
+                "start_MPostal",
+                "service availability is not ready",
+            )
+            return
         if not self.is_ready_to_input():
-            return logger.error("Maica is not ready to input")
+            self._log_operation_skipped(
+                "start_MPostal",
+                "the WebSocket is not ready to accept input",
+            )
+            return
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.stat['mpostal_count'] += 1
@@ -1487,25 +1554,32 @@ class MaicaAi(ChatBotInterface):
         )
         return data
 
-    def send_settings(self):
-        self.send_mtrigger()
-        import json
+    def send_settings(self, send_mtrigger=True):
         data = self.build_setting_config()
         if self.is_connected() and self.Loginer.success:
-            logger.debug("send_settings: {}".format(json.dumps(data)))
+            if send_mtrigger:
+                self.send_mtrigger()
             self.SettingSender.start_event(data)
             return data
-        else:
-            logger.warning("You should connected to send settings")
-            return {}
+        self._log_operation_skipped(
+            "send_settings",
+            "the WebSocket is not authenticated",
+        )
+        return {}
     def _on_message(self, wsapp, message):
         try:
             self.task_manager._ws_onmessage(wsapp, message)
         except Exception as e:
             import traceback
-            self.console_logger.debug("!!SUBMOD ERROR when on_message: {}".format(e))
-            logger.error("exception is ocurrred: \n{}".format(traceback.format_exc()))
-            logger.error("when processing context: {}".format(message))
+            self.console_logger.error(
+                "MAICA message processing failed: {}".format(e)
+            )
+            logger.error(
+                "MaicaAi._on_message failed while processing message {}:\n{}".format(
+                    message,
+                    traceback.format_exc(),
+                )
+            )
     def general_chat_callback(self, processor, event):
         core_output = processor.consume_core_output(event)
         if event.data.status == "maica_core_streaming_continue":
@@ -1577,9 +1651,14 @@ class MaicaAi(ChatBotInterface):
     def chat(self, message, visions = None, session=None):
         from maica_mtrigger import MTriggerMethod
         if not self.__accessable:
-            return logger.error("Maica is not serving")
+            self._log_operation_skipped("chat", "service availability is not ready")
+            return
         if not self.is_ready_to_input():
-            return logger.error("Maica is not ready to input")
+            self._log_operation_skipped(
+                "chat",
+                "the WebSocket is not ready to accept input",
+            )
+            return
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.ChatProcessor.start_request(
@@ -1612,9 +1691,17 @@ class MaicaAi(ChatBotInterface):
             - MFocus 不会介入 (无 trigger)
         """
         if not self.__accessable:
-            return logger.error("Maica is not serving")
+            self._log_operation_skipped(
+                "start_raw_context",
+                "service availability is not ready",
+            )
+            return
         if not self.is_ready_to_input():
-            return logger.error("Maica is not ready to input")
+            self._log_operation_skipped(
+                "start_raw_context",
+                "the WebSocket is not ready to accept input",
+            )
+            return
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.RawContextProcessor.start_request(
@@ -1654,14 +1741,13 @@ class MaicaAi(ChatBotInterface):
         """
 
         if not savefile_access_marker_exists():
-            logger.info("upload_save:: savefile_access marker is missing")
+            logger.debug("upload_save:: savefile_access marker is missing")
             return {
                 "success": False,
                 "exception": "savefile_access marker is missing"
             }
         if not self.__accessable:
-            logger.error("upload_save::Maica is not serving")
-            return {"success": False, "exception": "Maica is not serving"}
+            return self._unavailable_result("upload_save")
         if self.ciphertext in ("", None):
             logger.error("upload_save:: token is null")
             return {"success": False, "exception": "Access token is null"}
@@ -1678,9 +1764,12 @@ class MaicaAi(ChatBotInterface):
                 headers = {"Content-Type": "application/json"},
                 timeout=self.HTTP_TIMEOUT
             )
-            return res.json()
+            result = res.json()
+            if not result.get("success", False):
+                logger.error("upload_save:: backend rejected request: {}".format(result))
+            return result
         except Exception as e:
-            logger.error("upload_save:: request failed: {}".format(e))
+            logger.error("upload_save:: POST /savefile failed: {}".format(e))
             return {"success": False, "exception": str(e)}
 
     def get_history(self, lines = 0):
@@ -1702,8 +1791,7 @@ class MaicaAi(ChatBotInterface):
         """
         
         if not self.__accessable:
-            logger.error("Maica is not serving")
-            return {"success": False, "content": [], "exception": "Maica is not serving"}
+            return self._unavailable_result("get_history", content=[])
         import requests, json
         try:
             res = requests.get(
@@ -1734,8 +1822,7 @@ class MaicaAi(ChatBotInterface):
         """
 
         if not self.__accessable:
-            logger.error("Maica is not serving")
-            return {"success": False, "exception": "Maica is not serving"}
+            return self._unavailable_result("upload_history")
         if self.ciphertext in ("", None):
             logger.error("upload_history:: token is null")
             return {"success": False, "exception": "Access token is null"}
@@ -1752,9 +1839,12 @@ class MaicaAi(ChatBotInterface):
                 headers = {"Content-Type": "application/json"},
                 timeout=self.HTTP_TIMEOUT
             )
-            return res.json()
+            result = res.json()
+            if not result.get("success", False):
+                logger.error("upload_history:: backend rejected request: {}".format(result))
+            return result
         except Exception as e:
-            logger.error("upload_history:: request failed: {}".format(e))
+            logger.error("upload_history:: PUT /history failed: {}".format(e))
             return {"success": False, "exception": str(e)}
         
     def reset_chat_session(self):
@@ -1773,12 +1863,17 @@ class MaicaAi(ChatBotInterface):
         """
 
         if not self.__accessable:
-            return logger.error("Maica is not serving")
+            self._log_operation_skipped(
+                "reset_chat_session",
+                "service availability is not ready",
+            )
+            return False
         import json
         self.SessionReseter.start_event(chat_session = self.chat_session)
         self.message_list.clear()
         self.stat["received_token_by_session"][self.chat_session] = 0
         self.HistoryStatus.reset()
+        return True
 
     def update_workload(self):
         """
@@ -1793,8 +1888,14 @@ class MaicaAi(ChatBotInterface):
         import requests
         import threading
         if not self.__accessable:
-            logger.error("Maica is not serving")
+            self._workload_failure_state = None
             return None
+
+        def log_workload_failure(state, message):
+            if self._workload_failure_state == state:
+                return
+            self._workload_failure_state = state
+            logger.warning(message)
 
         def task():
             try:
@@ -1802,11 +1903,18 @@ class MaicaAi(ChatBotInterface):
                 data = res.json()
                 if data["success"]:
                     self.workload_raw = data["content"]
+                    self._workload_failure_state = None
                     #logger.debug("Workload updated successfully.")
                 else:
-                    logger.error("Failed to update workload: {}".format(data))
+                    log_workload_failure(
+                        "backend_rejected",
+                        "update_workload: backend rejected request: {}".format(data),
+                    )
             except Exception as e:
-                logger.error("Failed to update workload: {}".format(e))
+                log_workload_failure(
+                    "request_failed",
+                    "update_workload: GET /workload failed: {}".format(e),
+                )
 
         thread = threading.Thread(target=task)
         thread.daemon = True  # Optional: allow the program to exit even if the thread is running
@@ -1928,11 +2036,14 @@ class MaicaAi(ChatBotInterface):
         try:
             import time
             if not self.__accessable:
-                logger.error("Maica is not serving")
-                return
+                self._log_operation_skipped(
+                    "send_mtrigger",
+                    "service availability is not ready",
+                )
+                return False
             if self.ciphertext in ("", None):
                 logger.error("send_mtrigger:: token is null")
-                return
+                return False
             
             from maica_mtrigger import MTriggerMethod
             import requests
@@ -1952,15 +2063,27 @@ class MaicaAi(ChatBotInterface):
             try:
                 response_data = res.json()
                 if response_data.get('success', False):
-                    logger.debug("send_mtrigger success")
+                    logger.debug("MaicaAi.send_mtrigger: trigger table accepted")
+                    return True
                 else:
-                    logger.error("send_mtrigger failed: {}".format(response_data))
+                    logger.error("MaicaAi.send_mtrigger: backend rejected request: {}".format(response_data))
+                    return False
             except Exception:
-                logger.error("send_mtrigger:: return non json:: {}".format(res.text))
+                logger.error(
+                    "MaicaAi.send_mtrigger: POST /trigger returned non-JSON response: {}".format(
+                        res.text
+                    )
+                )
+                return False
 
         except Exception as e:
             import traceback
-            logger.error("send_mtrigger error: {}".format(traceback.format_exc()))
+            logger.error(
+                "MaicaAi.send_mtrigger POST /trigger failed: {}".format(
+                    traceback.format_exc()
+                )
+            )
+            return False
 
 
 
@@ -2050,7 +2173,7 @@ class MaicaAi(ChatBotInterface):
                 import certifi
                 certifi.set_parent_dir
             except (ImportError, AttributeError):
-                logger.error("accessable(): certifi is broken")
+                logger.error("accessable(): MAICA SSL integration is unavailable")
                 self.set_error(
                     "client_certifi_broken",
                     "certifi is missing the MAS integration",
@@ -2084,7 +2207,7 @@ class MaicaAi(ChatBotInterface):
                     return
 
         except Exception as e:
-            logger.error("accessable(): Maica get Service Provider Error: {}".format(e))
+            logger.error("accessable(): service provider lookup failed: {}".format(e))
             if self.provider_id != 9999:
                 if self.can_access_internet():
                     self.set_error(
@@ -2103,7 +2226,7 @@ class MaicaAi(ChatBotInterface):
         #获取节点可用性
         import requests, json
         accessibility_url = self.provider_manager.get_api_url() + "/accessibility"
-        logger.debug("accessable(): try get accessibility from {}".format(accessibility_url))
+        logger.debug("accessable(): GET /accessibility from {}".format(accessibility_url))
         try:
             res = requests.get(accessibility_url, timeout=self.HTTP_TIMEOUT)
             d = res.json()
@@ -2127,7 +2250,11 @@ class MaicaAi(ChatBotInterface):
                     u"{}".format(d["content"]),
                     fallback=self.MaicaAiStatus.SERVER_MAINTAIN,
                 )
-                logger.error("accessable(): Maica is not serving: {}".format(d["content"]))
+                logger.error(
+                    "accessable(): backend reported unavailable service status {!r}".format(
+                        d["content"]
+                    )
+                )
             else:
                 if not self._set_accessibility_state(
                     True,
@@ -2140,7 +2267,7 @@ class MaicaAi(ChatBotInterface):
                 d.get("exception") or "Accessibility request failed",
                 fallback=self.MaicaAiStatus.CONNECT_PROBLEM,
             )
-            logger.error("accessable(): Maica is not serving: request failed: {}".format(d))
+            logger.error("accessable(): /accessibility request was rejected: {}".format(d))
         
         # 版本信息获取
         if self.__accessable:
@@ -2151,7 +2278,7 @@ class MaicaAi(ChatBotInterface):
                 if type(res) == dict:
                     self.default_setting.update(res)
             except Exception as e:
-                logger.error("accessable(): Maica get default setting error: {}".format(e))
+                logger.warning("accessable(): GET /defaults failed; using local defaults: {}".format(e))
         
 
 

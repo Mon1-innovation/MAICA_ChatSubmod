@@ -4,6 +4,11 @@ init 999 python in maica:
     import store
     import time
     ai = store.maica.maica_instance
+
+    def log_invalid_mtrigger(kind, value):
+        ai.logger_both_wrapper.warning(
+            "[MTrigger] invalid {}: {}".format(kind, value)
+        )
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
             super(AffTrigger, self).__init__(template, name, callback=callback, description = _("Integrated | Adjust affection, 0~3 per time * 10 minutes cooldown"),method=MTriggerMethod.request)
@@ -71,8 +76,7 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                ai.console_logger.warning("<mtrigger> {} is not a valid outfit".format(clothes))
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid outfit".format(clothes))
+                log_invalid_mtrigger("outfit", clothes)
                 return
             return store.renpy.call("mtrigger_change_clothes", self.clothes_data[clothes])
 
@@ -100,8 +104,7 @@ init 999 python in maica:
     def minigame_callback(item):
 
         if not item in unlocked_games_dict:
-            ai.console_logger.warning("<mtrigger> {} is not a valid minigame".format(item))
-            store.mas_submod_utils.submod_log.error("maica: {} is not a valid minigame".format(item))
+            log_invalid_mtrigger("minigame", item)
             return
         game_label = unlocked_games_dict[item]
         store.renpy.call("mtrigger_minigame", game_label)
@@ -230,8 +233,7 @@ init 999 python in maica:
         def callback(self, selection):
             selection = u"\u6674\u5929" if selection == "Clear" and u"\u6674\u5929" in self.weathers else selection
             if not selection in self.weathers:
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid weather!".format(selection))
-                ai.console_logger.warning("<mtrigger> {} is not a valid weather!".format(selection))
+                log_invalid_mtrigger("weather", selection)
                 return
             weather = self.weathers[selection]
             store.renpy.call("mtrigger_weather", weather)
@@ -342,8 +344,7 @@ init 999 python in maica:
                     elif store.mas_submod_utils.isSubmodInstalled("Youtube Music"):
                         store.renpy.call("mtrigger_youtubemusic_search", selection)
                         return
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid music!".format(selection))
-                ai.console_logger.warning("<mtrigger> {} is not a valid music!".format(selection))
+                log_invalid_mtrigger("music", selection)
                 return
             if selection == "停止/静音":
                 store.mas_play_song(None)
@@ -402,8 +403,7 @@ init 999 python in maica:
 
         def clothes_callback(self, clothes):
             if not clothes in self.clothes_data:
-                ai.console_logger.warning("<mtrigger> {} is not a valid hair".format(clothes))
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid hair".format(clothes))
+                log_invalid_mtrigger("hair", clothes)
                 return
             return store.renpy.call("mtrigger_change_hair", self.clothes_data[clothes])
 
@@ -454,8 +454,7 @@ init 999 python in maica:
 
         def accessory_callback(self, choice):
             if choice not in self.accessory_data:
-                ai.console_logger.warning("<mtrigger> {} is not a valid accessory".format(choice))
-                store.mas_submod_utils.submod_log.error("maica: {} is not a valid accessory".format(choice))
+                log_invalid_mtrigger("accessory", choice)
                 return
             action, accessory = self.accessory_data[choice]
             if choice == "__none__":

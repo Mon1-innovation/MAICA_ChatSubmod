@@ -78,9 +78,6 @@ class LoggerManager(object):
         # Format: {name: (module, attribute_name, current_logger_ref)}
         self._injected_references = {}
 
-        # Log initialization
-        self._root_logger.info('LoggerManager initialized')
-
     @property
     def logger(self):
         """Get the current root logger instance"""
@@ -104,12 +101,6 @@ class LoggerManager(object):
 
         self._root_logger = new_logger
 
-        # Log the replacement through the new logger
-        try:
-            self._root_logger.info("Logger replaced with custom logger instance")
-        except:
-            pass  # Silently fail if new logger doesn't support logging yet
-
         # NOTE: We do NOT call _sync_injected_references() here because:
         # - All module loggers (bot_interface.logger, emotion_analyze_v2.logger, etc.)
         #   use dynamic proxies that retrieve the logger on each call
@@ -128,7 +119,6 @@ class LoggerManager(object):
         elif hasattr(self._root_logger, "level"):
             self._root_logger.level = level
         self._stream_handler.setLevel(level)
-        self._root_logger.info("Log level set to {}".format(level))
         self._sync_injected_references()
 
     def add_handler(self, handler):
@@ -143,7 +133,6 @@ class LoggerManager(object):
             self._root_logger.warning("Current logger does not support handlers")
             return
         add_handler(handler)
-        self._root_logger.info("Handler added: {}".format(handler))
         self._sync_injected_references()
 
     def remove_handler(self, handler):
@@ -158,7 +147,6 @@ class LoggerManager(object):
             self._root_logger.warning("Current logger does not support handlers")
             return
         remove_handler(handler)
-        self._root_logger.info("Handler removed: {}".format(handler))
         self._sync_injected_references()
 
     def set_formatter(self, fmt=None, datefmt=None):
@@ -176,7 +164,6 @@ class LoggerManager(object):
 
         self._formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
         self._stream_handler.setFormatter(self._formatter)
-        self._root_logger.info("Formatter updated: fmt={}, datefmt={}".format(fmt, datefmt))
         self._sync_injected_references()
 
     def register_injected_reference(self, name, module, attr_name):

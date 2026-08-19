@@ -28,7 +28,7 @@ def test_start_maica_locks_main_only_before_intro_main_and_talking_seen():
         'and not renpy.seen_label("maica_main") '
         'and not renpy.seen_label("maica_talking")'
     ) in start_maica
-    assert 'submod_log.info("MAICA: maica_main locked' in start_maica
+    assert 'submod_log.debug("MAICA: maica_main locked' in start_maica
     assert 'mas_lockEVL("maica_main", "EVE")' in start_maica
     assert "else:" in start_maica
     assert 'mas_unlockEVL("maica_main", "EVE")' in start_maica

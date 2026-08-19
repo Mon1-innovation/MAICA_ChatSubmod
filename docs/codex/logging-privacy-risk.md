@@ -3,17 +3,18 @@
 ## 位置
 
 - `game/python-packages/maica_tasker_sub_sessionsender.py`：`start_request` 在 DEBUG 级别记录请求的位置参数和关键字参数，可能包含聊天内容、MPostal 正文、视觉引用、MTrigger 数据和会话号。
-- `game/Submods/MAICA_ChatSubmod/main.rpy`：记录当前 MTrigger 表、逐段模型输出、完整回复、MPostal 标题和回复正文，以及触发后的动作数据。
-- `game/Submods/MAICA_ChatSubmod/raw_session_example.rpy`：记录 raw-session 的逐段模型输出。
-- `game/python-packages/maica.py`：记录设置请求、无法解析的服务端响应、响应处理失败时的原始消息，以及部分 HTTP 响应正文。
-- `game/python-packages/maica_tasker_sub.py`：登录任务会记录 access token 的前 15 个字符；MTrigger 处理器会记录完整结构化 payload。
-- `game/Submods/MAICA_ChatSubmod/header.rpy`：记录完整高级设置。
+- `game/Submods/MAICA_ChatSubmod/main.rpy`：记录完整聊天回复、MPostal 标题和触发后的动作数据；MPostal 回复正文仍包含在通用 WebSocket 完整包日志中。
+- `game/Submods/MAICA_ChatSubmod/raw_session_example.rpy`：不再额外复制 raw-session 的逐段输出，但相同内容仍包含在通用 WebSocket 完整包日志中。
+- `game/python-packages/maica.py`：记录无法解析的服务端响应、响应处理失败时的原始消息，以及部分 HTTP 响应正文。
+- `game/python-packages/maica_tasker_sub.py`：登录任务会记录 access token 的前 15 个字符；设置发送任务和通用 WebSocket 日志仍会记录完整结构化 payload。
 
 日志主要进入 MAS 的 `submod_log.log`，部分内容也会进入子模组控制台。实际保留周期、文件权限和用户分享方式由 MAS、Ren'Py 运行环境及用户操作共同决定。
 
 ## 原因与当前决定
 
-该前端运行环境复杂，问题常与设备、Ren'Py 版本、网络节点、服务端状态、流式分片和用户设置组合有关。完整上下文对复现低频故障和跨设备排障具有现实价值。按本轮审核决定，暂不删减这些日志，也不改变现有日志等级。
+该前端运行环境复杂，问题常与设备、Ren'Py 版本、网络节点、服务端状态、流式分片和用户设置组合有关。完整上下文对复现低频故障和跨设备排障具有现实价值。按本轮审核决定，完整诊断内容暂不删减，且不改变其现有日志等级；仅对实现细节和重复状态等非内容日志作可读性降级。
+
+本次可读性规整沿用“保留完整诊断上下文”的前提：通用 WebSocket 原始包、请求参数和异常 traceback 仍保留，不脱敏，也未启用内容日志开关。本次只整理日志的归属、时机、状态语义、重复输出和级别；因此日志内容风险仍然存在，不能把本次改动视为隐私修复。
 
 ## 影响范围
 
@@ -29,4 +30,13 @@
 
 ## 本次处理边界
 
-本次只记录风险，不修改日志调用、默认等级、输出位置或内容范围。
+### 已处理（2026-08-20）
+
+- 将客户端尚未完成可用性检查、连接未就绪、主动断开等前置状态从“服务未运行”错误中分离；只有 `/accessibility` 明确返回非 `serving` 时才记录后端不可用状态。
+- 消除设置发送、MTrigger/质量/会话确认、状态开关、异常 traceback 和 Ren'Py 分段输出的重复记录，并修正连接方法、进度分母和失败原因等误导性文本。
+- 保留 `GeneralWsLogger` 的完整 WebSocket 包日志，以及请求发送器的完整诊断参数；本项刻意未执行日志内容简化。
+- 将本次新增的日志级别调整限于可读性噪声（实现细节、重复状态和可恢复的负载请求失败）；没有对敏感字段做遮盖或删除。
+
+### 尚未处理
+
+凭据字段遮盖、聊天/设置内容的显式开关、导出前清理、保留周期说明和日志分享提示仍按上节建议单独处理。本报告列出的隐私风险依然有效。

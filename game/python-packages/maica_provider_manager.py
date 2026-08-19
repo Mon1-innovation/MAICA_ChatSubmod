@@ -45,6 +45,7 @@ class MaicaProviderManager(object):
         self._last_provider_id = pid
         self._servers = [self._fakelocalprovider]
         self._isMaicaNameServer = None
+        self._last_missing_provider_id = object()
 
     def get_provider(self):
         """获取服务提供商列表"""
@@ -80,44 +81,46 @@ class MaicaProviderManager(object):
 
     def _get_server_by_id(self, server_id):
         """根据ID获取服务器信息"""
+        try:
+            requested_id = int(server_id)
+        except (TypeError, ValueError):
+            requested_id = None
         for server in self._servers:
-            if int(server["id"]) == server_id:
+            if int(server["id"]) == requested_id:
+                self._last_missing_provider_id = object()
                 return server
-        logger.error("Cannot find server by id: {}, returning default failed response".format(server_id))
+        if self._last_missing_provider_id != server_id:
+            logger.warning(
+                "Provider id {!r} is unavailable; using the fallback endpoint".format(
+                    server_id
+                )
+            )
+            self._last_missing_provider_id = server_id
         return self._isfailedresponse
 
     def get_wssurl(self):
         """获取WebSocket URL"""
-        if self._provider_id is None:
-            logger.warning("Cannot find server by id: {}, returning default failed response".format(self._provider_id))
-            url = self._isfailedresponse["wsInterface"]
-        else:
-            url = self._get_server_by_id(self._provider_id)["wsInterface"]
+        url = self._get_server_by_id(self._provider_id)["wsInterface"]
         if isinstance(url, str):
             url = url.strip('/')
         return url
 
     def get_api_url(self):
         """获取API URL"""
-        if self._provider_id is None:
-            logger.warning("Cannot find server by id: {}, returning default failed response".format(self._provider_id))
-            url = self._isfailedresponse["httpInterface"]
-        else:
-            url = self._get_server_by_id(self._provider_id)["httpInterface"]
+        url = self._get_server_by_id(self._provider_id)["httpInterface"]
         if isinstance(url, str):
             url = url.strip('/')
         return url
 
     def get_server_info(self):
         """获取当前服务器信息"""
-        if self._provider_id is None:
-            logger.error("Cannot find server by id: {}, returning default failed response".format(self._provider_id))
-            return self._isfailedresponse
         return self._get_server_by_id(self._provider_id)
-
     def set_provider_id(self, pid):
         """设置provider_id"""
+        changed = pid != self._provider_id
         self._provider_id = pid
+        if changed:
+            self._last_missing_provider_id = object()
         if pid:
             self._last_provider_id = pid
 

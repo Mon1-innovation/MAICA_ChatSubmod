@@ -73,9 +73,6 @@ class _LoggerProxy(object):
 # Create the dynamic logger proxy instance
 logger = _LoggerProxy()
 
-# Log initialization
-logger.info('正在使用logging - LoggerManager已初始化')
-
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
