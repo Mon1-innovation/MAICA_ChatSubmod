@@ -3112,6 +3112,22 @@ def test_get_message_normalizes_ellipsis_before_pause_processing():
     assert message[1] == "..."
 
 
+def test_get_message_keeps_temperature_symbols_in_the_raw_message():
+    class MessageQueueStub:
+        def __len__(self):
+            return 1
+
+        def get(self):
+            return ["1eua", "室温 21℃，体温 98.6℉", False]
+
+    ai = object.__new__(maica.MaicaAi)
+    ai.message_list = MessageQueueStub()
+
+    message = ai.get_message()
+
+    assert message[1] == "室温 21℃，体温 98.6℉"
+
+
 def test_prepare_message_normalizes_values_in_raw_and_display_modes():
     class TalkSplitterStub:
         def add_pauses(self, value):

@@ -124,6 +124,11 @@ RENPY_DIALOGUE_SUBSTITUTIONS = (
     u"[m_name]",
 )
 
+RENPY_DISPLAY_REPLACEMENTS = {
+    u"℃": u"°C",
+    u"℉": u"°F",
+}
+
 
 def escape_renpy_text(value, allowed_substitutions=(), interpolation_passes=1):
     """Escape external text for one or more Ren'Py interpolation passes."""

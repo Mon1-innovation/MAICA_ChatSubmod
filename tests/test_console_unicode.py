@@ -65,6 +65,19 @@ def test_prepare_message_escapes_external_tags_before_adding_trusted_pauses():
     )
 
 
+def test_prepare_message_replaces_unsupported_temperature_symbols_only_for_display():
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    message = "室温 21℃，体温 98.6℉"
+
+    assert ai.prepare_message_for_renpy(message, add_pause=False) == (
+        "室温 21°C，体温 98.6°F"
+    )
+    assert ai.prepare_message_for_renpy(
+        message,
+        escape_for_renpy=False,
+    ) == message
+
+
 def test_renpy_preview_drops_only_partial_markers_before_escaping():
     assert bot_interface.build_renpy_text_preview(
         "prefix [player] suffix",

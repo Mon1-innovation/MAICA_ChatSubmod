@@ -723,12 +723,14 @@ class MaicaAi(ChatBotInterface):
     ):
         """Normalize a message and optionally escape it for Ren'Py display.
 
-        Raw mode keeps source markup and skips pause insertion while retaining
-        the value normalization used by the display path.
+        Display mode applies glyph fallbacks before escaping and pause
+        insertion. Raw mode only retains the shared value normalization.
         """
         message = self._prepare_message_for_renpy(message)
 
         if escape_for_renpy:
+            for source, replacement in bot_interface.RENPY_DISPLAY_REPLACEMENTS.items():
+                message = message.replace(source, replacement)
             message = bot_interface.escape_renpy_text(
                 message,
                 bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS
