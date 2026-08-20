@@ -309,6 +309,10 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     hide_console = main_source[hide_console_start:hide_console_end]
 
     assert connect.count("ai.send_to_outside_func(ai.ascii_icon)") == 1
+    assert connect.count("store.mas_ptod.clear_console()") == 1
+    assert connect.index("store.mas_ptod.clear_console()") < connect.index(
+        "ai.send_to_outside_func(ai.ascii_icon)"
+    )
     assert connect.count('write_command("Thank you for using MAICA Blessland!")') == 1
     assert "persistent.maica_setting_dict['console']" in connect
     assert "and (force_welcome or should_connect)" in connect

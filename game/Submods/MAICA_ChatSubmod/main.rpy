@@ -303,6 +303,7 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
         if should_connect:
             ai.init_connect()
         if should_show_welcome:
+            store.mas_ptod.clear_console()
             ai.send_to_outside_func(ai.ascii_icon)
             store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
             renpy.pause(2.3)
