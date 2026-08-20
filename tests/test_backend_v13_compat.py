@@ -751,6 +751,8 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
     assert "connection_busy = ai.is_connecting()" in pane
     assert "maica.maica_instance.is_connecting()" in pane
     assert "MaicaAiStatus.is_submod_exception" in pane
+    assert "MaicaAiStatus.CERTIFI_BROKEN" in pane
+    assert "SSL/TLS certificate validation is unavailable" in pane
     assert "13400 <=" not in pane
     assert re.search(
         r"has_token\(\).*?is_accessable\(\).*?not\s+"

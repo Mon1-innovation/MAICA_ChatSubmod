@@ -2011,12 +2011,21 @@ class MaicaAi(ChatBotInterface):
                 or self.task_manager.ws_client
             )
             ws_client = self.task_manager.ws_client
+            # Provider migration may close before a transport exists; keep a
+            # preceding availability failure visible in that case.
+            connection_was_active = bool(
+                self._connection_in_progress
+                or connection_thread
+                or ws_client
+                or self.wss_session
+            )
             if ws_client:
                 self._intentional_ws_closes.add(ws_client)
         try:
             self.AutoReconnector.disable()
             self.task_manager.reset_all_task()
-            self.clear_error(self.MaicaAiStatus.IDLE)
+            if connection_was_active:
+                self.clear_error(self.MaicaAiStatus.IDLE)
             if ws_client:
                 try:
                     self.task_manager.close_ws()

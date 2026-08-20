@@ -2282,6 +2282,23 @@ def test_intentional_close_clears_login_failure_state(isolated_maica_ai_globals)
     assert client in ai._intentional_ws_closes
 
 
+def test_close_without_transport_preserves_availability_failure(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.set_error(
+        "client_provider_unavailable",
+        "provider lookup failed",
+        fallback=ai.MaicaAiStatus.FAILED_GET_NODE,
+    )
+
+    ai.close_wss_session()
+
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.error_protocol_status == "client_provider_unavailable"
+    assert ai.error_message == "provider lookup failed"
+
+
 def test_unexpected_close_sets_numeric_connection_failure(
     isolated_maica_ai_globals,
 ):

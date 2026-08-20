@@ -1178,6 +1178,12 @@ screen maica_setting_pane():
                     text _("> Warning: {color=#ff0000}no certification found{/color}, check datapack installation"):
                         style "main_menu_version_l"
 
+            if ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN:
+                hbox:
+
+                    text _("> Warning: {color=#ff0000}certification corrupted{/color}, remove problematic extensions or clean install"):
+                        style "main_menu_version_l"
+
             if pane_cache.get("better_loading_installed", False):
                 hbox:
 

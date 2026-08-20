@@ -1145,3 +1145,9 @@ translate chinese strings:
 
     old "Show maica_gen_quality_chk_notify 0.9"
     new "显示maica_gen_quality_chk_notify 0.9"
+
+translate chinese strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1181
+    old "> Warning: {color=#ff0000}certification corrupted{/color}, remove problematic extensions or clean install"
+    new "> 警告: {color=#ff0000}证书损坏{/color}, 删除有问题的子模组或干净安装"
