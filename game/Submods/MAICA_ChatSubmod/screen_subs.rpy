@@ -915,6 +915,8 @@ screen maica_triggers():
     $ _tooltip = store._tooltip
     python:
         maica_triggers = store.maica.maica_instance.mtrigger_manager
+        request_length = maica_triggers.get_length(0)
+        table_length = maica_triggers.get_length(1)
 
     modal True
     zorder 92
@@ -925,27 +927,29 @@ screen maica_triggers():
             style_prefix "generic_fancy_check"
             text _("MTrigger space usage: ")
 
-            if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75:
-                text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
+            if request_length > maica_triggers.MAX_LENGTH_REQUEST * 0.75:
+                text "request: " + str(request_length) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
                     color "#FF0000"
             else:
-                text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST)
+                text "request: " + str(request_length) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST)
 
-            if maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
-                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
+            if table_length > maica_triggers.MAX_LENGTH_TABLE * 0.9:
+                text "table: " + str(table_length) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
                     color "#FF0000"
             else:
-                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE)
+                text "table: " + str(table_length) + " / " + str(maica_triggers.MAX_LENGTH_TABLE)
 
-            if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
+            if request_length > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or table_length > maica_triggers.MAX_LENGTH_TABLE * 0.9:
                 text _("> Notice: Some MTriggers will be disabled if content length exceeds!"):
                     color "#ff0000"
                     size 15
 
             for trigger in maica_triggers.triggers:
+                $ trigger_enabled, trigger_condition_met = maica_triggers.get_trigger_state(trigger)
+                $ trigger_active = trigger_enabled and trigger_condition_met
                 use maica_l2_subframe():
                     label trigger.name
-                    if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
+                    if not trigger_active:
                         hbox:
                             text _("Space used: -"):
                                 size 15
@@ -953,13 +957,13 @@ screen maica_triggers():
                         hbox:
                             text _("Space used: request"):
                                 size 15
-                            text str(len(trigger)):
+                            text str(maica_triggers.get_trigger_length(trigger, use_cached=True)):
                                 size 15
                     elif trigger.method == 1:
                         hbox:
                             text _("Space used: table"):
                                 size 15
-                            text str(len(trigger)):
+                            text str(maica_triggers.get_trigger_length(trigger, use_cached=True)):
                                 size 15
 
                     hbox:
@@ -986,39 +990,27 @@ screen maica_triggers():
 
 
                     hbox:
-                        if trigger.condition():
-                            if maica_triggers.trigger_status(trigger.name):
+                        if trigger_condition_met:
+                            if trigger_enabled:
                                 textbutton _("Enabled"):
                                     action Function(maica_triggers.disable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
                             else:
                                 textbutton _("Disabled"):
                                     action Function(maica_triggers.enable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
 
-                        elif trigger.condition() == False:
-                            if maica_triggers.trigger_status(trigger.name):
+                        else:
+                            if trigger_enabled:
                                 textbutton _("Requirements not satisfied"):
                                     style "generic_fancy_check_button_disabled"
                                     action Function(maica_triggers.disable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
                             else:
                                 textbutton _("Requirements not satisfied"):
                                     style "generic_fancy_check_button_disabled"
                                     action Function(maica_triggers.enable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
-
-                        # elif trigger.condition() == None:
-                        #     if maica_triggers.trigger_status(trigger.name):
-                        #         textbutton _("Requirements not satisfied"):
-                        #             style "generic_fancy_check_button_disabled"
-                        #             action Function(maica_triggers.disable_trigger, trigger.name)
-                        #             selected maica_triggers.trigger_status(trigger.name)
-                        #     else:
-                        #         textbutton _("Requirements not satisfied"):
-                        #             style "generic_fancy_check_button_disabled"
-                        #             action Function(maica_triggers.enable_trigger, trigger.name)
-                        #             selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
 
         hbox:
             xpos 10

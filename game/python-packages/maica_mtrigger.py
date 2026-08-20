@@ -31,7 +31,89 @@ class NothingLogger(object):
     def debug(self, *args):
         return
 
+    def info(self, *args):
+        return
+
+    def warning(self, *args):
+        return
+
+    def error(self, *args):
+        return
+
+    def critical(self, *args):
+        return
+
 logger = NothingLogger()
+
+
+def safe_value_repr(value, limit=160):
+    """Return a bounded representation suitable for diagnostic logs."""
+    try:
+        rendered = repr(value)
+    except Exception:
+        try:
+            rendered = "<{} repr failed>".format(type(value).__name__)
+        except Exception:
+            rendered = "<repr failed>"
+    if not isinstance(rendered, basestring):
+        try:
+            rendered = "{}".format(rendered)
+        except Exception:
+            rendered = "<repr result invalid>"
+    try:
+        rendered = rendered.replace("\r", "\\r").replace("\n", "\\n")
+    except Exception:
+        pass
+    if len(rendered) > limit:
+        rendered = rendered[:limit] + "..."
+    return rendered
+
+
+def safe_getattr(value, name, default=None):
+    try:
+        return getattr(value, name)
+    except Exception:
+        return default
+
+
+def mtrigger_item_error(value):
+    """Return the protocol violation for a switch item, or ``None``."""
+    if not isinstance(value, basestring):
+        return "must be a string"
+    try:
+        value_length = len(value)
+    except Exception as error:
+        return "length check failed: {}".format(safe_value_repr(error, 160))
+    if value_length == 0:
+        return "must not be empty"
+    if value_length > 256:
+        return "must be at most 256 characters"
+    return None
+
+
+def add_valid_mtrigger_item(target, display_name, mapped_value):
+    """Add one valid, unique switch item and return any rejection reason."""
+    reason = mtrigger_item_error(display_name)
+    if reason is not None:
+        return reason
+    try:
+        if display_name in target:
+            return "duplicate item name"
+        target[display_name] = mapped_value
+    except Exception as error:
+        return "item cannot be stored: {}".format(safe_value_repr(error, 160))
+    return None
+
+
+def _log_mtrigger_warning(message):
+    """Log without allowing a broken optional logger to break gameplay."""
+    try:
+        logger.warning(message)
+    except Exception:
+        try:
+            logger.error(message)
+        except Exception:
+            pass
 
 def check_and_search(sub, target):
     if isinstance(target, basestring):
@@ -136,6 +218,7 @@ class MTriggerManager(object):
         self.triggered_list = []
         self.enable_map = {}
         self._running = False
+        self._last_trigger_lengths = {}
     
     def add_trigger(self, trigger):
         self.triggers.append(trigger)
@@ -177,37 +260,171 @@ class MTriggerManager(object):
         return True
 
 
-    def build_data(self, method=MTriggerMethod.all, full = False):
+    def _log_build_skip(self, trigger, phase, error):
+        """Record enough context to diagnose one malformed runtime trigger."""
+        name = safe_value_repr(safe_getattr(trigger, "name"), 96)
+        template = safe_value_repr(
+            safe_getattr(safe_getattr(trigger, "template"), "name"),
+            96,
+        )
+        method = safe_value_repr(safe_getattr(trigger, "method"), 32)
+        error_type = safe_value_repr(type(error).__name__, 64)
+        message = safe_value_repr(error, 256)
+        exprop = safe_getattr(trigger, "exprop")
+        item_list = safe_value_repr(safe_getattr(exprop, "item_list"), 512)
+        current_item = safe_value_repr(safe_getattr(exprop, "curr_value"), 160)
+        _log_mtrigger_warning(
+            "[MTriggerManager] skipped invalid trigger: "
+            "name={} template={} method={} phase={} error_type={} error={} "
+            "item_list={} curr_item={}".format(
+                name,
+                template,
+                method,
+                phase,
+                error_type,
+                message,
+                item_list,
+                current_item,
+            )
+        )
+
+    def build_data(self, method=MTriggerMethod.all, full=False):
+        """Build an outbound trigger list without changing queued callbacks."""
         self.validate_batch()
-        self.triggered_list = []
-        self._running = False
+        if method == MTriggerMethod.all:
+            self._last_trigger_lengths = {}
+        else:
+            self._last_trigger_lengths = dict(
+                (key, value)
+                for key, value in self._last_trigger_lengths.items()
+                if key[0] != method
+            )
         res = []
         current_length = len(json.dumps(res, ensure_ascii=False))
 
-        for i in self.triggers:
-            if i.condition() and self.trigger_status(i.name) and (i.method == method or method == MTriggerMethod.all):
-                built = i.build()
-                item_length = len(json.dumps(built, ensure_ascii=False))
-                if current_length + item_length > self.SIZE_LIMIT[method] and not full:
-                    self.disable_trigger(i.name)
+        for trigger in self.triggers:
+            try:
+                enabled = self.trigger_status(trigger.name)
+                matches_method = (
+                    trigger.method == method or method == MTriggerMethod.all
+                )
+                if not enabled or not matches_method:
                     continue
-                res.append(built)
-                current_length += item_length
+                condition_result = trigger.condition()
+            except Exception as error:
+                self._log_build_skip(trigger, "condition", error)
+                self._last_trigger_lengths[(method, id(trigger))] = 0
+                continue
+
+            try:
+                if not condition_result:
+                    continue
+            except Exception as error:
+                self._log_build_skip(trigger, "condition", error)
+                self._last_trigger_lengths[(method, id(trigger))] = 0
+                continue
+
+            try:
+                built = trigger.build()
+                if not isinstance(built, dict):
+                    raise ValueError(
+                        "build result must be a dict, got {}.".format(
+                            type(built).__name__
+                        )
+                    )
+            except Exception as error:
+                self._log_build_skip(trigger, "build", error)
+                self._last_trigger_lengths[(method, id(trigger))] = 0
+                continue
+
+            try:
+                item_length = len(json.dumps(built, ensure_ascii=False))
+            except Exception as error:
+                self._log_build_skip(trigger, "serialize", error)
+                self._last_trigger_lengths[(method, id(trigger))] = 0
+                continue
+
+            self._last_trigger_lengths[(method, id(trigger))] = item_length
+            if current_length + item_length > self.SIZE_LIMIT[method] and not full:
+                self.disable_trigger(trigger.name)
+                _log_mtrigger_warning(
+                    "[MTriggerManager] disabled oversized trigger: "
+                    "name={} method={} item_length={} current_length={} limit={}".format(
+                        safe_value_repr(trigger.name, 96),
+                        safe_value_repr(method, 32),
+                        item_length,
+                        current_length,
+                        self.SIZE_LIMIT[method],
+                    )
+                )
+                continue
+            res.append(built)
+            current_length += item_length
 
         return res
 
     def get_length(self, method=MTriggerMethod.all):
         return len(json.dumps(self.build_data(method=method, full=True), ensure_ascii=False))
 
+    def get_trigger_state(self, trigger):
+        """Return ``(enabled, condition_met)`` without leaking condition errors."""
+        try:
+            enabled = bool(self.trigger_status(trigger.name))
+        except Exception as error:
+            self._log_build_skip(trigger, "status", error)
+            enabled = False
+
+        try:
+            condition_met = bool(trigger.condition())
+        except Exception as error:
+            self._log_build_skip(trigger, "condition", error)
+            condition_met = False
+
+        return enabled, condition_met
+
+    def is_trigger_active(self, trigger):
+        """Return a safe UI/runtime activity state for one trigger."""
+        enabled, condition_met = self.get_trigger_state(trigger)
+        return enabled and condition_met
+
+    def get_trigger_length(self, trigger, use_cached=False):
+        """Return one trigger's encoded size, or zero after logging a bad item."""
+        cache_key = (safe_getattr(trigger, "method", MTriggerMethod.all), id(trigger))
+        if use_cached and cache_key in self._last_trigger_lengths:
+            return self._last_trigger_lengths[cache_key]
+        try:
+            built = trigger.build()
+            if not isinstance(built, dict):
+                raise ValueError(
+                    "build result must be a dict, got {}.".format(
+                        type(built).__name__
+                    )
+                )
+            length = len(json.dumps(built, ensure_ascii=False))
+            self._last_trigger_lengths[cache_key] = length
+            return length
+        except Exception as error:
+            self._log_build_skip(trigger, "length", error)
+            self._last_trigger_lengths[cache_key] = 0
+            return 0
+
     def triggered(self, name = "", param=None):
+        if param is not None and not isinstance(param, dict):
+            _log_mtrigger_warning(
+                "[MTriggerManager] skipped invalid callback payload: "
+                "name={} type={} value={} reason=payload must be a dict".format(
+                    safe_value_repr(name, 96),
+                    safe_value_repr(type(param).__name__, 64),
+                    safe_value_repr(param),
+                )
+            )
+            return
         for t in self.triggers:
-            if param:
-                # 如果不是dict就丢弃
-                if not isinstance(param, dict):
-                    logger.error("triggered param is not dict! ({}:{})".format(name, param))
-                    return
             if t.name == name:
-                logger.debug("[MTriggerManager] queued trigger: {}".format(name))
+                try:
+                    logger.debug("[MTriggerManager] queued trigger: {}".format(name))
+                except Exception:
+                    pass
                 self.triggered_list.append((t, param))
 
     def has_triggered(self, action=MTriggerAction.post):
@@ -300,13 +517,47 @@ class MTriggerBase(object):
 
         if self.template.name == common_switch_template.name:
             if not isinstance(self.exprop.item_list, list) or not self.exprop.item_list:
-                raise ValueError("Switch item_list must be a non-empty list.")
-            for item in self.exprop.item_list:
-                self._validate_display_string(item, "item_list entry", allow_empty=False)
-            if not isinstance(self.exprop.curr_value, basestring):
-                raise ValueError("Switch curr_item must be a string.")
-            if self.exprop.curr_value not in self.exprop.item_list:
-                raise ValueError("Switch curr_item must belong to item_list.")
+                raise ValueError(
+                    "Trigger {!r}: switch item_list must be a non-empty list.".format(
+                        self.name
+                    )
+                )
+            for index, item in enumerate(self.exprop.item_list):
+                reason = mtrigger_item_error(item)
+                if reason is not None:
+                    raise ValueError(
+                        "Trigger {!r}: item_list entry at index {} {} "
+                        "(type={}, value={}).".format(
+                            self.name,
+                            index,
+                            reason,
+                            type(item).__name__,
+                            safe_value_repr(item),
+                        )
+                    )
+            if self.exprop.curr_value is not None and not isinstance(
+                self.exprop.curr_value,
+                basestring,
+            ):
+                raise ValueError(
+                    "Trigger {!r}: switch curr_item must be a string or None "
+                    "(type={}, value={}).".format(
+                        self.name,
+                        type(self.exprop.curr_value).__name__,
+                        safe_value_repr(self.exprop.curr_value),
+                    )
+                )
+            if (
+                self.exprop.curr_value is not None
+                and self.exprop.curr_value not in self.exprop.item_list
+            ):
+                raise ValueError(
+                    "Trigger {!r}: switch curr_item must belong to item_list "
+                    "(value={}).".format(
+                        self.name,
+                        safe_value_repr(self.exprop.curr_value),
+                    )
+                )
 
         if self.template.name == common_meter_template.name:
             limits = self.exprop.value_limits
@@ -347,10 +598,10 @@ class MTriggerBase(object):
             data["exprop"]["item_list"] = self.exprop.item_list
         if self.template.exprop.value_limits:
             data["exprop"]["value_limits"] = self.exprop.value_limits
-        if self.template.exprop.curr_value and self.exprop.curr_value is not None:
+        if self.exprop.curr_value is not None:
             if self.template.name == common_switch_template.name:
                 data["exprop"]["curr_item"] = self.exprop.curr_value
-            else:
+            elif self.template.exprop.curr_value:
                 data["exprop"]["curr_value"] = self.exprop.curr_value
         if data["exprop"] == {}:
             del data["exprop"]

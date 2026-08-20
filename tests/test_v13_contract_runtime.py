@@ -902,6 +902,178 @@ def test_switch_build_uses_curr_item_instead_of_curr_value():
     assert "curr_value" not in switch_data["exprop"]
 
 
+def test_switch_allows_unknown_current_item_and_omits_curr_item():
+    switch_data = _build_trigger(
+        maica_mtrigger.common_switch_template,
+        exprop=maica_mtrigger.MTriggerExprop(
+            item_name_zh="选项", item_list=["one"], curr_value=None
+        ),
+    ).build()
+
+    assert "curr_item" not in switch_data["exprop"]
+
+
+def test_mtrigger_manager_skips_invalid_runtime_trigger_with_context(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.common_switch_template,
+            name="bad_runtime",
+            exprop=maica_mtrigger.MTriggerExprop(
+                item_name_zh="选项",
+                item_list=["ok", ""],
+                curr_value="ok",
+            ),
+        )
+    )
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.common_switch_template,
+            name="good_runtime",
+            exprop=maica_mtrigger.MTriggerExprop(
+                item_name_zh="选项", item_list=["ok"], curr_value=None
+            ),
+        )
+    )
+
+    payload = manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert [item["name"] for item in payload] == ["good_runtime"]
+    assert any(
+        "name='bad_runtime'" in message
+        and "phase=build" in message
+        and "item_list entry at index 1" in message
+        for message in messages
+    )
+
+
+def test_mtrigger_build_does_not_clear_queued_callbacks_or_running_state():
+    manager = maica_mtrigger.MTriggerManager()
+    trigger = _build_trigger(
+        maica_mtrigger.customize_template,
+        name="queued_build",
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    manager.add_trigger(trigger)
+    manager.triggered("queued_build", {})
+    queued_before = list(manager.triggered_list)
+    manager._running = True
+
+    manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert manager.triggered_list == queued_before
+    assert manager._running is True
+
+
+def test_mtrigger_manager_skips_condition_failure_and_keeps_valid_trigger(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    def failing_condition():
+        raise RuntimeError("condition failed")
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(
+        maica_mtrigger.MTriggerBase(
+            maica_mtrigger.customize_template,
+            "bad_condition",
+            condition=failing_condition,
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.customize_template,
+            name="good_condition",
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+
+    payload = manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert [item["name"] for item in payload] == ["good_condition"]
+    assert any(
+        "name='bad_condition'" in message
+        and "phase=condition" in message
+        and "condition failed" in message
+        for message in messages
+    )
+
+
+def test_mtrigger_manager_skips_non_json_trigger_data_with_context(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    class NonJsonTrigger(maica_mtrigger.MTriggerBase):
+        def build(self):
+            return {"name": self.name, "invalid": object()}
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(
+        NonJsonTrigger(
+            maica_mtrigger.customize_template,
+            "non_json",
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.customize_template,
+            name="json_ok",
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+
+    payload = manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert [item["name"] for item in payload] == ["json_ok"]
+    assert any(
+        "name='non_json'" in message
+        and "phase=serialize" in message
+        and "not JSON serializable" in message
+        for message in messages
+    )
+
+
+@pytest.mark.parametrize(
+    ("value", "reason"),
+    [
+        (None, "must be a string"),
+        (False, "must be a string"),
+        ("", "must not be empty"),
+        ("x" * 257, "must be at most 256 characters"),
+    ],
+)
+def test_dynamic_mtrigger_item_helper_rejects_invalid_values(value, reason):
+    target = {"kept": 1}
+
+    assert maica_mtrigger.add_valid_mtrigger_item(target, value, 2) == reason
+    assert target == {"kept": 1}
+
+
+def test_dynamic_mtrigger_item_helper_keeps_valid_items_and_rejects_duplicates():
+    target = {}
+
+    assert maica_mtrigger.add_valid_mtrigger_item(target, "valid", 1) is None
+    assert maica_mtrigger.add_valid_mtrigger_item(target, "valid", 2) == "duplicate item name"
+    assert target == {"valid": 1}
+
+
 def test_meter_build_preserves_zero_curr_value():
     meter_exprop = maica_mtrigger.MTriggerExprop(
         item_name_zh="刻度", value_limits=[0, 100], curr_value=0
@@ -1261,10 +1433,116 @@ def test_hair_trigger_keeps_nonselectable_current_hair_out_of_choices():
 
     assert "HAIR_SEL_MAP[store.monika_chr.hair.name]" not in hair_source
     assert "HAIR_SEL_MAP.get(store.monika_chr.hair.name)" in hair_source
-    assert 'return "__none__"' in hair_source
+    assert "return None" in hair_source
     assert "if self.outfit_has_and_unlocked(key)" in hair_source
     assert "curr_value = self.current_item()" in hair_source
     assert "self.exprop.curr_value = self.current_item()" in hair_source
+
+
+def test_builtin_dynamic_switch_sources_use_logged_item_filtering():
+    trigger_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+
+    assert "def log_invalid_mtrigger(" in trigger_source
+    assert "def _add_mtrigger_item(" in trigger_source
+    assert "add_valid_mtrigger_item(target, display_name, mapped_value)" in trigger_source
+    for source_name in (
+        "store.mas_selspr.CLOTH_SEL_MAP",
+        "store.mas_games.game_db",
+        "store.mas_weather.WEATHER_MAP",
+        "store.songs.music_choices",
+        "store.mas_selspr.HAIR_SEL_MAP",
+        "store.mas_selspr.ACS_SEL_MAP",
+    ):
+        assert source_name in trigger_source
+
+    assert "trigger={} source={} key={} index={}" in trigger_source
+    assert "type={} value={} reason={}" in trigger_source
+    assert "reserved built-in item name" in trigger_source
+
+
+def test_minigame_fixed_labels_take_precedence_over_mas_event_wrappers():
+    trigger_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+    minigame_source = trigger_source.split("    def get_unlocked_games():", 1)[1].split(
+        "    class MinigameTrigger(MTriggerBase):", 1
+    )[0]
+
+    dynamic_loop = minigame_source.index("for index, ev in enumerate(game_values):")
+    assert minigame_source.index('"Pong", "game_pong"') < dynamic_loop
+    assert minigame_source.index('"Hangman",\n                "game_hangman"') < dynamic_loop
+
+
+def test_mtrigger_screen_builds_lengths_once_and_uses_cached_item_lengths():
+    screen_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "screen_subs.rpy"
+    ).read_text(encoding="utf-8")
+    screen = screen_source.split("screen maica_triggers():", 1)[1]
+
+    assert screen.count("maica_triggers.get_length(0)") == 1
+    assert screen.count("maica_triggers.get_length(1)") == 1
+    assert "len(trigger)" not in screen
+    assert "get_trigger_length(trigger, use_cached=True)" in screen
+    assert "get_trigger_state(trigger)" in screen
+    assert "if trigger_condition_met:" in screen
+    assert "trigger.condition()" not in screen
+
+
+def test_mtrigger_manager_reports_condition_failures_as_inactive(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    def failing_condition():
+        raise RuntimeError("ui condition failed")
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    trigger = maica_mtrigger.MTriggerBase(
+        maica_mtrigger.customize_template,
+        "ui_condition",
+        condition=failing_condition,
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    manager.add_trigger(trigger)
+
+    assert manager.is_trigger_active(trigger) is False
+    assert any(
+        "name='ui_condition'" in message
+        and "ui condition failed" in message
+        for message in messages
+    )
+
+
+def test_mtrigger_manager_returns_enabled_and_condition_state_once():
+    calls = []
+    manager = maica_mtrigger.MTriggerManager()
+    trigger = maica_mtrigger.MTriggerBase(
+        maica_mtrigger.customize_template,
+        "state_once",
+        condition=lambda: calls.append(True) or True,
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    manager.add_trigger(trigger)
+
+    assert manager.get_trigger_state(trigger) == (True, True)
+    assert calls == [True]
 
 
 def test_general_query_accepts_exactly_4096_utf8_bytes():

@@ -5,16 +5,77 @@ init 999 python in maica:
     import time
     ai = store.maica.maica_instance
 
-    def log_invalid_mtrigger(kind, value):
-        ai.logger_both_wrapper.warning(
-            "[MTrigger] invalid {}: {}".format(kind, value)
-        )
+    def log_invalid_mtrigger(kind, value, source="callback", key=None, index=None, reason=None):
+        """Log a rejected MTrigger value with bounded, actionable context."""
+        if reason is None:
+            reason = "callback selection is not present"
+        try:
+            message = (
+                "[MTrigger] invalid data: trigger={} source={} key={} index={} "
+                "type={} value={} reason={}".format(
+                    safe_value_repr(kind, 96),
+                    safe_value_repr(source, 160),
+                    safe_value_repr(key, 96),
+                    safe_value_repr(index, 32),
+                    safe_value_repr(type(value).__name__, 64),
+                    safe_value_repr(value),
+                    safe_value_repr(reason, 256),
+                )
+            )
+        except Exception:
+            message = "[MTrigger] invalid data; diagnostic formatting failed"
+        try:
+            ai.logger_both_wrapper.warning(message)
+        except Exception:
+            # Logging must not turn a recoverable bad runtime entry into a crash.
+            try:
+                logger.warning(message)
+            except Exception:
+                pass
+
+    def _add_mtrigger_item(target, trigger_name, source, display_name, mapped_value,
+                           source_key=None, index=None):
+        reason = add_valid_mtrigger_item(target, display_name, mapped_value)
+        if reason is not None:
+            log_invalid_mtrigger(
+                trigger_name,
+                display_name,
+                source=source,
+                key=source_key,
+                index=index,
+                reason=reason,
+            )
+            return False
+        return True
+
+    def _valid_mtrigger_selection(collection, trigger_name, value):
+        try:
+            if value in collection:
+                return True
+            reason = "callback selection is not present"
+        except Exception as error:
+            reason = "failed to check callback selection: {}".format(
+                safe_value_repr(error, 160)
+            )
+        log_invalid_mtrigger(trigger_name, value, reason=reason)
+        return False
+
     class AffTrigger(MTriggerBase):
         def __init__(self, template, name, callback):
             super(AffTrigger, self).__init__(template, name, callback=callback, description = _("Integrated | Adjust affection, 0~3 per time * 10 minutes cooldown"),method=MTriggerMethod.request)
             self.last_triggered = time.time()
 
         def triggered(self, data):
+            if data is None:
+                data = {}
+            if not isinstance(data, dict):
+                log_invalid_mtrigger(
+                    "alter_affection",
+                    data,
+                    source="callback payload",
+                    reason="payload must be a dict",
+                )
+                return
             self.last_triggered = time.time()
             return self.callback(data.get("alter_value", data.get("affection", 0.1)))
 
@@ -38,19 +99,102 @@ init 999 python in maica:
 
     class ClothesTrigger(MTriggerBase):
         def __init__(self, template, name):
-            self.clothes_data = {store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key for key in store.mas_selspr.CLOTH_SEL_MAP if self.outfit_has_and_unlocked(key)}
-            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data["__none__"] = "mas_pick_a_clothes"
+            self.clothes_data = {}
+            self.refresh_clothes()
             super(ClothesTrigger, self).__init__(template, name, description=_("Integrated | Changing clothes"),callback=self.clothes_callback,
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内服装",
                     item_name_en = "change in-game outfit",
                     item_list = list(self.clothes_data.keys()),
-                    curr_value = store.mas_selspr.CLOTH_SEL_MAP[store.monika_chr.clothes.name].display_name,
+                    curr_value = self.current_item(),
                 ),
                 action = MTriggerAction.post,
                 method = MTriggerMethod.table
             )
+
+        def refresh_clothes(self):
+            self.clothes_data = {}
+            _add_mtrigger_item(
+                self.clothes_data,
+                "clothes",
+                "built-in fallback",
+                "玩家挑选",
+                "mas_pick_a_clothes",
+            )
+            _add_mtrigger_item(
+                self.clothes_data,
+                "clothes",
+                "built-in fallback",
+                "__none__",
+                "mas_pick_a_clothes",
+            )
+            source = "store.mas_selspr.CLOTH_SEL_MAP"
+            try:
+                clothes_map = store.mas_selspr.CLOTH_SEL_MAP
+                for index, key in enumerate(clothes_map):
+                    try:
+                        if not self.outfit_has_and_unlocked(key):
+                            continue
+                        display_name = clothes_map[key].display_name
+                    except Exception as error:
+                        log_invalid_mtrigger(
+                            "clothes",
+                            None,
+                            source=source,
+                            key=key,
+                            index=index,
+                            reason="failed to read display name: {}".format(
+                                safe_value_repr(error, 160)
+                            ),
+                        )
+                        continue
+                    _add_mtrigger_item(
+                        self.clothes_data,
+                        "clothes",
+                        source,
+                        display_name,
+                        key,
+                        source_key=key,
+                        index=index,
+                    )
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "clothes",
+                    clothes_map if "clothes_map" in locals() else None,
+                    source=source,
+                    reason="failed to enumerate source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+
+        def current_item(self):
+            try:
+                clothes = store.monika_chr.clothes
+                current = store.mas_selspr.CLOTH_SEL_MAP.get(clothes.name)
+                display_name = getattr(current, "display_name", None)
+                reason = mtrigger_item_error(display_name)
+                if reason is not None and display_name is not None:
+                    log_invalid_mtrigger(
+                        "clothes",
+                        display_name,
+                        source="store.mas_selspr.CLOTH_SEL_MAP",
+                        key=safe_getattr(clothes, "name"),
+                        reason=reason,
+                    )
+                    return None
+                if display_name in self.clothes_data:
+                    return display_name
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "clothes",
+                    None,
+                    source="store.monika_chr.clothes",
+                    reason="failed to resolve current item: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+            return None
+
         def outfit_has_and_unlocked(self, outfit_name):
             """
             Returns True if we have the outfit and it's unlocked
@@ -58,25 +202,27 @@ init 999 python in maica:
             return outfit_name in store.mas_selspr.CLOTH_SEL_MAP and store.mas_selspr.CLOTH_SEL_MAP[outfit_name].unlocked
 
         def on_build_pre(self):
-            self.clothes_data = {
-                store.mas_selspr.CLOTH_SEL_MAP[key].display_name:key
-                for key in store.mas_selspr.CLOTH_SEL_MAP
-                if self.outfit_has_and_unlocked(key)
-            }
-            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data["__none__"] = "mas_pick_a_clothes"
+            self.refresh_clothes()
             self.exprop.item_list = list(self.clothes_data.keys())
-            current = store.mas_selspr.CLOTH_SEL_MAP.get(store.monika_chr.clothes.name)
-            self.exprop.curr_value = current.display_name if current is not None else "__none__"
+            self.exprop.curr_value = self.current_item()
 
         def triggered(self, data):
+            if data is None:
+                return
+            if not isinstance(data, dict):
+                log_invalid_mtrigger(
+                    "clothes",
+                    data,
+                    source="callback payload",
+                    reason="payload must be a dict",
+                )
+                return
             clothes = data.get("choice", None)
             if clothes is not None:
                 self.callback(clothes)
 
         def clothes_callback(self, clothes):
-            if not clothes in self.clothes_data:
-                log_invalid_mtrigger("outfit", clothes)
+            if not _valid_mtrigger_selection(self.clothes_data, "clothes", clothes):
                 return
             return store.renpy.call("mtrigger_change_clothes", self.clothes_data[clothes])
 
@@ -86,25 +232,121 @@ init 999 python in maica:
 #################################################################################
 
     def get_unlocked_games():
-        games = {
-            ev.prompt: ev.eventlabel
-            for ev in store.mas_games.game_db.values()
-            if store.mas_isGameUnlocked(ev.prompt)
-        }
-        games["玩家自行选择"] = "mas_pick_a_game"
-        games["__none__"] = "mas_pick_a_game"
-        games["Pong"] = "game_pong"
+        games = {}
+        _add_mtrigger_item(games, "minigame", "built-in fallback", "玩家自行选择", "mas_pick_a_game")
+        _add_mtrigger_item(games, "minigame", "built-in fallback", "__none__", "mas_pick_a_game")
+        _add_mtrigger_item(games, "minigame", "built-in fallback", "Pong", "game_pong")
+        try:
+            hangman_unlocked = (
+                store.mas_isGameUnlocked("Hangman")
+                or store.mas_isGameUnlocked("上吊小人")
+            )
+        except Exception as error:
+            hangman_unlocked = False
+            log_invalid_mtrigger(
+                "minigame",
+                None,
+                source="store.mas_isGameUnlocked",
+                key="Hangman",
+                reason="failed to check optional game: {}".format(
+                    safe_value_repr(error, 160)
+                ),
+            )
+        if hangman_unlocked:
+            _add_mtrigger_item(
+                games,
+                "minigame",
+                "built-in fallback",
+                "Hangman",
+                "game_hangman",
+            )
+
+        source = "store.mas_games.game_db"
+        try:
+            game_values = store.mas_games.game_db.values()
+            for index, ev in enumerate(game_values):
+                try:
+                    prompt = ev.prompt
+                    eventlabel = ev.eventlabel
+                except Exception as error:
+                    log_invalid_mtrigger(
+                        "minigame",
+                        None,
+                        source=source,
+                        key=safe_getattr(ev, "eventlabel"),
+                        index=index,
+                        reason="failed to read game metadata: {}".format(
+                            safe_value_repr(error, 160)
+                        ),
+                    )
+                    continue
+                prompt_reason = mtrigger_item_error(prompt)
+                if prompt_reason is not None:
+                    log_invalid_mtrigger(
+                        "minigame",
+                        prompt,
+                        source=source,
+                        key=safe_getattr(ev, "eventlabel"),
+                        index=index,
+                        reason=prompt_reason,
+                    )
+                    continue
+                label_reason = mtrigger_item_error(eventlabel)
+                if label_reason is not None:
+                    log_invalid_mtrigger(
+                        "minigame",
+                        eventlabel,
+                        source=source,
+                        key=safe_getattr(ev, "eventlabel"),
+                        index=index,
+                        reason="invalid event label: {}".format(label_reason),
+                    )
+                    continue
+                try:
+                    unlocked = store.mas_isGameUnlocked(prompt)
+                except Exception as error:
+                    log_invalid_mtrigger(
+                        "minigame",
+                        prompt,
+                        source="store.mas_isGameUnlocked",
+                        key=safe_getattr(ev, "eventlabel"),
+                        index=index,
+                        reason="failed to check unlock state: {}".format(
+                            safe_value_repr(error, 160)
+                        ),
+                    )
+                    continue
+                if not unlocked:
+                    continue
+                _add_mtrigger_item(
+                    games,
+                    "minigame",
+                    source,
+                    prompt,
+                    eventlabel,
+                    source_key=safe_getattr(ev, "eventlabel"),
+                    index=index,
+                )
+        except Exception as error:
+            log_invalid_mtrigger(
+                "minigame",
+                None,
+                source=source,
+                reason="failed to enumerate source: {}".format(
+                    safe_value_repr(error, 160)
+                ),
+            )
+
         if "NOU" in games:
-            games["UNO"] = games["NOU"]
-        if store.mas_isGameUnlocked("Hangman") or store.mas_isGameUnlocked("上吊小人"):
-            games["Hangman"] = "game_hangman"
+            _add_mtrigger_item(games, "minigame", "built-in alias", "UNO", games["NOU"])
         return games
 
     unlocked_games_dict = get_unlocked_games()
     def minigame_callback(item):
 
-        if not item in unlocked_games_dict:
-            log_invalid_mtrigger("minigame", item)
+        if item is None:
+            return
+        if not _valid_mtrigger_selection(unlocked_games_dict, "minigame", item):
             return
         game_label = unlocked_games_dict[item]
         store.renpy.call("mtrigger_minigame", game_label)
@@ -119,7 +361,7 @@ init 999 python in maica:
                     item_name_zh="玩小游戏",
                     item_name_en="play minigame",
                     item_list=list(unlocked_games_dict.keys()),
-                    curr_value="__none__",
+                    curr_value=None,
                 ),
                 description = _("Integrated | Starting minigames"),
                 method=MTriggerMethod.table
@@ -191,7 +433,7 @@ init 999 python in maica:
                     item_name_zh="更改游戏内天气",
                     item_name_en="Change the in-game weather.r",
                     item_list=self.weathers_list,
-                    curr_value=store.mas_current_weather.prompt
+                    curr_value=self.current_item()
                 ),
                 callback = self.callback,
                 description = _("Integrated | Change weather * Not effective in Heaven Forest"),
@@ -205,35 +447,160 @@ init 999 python in maica:
             self.weathers = self.get_weather_dict()
             self.weathers_list = self.get_weather_list()
             self.exprop.item_list = self.weathers_list
-            current = getattr(store.mas_current_weather, "prompt", "__none__")
-            self.exprop.curr_value = current if current in self.weathers_list else self.weathers_list[0]
+            self.exprop.curr_value = self.current_item()
+
+        def current_item(self):
+            try:
+                current = getattr(store.mas_current_weather, "prompt", None)
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "weather",
+                    None,
+                    source="store.mas_current_weather",
+                    reason="failed to resolve current item: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+                return None
+            reason = mtrigger_item_error(current)
+            if reason is not None and current is not None:
+                log_invalid_mtrigger(
+                    "weather",
+                    current,
+                    source="store.mas_current_weather.prompt",
+                    reason=reason,
+                )
+                return None
+            return current if current in self.weathers_list else None
 
         def get_weather_list(self):
             return list(self.weathers.keys())
 
         def get_weather_dict(self):
-            import store.mas_weather as mas_weather
+            source = "store.mas_weather.WEATHER_MAP"
+            weathers = {}
+            _add_mtrigger_item(
+                weathers,
+                "weather",
+                "built-in fallback",
+                "__none__",
+                None,
+            )
+            try:
+                import store.mas_weather as mas_weather
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "weather",
+                    None,
+                    source="store.mas_weather",
+                    reason="failed to import weather source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+                return weathers
 
-            # Default weather at the top
-            weathers = {store.mas_weather_def.prompt: store.mas_weather_def}
+            try:
+                default_weather = store.mas_weather_def
+                _add_mtrigger_item(
+                    weathers,
+                    "weather",
+                    "store.mas_weather_def",
+                    default_weather.prompt,
+                    default_weather,
+                    source_key="def",
+                    index=0,
+                )
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "weather",
+                    None,
+                    source="store.mas_weather_def",
+                    key="def",
+                    index=0,
+                    reason="failed to read default weather: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
 
-            # Build and sort other weather list
-            other_weathers = {
-                mw_obj.prompt: mw_obj
-                for mw_id, mw_obj in mas_weather.WEATHER_MAP.items()
-                if mw_id != "def" and mw_obj.unlocked
-            }
+            weather_items = []
+            try:
+                for index, (mw_id, mw_obj) in enumerate(mas_weather.WEATHER_MAP.items()):
+                    if mw_id == "def":
+                        continue
+                    try:
+                        if not mw_obj.unlocked:
+                            continue
+                        prompt = mw_obj.prompt
+                    except Exception as error:
+                        log_invalid_mtrigger(
+                            "weather",
+                            None,
+                            source=source,
+                            key=mw_id,
+                            index=index,
+                            reason="failed to read weather metadata: {}".format(
+                                safe_value_repr(error, 160)
+                            ),
+                        )
+                        continue
+                    reason = mtrigger_item_error(prompt)
+                    if reason is not None:
+                        log_invalid_mtrigger(
+                            "weather",
+                            prompt,
+                            source=source,
+                            key=mw_id,
+                            index=index,
+                            reason=reason,
+                        )
+                        continue
+                    weather_items.append((prompt, mw_id, mw_obj, index))
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "weather",
+                    None,
+                    source=source,
+                    reason="failed to enumerate source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
 
-            # Sort by prompt and merge with default weather
-            sorted_weathers = dict(sorted(other_weathers.items()))
-            weathers.update(sorted_weathers)
+            try:
+                sorted_weather_items = sorted(
+                    weather_items,
+                    key=lambda item: item[0],
+                )
+            except Exception as error:
+                sorted_weather_items = weather_items
+                log_invalid_mtrigger(
+                    "weather",
+                    [item[0] for item in weather_items],
+                    source=source,
+                    reason="failed to sort valid entries; using source order: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+
+            for prompt, mw_id, mw_obj, index in sorted_weather_items:
+                _add_mtrigger_item(
+                    weathers,
+                    "weather",
+                    source,
+                    prompt,
+                    mw_obj,
+                    source_key=mw_id,
+                    index=index,
+                )
 
             return weathers
 
         def callback(self, selection):
+            if selection is None:
+                return
+            if selection == "__none__":
+                return
             selection = u"\u6674\u5929" if selection == "Clear" and u"\u6674\u5929" in self.weathers else selection
-            if not selection in self.weathers:
-                log_invalid_mtrigger("weather", selection)
+            if not _valid_mtrigger_selection(self.weathers, "weather", selection):
                 return
             weather = self.weathers[selection]
             store.renpy.call("mtrigger_weather", weather)
@@ -294,7 +661,7 @@ init 999 python in maica:
                     item_name_en="play music",
                     item_list=self.musics,
                     curr_value=self.current_item(),
-                    suggestion=store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")
+                    suggestion=self.web_musicplayer_installed
 
                 ),
                 callback = self.callback,
@@ -309,35 +676,164 @@ init 999 python in maica:
             self.exprop.curr_value = self.current_item()
 
         def current_item(self):
-            current = store.songs.current_track
-            return current if isinstance(current, basestring) and current in self.musics else "__none__"
+            try:
+                current = store.songs.current_track
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "music",
+                    None,
+                    source="store.songs.current_track",
+                    reason="failed to resolve current item: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+                return None
+            reason = mtrigger_item_error(current)
+            if reason is not None and current is not None:
+                log_invalid_mtrigger(
+                    "music",
+                    current,
+                    source="store.songs.current_track",
+                    reason=reason,
+                )
+                return None
+            return current if isinstance(current, basestring) and current in self.musics else None
 
         def song_list(self):
             m = ["__none__"]
-            for s in store.songs.music_choices:
-                m.append(s[0])
-            if (store.mas_submod_utils.isSubmodInstalled("Netease Music") or store.mas_submod_utils.isSubmodInstalled("Youtube Music")):
-                pass
-            m.append(self.PLAYER_CHOICE)
-            m.append("停止/静音")
+            seen = {"__none__": True}
+            reserved = {
+                "__none__": True,
+                self.PLAYER_CHOICE: True,
+                "停止/静音": True,
+            }
+            source = "store.songs.music_choices"
+            try:
+                music_choices = store.songs.music_choices
+                for index, song in enumerate(music_choices):
+                    try:
+                        title = song[0]
+                    except Exception as error:
+                        log_invalid_mtrigger(
+                            "music",
+                            song,
+                            source=source,
+                            key=index,
+                            index=index,
+                            reason="entry has no usable title: {}".format(
+                                safe_value_repr(error, 160)
+                            ),
+                        )
+                        continue
+                    reason = mtrigger_item_error(title)
+                    if reason is not None:
+                        log_invalid_mtrigger(
+                            "music",
+                            title,
+                            source=source,
+                            key=index,
+                            index=index,
+                            reason=reason,
+                        )
+                        continue
+                    if title in reserved:
+                        log_invalid_mtrigger(
+                            "music",
+                            title,
+                            source=source,
+                            key=index,
+                            index=index,
+                            reason="reserved built-in item name",
+                        )
+                        continue
+                    if title in seen:
+                        log_invalid_mtrigger(
+                            "music",
+                            title,
+                            source=source,
+                            key=index,
+                            index=index,
+                            reason="duplicate item name",
+                        )
+                        continue
+                    seen[title] = True
+                    m.append(title)
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "music",
+                    None,
+                    source=source,
+                    reason="failed to enumerate source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+            for index, title in enumerate((self.PLAYER_CHOICE, "停止/静音")):
+                if title in seen:
+                    log_invalid_mtrigger(
+                        "music",
+                        title,
+                        source="built-in fallback",
+                        key=index,
+                        index=index,
+                        reason="duplicate item name",
+                    )
+                    continue
+                reason = mtrigger_item_error(title)
+                if reason is not None:
+                    log_invalid_mtrigger(
+                        "music",
+                        title,
+                        source="built-in fallback",
+                        key=index,
+                        index=index,
+                        reason=reason,
+                    )
+                    continue
+                seen[title] = True
+                m.append(title)
             return m
-
-        def build(self):
-            self.musics = self.song_list()
-            return super(MusicTrigger, self).build()
 
         @staticmethod
         def find(selection):
-            return [x for x in store.songs.music_choices if selection in x][0]
+            try:
+                music_choices = store.songs.music_choices
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "music",
+                    None,
+                    source="store.songs.music_choices",
+                    reason="failed to enumerate source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+                return None
+            for index, song in enumerate(music_choices):
+                try:
+                    if selection in song:
+                        return song
+                except Exception as error:
+                    log_invalid_mtrigger(
+                        "music",
+                        song,
+                        source="store.songs.music_choices",
+                        key=index,
+                        index=index,
+                        reason="failed to resolve selected song: {}".format(
+                            safe_value_repr(error, 160)
+                        ),
+                    )
+            return None
 
         def callback(self, selection):
+            if selection is None:
+                return
             if selection == "__none__":
                 return
             if selection == self.PLAYER_CHOICE:
                 store.renpy.call("mtrigger_music_menu")
                 return
             if not selection in self.musics:
-                if selection and selection.lower() != "false":
+                if isinstance(selection, basestring) and selection and selection.lower() != "false":
                     if store.mas_submod_utils.isSubmodInstalled("Netease Music"):
                         store.renpy.call("mtrigger_neteasemusic_search", selection)
                         return
@@ -359,9 +855,8 @@ init 999 python in maica:
 
     class HairTrigger(MTriggerBase):
         def __init__(self, template, name):
-            self.clothes_data = {store.mas_selspr.HAIR_SEL_MAP[key].display_name:key for key in store.mas_selspr.HAIR_SEL_MAP if self.outfit_has_and_unlocked(key)}
-            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data["__none__"] = "mas_pick_a_clothes"
+            self.clothes_data = {}
+            self.refresh_hair()
             super(HairTrigger, self).__init__(template, name, description=_("Integrated | Change hairstyle"),callback=self.clothes_callback,
                 exprop=MTriggerExprop(
                     item_name_zh = "更换游戏内发型",
@@ -373,20 +868,93 @@ init 999 python in maica:
                 method = MTriggerMethod.table
             )
 
+        def refresh_hair(self):
+            self.clothes_data = {}
+            _add_mtrigger_item(
+                self.clothes_data,
+                "hair",
+                "built-in fallback",
+                "玩家挑选",
+                "mas_pick_a_clothes",
+            )
+            _add_mtrigger_item(
+                self.clothes_data,
+                "hair",
+                "built-in fallback",
+                "__none__",
+                "mas_pick_a_clothes",
+            )
+            source = "store.mas_selspr.HAIR_SEL_MAP"
+            try:
+                hair_map = store.mas_selspr.HAIR_SEL_MAP
+                for index, key in enumerate(hair_map):
+                    try:
+                        if self.outfit_has_and_unlocked(key):
+                            display_name = hair_map[key].display_name
+                        else:
+                            continue
+                    except Exception as error:
+                        log_invalid_mtrigger(
+                            "hair",
+                            None,
+                            source=source,
+                            key=key,
+                            index=index,
+                            reason="failed to read display name: {}".format(
+                                safe_value_repr(error, 160)
+                            ),
+                        )
+                        continue
+                    _add_mtrigger_item(
+                        self.clothes_data,
+                        "hair",
+                        source,
+                        display_name,
+                        key,
+                        source_key=key,
+                        index=index,
+                    )
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "hair",
+                    hair_map if "hair_map" in locals() else None,
+                    source=source,
+                    reason="failed to enumerate source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
         def current_item(self):
-            current = store.mas_selspr.HAIR_SEL_MAP.get(store.monika_chr.hair.name)
-            if current is not None and current.display_name in self.clothes_data:
-                return current.display_name
-            return "__none__"
+            try:
+                current = store.mas_selspr.HAIR_SEL_MAP.get(store.monika_chr.hair.name)
+                display_name = getattr(current, "display_name", None)
+                reason = mtrigger_item_error(display_name)
+                if reason is not None and display_name is not None:
+                    log_invalid_mtrigger(
+                        "hair",
+                        display_name,
+                        source="store.mas_selspr.HAIR_SEL_MAP",
+                        key=safe_getattr(
+                            safe_getattr(safe_getattr(store, "monika_chr"), "hair"),
+                            "name",
+                        ),
+                        reason=reason,
+                    )
+                    return None
+                if current is not None and display_name in self.clothes_data:
+                    return display_name
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "hair",
+                    None,
+                    source="store.monika_chr.hair",
+                    reason="failed to resolve current item: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+            return None
 
         def on_build_pre(self):
-            self.clothes_data = {
-                store.mas_selspr.HAIR_SEL_MAP[key].display_name:key
-                for key in store.mas_selspr.HAIR_SEL_MAP
-                if self.outfit_has_and_unlocked(key)
-            }
-            self.clothes_data["玩家挑选"] = "mas_pick_a_clothes"
-            self.clothes_data["__none__"] = "mas_pick_a_clothes"
+            self.refresh_hair()
             self.exprop.item_list = list(self.clothes_data.keys())
             self.exprop.curr_value = self.current_item()
 
@@ -397,13 +965,22 @@ init 999 python in maica:
             return outfit_name in store.mas_selspr.HAIR_SEL_MAP and store.mas_selspr.HAIR_SEL_MAP[outfit_name].unlocked
 
         def triggered(self, data):
+            if data is None:
+                return
+            if not isinstance(data, dict):
+                log_invalid_mtrigger(
+                    "hair",
+                    data,
+                    source="callback payload",
+                    reason="payload must be a dict",
+                )
+                return
             clothes = data.get("choice", None)
             if clothes is not None:
                 self.callback(clothes)
 
         def clothes_callback(self, clothes):
-            if not clothes in self.clothes_data:
-                log_invalid_mtrigger("hair", clothes)
+            if not _valid_mtrigger_selection(self.clothes_data, "hair", clothes):
                 return
             return store.renpy.call("mtrigger_change_hair", self.clothes_data[clothes])
 
@@ -421,7 +998,7 @@ init 999 python in maica:
                     item_name_zh = "佩戴或取下游戏内饰品",
                     item_name_en = "wear or remove an in-game accessory",
                     item_list = list(self.accessory_data.keys()),
-                    curr_value = "__none__",
+                    curr_value = None,
                 ),
                 action=MTriggerAction.post,
                 method=MTriggerMethod.table
@@ -431,30 +1008,120 @@ init 999 python in maica:
             return outfit_name in store.mas_selspr.ACS_SEL_MAP and store.mas_selspr.ACS_SEL_MAP[outfit_name].unlocked
 
         def refresh_accessories(self):
-            wear = {
-                "wear|{}".format(store.mas_selspr.ACS_SEL_MAP[key].display_name): ("wear", key)
-                for key in store.mas_selspr.ACS_SEL_MAP
-                if self.outfit_has_and_unlocked(key)
-            }
-            unwear = {
-                "unwear|{}".format(store.mas_selspr.ACS_SEL_MAP[key.name].display_name): ("unwear", key)
-                for key in store.monika_chr.get_acs()
-                if key.name in store.mas_selspr.ACS_SEL_MAP
-            }
             self.accessory_data = {
                 "__none__": (None, None),
                 "wear|玩家挑选": ("wear", "mas_pick_a_clothes"),
             }
-            self.accessory_data.update(wear)
-            self.accessory_data.update(unwear)
+            source = "store.mas_selspr.ACS_SEL_MAP"
+            try:
+                accessory_map = store.mas_selspr.ACS_SEL_MAP
+                for index, key in enumerate(accessory_map):
+                    try:
+                        if not self.outfit_has_and_unlocked(key):
+                            continue
+                        display_name = accessory_map[key].display_name
+                        reason = mtrigger_item_error(display_name)
+                        if reason is not None:
+                            log_invalid_mtrigger(
+                                "accessory",
+                                display_name,
+                                source=source,
+                                key=key,
+                                index=index,
+                                reason=reason,
+                            )
+                            continue
+                        item_name = "wear|{}".format(display_name)
+                    except Exception as error:
+                        log_invalid_mtrigger(
+                            "accessory",
+                            None,
+                            source=source,
+                            key=key,
+                            index=index,
+                            reason="failed to read wear metadata: {}".format(
+                                safe_value_repr(error, 160)
+                            ),
+                        )
+                        continue
+                    _add_mtrigger_item(
+                        self.accessory_data,
+                        "accessory",
+                        source,
+                        item_name,
+                        ("wear", key),
+                        source_key=key,
+                        index=index,
+                    )
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "accessory",
+                    None,
+                    source=source,
+                    reason="failed to enumerate wear source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
+
+            try:
+                worn_accessories = store.monika_chr.get_acs()
+                for index, accessory in enumerate(worn_accessories):
+                    try:
+                        key = accessory.name
+                        if key not in store.mas_selspr.ACS_SEL_MAP:
+                            continue
+                        display_name = store.mas_selspr.ACS_SEL_MAP[key].display_name
+                        reason = mtrigger_item_error(display_name)
+                        if reason is not None:
+                            log_invalid_mtrigger(
+                                "accessory",
+                                display_name,
+                                source="store.mas_selspr.ACS_SEL_MAP",
+                                key=key,
+                                index=index,
+                                reason=reason,
+                            )
+                            continue
+                        item_name = "unwear|{}".format(display_name)
+                    except Exception as error:
+                        log_invalid_mtrigger(
+                            "accessory",
+                            accessory,
+                            source="store.monika_chr.get_acs()",
+                            key=safe_getattr(accessory, "name"),
+                            index=index,
+                            reason="failed to read unwear metadata: {}".format(
+                                safe_value_repr(error, 160)
+                            ),
+                        )
+                        continue
+                    _add_mtrigger_item(
+                        self.accessory_data,
+                        "accessory",
+                        "store.monika_chr.get_acs()",
+                        item_name,
+                        ("unwear", accessory),
+                        source_key=key,
+                        index=index,
+                    )
+            except Exception as error:
+                log_invalid_mtrigger(
+                    "accessory",
+                    None,
+                    source="store.monika_chr.get_acs()",
+                    reason="failed to enumerate unwear source: {}".format(
+                        safe_value_repr(error, 160)
+                    ),
+                )
 
         def on_build_pre(self):
             self.refresh_accessories()
             self.exprop.item_list = list(self.accessory_data.keys())
 
         def accessory_callback(self, choice):
-            if choice not in self.accessory_data:
-                log_invalid_mtrigger("accessory", choice)
+            if choice is None:
+                return
+            if not _valid_mtrigger_selection(self.accessory_data, "accessory", choice):
                 return
             action, accessory = self.accessory_data[choice]
             if choice == "__none__":
