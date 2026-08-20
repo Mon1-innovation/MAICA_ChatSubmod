@@ -78,6 +78,14 @@ def test_prepare_message_replaces_unsupported_temperature_symbols_only_for_displ
     ) == message
 
 
+def test_bot_interface_compiles_after_renpy_699_loader_encoding():
+    source_path = PACKAGE_ROOT / "bot_interface.py"
+    source = source_path.read_bytes().decode("utf-8")
+    transformed_source = source.encode("raw_unicode_escape")
+
+    compile(transformed_source, str(source_path), "exec")
+
+
 def test_renpy_preview_drops_only_partial_markers_before_escaping():
     assert bot_interface.build_renpy_text_preview(
         "prefix [player] suffix",

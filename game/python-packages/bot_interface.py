@@ -122,8 +122,8 @@ RENPY_DIALOGUE_SUBSTITUTIONS = (
 )
 
 RENPY_DISPLAY_REPLACEMENTS = {
-    u"℃": u"°C",
-    u"℉": u"°F",
+    u"\u2103": u"\u00b0C",
+    u"\u2109": u"\u00b0F",
 }
 
 

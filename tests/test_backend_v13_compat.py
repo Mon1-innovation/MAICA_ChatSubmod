@@ -678,6 +678,18 @@ def test_a_frontend_version_declaration_is_authoritative():
     assert "elif maica.is_frontend_version_outdated():" in header
 
 
+def test_rss_setup_is_deferred_to_optional_update_initialization():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    early_init = api.split("default persistent._maica_updatelog_version_seen", 1)[0]
+    update_init = api.split("init 5 python in maica:", 1)[1].split("\ninit ", 1)[0]
+
+    assert "maica_rss_provider" not in early_init
+    assert "except:\n        pass" not in early_init
+    assert "maica_rss_provider.set_ua(store.maica_ver)" in update_init
+    assert "except Exception as e:" in update_init
+    assert update_init.index("    import bot_interface") < update_init.index("    try:")
+
+
 def test_a_frontend_version_comparison_uses_numeric_segments():
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
     init_block = api.split("init 5 python in maica:", 1)[1].split("\ninit ", 1)[0]

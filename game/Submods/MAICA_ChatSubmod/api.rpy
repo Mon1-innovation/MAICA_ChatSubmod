@@ -8,12 +8,6 @@ init -1500 python:
     # - 对应migration总是会执行
     # - 会显示一条警告
 
-    try:
-        import maica_rss_provider
-        maica_rss_provider.set_ua(maica_ver)
-    except:
-        pass
-
     cn_mas_mobile_min_timestamp = 1763049600
 
     def get_build_timestamp():
@@ -40,8 +34,11 @@ define _maica_selected_visuals = []
 #}
 
 init 5 python in maica:
+    import store, chardet
+    import bot_interface
     try:
         import maica_rss_provider
+        maica_rss_provider.set_ua(store.maica_ver)
         update_info = maica_rss_provider.get_log()
     except Exception as e:
         update_info = {
@@ -50,8 +47,6 @@ init 5 python in maica:
             "content_renpysafe": [],
             "version":0
     }
-    import store, chardet
-    import bot_interface
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use
