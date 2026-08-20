@@ -90,6 +90,7 @@ init 5 python in maica:
 
     import store
     import maica, os, json
+    from maica_mtrigger import is_builtin_dict, is_builtin_list
     import maica_mpostal_files
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     maica.logger = store.mas_submod_utils.submod_log
@@ -122,17 +123,17 @@ init 5 python in maica:
 
 """.format(store.maica_ver)
 
-    if not isinstance(store.persistent.maica_stat, dict):
+    if not is_builtin_dict(store.persistent.maica_stat):
         store.persistent.maica_stat = maica_instance.stat.copy()
     else:
         maica_instance.update_stat(store.persistent.maica_stat)
 
-    if not isinstance(store.persistent.maica_mtrigger_status, dict):
+    if not is_builtin_dict(store.persistent.maica_mtrigger_status):
         store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
     else:
         maica_instance.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
 
-    if not isinstance(store.persistent._maica_visuals, list):
+    if not is_builtin_list(store.persistent._maica_visuals):
         store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
     else:
         maica_instance.vista_manager.import_list(store.persistent._maica_visuals)
@@ -192,7 +193,7 @@ init 5 python in maica:
 
     def adopt_legacy_mpostal_image(postal):
         """Moves an unambiguous legacy characters/*.mms into managed storage."""
-        if not isinstance(postal, dict) or postal.get("mpostal_attachment_path"):
+        if not is_builtin_dict(postal) or postal.get("mpostal_attachment_path"):
             return False
 
         raw_image = postal.get("raw_image")
@@ -230,7 +231,7 @@ init 5 python in maica:
 
     def delete_mpostal_original(postal):
         """Deletes only the managed original; the postal preview remains owned by history."""
-        if not isinstance(postal, dict):
+        if not is_builtin_dict(postal):
             return False
 
         attachment_path = postal.get("mpostal_attachment_path")
@@ -260,22 +261,22 @@ init 5 python in maica:
         return True
 
     def delete_mpostal_preview(postal):
-        if not isinstance(postal, dict):
+        if not is_builtin_dict(postal):
             return False
 
         preview = postal.get("raw_image_preview")
-        if not isinstance(preview, dict):
+        if not is_builtin_dict(preview):
             postal.pop("raw_image_preview", None)
             return True
 
         preview_path = preview.get("thumb_path")
         shared = False
         for other in store.persistent._maica_send_or_received_mpostals:
-            if other is postal or not isinstance(other, dict):
+            if other is postal or not is_builtin_dict(other):
                 continue
             other_preview = other.get("raw_image_preview")
             if (
-                isinstance(other_preview, dict)
+                is_builtin_dict(other_preview)
                 and _same_file_path(other_preview.get("thumb_path"), preview_path)
             ):
                 shared = True
@@ -293,7 +294,7 @@ init 5 python in maica:
 
     def prepare_mpostal_preview(postal):
         """Builds safe previews outside Ren'Py for current and legacy postals."""
-        if not isinstance(postal, dict):
+        if not is_builtin_dict(postal):
             return
 
         manager = store.maica.maica_instance.vista_manager

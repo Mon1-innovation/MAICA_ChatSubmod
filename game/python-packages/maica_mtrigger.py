@@ -1,5 +1,19 @@
 import requests, json, math, re
 
+# Ren'Py custom namespaces may bind ``dict`` and ``list`` to revertable types.
+try:
+    import __builtin__ as _builtin_types
+except ImportError:
+    import builtins as _builtin_types
+
+
+def is_builtin_dict(value):
+    return isinstance(value, _builtin_types.dict)
+
+
+def is_builtin_list(value):
+    return isinstance(value, _builtin_types.list)
+
 try:
     basestring  # 套路检查
 except NameError:

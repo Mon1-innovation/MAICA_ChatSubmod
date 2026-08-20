@@ -129,14 +129,14 @@ def test_nested_and_runtime_generated_containers_are_type_checked():
     )
     assert 'maica_setting_dict.pop("mspire_category", None)' in repair
 
-    for name, expected_type in (
-        ("maica_stat", "dict"),
-        ("maica_mtrigger_status", "dict"),
-        ("_maica_visuals", "list"),
+    for name, helper in (
+        ("maica_stat", "is_builtin_dict"),
+        ("maica_mtrigger_status", "is_builtin_dict"),
+        ("_maica_visuals", "is_builtin_list"),
     ):
         assert re.search(
-            r"not isinstance\(store\.persistent\.{},\s*{}\)".format(
-                re.escape(name), expected_type
+            r"{}\(store\.persistent\.{}\)".format(
+                helper, re.escape(name)
             ),
             API,
         )

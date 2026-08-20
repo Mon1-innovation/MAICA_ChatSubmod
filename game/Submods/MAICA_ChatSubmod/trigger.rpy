@@ -68,7 +68,7 @@ init 999 python in maica:
         def triggered(self, data):
             if data is None:
                 data = {}
-            if not isinstance(data, dict):
+            if not is_builtin_dict(data):
                 log_invalid_mtrigger(
                     "alter_affection",
                     data,
@@ -209,7 +209,7 @@ init 999 python in maica:
         def triggered(self, data):
             if data is None:
                 return
-            if not isinstance(data, dict):
+            if not is_builtin_dict(data):
                 log_invalid_mtrigger(
                     "clothes",
                     data,
@@ -967,7 +967,7 @@ init 999 python in maica:
         def triggered(self, data):
             if data is None:
                 return
-            if not isinstance(data, dict):
+            if not is_builtin_dict(data):
                 log_invalid_mtrigger(
                     "hair",
                     data,

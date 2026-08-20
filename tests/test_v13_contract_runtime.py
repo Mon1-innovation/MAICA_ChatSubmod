@@ -645,6 +645,21 @@ def _new_mtrigger_handler(monkeypatch):
     )
 
 
+def test_builtin_container_helpers_accept_plain_and_revertable_subclasses():
+    class RevertableDict(dict):
+        pass
+
+    class RevertableList(list):
+        pass
+
+    assert maica_mtrigger.is_builtin_dict({})
+    assert maica_mtrigger.is_builtin_dict(RevertableDict())
+    assert not maica_mtrigger.is_builtin_dict([])
+    assert maica_mtrigger.is_builtin_list([])
+    assert maica_mtrigger.is_builtin_list(RevertableList())
+    assert not maica_mtrigger.is_builtin_list({})
+
+
 def _new_quality_handler(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     return maica_tasker_sub.QualityStatusWsHandler(
@@ -1464,6 +1479,33 @@ def test_builtin_dynamic_switch_sources_use_logged_item_filtering():
     assert "trigger={} source={} key={} index={}" in trigger_source
     assert "type={} value={} reason={}" in trigger_source
     assert "reserved built-in item name" in trigger_source
+
+
+def test_maica_namespace_container_guards_use_builtin_helpers():
+    root = Path(__file__).resolve().parents[1]
+    trigger_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+    api_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "api.rpy"
+    ).read_text(encoding="utf-8")
+    maica_block = api_source.split("init 5 python in maica:", 1)[1].split(
+        "\ninit ", 1
+    )[0]
+
+    assert trigger_source.count("is_builtin_dict(data)") == 3
+    assert "isinstance(data, dict)" not in trigger_source
+    assert "from maica_mtrigger import is_builtin_dict, is_builtin_list" in maica_block
+    assert "is_builtin_dict(store.persistent.maica_stat)" in maica_block
+    assert "is_builtin_dict(store.persistent.maica_mtrigger_status)" in maica_block
+    assert "is_builtin_list(store.persistent._maica_visuals)" in maica_block
+    for legacy_guard in (
+        "isinstance(postal, dict)",
+        "isinstance(preview, dict)",
+        "isinstance(other, dict)",
+        "isinstance(other_preview, dict)",
+    ):
+        assert legacy_guard not in maica_block
 
 
 def test_minigame_fixed_labels_take_precedence_over_mas_event_wrappers():
