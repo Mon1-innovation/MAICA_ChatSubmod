@@ -556,8 +556,9 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
         if mspire_type is _UNSET:
             mspire_type = self.mspire_type
         search_type = normalize_mspire_type(mspire_type)
-        if cache_enabled and session != 0:
-            raise ValueError("use_cache is only available for session 0")
+        # The backend only supports MSpire caching for the default session.
+        if session != 0:
+            cache_enabled = False
 
         if flush and str(session) != '0':
             data = {

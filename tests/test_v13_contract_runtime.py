@@ -1873,14 +1873,13 @@ def test_mspire_rejects_non_boolean_explicit_use_cache(use_cache):
         processor.process_request(["science"], 0, use_cache=use_cache)
 
 
-def test_mspire_cache_is_only_allowed_for_session_zero():
+def test_mspire_cache_is_ignored_for_nonzero_session():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
         1, "mspire", manager
     )
-    with pytest.raises(ValueError):
-        processor.process_request(["science"], 1, use_cache=True)
-    processor.process_request(["science"], 1, use_cache=False)
+    processor.process_request(["science"], 1, use_cache=True)
+    assert _last_json(manager)["inspire"]["use_cache"] is False
 
 
 @pytest.mark.parametrize("category", [[], ["science"]])
