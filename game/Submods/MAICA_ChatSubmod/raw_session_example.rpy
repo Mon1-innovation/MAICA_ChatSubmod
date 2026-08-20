@@ -198,6 +198,7 @@ label maica_raw_session(context, visions=None):
 
         if ai.response_timed_out():
             # renpy.say(m, _("好像出了什么问题..."))
+            pass
 
     # 执行结束
     return
