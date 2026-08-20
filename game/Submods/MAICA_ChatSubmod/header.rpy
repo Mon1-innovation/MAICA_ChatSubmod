@@ -1412,7 +1412,10 @@ screen maica_setting():
             hbox:
                 style_prefix "maica_check_nohover"
                 $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
-                textbutton maica_escape_display_text(renpy.substitute(_("Current user: [user_disp]"))):
+                textbutton maica_escape_display_text(renpy.substitute(
+                    _("Current user: [user_disp]"),
+                    scope={"user_disp": user_disp}
+                )):
                     action NullAction()
                     hovered SetField(_tooltip, "value", _("To change account or logout, navigate to Submods menu.\n* To change account properties or password, navigate to registration site"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)

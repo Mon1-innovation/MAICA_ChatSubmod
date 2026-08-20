@@ -27,6 +27,26 @@ def test_renpy_text_escape_handles_external_markup_and_none():
     ) == '{{"loc": [["x"]}'
 
 
+def test_screen_local_substitutions_pass_explicit_scope():
+    root = Path(__file__).resolve().parents[1]
+    header = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "header.rpy").read_text(
+        encoding="utf-8"
+    )
+    stats = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs.rpy").read_text(
+        encoding="utf-8"
+    )
+    vista = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs_vista.rpy").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'scope={"user_disp": user_disp}' in header
+    assert 'scope={"user_disp": user_disp}' in stats
+    assert 'scope={"imageselector": imageselector}' in vista
+    assert 'renpy.substitute(_("Current user: [user_disp]")))' not in header
+    assert 'renpy.substitute(_("Current user: [user_disp]")))' not in stats
+    assert 'renpy.substitute(_("Image chosen: [imageselector.image_path]")))' not in vista
+
+
 def test_renpy_dialogue_escape_preserves_only_trusted_substitutions():
     text = "[player] [m_name] [mas_get_player_nickname()] [unknown] {w=0.3}"
     escaped = bot_interface.escape_renpy_text(

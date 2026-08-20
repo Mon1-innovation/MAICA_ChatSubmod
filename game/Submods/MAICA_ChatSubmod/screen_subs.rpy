@@ -1300,7 +1300,10 @@ screen maica_statics():
                     size 20
             hbox:
                 $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
-                text maica_escape_display_text(renpy.substitute(_("Current user: [user_disp]"))):
+                text maica_escape_display_text(renpy.substitute(
+                    _("Current user: [user_disp]"),
+                    scope={"user_disp": user_disp}
+                )):
                     size 20
 
             hbox:
