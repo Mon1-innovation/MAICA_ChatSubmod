@@ -39,24 +39,29 @@ default persistent._maica_target_lang_mode = None
 default persistent._maica_tz_mode = None
 
 init -1498 python:
+    try:
+        import __builtin__ as maica_builtins
+    except ImportError:
+        import builtins as maica_builtins
+
     def maica_repair_persistent_containers():
         repaired = []
         container_types = (
-            ("maica_setting_dict", dict),
-            ("maica_advanced_setting", dict),
-            ("maica_advanced_setting_status", dict),
-            ("mas_player_additions", list),
-            ("_maica_send_or_received_mpostals", list),
-            ("_maica_visuals", list),
+            ("maica_setting_dict", maica_builtins.dict, dict),
+            ("maica_advanced_setting", maica_builtins.dict, dict),
+            ("maica_advanced_setting_status", maica_builtins.dict, dict),
+            ("mas_player_additions", maica_builtins.list, list),
+            ("_maica_send_or_received_mpostals", maica_builtins.list, list),
+            ("_maica_visuals", maica_builtins.list, list),
         )
-        for name, expected_type in container_types:
+        for name, expected_type, factory in container_types:
             value = getattr(persistent, name, None)
             if not isinstance(value, expected_type):
-                setattr(persistent, name, expected_type())
+                setattr(persistent, name, factory())
                 repaired.append("{} ({})".format(name, type(value).__name__))
 
         mspire_category = persistent.maica_setting_dict.get("mspire_category", [])
-        if not isinstance(mspire_category, list):
+        if not isinstance(mspire_category, maica_builtins.list):
             persistent.maica_setting_dict.pop("mspire_category", None)
             repaired.append(
                 "maica_setting_dict.mspire_category ({})".format(

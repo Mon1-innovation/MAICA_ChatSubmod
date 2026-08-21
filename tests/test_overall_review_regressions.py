@@ -97,6 +97,126 @@ def test_vista_reupload_keeps_record_when_upload_fails(monkeypatch):
     assert manager.files == [entry]
 
 
+def test_vista_cache_cleanup_removes_only_unreferenced_managed_files(tmp_path):
+    cache = tmp_path / "cache"
+    manager = MAICAVistaFilesManager(
+        "https://example.invalid", "token", cache_path=str(cache)
+    )
+    active_uuid = "00000000-0000-0000-0000-000000000001"
+    postal_uuid = "00000000-0000-0000-0000-000000000002"
+    orphan_uuid = "00000000-0000-0000-0000-000000000003"
+
+    active_source = cache / (active_uuid + ".png")
+    active_thumb = Path(manager._thumbnail_output_path(active_uuid))
+    postal_source = cache / (postal_uuid + ".jpg")
+    postal_thumb = Path(manager._thumbnail_output_path(postal_uuid))
+    orphan_source = cache / (orphan_uuid + ".webp")
+    orphan_thumb = Path(manager._thumbnail_output_path(orphan_uuid))
+    legacy_orphan = cache / "old-upload-name.jpeg"
+    unknown_file = cache / "notes.txt"
+    pending_dir = cache / "mpostal_pending"
+    pending_dir.mkdir()
+    pending_file = pending_dir / (orphan_uuid + ".mms")
+
+    for path in (
+        active_source,
+        active_thumb,
+        postal_source,
+        postal_thumb,
+        orphan_source,
+        orphan_thumb,
+        legacy_orphan,
+        unknown_file,
+        pending_file,
+    ):
+        path.write_bytes(b"cached")
+
+    active = manager.add(active_uuid, file_path=str(active_source))
+    active["thumb_path"] = str(active_thumb)
+    postal_thumb_display_path = (
+        "Submods/MAICA_ChatSubmod/vista_cache/" + postal_thumb.name
+    )
+
+    assert manager.cleanup_cache(
+        [str(postal_source), postal_thumb_display_path]
+    ) == 3
+    assert active_source.exists()
+    assert active_thumb.exists()
+    assert postal_source.exists()
+    assert postal_thumb.exists()
+    assert not orphan_source.exists()
+    assert not orphan_thumb.exists()
+    assert not legacy_orphan.exists()
+    assert unknown_file.exists()
+    assert pending_file.exists()
+
+    manager.remove(active_uuid)
+    assert manager.cleanup_cache(
+        [str(postal_source), postal_thumb_display_path]
+    ) == 2
+    assert not active_source.exists()
+    assert not active_thumb.exists()
+    assert postal_source.exists()
+    assert postal_thumb.exists()
+
+
+def test_vista_cache_uuid_filename_check_needs_no_uuid_module():
+    source = Path(maica_vista_files_manager.__file__).read_text(encoding="utf-8")
+
+    assert "import uuid" not in source
+    assert MAICAVistaFilesManager._is_uuid_filename(
+        "00000000-0000-0000-0000-000000000001"
+    )
+    assert MAICAVistaFilesManager._is_uuid_filename(
+        "ABCDEF12-3456-7890-ABCD-EF1234567890.png"
+    )
+    assert not MAICAVistaFilesManager._is_uuid_filename(
+        "000000000000-0000-0000-0000-000000000001"
+    )
+    assert not MAICAVistaFilesManager._is_uuid_filename(
+        "00000000-0000-0000-0000-00000000000g"
+    )
+
+
+def test_vista_ui_mutations_sync_and_save_the_cached_file_list():
+    root = Path(__file__).resolve().parents[1]
+    submod = root / "game" / "Submods" / "MAICA_ChatSubmod"
+    api_source = (submod / "api.rpy").read_text(encoding="utf-8")
+    vista_screen = (submod / "screen_subs_vista.rpy").read_text(encoding="utf-8")
+    main_source = (submod / "main.rpy").read_text(encoding="utf-8")
+
+    sync_block = api_source.split("    def sync_vista_files():", 1)[1].split(
+        "\n    def upload_vista_image", 1
+    )[0]
+    assert "store.persistent._maica_visuals =" in sync_block
+    assert "store.renpy.save_persistent()" in sync_block
+    assert sync_block.index("store.renpy.save_persistent()") < sync_block.index(
+        "cleanup_vista_cache()"
+    )
+
+    for function_name, mutation in (
+        ("upload_vista_image", "vista_manager.upload"),
+        ("reupload_vista_image", "vista_manager.reupload"),
+        ("delete_vista_image", "vista_manager.delete"),
+        ("remove_vista_image", "vista_manager.remove"),
+    ):
+        block = api_source.split("    def {}(".format(function_name), 1)[1].split(
+            "\n    def ", 1
+        )[0]
+        assert mutation in block
+        assert block.index(mutation) < block.index("sync_vista_files()")
+
+    assert "store.maica.upload_vista_image" in vista_screen
+    assert "store.maica.reupload_vista_image" in vista_screen
+    assert "store.maica.delete_vista_image" in vista_screen
+    assert "store.maica.remove_vista_image" in vista_screen
+    assert "vista_manager.upload(" not in vista_screen
+    assert "vista_manager.reupload(" not in vista_screen
+    assert "vista_manager.delete(" not in vista_screen
+    assert "vista_manager.remove(" not in vista_screen
+    assert "store.maica.upload_vista_image(image_source)" in main_source
+
+
 def test_vista_image_size_parsers_handle_bmp_and_webp(tmp_path):
     bmp = tmp_path / "sample.bmp"
     bmp_data = bytearray(26)
@@ -297,7 +417,9 @@ def test_reviewed_source_contracts_are_kept_in_sync():
         main_source.index("label maica_mpostal_read:"):
         main_source.index("label maica_mpostal_read.failed:")
     ]
-    assert mpostal_source.index("try:") < mpostal_source.index("vista_manager.upload")
+    assert mpostal_source.index("try:") < mpostal_source.index(
+        "store.maica.upload_vista_image"
+    )
     assert "vista_info = cur_postal.get(\"vista_image_info\") or {}" in mpostal_source
 
 

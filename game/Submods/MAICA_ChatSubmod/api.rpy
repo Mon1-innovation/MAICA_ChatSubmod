@@ -149,6 +149,35 @@ init 5 python in maica:
         except:
             pass
 
+    def sync_vista_files():
+        store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
+        try:
+            store.renpy.save_persistent()
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error(
+                "MAICA: Failed to save MVista file list: {}".format(e)
+            )
+        else:
+            cleanup_vista_cache()
+
+    def upload_vista_image(file_path):
+        uuid = maica_instance.vista_manager.upload(file_path)
+        sync_vista_files()
+        return uuid
+
+    def reupload_vista_image(identifier):
+        uuid = maica_instance.vista_manager.reupload(identifier)
+        sync_vista_files()
+        return uuid
+
+    def delete_vista_image(identifier=None):
+        maica_instance.vista_manager.delete(identifier)
+        sync_vista_files()
+
+    def remove_vista_image(identifier):
+        maica_instance.vista_manager.remove(identifier)
+        sync_vista_files()
+
     def _mpostal_attachment_store():
         cache_path = store.maica.maica_instance.vista_manager.cache_path
         if not cache_path:
@@ -326,6 +355,33 @@ init 5 python in maica:
             prepare_mpostal_preview(postal)
             if postal.get("responsed_status") in ("received", "readed"):
                 delete_mpostal_original(postal)
+
+    def cleanup_vista_cache():
+        referenced_paths = []
+        for postal in store.persistent._maica_send_or_received_mpostals:
+            if not is_builtin_dict(postal):
+                continue
+            for key in ("raw_image_preview", "vista_image_info"):
+                image_info = postal.get(key)
+                if is_builtin_dict(image_info):
+                    referenced_paths.extend(
+                        image_info.get(path_key)
+                        for path_key in ("path", "thumb_path")
+                        if image_info.get(path_key)
+                    )
+            referenced_paths.extend(
+                postal.get(path_key)
+                for path_key in ("raw_image", "mpostal_attachment_path")
+                if postal.get(path_key)
+            )
+
+        removed = store.maica.maica_instance.vista_manager.cleanup_cache(
+            referenced_paths
+        )
+        if removed:
+            store.mas_submod_utils.submod_log.info(
+                "MAICA: Removed {} orphaned MVista cache file(s)".format(removed)
+            )
 
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
@@ -550,6 +606,7 @@ init 5 python in maica:
 
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
         store.maica.prepare_image_previews()
+        store.maica.cleanup_vista_cache()
 
         import time
         store.mas_submod_utils.submod_log.info("MAICA: Game build timestamp: {}/{}".format(store.get_build_timestamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timestamp())))))

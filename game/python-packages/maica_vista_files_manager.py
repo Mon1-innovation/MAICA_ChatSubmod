@@ -21,6 +21,15 @@ class MAICAVistaFilesManager(object):
     THUMBNAIL_VERSION = 1
     THUMBNAIL_MAX_WIDTH = 600
     THUMBNAIL_MAX_HEIGHT = 300
+    _CACHE_IMAGE_EXTENSIONS = (
+        ".bmp",
+        ".gif",
+        ".jpeg",
+        ".jpg",
+        ".mms",
+        ".png",
+        ".webp",
+    )
     _THUMBNAIL_KEYS = (
         "thumb_path",
         "thumb_width",
@@ -174,6 +183,44 @@ class MAICAVistaFilesManager(object):
         filename = os.path.basename(disk_path)
         return filename.startswith("thumb_") and filename.endswith(".png")
 
+    def _cache_file_key(self, file_path):
+        if not self.cache_path or not file_path:
+            return None
+
+        normalized = os.path.normpath(file_path)
+        if not os.path.isabs(normalized):
+            normalized = os.path.join(self.cache_path, os.path.basename(normalized))
+
+        cache_path = os.path.abspath(self.cache_path)
+        absolute_path = os.path.abspath(normalized)
+        try:
+            relative_path = os.path.relpath(absolute_path, cache_path)
+        except (OSError, ValueError):
+            return None
+
+        if relative_path == os.pardir or relative_path.startswith(os.pardir + os.sep):
+            return None
+        return os.path.normcase(absolute_path)
+
+    @staticmethod
+    def _is_uuid_filename(filename):
+        stem = os.path.splitext(filename)[0]
+        groups = stem.split("-")
+        if [len(group) for group in groups] != [8, 4, 4, 4, 12]:
+            return False
+        return all(
+            character in "0123456789abcdefABCDEF"
+            for group in groups
+            for character in group
+        )
+
+    @classmethod
+    def _is_managed_cache_filename(cls, filename):
+        return (
+            os.path.splitext(filename)[1].lower() in cls._CACHE_IMAGE_EXTENSIONS
+            or cls._is_uuid_filename(filename)
+        )
+
     @classmethod
     def _thumbnail_dimensions_are_safe(cls, width, height):
         return (
@@ -296,6 +343,48 @@ class MAICAVistaFilesManager(object):
             except Exception as e:
                 self._clear_thumbnail_metadata(entry)
                 logger.error("fail to prepare thumbnail: {}".format(str(e)))
+
+    def cleanup_cache(self, additional_references=None):
+        """Remove unreferenced files created in the MVista cache root."""
+        if not self.cache_path or not os.path.isdir(self.cache_path):
+            return 0
+
+        referenced = set()
+        for entry in self.files:
+            for key in ("path", "thumb_path"):
+                cache_key = self._cache_file_key(entry.get(key))
+                if cache_key:
+                    referenced.add(cache_key)
+
+        for file_path in additional_references or ():
+            cache_key = self._cache_file_key(file_path)
+            if cache_key:
+                referenced.add(cache_key)
+
+        try:
+            filenames = os.listdir(self.cache_path)
+        except Exception as e:
+            logger.error("fail to list MVista cache: {}".format(str(e)))
+            return 0
+
+        removed = 0
+        for filename in filenames:
+            if not self._is_managed_cache_filename(filename):
+                continue
+
+            file_path = os.path.join(self.cache_path, filename)
+            if not os.path.isfile(file_path):
+                continue
+            if self._cache_file_key(file_path) in referenced:
+                continue
+
+            try:
+                os.remove(file_path)
+                removed += 1
+            except Exception as e:
+                logger.error("fail to clean MVista cache file: {}".format(str(e)))
+
+        return removed
 
     def create_local_preview(self, file_path):
         """为未上传的MPostal附件创建安全预览记录。"""

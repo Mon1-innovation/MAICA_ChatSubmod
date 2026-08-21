@@ -376,7 +376,7 @@ label maica_mpostal_read:
                 image_source = cur_postal.get("mpostal_attachment_path") or cur_postal.get("raw_image")
                 if image_source:
                     if not uuid:
-                        uuid = ai.vista_manager.upload(image_source)
+                        uuid = store.maica.upload_vista_image(image_source)
                         cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
                 ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if uuid else None)
             except Exception:

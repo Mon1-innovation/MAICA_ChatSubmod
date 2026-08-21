@@ -1,4 +1,5 @@
 import re
+import sys
 import textwrap
 from pathlib import Path
 
@@ -7,6 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SUBMOD = ROOT / "game" / "Submods" / "MAICA_ChatSubmod"
 HEADER = (SUBMOD / "header.rpy").read_text(encoding="utf-8")
 API = (SUBMOD / "api.rpy").read_text(encoding="utf-8")
+PACKAGE_ROOT = ROOT / "game" / "python-packages"
+if str(PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PACKAGE_ROOT))
+
+from maica_vista_files_manager import MAICAVistaFilesManager
 
 EARLY_CONTAINERS = {
     "maica_setting_dict": dict,
@@ -121,10 +127,95 @@ def test_early_repair_preserves_valid_containers_and_replaces_invalid_values():
     )
 
 
+def test_early_repair_accepts_builtin_containers_when_renpy_rebinds_names():
+    class PersistentStub(object):
+        pass
+
+    class RevertableDict(dict):
+        pass
+
+    class RevertableList(list):
+        pass
+
+    persistent = PersistentStub()
+    setting_dict = {"mspire_category": ["keep"]}
+    advanced_setting = {"keep": True}
+    advanced_status = {}
+    additions = ["keep"]
+    postals = []
+    visuals = [{"uuid": "vista-1"}]
+    persistent.maica_setting_dict = setting_dict
+    persistent.maica_advanced_setting = advanced_setting
+    persistent.maica_advanced_setting_status = advanced_status
+    persistent.mas_player_additions = additions
+    persistent._maica_send_or_received_mpostals = postals
+    persistent._maica_visuals = visuals
+
+    namespace = {
+        "persistent": persistent,
+        "dict": RevertableDict,
+        "list": RevertableList,
+    }
+    exec(init_python_body(HEADER, -1498), namespace)
+
+    assert persistent.maica_setting_dict is setting_dict
+    assert persistent.maica_advanced_setting is advanced_setting
+    assert persistent.maica_advanced_setting_status is advanced_status
+    assert persistent.mas_player_additions is additions
+    assert persistent._maica_send_or_received_mpostals is postals
+    assert persistent._maica_visuals is visuals
+    assert namespace["_maica_repaired_persistent_containers"] == []
+
+    persistent._maica_visuals = None
+    exec(init_python_body(HEADER, -1498), namespace)
+    assert type(persistent._maica_visuals) is RevertableList
+
+
+def test_vista_list_survives_export_repair_and_import_with_renpy_types():
+    class PersistentStub(object):
+        pass
+
+    class RevertableDict(dict):
+        pass
+
+    class RevertableList(list):
+        pass
+
+    original = MAICAVistaFilesManager("https://example.invalid", "token")
+    original.add(
+        "00000000-0000-0000-0000-000000000001",
+        file_path="vista_cache/source.png",
+        upload_time=123.0,
+        width=640,
+        height=480,
+    )
+    exported = original.export_list()
+
+    persistent = PersistentStub()
+    persistent.maica_setting_dict = {}
+    persistent.maica_advanced_setting = {}
+    persistent.maica_advanced_setting_status = {}
+    persistent.mas_player_additions = []
+    persistent._maica_send_or_received_mpostals = []
+    persistent._maica_visuals = exported
+    namespace = {
+        "persistent": persistent,
+        "dict": RevertableDict,
+        "list": RevertableList,
+    }
+    exec(init_python_body(HEADER, -1498), namespace)
+
+    restarted = MAICAVistaFilesManager("https://example.invalid", "token")
+    restarted.import_list(persistent._maica_visuals)
+
+    assert persistent._maica_visuals is exported
+    assert restarted.export_list() == exported
+
+
 def test_nested_and_runtime_generated_containers_are_type_checked():
     repair = init_python_body(HEADER, -1498)
     assert re.search(
-        r"not isinstance\(mspire_category,\s*list\)",
+        r"not isinstance\(mspire_category,\s*maica_builtins\.list\)",
         repair,
     )
     assert 'maica_setting_dict.pop("mspire_category", None)' in repair
