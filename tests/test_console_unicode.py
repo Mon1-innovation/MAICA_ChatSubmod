@@ -390,6 +390,25 @@ def test_hide_console_uses_actual_screen_state_instead_of_current_setting():
     assert hide_console.index("maica_disableWorkLoadScreen()") < hide_console.index("hide screen mas_py_console_teaching")
 
 
+def test_workload_screen_follows_the_console_context_instead_of_global_overlays():
+    root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
+    main_source = (root / "main.rpy").read_text(encoding="utf-8")
+
+    workload_start = main_source.index("    def maica_enableWorkLoadScreen():")
+    workload_helpers = main_source[workload_start:]
+
+    assert 'renpy.show_screen("maica_workload_stat_lite")' in workload_helpers
+    assert 'renpy.hide_screen("maica_workload_stat_lite")' in workload_helpers
+    assert 'renpy.get_screen("maica_workload_stat_lite") is not None' in workload_helpers
+    assert "config.overlay_screens" not in main_source
+
+    hide_start = main_source.index("label maica_hide_console:")
+    hide_end = main_source.index("\nlabel maica_pause_connection:", hide_start)
+    hide_console = main_source[hide_start:hide_end]
+
+    assert "or maica_isWorkLoadScreenVisible()" in hide_console
+
+
 def test_python2_console_path_does_not_force_unicode_through_str():
     maica_source = (PACKAGE_ROOT / "maica.py").read_text(encoding="utf-8")
     output_block = maica_source[maica_source.index("    def send_to_outside_func"):]

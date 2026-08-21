@@ -250,7 +250,7 @@ label maica_show_console:
         show monika at t22
     return
 label maica_hide_console:
-    if renpy.get_screen("mas_py_console_teaching") is not None:
+    if renpy.get_screen("mas_py_console_teaching") is not None or maica_isWorkLoadScreenVisible():
         $ maica_disableWorkLoadScreen()
         hide screen mas_py_console_teaching
         if renpy.showing("monika"):
@@ -521,16 +521,15 @@ label show_workload:
 
 init -1 python:
 
-    # quick functions to enable disable the mouse tracker
+    # Keep the workload screen in the same Ren'Py context as the MAICA console.
     def maica_enableWorkLoadScreen():
         if not maica_isWorkLoadScreenVisible():
-            config.overlay_screens.append("maica_workload_stat_lite")
+            renpy.show_screen("maica_workload_stat_lite")
 
 
     def maica_disableWorkLoadScreen():
         if maica_isWorkLoadScreenVisible():
-            config.overlay_screens.remove("maica_workload_stat_lite")
             renpy.hide_screen("maica_workload_stat_lite")
 
     def maica_isWorkLoadScreenVisible():
-        return "maica_workload_stat_lite" in config.overlay_screens
+        return renpy.get_screen("maica_workload_stat_lite") is not None
