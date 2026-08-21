@@ -677,12 +677,12 @@ init 999 python in maica:
 
         def current_item(self):
             try:
-                current = store.songs.current_track
+                current = store.songs.getPlayingMusicName()
             except Exception as error:
                 log_invalid_mtrigger(
                     "music",
                     None,
-                    source="store.songs.current_track",
+                    source="store.songs.getPlayingMusicName()",
                     reason="failed to resolve current item: {}".format(
                         safe_value_repr(error, 160)
                     ),
@@ -693,11 +693,11 @@ init 999 python in maica:
                 log_invalid_mtrigger(
                     "music",
                     current,
-                    source="store.songs.current_track",
+                    source="store.songs.getPlayingMusicName()",
                     reason=reason,
                 )
                 return None
-            return current if isinstance(current, basestring) and current in self.musics else None
+            return current if current in self.musics else None
 
         def song_list(self):
             m = ["__none__"]
@@ -809,8 +809,21 @@ init 999 python in maica:
                 return None
             for index, song in enumerate(music_choices):
                 try:
-                    if selection in song:
-                        return song
+                    title = song[0]
+                    path = song[1]
+                    if selection != title:
+                        continue
+                    if not isinstance(path, basestring) or not path:
+                        log_invalid_mtrigger(
+                            "music",
+                            path,
+                            source="store.songs.music_choices",
+                            key=index,
+                            index=index,
+                            reason="entry path must be a non-empty string",
+                        )
+                        return None
+                    return path
                 except Exception as error:
                     log_invalid_mtrigger(
                         "music",

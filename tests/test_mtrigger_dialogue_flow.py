@@ -1,5 +1,7 @@
 import sys
+import textwrap
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -23,6 +25,41 @@ def _label_block(source, label):
     while end >= 0 and source.startswith("\nlabel .", end):
         end = source.find("\nlabel ", end + 1)
     return source[start:] if end < 0 else source[start:end]
+
+
+def _music_trigger_runtime(music_choices, playing_name, current_track=None):
+    source = _source("trigger.rpy")
+    start = source.index("    class MusicTrigger(MTriggerBase):")
+    end = source.index("    music_trigger = MusicTrigger()", start)
+    class_source = textwrap.dedent(source[start:end])
+    invalid = []
+    songs = SimpleNamespace(
+        current_track=current_track,
+        music_choices=music_choices,
+        getPlayingMusicName=lambda: playing_name,
+    )
+
+    def mas_play_song(song):
+        songs.current_track = song
+
+    store = SimpleNamespace(
+        mas_play_song=mas_play_song,
+        mas_submod_utils=SimpleNamespace(isSubmodInstalled=lambda _name: False),
+        songs=songs,
+    )
+    namespace = {
+        "MTriggerBase": object,
+        "basestring": str,
+        "log_invalid_mtrigger": lambda *args, **kwargs: invalid.append(
+            (args, kwargs)
+        ),
+        "mtrigger_item_error": maica_mtrigger.mtrigger_item_error,
+        "store": store,
+    }
+    exec(compile(class_source, "trigger.rpy:MusicTrigger", "exec"), namespace)
+    trigger = object.__new__(namespace["MusicTrigger"])
+    trigger.musics = ["__none__"] + [choice[0] for choice in music_choices]
+    return trigger, store, invalid
 
 
 def test_mtrigger_queue_survives_renpy_style_control_transfer():
@@ -127,6 +164,31 @@ def test_mtrigger_early_returns_restore_console():
     backup = _label_block(source, "mtrigger_backup")
     assert backup.count("call maica_show_console") == 1
     assert backup.index("call maica_show_console") < backup.rindex("return")
+
+
+def test_music_trigger_keeps_protocol_titles_and_mas_playback_paths_separate():
+    title = "Your Reality"
+    path = "bgm/credits.ogg"
+    legacy_track = (title, path)
+    trigger, store, invalid = _music_trigger_runtime(
+        [(title, path)],
+        playing_name=title,
+        current_track=legacy_track,
+    )
+
+    assert trigger.current_item() == title
+    assert trigger.find(title) == path
+    assert trigger.find(path) is None
+
+    music_label = _label_block(
+        _source("trigger_labels.rpy"), "mtrigger_music_auto(cls, selection)"
+    )
+    assert "store.mas_play_song(cls.find(selection))" in music_label
+    store.mas_play_song(trigger.find(title))
+
+    assert store.songs.current_track == path
+    assert not isinstance(store.songs.current_track, tuple)
+    assert invalid == []
 
 
 def test_weather_trigger_uses_the_common_mtrigger_lifecycle():
