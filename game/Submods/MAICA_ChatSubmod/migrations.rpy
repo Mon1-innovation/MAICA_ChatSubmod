@@ -23,6 +23,100 @@ init 998 python:
         except Exception:
             return None
 
+    def _maica_event_unlocked(eventlabel):
+        try:
+            event = _maica_get_event(eventlabel)
+            return bool(event is not None and getattr(event, "unlocked", False))
+        except Exception:
+            return False
+
+    def _maica_event_shown_count(event):
+        """Read both runtime Event objects and old persistent tuple rows."""
+        if event is None:
+            return 0
+        try:
+            count = getattr(event, "shown_count", None)
+        except Exception:
+            # A stale MAS Event can still be reachable through the aggregate
+            # lookup after its persistent row was removed.
+            count = None
+        if count is None and isinstance(event, (tuple, list)) and len(event) > 12:
+            count = event[12]
+        try:
+            return max(0, int(count or 0))
+        except Exception:
+            return 0
+
+    def _maica_event_databases():
+        """Return the authoritative persistent and runtime EVE databases."""
+        candidates = []
+        try:
+            candidates.append(getattr(persistent, "event_database", None))
+        except Exception:
+            pass
+        try:
+            evhand = getattr(store, "evhand", None)
+            candidates.append(getattr(evhand, "event_database", None))
+        except Exception:
+            pass
+
+        databases = []
+        for event_db in candidates:
+            if event_db is None or not hasattr(event_db, "get"):
+                continue
+            if any(event_db is existing for existing in databases):
+                continue
+            databases.append(event_db)
+        return databases
+
+    def _maica_sync_event_lookup(eventlabel):
+        """Remove an obsolete EVE entry from MAS's aggregate lookup.
+
+        ``mas_all_ev_db`` is built once during MAS init and is not rebuilt by
+        ``mas_rebuildEventLists``. If a label moved from EVE to GRE, retain the
+        GRE object; otherwise remove the stale aggregate entry.
+        """
+        aggregate = globals().get("mas_all_ev_db", None)
+        if aggregate is None or not hasattr(aggregate, "get"):
+            return False
+
+        replacement = None
+        try:
+            db_map = globals().get("mas_all_ev_db_map", None)
+            if db_map is not None and hasattr(db_map, "items"):
+                # Prefer the surviving non-EVE registration (for example GRE).
+                for code, event_db in db_map.items():
+                    if code == "EVE" or event_db is None:
+                        continue
+                    try:
+                        replacement = event_db.get(eventlabel)
+                    except Exception:
+                        replacement = None
+                    if replacement is not None:
+                        break
+                if replacement is None:
+                    # Keep an EVE object only if removal from the authoritative
+                    # database failed for some reason.
+                    eve_db = db_map.get("EVE", None)
+                    if eve_db is not None:
+                        replacement = eve_db.get(eventlabel)
+        except Exception:
+            replacement = None
+
+        try:
+            current = aggregate.get(eventlabel, None)
+            if replacement is None:
+                if current is not None or eventlabel in aggregate:
+                    aggregate.pop(eventlabel, None)
+                    return True
+                return False
+            if current is not replacement:
+                aggregate[eventlabel] = replacement
+                return True
+        except Exception:
+            pass
+        return False
+
     def _maica_seen_ever(eventlabel):
         try:
             seen_ever = getattr(persistent, "_seen_ever", None) or {}
@@ -37,7 +131,7 @@ init 998 python:
             return False
 
     def _maica_mark_seen(eventlabel):
-        """Keep canonical seen data usable when an old label/event supplied the evidence."""
+        """Keep canonical seen data usable when a legacy label supplied evidence."""
         try:
             seen_ever = getattr(persistent, "_seen_ever", None)
             if seen_ever is not None:
@@ -46,117 +140,136 @@ init 998 python:
             pass
 
     def _maica_topic_seen(eventlabel, legacy_labels=()):
-        """Return (seen, evidence) using every persistent signal available to MAS."""
-        candidates = (eventlabel,) + tuple(legacy_labels)
-        for candidate in candidates:
+        """Return (seen, evidence) from labels, persistent history, or shown_count."""
+        for candidate in (eventlabel,) + tuple(legacy_labels):
             if _maica_seen_label(candidate) or _maica_seen_ever(candidate):
                 if candidate != eventlabel:
                     _maica_mark_seen(eventlabel)
                 return True, "seen:{}".format(candidate)
 
-            event = _maica_get_event(candidate)
-            if event is not None and (getattr(event, "shown_count", 0) or 0) > 0:
+            if _maica_event_shown_count(_maica_get_event(candidate)) > 0:
                 _maica_mark_seen(eventlabel)
                 return True, "shown_count:{}".format(candidate)
 
         return False, "not-seen"
 
+    _MAICA_SOURCE_DEFINITIONS = (
+        ("heaven", "maica_prepend_2", ()),
+        ("main", "maica_main", ("maica_end_1", "maica_talking")),
+        ("location", "maica_wants_location2", ("maica_pre_set_location",)),
+        ("preferences", "maica_wants_preferences2", ("maica_wants_preferences",)),
+        ("mspire", "maica_wants_mspire", ()),
+        ("mpostal", "maica_wants_mpostal", ()),
+        ("mvista", "maica_pre_wants_mvista", ()),
+    )
+
+    def _maica_read_source(source_name):
+        """Read one canonical source and its legacy aliases in one place."""
+        if source_name == "character":
+            for label, aliases in (
+                    ("maica_chr2", ("maica_chr",)),
+                    ("maica_chr_gone", ()),
+                    ("maica_chr_corrupted2", ("maica_chr_corrupted",)),
+                ):
+                seen, evidence = _maica_topic_seen(label, aliases)
+                if seen:
+                    return True, "{} ({})".format(label, evidence)
+            return False, "not-seen"
+
+        for name, label, aliases in _MAICA_SOURCE_DEFINITIONS:
+            if name == source_name:
+                seen, evidence = _maica_topic_seen(label, aliases)
+                if (
+                        source_name == "mvista"
+                        and not seen
+                        and getattr(persistent, "_maica_vista_enabled", False)
+                    ):
+                    _maica_mark_seen(label)
+                    return True, "legacy:_maica_vista_enabled"
+                return seen, evidence
+
+        return False, "unknown-source:{}".format(source_name)
+
+    def maica_topic_source_seen(source_name):
+        """Runtime conditional helper for source-dependent event contracts."""
+        return _maica_read_source(source_name)[0]
+
+    def maica_topic_main_ready():
+        """The main entry is an upstream gate; children never promote it."""
+        return bool(
+            _maica_read_source("heaven")[0]
+            or _maica_read_source("main")[0]
+        )
+
+    def maica_topic_ready(source_name):
+        """Return whether a child source is valid behind the main gate."""
+        return bool(
+            maica_topic_main_ready()
+            and maica_topic_source_seen(source_name)
+        )
+
+    def _maica_gate_progress(source_seen, source_evidence, main_ready):
+        """Apply the one-way graph rule: children require the main entry."""
+        if source_seen and not main_ready:
+            return False, "blocked-by:main ({})".format(source_evidence)
+        return bool(source_seen), source_evidence
+
     def maica_get_topic_progress():
-        """Derive MAICA progression without trusting stale Event.unlocked fields."""
-        location_seen, location_evidence = _maica_topic_seen(
-            "maica_wants_location2",
-            ("maica_pre_set_location",)
-        )
-        preferences_seen, preferences_evidence = _maica_topic_seen(
-            "maica_wants_preferences2",
-            ("maica_wants_preferences",)
-        )
-        mspire_seen, mspire_evidence = _maica_topic_seen("maica_wants_mspire")
-        mpostal_seen, mpostal_evidence = _maica_topic_seen("maica_wants_mpostal")
-        mvista_seen, mvista_evidence = _maica_topic_seen("maica_pre_wants_mvista")
-        if getattr(persistent, "_maica_vista_enabled", False) and not mvista_seen:
-            # This flag existed in builds before the introduction label became the
-            # source of truth. Preserve it as migration evidence, never as a
-            # standalone unlock state.
-            mvista_seen = True
-            mvista_evidence = "legacy:_maica_vista_enabled"
-            _maica_mark_seen("maica_pre_wants_mvista")
+        """Evidence -> main gate -> child gates; no reverse promotion is allowed."""
+        raw = {}
+        for source_name, unused_label, unused_aliases in _MAICA_SOURCE_DEFINITIONS:
+            raw[source_name] = _maica_read_source(source_name)
+        raw["character"] = _maica_read_source("character")
 
-        character_seen = False
-        character_evidence = "not-seen"
-        for character_label in (
-                "maica_chr2",
-                "maica_chr_gone",
-                "maica_chr_corrupted2",
-            ):
-            legacy_labels = {
-                "maica_chr2": ("maica_chr",),
-                "maica_chr_corrupted2": ("maica_chr_corrupted",),
-            }.get(character_label, ())
-            seen, evidence = _maica_topic_seen(character_label, legacy_labels)
-            if seen:
-                character_seen = True
-                character_evidence = "{} ({})".format(character_label, evidence)
-                break
+        main_ready = bool(raw["heaven"][0] or raw["main"][0])
+        if raw["heaven"][0]:
+            main_evidence = "source:maica_prepend_2 ({})".format(raw["heaven"][1])
+        elif raw["main"][0]:
+            main_evidence = "source-history ({})".format(raw["main"][1])
+        else:
+            main_evidence = "not-seen"
 
-        heaven_seen = False
-        heaven_evidence = "not-seen"
-        heaven_intro_seen, heaven_intro_evidence = _maica_topic_seen("maica_prepend_2")
-        for heaven_label in (
-                "maica_end_1",
-                "maica_main",
-                "maica_talking",
-            ):
-            seen, evidence = _maica_topic_seen(heaven_label)
-            if seen:
-                heaven_seen = True
-                heaven_evidence = "{} ({})".format(heaven_label, evidence)
-                break
-        if heaven_intro_seen:
-            heaven_seen = True
-            heaven_evidence = "maica_prepend_2 ({})".format(heaven_intro_evidence)
-
-        # Any completed downstream topic proves that the player reached the
-        # Heaven Forest flow, even when an old build failed to persist its intro
-        # label. Reread-only events deliberately do not count as proof.
-        downstream_progress = (
-            ("location", location_seen, location_evidence),
-            ("preferences", preferences_seen, preferences_evidence),
-            ("mspire", mspire_seen, mspire_evidence),
-            ("mpostal", mpostal_seen, mpostal_evidence),
-            ("mvista", mvista_seen, mvista_evidence),
-            ("character", character_seen, character_evidence),
-        )
-        downstream_evidence = "not-seen"
-        for downstream_label, downstream_seen, evidence in downstream_progress:
-            if downstream_seen:
-                downstream_evidence = "downstream:{} ({})".format(
-                    downstream_label,
-                    evidence,
-                )
-                break
-        main_ready = heaven_seen or downstream_evidence != "not-seen"
-
-        return {
+        progress = {
             "main_ready": main_ready,
-            "main_evidence": heaven_evidence if heaven_seen else downstream_evidence,
-            "heaven_seen": heaven_seen,
-            "heaven_evidence": heaven_evidence,
-            "heaven_intro_seen": heaven_intro_seen,
-            "heaven_intro_evidence": heaven_intro_evidence,
-            "location_seen": location_seen,
-            "location_evidence": location_evidence,
-            "preferences_seen": preferences_seen,
-            "preferences_evidence": preferences_evidence,
-            "mspire_seen": mspire_seen,
-            "mspire_evidence": mspire_evidence,
-            "mpostal_seen": mpostal_seen,
-            "mpostal_evidence": mpostal_evidence,
-            "mvista_seen": mvista_seen,
-            "mvista_evidence": mvista_evidence,
-            "character_seen": character_seen,
-            "character_evidence": character_evidence,
+            "main_evidence": main_evidence,
+            "main_event_unlocked": _maica_event_unlocked("maica_main"),
+            "heaven_intro_seen": raw["heaven"][0],
+            "heaven_intro_evidence": raw["heaven"][1],
+            # A valid main state implies the original Heaven Forest flow. This
+            # keeps the main topic and its reread topic consistent after repair.
+            "heaven_reread_ready": main_ready,
+            "heaven_reread_evidence": (
+                raw["heaven"][1]
+                if raw["heaven"][0]
+                else "implied-by:maica_main ({})".format(main_evidence)
+                if main_ready
+                else "not-seen"
+            ),
         }
+
+        for source_name, unused_label, unused_aliases in _MAICA_SOURCE_DEFINITIONS:
+            if source_name == "heaven" or source_name == "main":
+                continue
+            ready, evidence = _maica_gate_progress(
+                raw[source_name][0],
+                raw[source_name][1],
+                main_ready,
+            )
+            progress["{}_seen".format(source_name)] = ready
+            progress["{}_evidence".format(source_name)] = evidence
+            progress["{}_raw_seen".format(source_name)] = raw[source_name][0]
+
+        character_ready, character_evidence = _maica_gate_progress(
+            raw["character"][0],
+            raw["character"][1],
+            main_ready,
+        )
+        progress["character_seen"] = character_ready
+        progress["character_evidence"] = character_evidence
+        progress["character_raw_seen"] = raw["character"][0]
+        progress["heaven_seen"] = main_ready
+        progress["heaven_evidence"] = progress["heaven_reread_evidence"]
+        return progress
 
     def _maica_set_event(eventlabel, unlocked=_MAICA_UNSET,
                          conditional=_MAICA_UNSET, action=_MAICA_UNSET,
@@ -168,39 +281,49 @@ init 998 python:
             return False, None, None
 
         changed = False
-        before = getattr(event, "unlocked", False)
-        if unlocked is not _MAICA_UNSET and before != unlocked:
-            event.unlocked = unlocked
-            changed = True
-        if conditional is not _MAICA_UNSET and getattr(event, "conditional", None) != conditional:
-            event.conditional = conditional
-            changed = True
-        if action is not _MAICA_UNSET and getattr(event, "action", None) != action:
-            event.action = action
-            changed = True
-        if random is not _MAICA_UNSET and getattr(event, "random", False) != random:
-            event.random = random
-            changed = True
-        if pool is not _MAICA_UNSET and getattr(event, "pool", False) != pool:
-            event.pool = pool
-            changed = True
-        if clear_unlock_date and getattr(event, "unlock_date", None) is not None:
-            event.unlock_date = None
-            changed = True
+        before = None
+        try:
+            before = getattr(event, "unlocked", False)
+            if unlocked is not _MAICA_UNSET and before != unlocked:
+                event.unlocked = unlocked
+                changed = True
+            if conditional is not _MAICA_UNSET and getattr(event, "conditional", None) != conditional:
+                event.conditional = conditional
+                changed = True
+            if action is not _MAICA_UNSET and getattr(event, "action", None) != action:
+                event.action = action
+                changed = True
+            if random is not _MAICA_UNSET and getattr(event, "random", False) != random:
+                event.random = random
+                changed = True
+            if pool is not _MAICA_UNSET and getattr(event, "pool", False) != pool:
+                event.pool = pool
+                changed = True
+            if clear_unlock_date and getattr(event, "unlock_date", None) is not None:
+                event.unlock_date = None
+                changed = True
+            current = getattr(event, "unlocked", False)
+        except Exception:
+            # A damaged legacy Event must not prevent other contracts from
+            # being reconciled. The next startup can retry this entry.
+            return changed, before, None
 
-        return changed, before, getattr(event, "unlocked", False)
+        return changed, before, current
 
     def _maica_set_no_unlock_rule(eventlabel):
-        event = _maica_get_event(eventlabel)
-        if event is None:
+        try:
+            event = _maica_get_event(eventlabel)
+            if event is None:
+                return False
+            rules = getattr(event, "rules", None)
+            if rules is None:
+                rules = {}
+                event.rules = rules
+            if "no_unlock" not in rules or rules.get("no_unlock") is not None:
+                rules["no_unlock"] = None
+                return True
+        except Exception:
             return False
-        rules = getattr(event, "rules", None)
-        if rules is None:
-            rules = {}
-            event.rules = rules
-        if "no_unlock" not in rules or rules.get("no_unlock") is not None:
-            rules["no_unlock"] = None
-            return True
         return False
 
     def _maica_action(name, fallback):
@@ -222,229 +345,343 @@ init 998 python:
             )
         )
 
-    def maica_reconcile_topic_state(reason="startup", repair_contracts=False):
-        """Reconcile all MAICA topic unlocks with the current progression graph."""
-        progress = maica_get_topic_progress()
-        changes = []
-        contracts_changed = False
+    def _maica_topic_contract_specs():
+        """Single source of truth for all Event contracts and state targets."""
         queue_action = _maica_action("EV_ACT_QUEUE", "queue")
         push_action = _maica_action("EV_ACT_PUSH", "push")
         unlock_action = _maica_action("EV_ACT_UNLOCK", "unlock")
+        main_gate = "maica_topic_main_ready() and "
+        source_ready = "maica_topic_ready('{}') and ".format
 
-        # Internal dispatch events are never user-selectable. Their conditional
-        # and action fields remain active so a later threshold can queue them.
-        internal_contracts = {
-            "maica_prepend_1": (
-                "not renpy.seen_label('maica_prepend_1')",
-                queue_action,
-                True,
-            ),
-            "maica_wants_location2": (
-                "maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2')",
-                queue_action,
-                False,
-            ),
-            "maica_wants_preferences2": (
-                "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
-                queue_action,
-                False,
-            ),
-            "maica_pre_wants_mvista": (
-                "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
-                queue_action,
-                False,
-            ),
-            "maica_chr2": (
-                "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
-                queue_action,
-                False,
-            ),
-            "maica_chr_gone": (
-                "not maica_chr_exist and renpy.seen_label('maica_prepend_2') and not renpy.seen_label('maica_chr_gone')",
-                push_action,
-                False,
-            ),
-            "maica_wants_mspire": (None, None, False),
-        }
-        for eventlabel, (conditional, action, is_random) in internal_contracts.items():
-            changed, before, expected = _maica_set_event(
-                eventlabel,
-                unlocked=False,
-                conditional=conditional if repair_contracts else _MAICA_UNSET,
-                action=action if repair_contracts else _MAICA_UNSET,
-                random=is_random if repair_contracts else _MAICA_UNSET,
-                pool=False if repair_contracts else _MAICA_UNSET,
-                clear_unlock_date=True,
-            )
-            contracts_changed = contracts_changed or changed
-            if before is not None:
-                _maica_record_state_change(
-                    changes, eventlabel, False, before,
-                    "internal-dispatch", reason
-                )
+        # (label, state_key, evidence_key, kind, static_expected, fields,
+        #  no_unlock_rule, greeting_rule)
+        return (
+            # Hidden dispatch events.
+            ("maica_prepend_1", None, "internal-contract", "internal", False, {
+                "conditional": "not renpy.seen_label('maica_prepend_1')",
+                "action": queue_action, "random": True, "pool": False,
+            }, False, None),
+            ("maica_wants_location2", None, "internal-contract", "internal", False, {
+                "conditional": main_gate + "maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2')",
+                "action": queue_action, "random": False, "pool": False,
+            }, False, None),
+            ("maica_wants_preferences2", None, "internal-contract", "internal", False, {
+                "conditional": main_gate + "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
+                "action": queue_action, "random": False, "pool": False,
+            }, False, None),
+            ("maica_pre_wants_mvista", None, "internal-contract", "internal", False, {
+                "conditional": main_gate + "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
+                "action": queue_action, "random": False, "pool": False,
+            }, False, None),
+            ("maica_chr2", None, "internal-contract", "internal", False, {
+                "conditional": main_gate + "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+                "action": queue_action, "random": False, "pool": False,
+            }, False, None),
+            ("maica_chr_gone", None, "internal-contract", "internal", False, {
+                "conditional": main_gate + "not maica_chr_exist and not renpy.seen_label('maica_chr_gone')",
+                "action": push_action, "random": False, "pool": False,
+            }, False, None),
+            ("maica_wants_mspire", None, "internal-contract", "internal", False, {
+                "conditional": main_gate + "maica_has_successful_chat() and not renpy.seen_label('maica_wants_mspire')",
+                "action": None, "random": False, "pool": False,
+            }, False, None),
+            # Hidden processing events.
+            ("maica_mspire", None, "internal-contract", "processing", False, {
+                "conditional": source_ready("mspire") + "spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()",
+                "action": None, "random": False, "pool": False,
+            }, False, None),
+            ("maica_mpostal_received", None, "internal-contract", "processing", False, {
+                "conditional": None, "action": None, "random": False, "pool": False,
+            }, False, None),
+            ("maica_mpostal_replyed", None, "internal-contract", "processing", False, {
+                "conditional": None, "action": None, "random": False, "pool": False,
+            }, False, None),
+            # User-facing topics. Their state is derived, never auto-unlocked by MAS.
+            ("maica_main", "main_ready", "main_evidence", "topic", None, {
+                "conditional": None, "action": None, "random": False, "pool": True,
+            }, True, None),
+            ("maica_mods_location", "location_seen", "location_evidence", "topic", None, {
+                "conditional": None, "action": None, "random": False, "pool": True,
+            }, True, None),
+            ("maica_mods_preferences", "preferences_seen", "preferences_evidence", "topic", None, {
+                "conditional": None, "action": None, "random": False, "pool": True,
+            }, True, None),
+            # Rereads follow the same state keys as their source topics. The
+            # Heaven Forest reread deliberately follows main_ready: main_ready
+            # implies its original flow was reached.
+            ("maica_prepend_reread", "heaven_reread_ready", "heaven_reread_evidence", "reread", None, {
+                "conditional": "maica_topic_main_ready() and not renpy.seen_label('maica_prepend_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            ("maica_wants_location_reread", "location_seen", "location_evidence", "reread", None, {
+                "conditional": source_ready("location") + "not renpy.seen_label('maica_wants_location_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            ("maica_wants_preferences_reread", "preferences_seen", "preferences_evidence", "reread", None, {
+                "conditional": source_ready("preferences") + "not renpy.seen_label('maica_wants_preferences_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            ("maica_wants_mspire_reread", "mspire_seen", "mspire_evidence", "reread", None, {
+                "conditional": source_ready("mspire") + "not renpy.seen_label('maica_wants_mspire_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            ("maica_wants_mpostal_reread", "mpostal_seen", "mpostal_evidence", "reread", None, {
+                "conditional": source_ready("mpostal") + "not renpy.seen_label('maica_wants_mpostal_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            ("maica_wants_mvista_reread", "mvista_seen", "mvista_evidence", "reread", None, {
+                "conditional": source_ready("mvista") + "not renpy.seen_label('maica_wants_mvista_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            ("maica_chr_reread", "character_seen", "character_evidence", "reread", None, {
+                "conditional": source_ready("character") + "not renpy.seen_label('maica_chr_reread')",
+                "action": unlock_action, "random": False, "pool": True,
+            }, True, None),
+            # Greeting events stay registered and are gated by their conditionals.
+            ("maica_greeting", None, "greeting-contract", "greeting", True, {
+                "conditional": "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
+                "action": None, "random": False, "pool": False,
+            }, False, ("skip_visual", None, 20)),
+            ("maica_wants_mpostal", None, "greeting-contract", "greeting", True, {
+                "conditional": main_gate + "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+                "action": None, "random": False, "pool": False,
+            }, False, (None, "monika 3hubsa", 20)),
+            ("maica_chr_corrupted2", None, "greeting-contract", "greeting", True, {
+                "conditional": main_gate + "persistent._mas_greeting_type is None and not mas_isSpecialDay() and not mas_isplayer_bday() and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+                "action": None, "random": False, "pool": False,
+            }, False, ("skip_visual", None, 0)),
+        )
 
-        # Processing events must remain hidden from both topic menus. MSpire's
-        # conditional is still active, while the two MPostal workers are pushed
-        # by their dedicated loop plugins.
-        processing_contracts = {
-            "maica_mspire": (
-                "renpy.seen_label('maica_wants_mspire') and spire_has_past(datetime.timedelta(minutes=persistent.maica_setting_dict.get('mspire_interval'))) and persistent.maica_setting_dict.get('mspire_enable') and not store.maica.maica_instance.is_in_exception()",
-                None,
-            ),
-            "maica_mpostal_received": (None, None),
-            "maica_mpostal_replyed": (None, None),
-        }
-        for eventlabel, (conditional, action) in processing_contracts.items():
-            changed, before, expected = _maica_set_event(
-                eventlabel,
-                unlocked=False,
-                conditional=conditional if repair_contracts else _MAICA_UNSET,
-                action=action if repair_contracts else _MAICA_UNSET,
-                random=False if repair_contracts else _MAICA_UNSET,
-                pool=False if repair_contracts else _MAICA_UNSET,
-                clear_unlock_date=True,
-            )
-            contracts_changed = contracts_changed or changed
-            if before is not None:
-                _maica_record_state_change(
-                    changes, eventlabel, False, before,
-                    "internal-processing", reason
-                )
+    def _maica_update_greeting_rules(eventlabel, rule_spec):
+        if rule_spec is None:
+            return False
+        try:
+            event = _maica_get_event(eventlabel)
+            if event is None:
+                return False
+            rules = getattr(event, "rules", None)
+            if rules is None:
+                rules = {}
+                event.rules = rules
+            previous_rules = dict(rules)
+            skip_visual, forced_exp, priority = rule_spec
+            if forced_exp is not None:
+                rules.update(MASGreetingRule.create_rule(forced_exp=forced_exp))
+            else:
+                rules.update(MASGreetingRule.create_rule(skip_visual=bool(skip_visual)))
+            rules.update(MASPriorityRule.create_rule(priority))
+            return rules != previous_rules
+        except Exception:
+            return False
 
-        # Main topic and its two direct setting topics.
-        user_topics = {
-            "maica_main": (progress["main_ready"], progress["main_evidence"]),
-            "maica_mods_location": (progress["location_seen"], progress["location_evidence"]),
-            "maica_mods_preferences": (progress["preferences_seen"], progress["preferences_evidence"]),
-        }
-        for eventlabel, (expected, evidence) in user_topics.items():
-            changed, before, current = _maica_set_event(
+    def _maica_apply_topic_contracts(progress, reason):
+        """Apply every declarative contract and return (state_changes, changed)."""
+        changes = []
+        contracts_changed = False
+        for (
                 eventlabel,
-                unlocked=expected,
-                random=False if repair_contracts else _MAICA_UNSET,
-                pool=True if repair_contracts else _MAICA_UNSET,
-                conditional=None if repair_contracts else _MAICA_UNSET,
-                action=None if repair_contracts else _MAICA_UNSET,
-                clear_unlock_date=not expected,
+                state_key,
+                evidence_key,
+                kind,
+                static_expected,
+                contract,
+                no_unlock,
+                rule_spec,
+            ) in _maica_topic_contract_specs():
+            expected = (
+                bool(progress[state_key])
+                if state_key is not None
+                else bool(static_expected)
             )
+            fields = dict(contract)
+            fields["unlocked"] = expected
+            # A stale unlock date is meaningful only while an event is unlocked.
+            # Keep a valid date when restoring a topic, but clear it whenever the
+            # reconciler locks that topic again.
+            fields["clear_unlock_date"] = not expected
+            changed, before, unused_current = _maica_set_event(eventlabel, **fields)
             contracts_changed = contracts_changed or changed
-            if repair_contracts:
+            if no_unlock:
                 contracts_changed = _maica_set_no_unlock_rule(eventlabel) or contracts_changed
+            contracts_changed = _maica_update_greeting_rules(
+                eventlabel,
+                rule_spec,
+            ) or contracts_changed
             if before is not None:
                 _maica_record_state_change(
-                    changes, eventlabel, expected, before, evidence, reason
+                    changes,
+                    eventlabel,
+                    expected,
+                    before,
+                    progress.get(evidence_key, evidence_key),
+                    reason,
                 )
+        return changes, contracts_changed
 
-        reread_topics = {
-            "maica_prepend_reread": (progress["heaven_intro_seen"], progress["heaven_intro_evidence"]),
-            "maica_wants_location_reread": (progress["location_seen"], progress["location_evidence"]),
-            "maica_wants_preferences_reread": (progress["preferences_seen"], progress["preferences_evidence"]),
-            "maica_wants_mspire_reread": (progress["mspire_seen"], progress["mspire_evidence"]),
-            "maica_wants_mpostal_reread": (progress["mpostal_seen"], progress["mpostal_evidence"]),
-            "maica_wants_mvista_reread": (progress["mvista_seen"], progress["mvista_evidence"]),
-            "maica_chr_reread": (progress["character_seen"], progress["character_evidence"]),
-        }
-        reread_sources = {
-            "maica_prepend_reread": "maica_prepend_2",
-            "maica_wants_location_reread": "maica_wants_location2",
-            "maica_wants_preferences_reread": "maica_wants_preferences2",
-            "maica_wants_mspire_reread": "maica_wants_mspire",
-            "maica_wants_mpostal_reread": "maica_wants_mpostal",
-            "maica_wants_mvista_reread": "maica_pre_wants_mvista",
-            "maica_chr_reread": "maica_chr2",
-        }
-        for eventlabel, (expected, evidence) in reread_topics.items():
-            source_label = reread_sources[eventlabel]
-            conditional = _MAICA_UNSET
-            if repair_contracts:
-                if eventlabel == "maica_chr_reread":
-                    conditional = (
-                        "(renpy.seen_label('maica_chr2') or "
-                        "renpy.seen_label('maica_chr_gone') or "
-                        "renpy.seen_label('maica_chr_corrupted2')) "
-                        "and not renpy.seen_label('maica_chr_reread')"
-                    )
-                else:
-                    conditional = (
-                        "renpy.seen_label('{}') and not renpy.seen_label('{}')".format(
-                            source_label,
-                            eventlabel,
-                        )
-                    )
-            changed, before, current = _maica_set_event(
-                eventlabel,
-                unlocked=expected,
-                conditional=conditional,
-                action=unlock_action if repair_contracts else _MAICA_UNSET,
-                random=False if repair_contracts else _MAICA_UNSET,
-                pool=True if repair_contracts else _MAICA_UNSET,
-                clear_unlock_date=not expected,
-            )
-            contracts_changed = contracts_changed or changed
-            if repair_contracts:
-                contracts_changed = _maica_set_no_unlock_rule(eventlabel) or contracts_changed
-            if before is not None:
-                _maica_record_state_change(
-                    changes, eventlabel, expected, before, evidence, reason
-                )
+    _MAICA_LEGACY_PROGRESS_MAP = {
+        "maica_pre_set_location": "maica_wants_location2",
+        "maica_set_location_reread": "maica_mods_location",
+        "maica_chr": "maica_chr2",
+        "maica_chr_corrupted": "maica_chr_corrupted2",
+        "maica_wants_preferences": "maica_wants_preferences2",
+    }
+    _MAICA_OBSOLETE_EVENTLABELS = (
+        "maica_pre_set_location",
+        "maica_set_location_reread",
+        "maica_chr",
+        "maica_chr_corrupted",
+        "maica_wants_preferences",
+        # This label was once registered in EVE and later moved to GRE.
+        "maica_chr_corrupted2",
+    )
 
-        # Greeting events are always registered as selectable. Their conditionals
-        # are the gate; locking them would prevent a later normal greeting retry.
-        greeting_contracts = {
-            "maica_greeting": (
-                "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
-                20,
-            ),
-            "maica_wants_mpostal": (
-                "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
-                20,
-            ),
-            "maica_chr_corrupted2": (
-                "persistent._mas_greeting_type is None and not mas_isSpecialDay() and not mas_isplayer_bday() and renpy.seen_label('maica_prepend_2') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
-                0,
-            ),
-        }
-        for eventlabel, (conditional, priority) in greeting_contracts.items():
-            changed, before, current = _maica_set_event(
-                eventlabel,
-                unlocked=True,
-                conditional=conditional if repair_contracts else _MAICA_UNSET,
-                action=None if repair_contracts else _MAICA_UNSET,
-            )
-            contracts_changed = contracts_changed or changed
-            if repair_contracts:
-                event = _maica_get_event(eventlabel)
-                if event is not None:
+    def _maica_migrate_legacy_references():
+        """Rewrite queued and bookmarked references using the legacy map."""
+        changed = False
+        try:
+            event_list = getattr(persistent, "event_list", None)
+            if event_list is not None:
+                for index, item in enumerate(event_list):
+                    if isinstance(item, (tuple, list)) and item:
+                        old_label = item[0]
+                    else:
+                        old_label = item
                     try:
-                        rules = getattr(event, "rules", None)
-                        if rules is None:
-                            rules = {}
-                            event.rules = rules
-                        previous_rules = dict(rules)
-                        rules.update(MASGreetingRule.create_rule(
-                            skip_visual=True
-                        ) if eventlabel != "maica_wants_mpostal" else MASGreetingRule.create_rule(
-                            forced_exp="monika 3hubsa"
-                        ))
-                        rules.update(MASPriorityRule.create_rule(priority))
-                        contracts_changed = (rules != previous_rules) or contracts_changed
+                        new_label = _MAICA_LEGACY_PROGRESS_MAP.get(old_label)
                     except Exception:
-                        pass
+                        continue
+                    if new_label is None:
+                        continue
+                    if isinstance(item, tuple):
+                        event_list[index] = (new_label,) + item[1:]
+                    elif isinstance(item, list):
+                        event_list[index] = [new_label] + item[1:]
+                    else:
+                        event_list[index] = new_label
+                    changed = True
+        except Exception:
+            pass
+
+        for attr_name in ("_mas_player_bookmarked", "_mas_player_derandomed"):
+            try:
+                topic_list = getattr(persistent, attr_name, None)
+                if topic_list is None:
+                    continue
+                migrated = []
+                for label in topic_list:
+                    try:
+                        migrated.append(
+                            _MAICA_LEGACY_PROGRESS_MAP.get(label, label)
+                        )
+                    except Exception:
+                        migrated.append(label)
+                if migrated != topic_list:
+                    setattr(persistent, attr_name, migrated)
+                    changed = True
+            except Exception:
+                pass
+
+        try:
+            flagged = getattr(persistent, "flagged_monikatopic", None)
+            try:
+                migrated_flagged = _MAICA_LEGACY_PROGRESS_MAP.get(flagged, flagged)
+            except Exception:
+                migrated_flagged = flagged
+            if migrated_flagged != flagged:
+                persistent.flagged_monikatopic = migrated_flagged
+                changed = True
+        except Exception:
+            pass
+        return changed
+
+    def _maica_cleanup_legacy_event_records():
+        """Migrate legacy evidence and remove duplicate EVE registrations."""
+        changed = _maica_migrate_legacy_references()
+        processed_db_ids = []
+        event_dbs = _maica_event_databases()
+        for event_db in event_dbs:
+            if id(event_db) in processed_db_ids:
+                continue
+            processed_db_ids.append(id(event_db))
+            try:
+                for old_label, new_label in _MAICA_LEGACY_PROGRESS_MAP.items():
+                    old_event = event_db.get(old_label)
+                    old_count = _maica_event_shown_count(old_event)
+                    old_seen = (
+                        _maica_seen_label(old_label)
+                        or _maica_seen_ever(old_label)
+                        or old_count > 0
+                    )
+                    if old_seen:
+                        _maica_mark_seen(new_label)
+
+                    # Preserve a legacy Event's history when the replacement is
+                    # already present in this database. The seen-label marker is
+                    # still the authoritative evidence used by the state graph.
+                    if old_count > 0:
+                        new_event = event_db.get(new_label)
+                        if new_event is None:
+                            new_event = _maica_get_event(new_label)
+                        new_count = _maica_event_shown_count(new_event)
+                        if new_event is not None and old_count > new_count:
+                            try:
+                                new_event.shown_count = old_count
+                                changed = True
+                            except Exception:
+                                pass
+
+                old_corrupted_event = event_db.get("maica_chr_corrupted2")
+                if _maica_event_shown_count(old_corrupted_event) > 0:
+                    _maica_mark_seen("maica_chr_corrupted2")
+
+                for eventlabel in _MAICA_OBSOLETE_EVENTLABELS:
+                    if eventlabel in event_db:
+                        event_db.pop(eventlabel, None)
+                        changed = True
+            except Exception:
+                # A malformed legacy database must not prevent the state check
+                # from repairing the remaining runtime Event objects.
+                pass
+
+        # ``mas_all_ev_db`` is a startup snapshot, so rebuilding topic lists
+        # alone does not remove labels deleted above. Refresh only the labels
+        # handled by this migration; current GRE registrations win over an old
+        # EVE duplicate with the same label.
+        for eventlabel in _MAICA_OBSOLETE_EVENTLABELS:
+            changed = _maica_sync_event_lookup(eventlabel) or changed
+        return changed
+
+    def maica_reconcile_topic_state(reason="startup", repair_contracts=False):
+        """Run one pipeline: collect -> derive gates -> apply contracts -> log."""
+        # ``repair_contracts`` is retained for compatibility with the first
+        # 1.8.17 implementation. Contracts are now always applied, so migration
+        # and startup use exactly the same path.
+        legacy_changed = _maica_cleanup_legacy_event_records()
+        progress = maica_get_topic_progress()
+        changes, contracts_changed = _maica_apply_topic_contracts(progress, reason)
+        contracts_changed = bool(contracts_changed or legacy_changed)
+        if legacy_changed:
+            _maica_state_log(
+                "info",
+                "MAICA: legacy topic records normalized ({})".format(reason),
+            )
 
         state_labels = (
-            "main", "location", "preferences", "mspire", "mpostal",
-            "mvista", "character",
+            ("main", "main_ready", "main_evidence"),
+            ("location", "location_seen", "location_evidence"),
+            ("preferences", "preferences_seen", "preferences_evidence"),
+            ("mspire", "mspire_seen", "mspire_evidence"),
+            ("mpostal", "mpostal_seen", "mpostal_evidence"),
+            ("mvista", "mvista_seen", "mvista_evidence"),
+            ("character", "character_seen", "character_evidence"),
         )
         state_summary = ", ".join(
-            "{}={}".format(label, bool(progress["{}_seen".format(label)] if label != "main" else progress["main_ready"]))
-            for label in state_labels
+            "{}={}".format(label, bool(progress[state_key]))
+            for label, state_key, unused_evidence_key in state_labels
         )
         evidence_summary = ", ".join(
-            "{}={}".format(
-                label,
-                progress["{}_evidence".format(label)] if label != "main" else progress["main_evidence"],
-            )
-            for label in state_labels
+            "{}={}".format(label, progress[evidence_key])
+            for label, unused_state_key, evidence_key in state_labels
         )
         _maica_state_log(
             "info",
@@ -465,67 +702,13 @@ init 998 python:
         return {
             "progress": progress,
             "changes": changes,
-            "changed": bool(contracts_changed),
+            "changed": contracts_changed,
+            "legacy_changed": bool(legacy_changed),
         }
 
     def migration_1_8_17():
-        # Remove stale EVE registrations left by label renames or by the old
-        # character-file greeting registration. Seen history is kept in
-        # _seen_ever and Ren'Py's label database; only obsolete Event objects
-        # are removed here. Handle both persistent and runtime DB references.
-        obsolete_eventlabels = (
-            "maica_pre_set_location",
-            "maica_set_location_reread",
-            "maica_chr",
-            "maica_chr_corrupted",
-            "maica_wants_preferences",
-            "maica_chr_corrupted2",
-        )
-        legacy_progress_map = {
-            "maica_pre_set_location": "maica_wants_location2",
-            "maica_chr": "maica_chr2",
-            "maica_chr_corrupted": "maica_chr_corrupted2",
-            "maica_wants_preferences": "maica_wants_preferences2",
-        }
-        obsolete_removed = False
-        for event_db in (
-                getattr(persistent, "event_database", None),
-                getattr(getattr(store, "evhand", None), "event_database", None),
-            ):
-            try:
-                if event_db is not None:
-                    for old_label, new_label in legacy_progress_map.items():
-                        old_event = event_db.get(old_label)
-                        if (
-                                _maica_seen_label(old_label)
-                                or _maica_seen_ever(old_label)
-                                or (
-                                    old_event is not None
-                                    and (getattr(old_event, "shown_count", 0) or 0) > 0
-                                )
-                            ):
-                            _maica_mark_seen(new_label)
-                    old_corrupted_event = event_db.get("maica_chr_corrupted2")
-                    if (
-                            old_corrupted_event is not None
-                            and (getattr(old_corrupted_event, "shown_count", 0) or 0) > 0
-                        ):
-                        _maica_mark_seen("maica_chr_corrupted2")
-                    for eventlabel in obsolete_eventlabels:
-                        if eventlabel in event_db:
-                            event_db.pop(eventlabel, None)
-                            obsolete_removed = True
-            except Exception:
-                pass
-        maica_reconcile_topic_state(
-            reason="migration_1_8_17",
-            repair_contracts=True,
-        )
-        if obsolete_removed:
-            try:
-                mas_rebuildEventLists()
-            except Exception:
-                pass
+        # The migration and every-startup audit intentionally share one path.
+        maica_reconcile_topic_state(reason="migration_1_8_17")
 
     def migration_1_8_0():
         maica_v13_migration.migrate_setting_values(
@@ -773,28 +956,10 @@ init 998 python:
                     ):
                     new_ev.last_seen = old_ev.last_seen
 
-        # Preserve queued references created before the event labels were renamed.
-        for index, item in enumerate(persistent.event_list):
-            if isinstance(item, tuple) and item:
-                new_label = location_label_map.get(item[0])
-                if new_label is not None:
-                    persistent.event_list[index] = (new_label,) + item[1:]
-            elif item in location_label_map:
-                persistent.event_list[index] = location_label_map[item]
-
-        for attr_name in ("_mas_player_bookmarked", "_mas_player_derandomed"):
-            topic_list = getattr(persistent, attr_name, None)
-            if topic_list is not None:
-                setattr(
-                    persistent,
-                    attr_name,
-                    [location_label_map.get(label, label) for label in topic_list]
-                )
-
-        if persistent.flagged_monikatopic in location_label_map:
-            persistent.flagged_monikatopic = location_label_map[
-                persistent.flagged_monikatopic
-            ]
+        # Keep queued and Talk references in one shared legacy-rewrite path.
+        _maica_migrate_legacy_references()
+        for old_label in location_label_map:
+            persistent._seen_ever.pop(old_label, None)
 
         intro_ev = mas_getEV("maica_wants_location2")
         if intro_ev is not None:

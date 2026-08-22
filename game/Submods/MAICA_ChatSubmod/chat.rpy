@@ -103,7 +103,8 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "maica_has_successful_chat() "
+                "maica_topic_main_ready() "
+                "and maica_has_successful_chat() "
                 "and not renpy.seen_label('maica_wants_location2')"
             ),
             action=EV_ACT_QUEUE,
@@ -142,7 +143,8 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "maica_get_successful_chat_count() >= 2 "
+                "maica_topic_main_ready() "
+                "and maica_get_successful_chat_count() >= 2 "
                 "and not renpy.seen_label('maica_wants_preferences2')"
             ),
             action=EV_ACT_QUEUE,
@@ -177,6 +179,7 @@ init 5 python:
     def push_mspire_want():
         if (
             mas_isMoniNormal(higher=True)
+            and maica_topic_main_ready()
             and maica_has_successful_chat()
             and renpy.seen_label('mas_random_ask')
             and not renpy.seen_label('maica_wants_mspire')
@@ -198,6 +201,7 @@ init 5 python:
 init 5 python:
     mpostal_greeting_conditional = (
         "persistent._mas_greeting_type is None "
+        "and maica_topic_main_ready() "
         "and maica_get_successful_chat_count() >= 2 "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
@@ -242,7 +246,8 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "maica_get_successful_chat_count() >= 3 "
+                "maica_topic_main_ready() "
+                "and maica_get_successful_chat_count() >= 3 "
                 "and not renpy.seen_label('maica_pre_wants_mvista')"
             ),
             action=EV_ACT_QUEUE,
@@ -255,9 +260,9 @@ init 5 python:
 init 5 python:
     corrupted_greeting_conditional = (
         "persistent._mas_greeting_type is None "
+        "and maica_topic_main_ready() "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
-        "and renpy.seen_label('maica_prepend_2') "
         "and maica_chr_changed "
         "and not renpy.seen_label('maica_chr_corrupted2')"
     )
@@ -296,7 +301,7 @@ init 5 python:
             unlocked=False,
             conditional=(
                 "not maica_chr_exist "
-                "and renpy.seen_label('maica_prepend_2') "
+                "and maica_topic_main_ready() "
                 "and not renpy.seen_label('maica_chr_gone')"
             ),
             action=EV_ACT_PUSH,
@@ -312,7 +317,8 @@ init 5 python:
             random=False,
             unlocked=False,
             conditional=(
-                "maica_get_successful_chat_count() >= 4 "
+                "maica_topic_main_ready() "
+                "and maica_get_successful_chat_count() >= 4 "
                 "and not renpy.seen_label('maica_chr2') "
                 "and not renpy.seen_label('maica_chr_gone') "
                 "and not renpy.seen_label('maica_chr_corrupted2')"
@@ -346,7 +352,7 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "renpy.seen_label('maica_wants_mspire') "
+                "maica_topic_ready('mspire') "
                 "and spire_has_past(datetime.timedelta("
                 "minutes=persistent.maica_setting_dict.get('mspire_interval')"
                 ")) "
@@ -359,7 +365,7 @@ init 5 python:
 
 init 999 python:
     mas_getEV("maica_mspire").conditional = (
-        "renpy.seen_label('maica_wants_mspire') "
+        "maica_topic_ready('mspire') "
         "and spire_has_past(datetime.timedelta("
         "minutes=persistent.maica_setting_dict.get('mspire_interval')"
         ")) "
@@ -399,10 +405,7 @@ init 5 python:
         if (
             mail_exist()
             and mas_isMoniAff(higher=True)
-            and (
-                renpy.seen_label("maica_wants_mpostal")
-                or getattr(mas_getEV("maica_wants_mpostal"), "conditional", False) is None
-            )
+            and maica_topic_ready("mpostal")
             and not mas_inEVL("maica_mpostal_received")
             and not mas_inEVL("maica_mpostal_read")
         ):
@@ -413,10 +416,7 @@ init 5 python:
         if (
             has_mail_waitsend()
             and mas_isMoniAff(higher=True)
-            and (
-                renpy.seen_label("maica_wants_mpostal")
-                or getattr(mas_getEV("maica_wants_mpostal"), "conditional", False) is None
-            )
+            and maica_topic_ready("mpostal")
             and not mas_inEVL("maica_mpostal_received")
             and not mas_inEVL("maica_mpostal_read")
         ):
@@ -445,7 +445,7 @@ init 5 python:
         if (
             is_mail_waiting_reply()
             and mas_isMoniAff(higher=True)
-            and renpy.seen_label("maica_wants_mpostal")
+            and maica_topic_ready("mpostal")
             and not mas_inEVL("maica_mpostal_replyed")
         ):
             return MASEventList.queue("maica_mpostal_replyed")
@@ -497,7 +497,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_prepend_2') "
+                "maica_topic_main_ready() "
                 "and not renpy.seen_label('maica_prepend_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -523,7 +523,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_location2') "
+                "maica_topic_ready('location') "
                 "and not renpy.seen_label('maica_wants_location_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -549,7 +549,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_preferences2') "
+                "maica_topic_ready('preferences') "
                 "and not renpy.seen_label('maica_wants_preferences_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -575,7 +575,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_mspire') "
+                "maica_topic_ready('mspire') "
                 "and not renpy.seen_label('maica_wants_mspire_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -601,7 +601,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_mpostal') "
+                "maica_topic_ready('mpostal') "
                 "and not renpy.seen_label('maica_wants_mpostal_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -627,7 +627,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_pre_wants_mvista') "
+                "maica_topic_ready('mvista') "
                 "and not renpy.seen_label('maica_wants_mvista_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -653,9 +653,7 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "(renpy.seen_label('maica_chr2') "
-                "or renpy.seen_label('maica_chr_gone') "
-                "or renpy.seen_label('maica_chr_corrupted2')) "
+                "maica_topic_ready('character') "
                 "and not renpy.seen_label('maica_chr_reread')"
             ),
             action=EV_ACT_UNLOCK,
@@ -926,7 +924,8 @@ label clear_all:
         $ store.maica.weather_trigger.can_change = restore_weather_trigger
         $ maica_room_restore_state = None
 
-    $ mas_unlockEVL("maica_main", "EVE")
+    if maica_topic_main_ready():
+        $ mas_unlockEVL("maica_main", "EVE")
     return
 
 
@@ -986,7 +985,8 @@ label .talking_start:
         call maica_connection_failure_dialogue
         m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
     $ maica_record_successful_chat(maica_talking_result)
-    $ mas_unlockEVL("maica_main", "EVE")
+    if maica_topic_main_ready():
+        $ mas_unlockEVL("maica_main", "EVE")
     if maica_chr_exist:
         scene black with dissolve
         pause 2.0
@@ -1113,7 +1113,8 @@ label maica_wants_location2:
     m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
     m 2euu "So, [player]..."
     call maica_set_location
-    $ mas_unlockEVL("maica_mods_location", "EVE")
+    if maica_topic_ready("location"):
+        $ mas_unlockEVL("maica_mods_location", "EVE")
     return "no_unlock"
 
 label maica_mods_location:
@@ -1163,7 +1164,8 @@ label maica_wants_preferences2:
             m 3eka "Whenever you are ready, just tell me to write them down."
         "Nope" if prefs_exist:
             m 1hua "I got it, thank you!"
-    $ mas_unlockEVL("maica_mods_preferences", "EVE")
+    if maica_topic_ready("preferences"):
+        $ mas_unlockEVL("maica_mods_preferences", "EVE")
     return "no_unlock"
 
 label maica_mods_preferences:

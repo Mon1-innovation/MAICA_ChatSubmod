@@ -109,7 +109,7 @@ screen maica_vista_filelist(selecting=False):
                     if store.maica.maica_instance.is_connected():
                         if selecting:
                             if not is_expired(item):
-                                if not renpy.seen_label("maica_pre_wants_mvista"):
+                                if not store.maica_topic_ready("mvista"):
                                     textbutton _("! MVista not unlocked"):
                                         style "generic_fancy_check_button_disabled"
                                 elif selected_is_full():

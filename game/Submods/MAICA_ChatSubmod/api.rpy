@@ -818,7 +818,7 @@ init -700 python:
                         with open(letter_path, "w") as mp_failure_file:
                             mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
 
-                    if not renpy.seen_label("maica_wants_mpostal"):
+                    if not store.maica_topic_ready("mpostal"):
                         failed = 'early'
 
                         store.maica_note_mail_bad = MASPoem(
