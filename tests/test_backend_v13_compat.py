@@ -749,6 +749,10 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
     )
     assert "_clear_layers" not in pane
     assert "connection_busy = ai.is_connecting()" in pane
+    assert "availability_busy = ai.is_checking_availability()" in pane
+    assert "MaicaAiStatus.WAIT_AVAILABILITY" in pane
+    assert "get_provider_refresh_error()" in pane
+    assert "Provider list refresh failed" in pane
     assert "maica.maica_instance.is_connecting()" in pane
     assert "MaicaAiStatus.is_submod_exception" in pane
     assert "MaicaAiStatus.CERTIFI_BROKEN" in pane
@@ -793,6 +797,8 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     main = source("game/Submods/MAICA_ChatSubmod/main.rpy")
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    screens = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    client = source("game/python-packages/maica.py")
 
     provider_sync = function_body(header, r"sync_provider_id")
     assert re.search(r"if\s+reconnect:\s*ai\.close_wss_session\(\)", provider_sync)
@@ -801,6 +807,25 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
     assert "ai.status" not in provider_sync
     assert "ai.wait_for_connection_shutdown(6.0)" in provider_sync
     assert "ai.multi_lock" not in provider_sync
+    assert "provider_manager.get_provider()" not in provider_sync
+    assert provider_sync.count("ai.accessable()") == 1
+    assert "availability_ready = ai.accessable()" in provider_sync
+
+    provider_screen = named_screen(screens, "maica_node_setting")
+    assert "provider_manager.get_provider" not in provider_screen
+    assert "refresh_provider_list" in provider_screen
+    assert "maica_start_provider_task" in provider_screen
+    assert "is_provider_refreshing()" in provider_screen
+
+    provider_task = function_body(header, r"maica_start_provider_task")
+    assert "renpy.invoke_in_thread(task)" in provider_task
+    assert "is_provider_refreshing()" in provider_task
+    assert "is_checking_availability()" in provider_task
+
+    assert "self._availability_check_lock = threading.Lock()" in client
+    accessibility = function_body(client, r"accessable")
+    assert "_availability_check_lock" in accessibility
+    assert "finally:" in accessibility
 
     token_change = function_body(api, r"change_token")
     assert re.search(

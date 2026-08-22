@@ -262,6 +262,8 @@ class MaicaAi(ChatBotInterface):
         self.stat = {}
         self.multi_lock = threading.Lock()
         self._connection_state_lock = threading.RLock()
+        self._availability_check_lock = threading.Lock()
+        self._availability_check_in_progress = False
         self._connection_in_progress = False
         self._connection_cancel_requested = False
         self._connection_close_in_progress = False
@@ -2156,7 +2158,46 @@ class MaicaAi(ChatBotInterface):
         with connection_lock:
             return self._set_accessibility_state_unlocked(accessible, status)
 
+    def _set_availability_check_in_progress(self, in_progress):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            self._availability_check_in_progress = bool(in_progress)
+            return
+        with connection_lock:
+            self._availability_check_in_progress = bool(in_progress)
+
+    def is_checking_availability(self):
+        return bool(getattr(self, "_availability_check_in_progress", False))
+
+    def is_provider_refreshing(self):
+        checker = getattr(self.provider_manager, "is_refreshing", None)
+        return bool(checker and checker())
+
+    def get_provider_refresh_error(self):
+        getter = getattr(self.provider_manager, "get_last_refresh_error", None)
+        return getter() if getter else None
+
+    def refresh_provider_list(self):
+        """Refresh provider metadata without invalidating an active connection."""
+        if self.is_accessable() or self.is_connected() or self.is_connecting():
+            return bool(self.provider_manager.get_provider())
+        return bool(self.accessable())
+
     def accessable(self):
+        """Run one serialized service-availability probe."""
+        availability_lock = getattr(self, "_availability_check_lock", None)
+        if availability_lock is None:
+            return self._accessable_unlocked()
+
+        availability_lock.acquire()
+        self._set_availability_check_in_progress(True)
+        try:
+            return self._accessable_unlocked()
+        finally:
+            self._set_availability_check_in_progress(False)
+            availability_lock.release()
+
+    def _accessable_unlocked(self):
         """
         检查Maica服务是否可访问
         注意, 在开始使用前, 必须先使用该函数来检查MAICA服务器是否可用
@@ -2165,7 +2206,7 @@ class MaicaAi(ChatBotInterface):
             无
         
         Returns:
-            无返回值，该函数主要用于更新类的状态
+            bool: 服务可用时返回True，否则返回False
         
         Raises:
             无
@@ -2174,7 +2215,7 @@ class MaicaAi(ChatBotInterface):
             False,
             self.MaicaAiStatus.WAIT_AVAILABILITY,
         ):
-            return
+            return False
 
         # 检测证书是否是MAS版本/证书是否工作正常
         if self.in_mas:
@@ -2188,23 +2229,25 @@ class MaicaAi(ChatBotInterface):
                     "certifi is missing the MAS integration",
                     fallback=self.MaicaAiStatus.CERTIFI_BROKEN,
                 )
-                return
+                return False
             if not self.check_certifi():
                 self.set_error(
                     "client_certifi_broken",
                     "SSL/TLS certificate validation is unavailable",
                     fallback=self.MaicaAiStatus.CERTIFI_BROKEN,
                 )
-                return
+                return False
 
         # 获取服务节点
         try:
             if not self.provider_manager.get_provider():
                 if self.provider_id != 9999:
+                    provider_error = self.get_provider_refresh_error() or {}
                     if self.can_access_internet():
                         self.set_error(
                             "client_provider_unavailable",
-                            "Failed to retrieve a service provider",
+                            provider_error.get("exception") or "Failed to retrieve a service provider",
+                            provider_error.get("code"),
                             fallback=self.MaicaAiStatus.FAILED_GET_NODE,
                         )
                     else:
@@ -2213,7 +2256,10 @@ class MaicaAi(ChatBotInterface):
                             "External network check failed",
                             fallback=self.MaicaAiStatus.NO_INTERNET,
                         )
-                    return
+                    return False
+            vista_manager = getattr(self, "vista_manager", None)
+            if vista_manager is not None:
+                vista_manager.base_url = self.provider_manager.get_api_url()
 
         except Exception as e:
             logger.error("accessable(): service provider lookup failed: {}".format(e))
@@ -2230,7 +2276,7 @@ class MaicaAi(ChatBotInterface):
                         u"{}".format(e),
                         fallback=self.MaicaAiStatus.NO_INTERNET,
                     )
-                return
+                return False
 
         #获取节点可用性
         import requests, json
@@ -2250,8 +2296,22 @@ class MaicaAi(ChatBotInterface):
                     fallback=self.MaicaAiStatus.NO_INTERNET,
                 )
                 logger.error("accessable(): backend and external network checks failed: {}".format(e))
-            return
+            return False
+        if not isinstance(d, dict):
+            self.set_error(
+                "client_response_invalid",
+                "The accessibility endpoint returned an invalid response",
+                fallback=self.MaicaAiStatus.RESPONSE_INVALID,
+            )
+            return False
         if d.get(u"success", False):
+            if "content" not in d:
+                self.set_error(
+                    "client_response_invalid",
+                    "The accessibility response did not contain a service status",
+                    fallback=self.MaicaAiStatus.RESPONSE_INVALID,
+                )
+                return False
             self._serving_status = d["content"]
             if self._serving_status != "serving" and not self._ignore_accessable:
                 self.set_error(
@@ -2269,7 +2329,7 @@ class MaicaAi(ChatBotInterface):
                     True,
                     self.MaicaAiStatus.IDLE,
                 ):
-                    return
+                    return False
         else:
             self.set_error(
                 "client_availability_failed",
@@ -2288,6 +2348,7 @@ class MaicaAi(ChatBotInterface):
                     self.default_setting.update(res)
             except Exception as e:
                 logger.warning("accessable(): GET /defaults failed; using local defaults: {}".format(e))
+        return bool(self.__accessable)
         
 
 

@@ -14,6 +14,8 @@ translate chinese strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:147
     old "> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"
     new "> MAICA通信状态: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"
+    old "> Provider list refresh failed: "
+    new "> 节点列表刷新失败: "
     # game/Submods/MAICA_ChatSubmod/header.rpy:151
     old "> Websocket: [stat]"
     new "> Websocket: [stat]"

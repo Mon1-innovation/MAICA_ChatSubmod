@@ -3064,6 +3064,94 @@ def test_accessable_checks_backend_before_external_network(monkeypatch):
     assert ai.get_error_result()["status"] == "client_no_internet"
 
 
+def test_provider_refresh_routes_disconnected_failure_through_ai_status(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+
+    class Provider:
+        def get_provider(self):
+            assert ai.is_checking_availability() is True
+            return False
+
+        def get_provider_id(self):
+            return 1
+
+        def get_last_refresh_error(self):
+            return {
+                "status": "client_provider_unavailable",
+                "exception": "catalog lookup failed",
+                "code": None,
+            }
+
+    ai.provider_manager = Provider()
+    ai.can_access_internet = lambda: True
+
+    assert ai.refresh_provider_list() is False
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.error_protocol_status == "client_provider_unavailable"
+    assert ai.error_message == "catalog lookup failed"
+    assert ai.is_checking_availability() is False
+
+
+def test_provider_refresh_preserves_connected_runtime_status(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
+    ai.status = ai.MaicaAiStatus.CONNECTED
+    ai.task_manager.ws_client = type("ConnectedClient", (), {"keep_running": True})()
+
+    class Provider:
+        def get_provider(self):
+            return False
+
+        def get_last_refresh_error(self):
+            return {
+                "status": "client_provider_unavailable",
+                "exception": "catalog refresh failed",
+                "code": None,
+            }
+
+    ai.provider_manager = Provider()
+
+    assert ai.refresh_provider_list() is False
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.is_accessable() is True
+    assert ai.get_provider_refresh_error()["exception"] == "catalog refresh failed"
+    assert ai.is_failed() is False
+
+
+def test_provider_refresh_preserves_disconnected_authentication_error(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
+    ai.status = ai.MaicaAiStatus.TOKEN_INVALID
+    ai.error_protocol_status = "maica_login_token_invalid"
+    ai.error_message = "token rejected"
+
+    class Provider:
+        def get_provider(self):
+            return False
+
+        def get_last_refresh_error(self):
+            return {
+                "status": "client_provider_unavailable",
+                "exception": "catalog refresh failed",
+                "code": None,
+            }
+
+    ai.provider_manager = Provider()
+
+    assert ai.refresh_provider_list() is False
+    assert ai.status == ai.MaicaAiStatus.TOKEN_INVALID
+    assert ai.error_protocol_status == "maica_login_token_invalid"
+    assert ai.error_message == "token rejected"
+    assert ai.get_provider_refresh_error()["exception"] == "catalog refresh failed"
+
+
 def test_accessable_only_uses_maintenance_for_explicit_non_serving(monkeypatch):
     ai = maica.MaicaAi.__new__(maica.MaicaAi)
     ai.in_mas = False

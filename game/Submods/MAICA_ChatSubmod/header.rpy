@@ -900,9 +900,6 @@ init 10 python:
         ai.provider_id = pid
         # ai.provider_manager.set_provider_id(pid)
 
-        # 刷新 vista_manager 缓存的 base_url
-        ai.vista_manager.base_url = ai.provider_manager.get_api_url()
-
         # 断开旧连接，并取消可能仍在等待的自动重连
         if reconnect:
             ai.close_wss_session()
@@ -917,10 +914,9 @@ init 10 python:
                         "Failed to sync provider id: previous websocket did not stop"
                     )
                     return
-                ai.provider_manager.get_provider()
-                ai.accessable()
+                availability_ready = ai.accessable()
 
-                if reconnect and ai.has_token():
+                if reconnect and availability_ready and ai.has_token():
                     ai.init_connect()
 
             except Exception as e:
@@ -1128,6 +1124,14 @@ init python:
     def scr_nullfunc():
         return
 
+    def maica_start_provider_task(task):
+        """Start one provider-related network task without blocking the UI."""
+        ai = store.maica.maica_instance
+        if ai.is_provider_refreshing() or ai.is_checking_availability():
+            return False
+        renpy.invoke_in_thread(task)
+        return True
+
 
 screen maica_setting_pane():
 
@@ -1138,6 +1142,14 @@ screen maica_setting_pane():
         pane_cache = maica.maica_setting_pane_cache
         ai = maica.maica_instance
         connection_busy = ai.is_connecting()
+        availability_busy = ai.is_checking_availability()
+        provider_refresh_error = ai.get_provider_refresh_error()
+        provider_refresh_error_text = ""
+        if provider_refresh_error:
+            provider_refresh_error_text = maica_build_display_preview(
+                provider_refresh_error.get("exception") or "",
+                160,
+            )
         if connection_busy and not ai.is_failed():
             stat = ai.get_status_description()
         else:
@@ -1220,9 +1232,14 @@ screen maica_setting_pane():
                     text _("> Warning: current system 'non-unicode language' is not Chinese, expect possible encoding issues"):
                         style "main_menu_version_l"
 
-            if maica.maica_instance.is_connecting() or maica.maica_instance.MaicaAiStatus.is_submod_exception(maica.maica_instance.status):
+            if availability_busy or maica.maica_instance.status == maica.maica_instance.MaicaAiStatus.WAIT_AVAILABILITY or maica.maica_instance.is_connecting() or maica.maica_instance.MaicaAiStatus.is_submod_exception(maica.maica_instance.status):
                 hbox:
                     text _("> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
+                        style "main_menu_version_l"
+
+            if provider_refresh_error and ai.status not in (ai.MaicaAiStatus.FAILED_GET_NODE, ai.MaicaAiStatus.NO_INTERNET):
+                hbox:
+                    text renpy.substitute(_("> Provider list refresh failed: ")) + provider_refresh_error_text:
                         style "main_menu_version_l"
 
             hbox:

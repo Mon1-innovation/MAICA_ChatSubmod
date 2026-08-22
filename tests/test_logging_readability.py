@@ -221,6 +221,65 @@ def test_missing_provider_warning_is_not_repeated(monkeypatch):
     assert "fallback" in warnings[0].lower()
 
 
+def test_provider_refresh_failure_preserves_last_good_catalog(monkeypatch):
+    advertised_servers = [
+        {
+            "id": 1,
+            "name": "Primary",
+            "description": "Primary provider",
+            "isOfficial": True,
+            "portalPage": "https://example.invalid",
+            "servingModel": "test-model",
+            "modelLink": "",
+            "wsInterface": "wss://example.invalid/websocket",
+            "httpInterface": "https://example.invalid/api",
+        }
+    ]
+
+    class Response:
+        status_code = 200
+        content = b""
+
+        def json(self):
+            return {
+                "success": True,
+                "content": {
+                    "isMaicaNameServer": True,
+                    "servers": advertised_servers,
+                },
+            }
+
+    responses = iter(
+        (Response(), requests.ConnectionError("catalog offline"), Response())
+    )
+
+    def get(*args, **kwargs):
+        response = next(responses)
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    monkeypatch.setattr(requests, "get", get)
+    manager = maica_provider_manager.MaicaProviderManager(pid=1)
+
+    assert manager.get_provider() is True
+    catalog_before_failure = list(manager._servers)
+    assert advertised_servers == [catalog_before_failure[0]]
+
+    assert manager.get_provider() is False
+    assert manager._servers == catalog_before_failure
+    assert manager.is_refreshing() is False
+    assert manager.get_last_refresh_error() == {
+        "status": "client_provider_unavailable",
+        "exception": "catalog offline",
+        "code": None,
+    }
+
+    assert manager.get_provider() is True
+    assert manager.get_last_refresh_error() is None
+    assert manager._servers[0]["id"] == 1
+
+
 def test_readability_cleanup_keeps_diagnostic_logging_boundary_documented():
     root = Path(__file__).resolve().parents[1]
     runtime = (root / "game" / "python-packages" / "maica.py").read_text(

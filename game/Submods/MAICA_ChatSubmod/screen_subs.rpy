@@ -814,6 +814,12 @@ screen maica_mspire_category_setting():
 screen maica_node_setting():
     $ _tooltip = store._tooltip
     python:
+        ai = store.maica.maica_instance
+        provider_refresh_busy = (
+            ai.is_provider_refreshing()
+            or ai.is_checking_availability()
+        )
+
         def set_provider(id):
             persistent.maica_setting_dict["provider_id"] = id
 
@@ -823,7 +829,7 @@ screen maica_node_setting():
     use maica_common_outer_frame():
         use maica_common_inner_frame():
 
-            for provider in store.maica.maica_instance.provider_manager._servers:
+            for provider in ai.provider_manager.get_servers():
                 use maica_l2_subframe():
                     text maica_escape_display_text(provider.get('id')) + ' | ' + maica_escape_display_text(provider.get('name'))
 
@@ -858,13 +864,15 @@ screen maica_node_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("Refresh servers list"):
-                action Function(store.maica.maica_instance.provider_manager.get_provider)
+                action Function(maica_start_provider_task, ai.refresh_provider_list)
+                sensitive not provider_refresh_busy
 
             textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_node_setting")
 
             textbutton _("Test current node avaliability"):
-                action Function(store.maica.maica_instance.accessable)
+                action Function(maica_start_provider_task, ai.accessable)
+                sensitive not provider_refresh_busy
 
 screen maica_mspire_setting():
     $ _tooltip = store._tooltip
