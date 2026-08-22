@@ -1,8 +1,8 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.8.16'
-    maica_is_dev = False
+    maica_ver = '1.8.17'
+    maica_is_dev = True
     # 如果是开发版本:
     # - workflow不会自动发布release
     # - 对应migration总是会执行
@@ -634,13 +634,6 @@ init 5 python in maica:
                 sticky=True,
             )
 
-        if not renpy.seen_label("maica_prepend_2") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
-            store.mas_submod_utils.submod_log.debug("MAICA: maica_main locked because it should not be unlocked now")
-            store.mas_lockEVL("maica_main", "EVE")
-        else:
-            # A one-shot intro or a side event may leave the main topic locked.
-            # Once any valid MAICA entry point has been used, keep chat available.
-            store.mas_unlockEVL("maica_main", "EVE")
         check_workload()
 
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
@@ -988,3 +981,9 @@ init 999 python:
         else:
             store.maica.maica_instance.modelconfig = {}
         persistent._maica_last_version = store.maica_ver
+
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-25)
+    def maica_topic_state_startup_check():
+        # Run after the migration plugin and on every launch, including when the
+        # persistent version is already current.
+        store.maica_reconcile_topic_state(reason="startup")

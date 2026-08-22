@@ -546,6 +546,155 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '"maica_set_location_reread": "maica_mods_location"' in MIGRATION_SOURCE
     assert 'mas_unlockEVL("maica_wants_location_reread", "EVE")' in MIGRATION_SOURCE
     assert "persistent.event_database.pop(old_label, None)" in MIGRATION_SOURCE
+    assert '("1.8.17", migration_1_8_17)' in MIGRATION_SOURCE
+
+
+def test_v1817_migration_and_startup_share_the_complete_topic_reconciler():
+    assert 'def maica_reconcile_topic_state(reason="startup", repair_contracts=False):' in MIGRATION_SOURCE
+    assert 'reason="migration_1_8_17"' in MIGRATION_SOURCE
+    assert 'maica_reconcile_topic_state(reason="startup")' in API_SOURCE
+    assert '"maica_main": (progress["main_ready"]' in MIGRATION_SOURCE
+    assert '"maica_prepend_reread": (progress["heaven_intro_seen"]' in MIGRATION_SOURCE
+    assert '"maica_wants_location_reread": (progress["location_seen"]' in MIGRATION_SOURCE
+    assert '"maica_chr_reread": (progress["character_seen"]' in MIGRATION_SOURCE
+    assert '"maica_wants_location2": (' in MIGRATION_SOURCE
+    assert '"maica_mods_location": (progress["location_seen"]' in MIGRATION_SOURCE
+    assert "clear_unlock_date=not expected" in MIGRATION_SOURCE
+    assert "topic state corrected" in MIGRATION_SOURCE
+    assert "topic state check" in MIGRATION_SOURCE
+    assert '"maica_pre_set_location"' in MIGRATION_SOURCE
+    assert '"maica_set_location_reread"' in MIGRATION_SOURCE
+    assert '"maica_chr_corrupted"' in MIGRATION_SOURCE
+
+
+def _load_topic_reconciler(events, seen=(), seen_ever=(), successful_count=0):
+    start = MIGRATION_SOURCE.index("    _MAICA_UNSET = object()")
+    end = MIGRATION_SOURCE.index("\n    def migration_1_8_0()", start)
+    source = textwrap.dedent(MIGRATION_SOURCE[start:end])
+
+    class PersistentStub(object):
+        def __init__(self):
+            self._seen_ever = dict.fromkeys(seen_ever, True)
+            self._maica_vista_enabled = False
+            self.event_database = {}
+
+    class RenpyStub(object):
+        def __init__(self):
+            self.seen = set(seen)
+
+        def seen_label(self, eventlabel):
+            return eventlabel in self.seen
+
+    class LoggerStub(object):
+        def __init__(self):
+            self.messages = []
+
+        def debug(self, message):
+            self.messages.append(("debug", message))
+
+        def info(self, message):
+            self.messages.append(("info", message))
+
+        def warning(self, message):
+            self.messages.append(("warning", message))
+
+    class GreetingRuleStub(object):
+        @staticmethod
+        def create_rule(**kwargs):
+            return kwargs
+
+    class PriorityRuleStub(object):
+        @staticmethod
+        def create_rule(priority):
+            return {"priority": priority}
+
+    persistent = PersistentStub()
+    renpy = RenpyStub()
+    logger = LoggerStub()
+    store = type(
+        "StoreStub",
+        (),
+        {
+            "mas_submod_utils": type(
+                "SubmodUtilsStub",
+                (),
+                {"submod_log": logger},
+            )(),
+            "evhand": type("EventHandlerStub", (), {"event_database": {}})(),
+        },
+    )()
+    rebuild_calls = []
+    namespace = {
+        "mas_getEV": events.get,
+        "mas_rebuildEventLists": lambda: rebuild_calls.append(True),
+        "maica_has_successful_chat": lambda: successful_count > 0,
+        "maica_get_successful_chat_count": lambda: successful_count,
+        "persistent": persistent,
+        "renpy": renpy,
+        "store": store,
+        "MASGreetingRule": GreetingRuleStub,
+        "MASPriorityRule": PriorityRuleStub,
+        "maica_chr_exist": True,
+        "maica_chr_changed": False,
+    }
+    exec(source, namespace)
+    return namespace, persistent, renpy, logger, rebuild_calls
+
+
+def test_topic_reconciler_locks_false_rereads_and_restores_later_progression():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    namespace, _, renpy, logger, rebuild_calls = _load_topic_reconciler(events)
+
+    result = namespace["maica_reconcile_topic_state"](reason="test")
+
+    assert events["maica_main"].unlocked is False
+    assert events["maica_wants_location_reread"].unlocked is False
+    assert events["maica_chr_reread"].unlocked is False
+    assert events["maica_prepend_reread"].unlocked is False
+    assert events["maica_greeting"].unlocked is True
+    assert result["progress"]["main_evidence"] == "not-seen"
+    assert result["changed"] is True
+    assert any(level == "warning" for level, _ in logger.messages)
+
+    renpy.seen.add("maica_wants_location2")
+    result = namespace["maica_reconcile_topic_state"](reason="test-later")
+
+    assert events["maica_mods_location"].unlocked is True
+    assert events["maica_wants_location_reread"].unlocked is True
+    assert events["maica_main"].unlocked is True
+    assert result["progress"]["location_evidence"].startswith("seen:")
+    assert result["progress"]["main_evidence"].startswith("downstream:location")
+    assert any("evidence=" in message for level, message in logger.messages if level == "info")
+    assert rebuild_calls
+
+    renpy.seen.add("maica_main")
+    namespace["maica_reconcile_topic_state"](reason="test-main-only")
+    assert events["maica_main"].unlocked is True
+    assert events["maica_prepend_reread"].unlocked is False
 
 
 def test_latest_migration_repairs_internal_and_mvista_reread_state():

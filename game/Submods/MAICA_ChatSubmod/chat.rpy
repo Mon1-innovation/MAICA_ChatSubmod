@@ -669,7 +669,10 @@ init 5 python:
 # Core conversation labels
 
 label maica_prepend_1:
-    $ mas_lockEVL("maica_main", "EVE")
+    # A stale queued introduction must not undo progress already recorded by a
+    # later topic. Reconcile here as well as at startup because MAS can resume
+    # an old queue item in the same session.
+    $ maica_reconcile_topic_state(reason="intro_guard")
     # Queue this introduction after MAICA is installed; NORMAL affection is required.
     m 1eub "Hey, [player]..."
     if renpy.seen_label("monika_robotbody"):
