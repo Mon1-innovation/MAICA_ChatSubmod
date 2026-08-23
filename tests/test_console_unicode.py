@@ -11,6 +11,7 @@ import bot_interface
 import logger_manager
 import maica_provider_manager
 import maica
+import maica_tasker
 import maica_tasker_sub
 
 
@@ -313,7 +314,7 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     assert connect.index("store.mas_ptod.clear_console()") < connect.index(
         "ai.send_to_outside_func(ai.ascii_icon)"
     )
-    assert connect.count('write_command("Thank you for using MAICA Blessland!")') == 1
+    assert connect.count('write_command("Welcome to MAICA Blessland.")') == 1
     assert "persistent.maica_setting_dict['console']" in connect
     assert "and (force_welcome or should_connect)" in connect
     assert "if should_show_welcome:" in connect
@@ -434,3 +435,139 @@ def test_python2_dialogue_paths_do_not_force_unicode_through_str():
     assert "str(message)" not in append_block
     assert "str(message)" not in mpostal_block
     assert "message = bot_interface.to_unicode(message)" in append_block
+
+
+def test_write_unicode_command_uses_native_writer_on_python3(monkeypatch):
+    class FakePtod(object):
+        def __init__(self):
+            self.calls = []
+
+        def write_command(self, *args, **kwargs):
+            self.calls.append((args, kwargs))
+            return "native-result"
+
+    ptod = FakePtod()
+    monkeypatch.setattr(bot_interface, "PY2", False)
+
+    result = bot_interface.write_unicode_command(
+        ptod,
+        "中文",
+        source="test",
+    )
+
+    assert result == "native-result"
+    assert ptod.calls == [(
+        ("中文",),
+        {"source": "test"},
+    )]
+
+
+def test_write_unicode_command_matches_mas_state_flow_on_python2(monkeypatch):
+    class FakePtod(object):
+        STATE_SINGLE = 0
+        STATE_MULTI = 1
+        STATE_BLOCK = 2
+        STATE_BLOCK_MULTI = 3
+        STATE_OFF = 4
+        SYM = ">>> "
+        M_SYM = "... "
+
+        def __init__(self, line_max=6):
+            self.state = self.STATE_SINGLE
+            self.cn_cmd = ""
+            self.cn_line = ""
+            self.history = []
+            self.line_max = line_max
+
+        def _line_break(self, line):
+            if len(line) <= self.line_max:
+                return [line]
+            return [
+                line[index:index + self.line_max]
+                for index in range(0, len(line), self.line_max)
+            ]
+
+        def _update_console_history_list(self, lines):
+            self.history.extend(lines)
+
+        def write_command(self, *args, **kwargs):
+            raise AssertionError("Python 2 compatibility path should be used")
+
+    monkeypatch.setattr(bot_interface, "PY2", True)
+    monkeypatch.setattr(
+        bot_interface,
+        "to_unicode",
+        lambda value, preferred_encoding=None: value,
+    )
+
+    ptod = FakePtod()
+    bot_interface.write_unicode_command(ptod, u"中文命令扩展")
+
+    assert ptod.cn_cmd == u"中文命令扩展"
+    assert ptod.history == [u">>> 中文"]
+    assert ptod.cn_line == u"命令扩展"
+    assert ptod.state == ptod.STATE_MULTI
+
+    ptod.state = ptod.STATE_MULTI
+    ptod.cn_cmd = u"旧命令"
+    ptod.cn_line = u"旧行"
+    ptod.line_max = 10
+    bot_interface.write_unicode_command(ptod, u"新命令")
+    assert ptod.cn_cmd == u"新命令"
+    assert ptod.cn_line == u"新命令"
+    assert ptod.state == ptod.STATE_SINGLE
+
+    ptod.state = ptod.STATE_BLOCK_MULTI
+    ptod.cn_cmd = u"旧块命令"
+    ptod.cn_line = u"旧块行"
+    ptod.line_max = 6
+    bot_interface.write_unicode_command(ptod, u"块命令扩展")
+    assert ptod.cn_cmd == u"块命令扩展"
+    assert ptod.state == ptod.STATE_BLOCK_MULTI
+    assert ptod.history[-1] == u"... 块命"
+    assert ptod.cn_line == u"令扩展"
+
+
+def test_write_unicode_command_leaves_disabled_console_untouched(monkeypatch):
+    class FakePtod(object):
+        STATE_OFF = 4
+
+        def __init__(self):
+            self.state = self.STATE_OFF
+            self.cn_cmd = u"原命令"
+            self.cn_line = u"原行"
+
+        def write_command(self, cmd):
+            raise AssertionError("disabled console should return before native call")
+
+    monkeypatch.setattr(bot_interface, "PY2", True)
+
+    def fail_conversion(value, preferred_encoding=None):
+        raise AssertionError("disabled console should not convert the command")
+
+    monkeypatch.setattr(bot_interface, "to_unicode", fail_conversion)
+    ptod = FakePtod()
+
+    assert bot_interface.write_unicode_command(ptod, u"中文") is None
+    assert ptod.cn_cmd == u"原命令"
+    assert ptod.cn_line == u"原行"
+
+
+def test_unicode_greeting_uses_compatibility_writer_and_pong_language_is_initialized():
+    root = Path(__file__).resolve().parents[1]
+    main_source = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "main.rpy").read_text(
+        encoding="utf-8"
+    )
+    maica_source = (PACKAGE_ROOT / "maica.py").read_text(encoding="utf-8")
+    tasker_source = (PACKAGE_ROOT / "maica_tasker_sub.py").read_text(encoding="utf-8")
+
+    assert "bot_interface.write_unicode_command(store.mas_ptod, greeting)" in main_source
+    assert "store.mas_ptod.write_command(greeting)" not in main_source
+    assert "self.KeepAliveTasker.ui_lang_zh = ui_lang_zh" in maica_source
+    assert "self.ui_lang_zh = False" in tasker_source
+
+    task = maica_tasker_sub.KeepWsAliveTasker(
+        maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+        "test_keep_alive",
+    )
+    assert task.ui_lang_zh is False

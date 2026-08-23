@@ -1282,7 +1282,9 @@ class MaicaAi(ChatBotInterface):
             self._intentional_ws_closes.discard(self.wss_session)
             self.wss_session.ping_payload = "PING"
             import renpy
-            self.WSConsoleLogger.ui_lang_zh = renpy.config.language == "chinese"
+            ui_lang_zh = renpy.config.language == "chinese"
+            self.WSConsoleLogger.ui_lang_zh = ui_lang_zh
+            self.KeepAliveTasker.ui_lang_zh = ui_lang_zh
             return True
         except Exception:
             import traceback

@@ -1088,6 +1088,7 @@ class KeepWsAliveTasker(MaicaWSTask):
         _ping_sent_time (float|None): 显式ping发送的时间戳
         _latency (float): 最近一次的延迟（毫秒）
         _pong_content (str|unicode): 上次pong返回的content
+        ui_lang_zh (bool): 是否选择中文的pong内容
         _timer_thread (threading.Thread|None): 定时器线程
         _pong_event (threading.Event|None): 用于等待pong响应的事件
     """
@@ -1113,6 +1114,7 @@ class KeepWsAliveTasker(MaicaWSTask):
         self._ping_sent_time = None
         self._latency = 0.0
         self._pong_content = u""
+        self.ui_lang_zh = False
         self._timer_thread = None
         self._stop_timer = False
         import threading

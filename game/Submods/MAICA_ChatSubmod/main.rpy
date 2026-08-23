@@ -344,7 +344,7 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                 pong_content = bot_interface.to_unicode(ai.KeepAliveTasker._pong_content)
                 greeting = u"Connection ready. [{}]".format(pong_content)
 
-                store.mas_ptod.write_command(greeting)
+                bot_interface.write_unicode_command(store.mas_ptod, greeting)
                 maica_connect_result = "success"
                 break
 

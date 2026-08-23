@@ -115,6 +115,63 @@ def to_unicode(value, preferred_encoding=None):
     return str(value)
 
 
+def write_unicode_command(ptod, *args, **kwargs):
+    """Write a command to the MAS console without Python 2 byte coercion.
+
+    MAS currently implements ``write_command`` with ``str(cmd)``.  On
+    Python 2 that conversion can corrupt non-ASCII text before it reaches the
+    console.  Python 3 keeps the native MAS implementation; Python 2 mirrors
+    its state transitions while retaining a Unicode command value.
+    """
+    if not PY2:
+        return ptod.write_command(*args, **kwargs)
+
+    # Keep the native argument errors for calls that do not match the
+    # write_command(cmd) signature.  This also leaves keyword forwarding
+    # available if MAS changes the signature in a future version.
+    if len(args) == 1 and not kwargs:
+        cmd = args[0]
+    elif not args and len(kwargs) == 1 and "cmd" in kwargs:
+        cmd = kwargs["cmd"]
+    else:
+        return ptod.write_command(*args, **kwargs)
+
+    # The upstream method exits before changing any console state when the
+    # console is disabled.
+    if ptod.state == ptod.STATE_OFF:
+        return
+
+    # Keep this ordering aligned with MAS script-python.rpy.  The only
+    # intentional difference is assigning a Unicode command below instead of
+    # calling str(cmd).
+    if ptod.state == ptod.STATE_MULTI:
+        ptod.cn_cmd = ""
+        ptod.cn_line = ""
+        ptod.state = ptod.STATE_SINGLE
+    elif ptod.state == ptod.STATE_BLOCK_MULTI:
+        ptod.cn_cmd = ""
+        ptod.cn_line = ""
+        ptod.state = ptod.STATE_BLOCK
+
+    ptod.cn_cmd = to_unicode(cmd)
+
+    if ptod.state == ptod.STATE_SINGLE:
+        sym = ptod.SYM
+    else:
+        sym = ptod.M_SYM
+
+    cn_lines = ptod._line_break(sym + ptod.cn_cmd)
+    if len(cn_lines) == 1:
+        ptod.cn_line = ptod.cn_cmd
+    else:
+        ptod._update_console_history_list(cn_lines[:-1])
+        ptod.cn_line = cn_lines[len(cn_lines) - 1]
+        if ptod.state == ptod.STATE_SINGLE:
+            ptod.state = ptod.STATE_MULTI
+        else:
+            ptod.state = ptod.STATE_BLOCK_MULTI
+
+
 RENPY_DIALOGUE_SUBSTITUTIONS = (
     u"[mas_get_player_nickname()]",
     u"[player]",
