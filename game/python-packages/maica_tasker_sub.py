@@ -130,7 +130,7 @@ class GeneralWsConsoleLogger(MaicaWSTask):
             return
         if event.data.status in ['maica_core_streaming_continue']:
             return
-        if event.data.status == 'maica_connection_initiated':
+        if event.data.status in ('maica_connection_initiated', 'pong'):
             try:
                 welcome_zh, welcome_en = event.data.content.split("|", 1)
                 event.data.content = welcome_zh if self.ui_lang_zh else welcome_en

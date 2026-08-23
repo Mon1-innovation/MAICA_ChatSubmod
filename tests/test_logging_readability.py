@@ -76,7 +76,7 @@ def test_general_websocket_logger_keeps_full_payload(monkeypatch):
     ]
 
 
-def test_connection_initiated_message_is_written_to_console():
+def test_connection_and_ping_messages_are_localized_and_written_to_console():
     capture = CaptureLogger()
     handler = maica_tasker_sub.GeneralWsConsoleLogger(
         1,
@@ -88,9 +88,18 @@ def test_connection_initiated_message_is_written_to_console():
     handler.on_received(
         ws_event("maica_connection_initiated", "Chinese welcome|English welcome", "info")
     )
+    handler.on_received(
+        ws_event("pong", "Chinese pong|English pong", "info")
+    )
+    handler.ui_lang_zh = True
+    handler.on_received(
+        ws_event("pong", "Chinese pong|English pong", "info")
+    )
 
     assert capture.records == [
-        ("info", "<maica_connection_initiated> English welcome")
+        ("info", "<maica_connection_initiated> English welcome"),
+        ("info", "<pong> English pong"),
+        ("info", "<pong> Chinese pong"),
     ]
 
 

@@ -323,7 +323,7 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
             if not ai.is_connected() or not ai.is_ready_to_input():
                 if not ai.is_connected() and not ai.is_connecting():
                     ai.init_connect()
-                store.mas_ptod.write_command("Init Connecting...")
+                store.mas_ptod.write_command("Init Connection...")
                 if use_pause_instand_wait:
                     renpy.pause(0.3, True)
                 else:
@@ -332,6 +332,8 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                         _history_list.pop()
                 continue
             if ai.is_ready_to_input():
+                if should_show_welcome:
+                    ai.KeepAliveTasker.ping()
                 ai.send_mtrigger()
                 store.mas_ptod.write_command("Login successful, ready to chat!")
                 maica_connect_result = "success"

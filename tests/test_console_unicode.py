@@ -318,6 +318,12 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     assert "and (force_welcome or should_connect)" in connect
     assert "if should_show_welcome:" in connect
     assert "renpy.pause(2.3)" in connect
+    assert connect.count("ai.KeepAliveTasker.ping()") == 1
+    ping_index = connect.index("ai.KeepAliveTasker.ping()")
+    assert connect.rindex("if should_show_welcome:", 0, ping_index) > connect.index(
+        "if ai.is_ready_to_input():"
+    )
+    assert ping_index < connect.index("ai.send_mtrigger()")
     assert "ai.console_logger.critical" not in connect
     assert "maica_connect_result = \"disconnected\"" in connect
     assert "maica_connect_result = \"success\"" in connect
