@@ -12,12 +12,14 @@ import json
 from maica_mtrigger import MTriggerAction
 
 
-def _format_ws_message(status, content, code=None):
+def _format_ws_message(status, content, code=None, custom_prefix=None):
     status = bot_interface.to_unicode(status)
     content = bot_interface.to_unicode(content)
-    if code is None:
-        return u"<{}> {}".format(status, content)
-    return u"<{}({})> {}".format(status, code, content)
+    if custom_prefix is None:
+        if code is None:
+            return u"<{}> {}".format(status, content)
+        return u"<{}({})> {}".format(status, code, content)
+    return u"<DISABLE_VERBOSITY>{}{}".format(custom_prefix, content)
 
 
 class GeneralTaskEventLogger(MaicaTask):
@@ -1085,6 +1087,7 @@ class KeepWsAliveTasker(MaicaWSTask):
         _last_sping_time (float|None): 上次发送静默心跳的时间戳
         _ping_sent_time (float|None): 显式ping发送的时间戳
         _latency (float): 最近一次的延迟（毫秒）
+        _pong_content (str|unicode): 上次pong返回的content
         _timer_thread (threading.Thread|None): 定时器线程
         _pong_event (threading.Event|None): 用于等待pong响应的事件
     """
@@ -1109,6 +1112,7 @@ class KeepWsAliveTasker(MaicaWSTask):
         self._last_sping_time = None
         self._ping_sent_time = None
         self._latency = 0.0
+        self._pong_content = u""
         self._timer_thread = None
         self._stop_timer = False
         import threading
@@ -1149,6 +1153,14 @@ class KeepWsAliveTasker(MaicaWSTask):
             import time
             current_time = time.time()
             self._latency = (current_time - self._ping_sent_time) * 1000  # 转换为毫秒
+
+            try:
+                welcome_zh, welcome_en = event.data.content.split("|", 1)
+                event.data.content = welcome_zh if self.ui_lang_zh else welcome_en
+            except Exception:
+                pass
+            self._pong_content = event.data.content
+
             self.logger.debug("[KeepWsAliveTasker] received pong, latency: {:.2f}ms".format(self._latency))
             self._ping_sent_time = None
             self._pong_event.set()  # 唤醒等待pong的线程

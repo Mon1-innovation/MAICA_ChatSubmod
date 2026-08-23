@@ -124,7 +124,7 @@ label maica_talking.asking:
                 if ai.gen_time > gen_time:
                     gen_time = ai.gen_time
 
-                store.mas_ptod.write_command("message_queue: {} | token: {} | time: {:.2f}".format(
+                store.mas_ptod.write_command("Queued: {} | Tokens: {} | Time: {:.2f}".format(
                     ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
                     gen_time
                     ))
@@ -292,6 +292,8 @@ label maica_mpostal_load:
 
 label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
     python:
+        import bot_interface
+
         maica_connect_result = None
         ai = store.maica.maica_instance
         ai.content_func = store.mas_ptod._update_console_history
@@ -305,8 +307,9 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
         if should_show_welcome:
             store.mas_ptod.clear_console()
             ai.send_to_outside_func(ai.ascii_icon)
-            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+            store.mas_ptod.write_command("Welcome to MAICA Blessland.")
             renpy.pause(2.3)
+
         while True:
             if ai.is_failed():
                 store.mas_submod_utils.submod_log.error(
@@ -320,10 +323,11 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                 renpy.pause(2.0)
                 maica_connect_result = "disconnected"
                 break
+
             if not ai.is_connected() or not ai.is_ready_to_input():
                 if not ai.is_connected() and not ai.is_connecting():
                     ai.init_connect()
-                store.mas_ptod.write_command("Init Connection...")
+                store.mas_ptod.write_command("Init connection...")
                 if use_pause_instand_wait:
                     renpy.pause(0.3, True)
                 else:
@@ -331,13 +335,19 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                     if len(_history_list):
                         _history_list.pop()
                 continue
+
             if ai.is_ready_to_input():
                 if should_show_welcome:
                     ai.KeepAliveTasker.ping()
                 ai.send_mtrigger()
-                store.mas_ptod.write_command("Login successful, ready to chat!")
+
+                pong_content = bot_interface.to_unicode(ai.KeepAliveTasker._pong_content)
+                greeting = u"Connection ready. [{}]".format(pong_content)
+
+                store.mas_ptod.write_command(greeting)
                 maica_connect_result = "success"
                 break
+
     call show_workload
     return maica_connect_result
 
@@ -400,7 +410,7 @@ label maica_mpostal_read:
                 if ai.gen_time > gen_time:
                     gen_time = ai.gen_time
 
-                store.mas_ptod.write_command("time: {:.2f}".format(
+                store.mas_ptod.write_command("Time consumed: {:.2f}".format(
                     gen_time
                     ))
                 if ai.is_failed():
