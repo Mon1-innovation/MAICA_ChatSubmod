@@ -198,11 +198,15 @@ class MaicaAi(ChatBotInterface):
         #    cls._descriptions[code] = description
         #    setattr(cls, "{}".format(name), code)
     class ExternalLoggingHandler(logging.Handler):
+        CONSOLE_LOG_FORMAT = u"<%(levelname)s>|%(message)s"
+
         def __init__(self, maica_console_log_func):
             self.maica_console_log_func = maica_console_log_func
             self._maica_console_handler = True
             self.leveling_filter = re.compile(r'^.*?<DISABLE_VERBOSITY>')
             super(MaicaAi.ExternalLoggingHandler, self).__init__()
+            self.setFormatter(logging.Formatter(self.CONSOLE_LOG_FORMAT))
+
         def emit(self, record):
             preferred_encoding = (
                 bot_interface.sys.getdefaultencoding() if PY2 else None
@@ -232,7 +236,13 @@ class MaicaAi(ChatBotInterface):
                         message = message % format_args
                     except (TypeError, ValueError, UnicodeError):
                         pass
-                log_message = u"<{}>|{}".format(record.levelname, message)
+                log_message = self.CONSOLE_LOG_FORMAT % {
+                    "levelname": bot_interface.to_unicode(
+                        record.levelname,
+                        preferred_encoding,
+                    ),
+                    "message": message,
+                }
             log_message = bot_interface.to_unicode(
                 log_message,
                 preferred_encoding
@@ -402,7 +412,6 @@ class MaicaAi(ChatBotInterface):
             self.console_logger.addHandler(h)
 
         h.setLevel(logging.NOTSET)
-        h.setFormatter(logging.Formatter("<%(levelname)s>|%(message)s"))
         self._console_handler = h
 
         # Create optimized logger_both using MultiLoggerWrapper
