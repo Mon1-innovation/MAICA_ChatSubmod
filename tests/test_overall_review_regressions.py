@@ -404,6 +404,7 @@ def test_reviewed_source_contracts_are_kept_in_sync():
     assert 'store.renpy.call("mtrigger_youtubemusic_search", selection)' in trigger_source
     assert "label mtrigger_youtubemusic_search(keyword):" in label_source
     assert "def maica_set_plain_provider():" in api_source
+    assert "store.persistent.maica_setting_dict['provider_id'] = 2" in api_source
     assert "store.maica.maica_instance.provider_id = 2" in api_source
 
     main_source = (

@@ -516,7 +516,7 @@ init 5 python in maica:
     maica_certifi_download_thread_running = False
 
     def maica_set_plain_provider():
-        persistent.maica_setting_dict['provider_id'] = 2
+        store.persistent.maica_setting_dict['provider_id'] = 2
         try:
             store.maica.maica_instance.provider_id = 2
         except Exception as e:
