@@ -932,6 +932,14 @@ class MaicaAi(ChatBotInterface):
                 exception = message.strip()
         return status or fallback_status, exception
 
+    @staticmethod
+    def _response_json(response):
+        try:
+            data = response.json()
+        except Exception:
+            return None
+        return data if isinstance(data, dict) else None
+
     def _verify_token(self):
         """
         验证token是否有效。
@@ -983,22 +991,43 @@ class MaicaAi(ChatBotInterface):
         import traceback
 
         try:
-            res = requests.get(self.provider_manager.get_api_url() + "/version", timeout=self.HTTP_TIMEOUT)
-            try:
-                res_data = res.json()
-                if res_data.get("success", False):
-                    return res_data
-                else:
-                    logger.warning("Get version failed: {}".format(res_data))
-                    return res_data
-            except Exception:
-                logger.error("Get version request failed: Server returned {} - {}".format(res.status_code, res.text))
-                return {"success": False, "exception": "Get version request failed"}
+            response = requests.get(
+                self.provider_manager.get_api_url() + "/version",
+                timeout=self.HTTP_TIMEOUT,
+            )
+            result = self._response_json(response)
+            if result is None:
+                logger.error("MAICA: Get version returned an invalid response")
+                return {
+                    "success": False,
+                    "status": "client_response_invalid",
+                    "exception": "Version response was not valid JSON",
+                    "code": getattr(response, "status_code", None),
+                }
+            if response.status_code == 200 and result.get("success", False):
+                return result
+
+            status, message = self._normalize_failure(
+                result,
+                "client_server_unavailable",
+            )
+            logger.warning("MAICA: Get version failed: {}".format(result))
+            return {
+                "success": False,
+                "status": status,
+                "exception": message,
+                "code": response.status_code,
+            }
 
         except Exception as e:
             error_msg = traceback.format_exc()
-            logger.error("Get version request encountered an error: {}".format(error_msg))
-            return {"success": False, "exception": "Get version request failed"}
+            logger.error("MAICA: Get version request encountered an error: {}".format(error_msg))
+            return {
+                "success": False,
+                "status": "client_network_error",
+                "exception": "Version request failed",
+                "code": None,
+            }
 
     def get_emotion(self, type, text):
         """Return the local emotion fallback for legacy callers."""
@@ -2227,6 +2256,7 @@ class MaicaAi(ChatBotInterface):
             self.MaicaAiStatus.WAIT_AVAILABILITY,
         ):
             return False
+        self.version_info = {"success": False, "content": {}}
 
         # 检测证书是否是MAS版本/证书是否工作正常
         if self.in_mas:
@@ -2351,8 +2381,7 @@ class MaicaAi(ChatBotInterface):
         
         # 版本信息获取
         if self.__accessable:
-            version_info = self.get_version()
-            self.version_info = version_info
+            self.version_info = self.get_version()
             try:
                 res = requests.get(self.provider_manager.get_api_url() + "/defaults", timeout=self.HTTP_TIMEOUT).json()["content"]
                 if type(res) == dict:

@@ -441,8 +441,57 @@ init 5 python in maica:
     def savefile_access_marker_exists():
         return maica.savefile_access_marker_exists()
 
+    try:
+        import __builtin__ as _maica_version_builtin_types
+    except ImportError:
+        import builtins as _maica_version_builtin_types
+
+    def _maica_is_version_sequence(value):
+        return isinstance(
+            value,
+            (
+                _maica_version_builtin_types.list,
+                _maica_version_builtin_types.tuple,
+            )
+        )
+
+    def _maica_is_version_dict(value):
+        return isinstance(value, _maica_version_builtin_types.dict)
+
     def maica_version_parts(version):
-        return [int(part) for part in version.strip().split('.')]
+        """Parse a dotted numeric version, returning None for malformed data."""
+        try:
+            string_types = (basestring,)
+        except NameError:
+            string_types = (str,)
+        if _maica_is_version_sequence(version):
+            raw_parts = version
+        elif isinstance(version, string_types):
+            raw_parts = version.strip().split('.')
+        else:
+            return None
+
+        if not raw_parts:
+            return None
+
+        parts = []
+        for part in raw_parts:
+            text = str(part).strip()
+            if not text or not text.isdigit():
+                return None
+            parts.append(int(text))
+        return parts
+
+    def compare_maica_versions(left, right):
+        """Compare numeric versions with zero-padding for missing segments."""
+        if left is None or right is None:
+            return None
+        left_parts = list(left)
+        right_parts = list(right)
+        width = max(len(left_parts), len(right_parts))
+        left_parts.extend([0] * (width - len(left_parts)))
+        right_parts.extend([0] * (width - len(right_parts)))
+        return (left_parts > right_parts) - (left_parts < right_parts)
 
     def validate_version(force=False):
         global _maica_version_check_cache
@@ -455,10 +504,10 @@ init 5 python in maica:
             _maica_version_check_cache = (None, None, None)
         else:
             with open(libv_path, 'r') as libv_file:
-                libv = libv_file.read()
+                libv = libv_file.read().strip()
             uiv = store.maica_ver
             _maica_version_check_cache = (
-                store.mas_utils.compareVersionLists(
+                compare_maica_versions(
                     maica_version_parts(libv),
                     maica_version_parts(uiv)
                 ),
@@ -471,17 +520,45 @@ init 5 python in maica:
     def is_frontend_version_outdated(version_info=None):
         if version_info is None:
             version_info = store.maica.maica_instance.version_info
-        if not version_info.get("success", False):
+        if not _maica_is_version_dict(version_info) or not version_info.get("success", False):
             return False
 
-        minver = version_info.get("content", {}).get("fe_blessland_version")
-        if not minver:
+        content = version_info.get("content")
+        if not _maica_is_version_dict(content):
+            return False
+        min_version = content.get("fe_blessland_version")
+        if not min_version:
             return False
 
-        return store.mas_utils.compareVersionLists(
+        comparison = compare_maica_versions(
             maica_version_parts(store.maica_ver),
-            maica_version_parts(minver)
-        ) == -1
+            maica_version_parts(min_version)
+        )
+        if comparison is None:
+            return False
+        return comparison < 0
+
+    def check_accessibility():
+        instance = store.maica.maica_instance
+        accessible = instance.accessable()
+        if accessible and is_frontend_version_outdated():
+            instance.disable(
+                instance.MaicaAiStatus.VERSION_OLD,
+                sticky=True,
+            )
+            return False
+        return accessible
+
+    def refresh_provider_list():
+        instance = store.maica.maica_instance
+        refreshed = instance.refresh_provider_list()
+        if instance.is_accessable() and is_frontend_version_outdated():
+            instance.disable(
+                instance.MaicaAiStatus.VERSION_OLD,
+                sticky=True,
+            )
+            return False
+        return refreshed
 
     def refresh_setting_pane_cache(force_version=False):
         global maica_setting_pane_cache
@@ -576,7 +653,7 @@ init 5 python in maica:
             if failed:
                 maica_set_plain_provider()
             else:
-                store.maica.maica_instance.accessable()
+                check_accessibility()
         finally:
             maica_certifi_download_thread_running = False
 
@@ -626,13 +703,7 @@ init 5 python in maica:
 
         refresh_setting_pane_cache(force_version=True)
 
-        store.maica.maica_instance.accessable()
-
-        if is_frontend_version_outdated():
-            store.maica.maica_instance.disable(
-                store.maica.maica_instance.MaicaAiStatus.VERSION_OLD,
-                sticky=True,
-            )
+        check_accessibility()
 
         check_workload()
 

@@ -1,6 +1,7 @@
 """Collectable static contracts for the backend-v1.3 release cut-over."""
 
 import ast
+import builtins
 import io
 import json
 import re
@@ -670,11 +671,12 @@ def test_a_frontend_version_declaration_is_authoritative():
     assert re.search(r"def\s+is_frontend_version_outdated\(version_info=None\)", api)
     assert 'get("fe_blessland_version")' in api
     assert "maica_version_parts(store.maica_ver)" in api
-    assert "maica_version_parts(minver)" in api
+    assert "maica_version_parts(min_version)" in api
+    assert "compare_maica_versions(" in api
     validate = function_body(api, "validate_version")
     assert "maica_version_parts(libv)" in validate
     assert "maica_version_parts(uiv)" in validate
-    assert "if is_frontend_version_outdated():" in api
+    assert "if accessible and is_frontend_version_outdated():" in api
     assert "elif maica.is_frontend_version_outdated():" in header
 
 
@@ -698,43 +700,55 @@ def test_a_frontend_version_comparison_uses_numeric_segments():
         for line in init_block.splitlines()
     )
     tree = ast.parse(python_source)
+    helper_names = {
+        "_maica_is_version_sequence",
+        "_maica_is_version_dict",
+        "maica_version_parts",
+        "compare_maica_versions",
+        "is_frontend_version_outdated",
+    }
     functions = [
         node for node in tree.body
         if isinstance(node, ast.FunctionDef)
-        and node.name in ("maica_version_parts", "is_frontend_version_outdated")
+        and node.name in helper_names
     ]
-    assert {node.name for node in functions} == {
-        "maica_version_parts",
-        "is_frontend_version_outdated",
-    }
-
-    comparisons = []
-
-    def compare_versions(current, minimum):
-        comparisons.append((current, minimum))
-        return (current > minimum) - (current < minimum)
-
-    class MasUtilsStub(object):
-        compareVersionLists = staticmethod(compare_versions)
+    assert {node.name for node in functions} == helper_names
 
     class StoreStub(object):
         maica_ver = "1.8.11"
-        mas_utils = MasUtilsStub()
 
-    namespace = {"store": StoreStub()}
+    namespace = {
+        "store": StoreStub(),
+        "_maica_version_builtin_types": builtins,
+    }
     module = ast.Module(body=functions, type_ignores=[])
     ast.fix_missing_locations(module)
     exec(compile(module, "api.rpy", "exec"), namespace)
 
+    assert namespace["maica_version_parts"](" 1.8.11\n") == [1, 8, 11]
+    assert namespace["maica_version_parts"](("1", 8, "11")) == [1, 8, 11]
+    assert namespace["maica_version_parts"]("1.8.x") is None
+    assert namespace["compare_maica_versions"]([1, 8], [1, 8, 0]) == 0
     assert namespace["is_frontend_version_outdated"]({
         "success": True,
         "content": {"fe_blessland_version": "1.8.5"},
     }) is False
-    assert comparisons[-1] == ([1, 8, 11], [1, 8, 5])
     assert namespace["is_frontend_version_outdated"]({
         "success": True,
         "content": {"fe_blessland_version": "1.8.12"},
     }) is True
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": {"fe_blessland_version": "1.8.11.0"},
+    }) is False
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": {"fe_blessland_version": "invalid"},
+    }) is False
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": [],
+    }) is False
 
 
 def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs():
@@ -808,8 +822,8 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
     assert "ai.wait_for_connection_shutdown(6.0)" in provider_sync
     assert "ai.multi_lock" not in provider_sync
     assert "provider_manager.get_provider()" not in provider_sync
-    assert provider_sync.count("ai.accessable()") == 1
-    assert "availability_ready = ai.accessable()" in provider_sync
+    assert provider_sync.count("store.maica.check_accessibility()") == 1
+    assert "availability_ready = store.maica.check_accessibility()" in provider_sync
 
     provider_screen = named_screen(screens, "maica_node_setting")
     assert "provider_manager.get_provider" not in provider_screen
@@ -850,6 +864,8 @@ def test_a_certificate_repair_and_version_disable_are_sticky():
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
     repair = function_body(api, r"maica_download_certifi_files")
     startup = function_body(api, r"start_maica")
+    version_guard = function_body(api, r"check_accessibility")
+    provider_refresh = function_body(api, r"refresh_provider_list")
 
     assert "13408" not in api
     assert repair.count("CERTIFI_RESTART_REQUIRED") == 1
@@ -858,9 +874,16 @@ def test_a_certificate_repair_and_version_disable_are_sticky():
         repair,
         re.S,
     )
+    assert "check_accessibility()" in startup
     assert re.search(
         r"disable\(\s*.*?VERSION_OLD\s*,\s*sticky\s*=\s*True",
-        startup,
+        version_guard,
+        re.S,
+    )
+    assert "instance.refresh_provider_list()" in provider_refresh
+    assert re.search(
+        r"disable\(\s*.*?VERSION_OLD\s*,\s*sticky\s*=\s*True",
+        provider_refresh,
         re.S,
     )
 

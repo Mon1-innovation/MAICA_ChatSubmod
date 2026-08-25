@@ -1,6 +1,7 @@
 import json
 import logging
 import math
+import re
 import sys
 import threading
 import urllib.request
@@ -1499,6 +1500,7 @@ def test_maica_namespace_container_guards_use_builtin_helpers():
     assert "is_builtin_dict(store.persistent.maica_stat)" in maica_block
     assert "is_builtin_dict(store.persistent.maica_mtrigger_status)" in maica_block
     assert "is_builtin_list(store.persistent._maica_visuals)" in maica_block
+    assert not re.search(r"(?<![\w.])persistent\b", maica_block)
     for legacy_guard in (
         "isinstance(postal, dict)",
         "isinstance(preview, dict)",
@@ -2982,12 +2984,18 @@ def test_accessable_preserves_sticky_version_disable_before_probe(
 ):
     ai = maica.MaicaAi("account", "password")
     provider_checks = []
+    cached_version = {
+        "success": True,
+        "content": {"fe_blessland_version": "99.0.0"},
+    }
+    ai.version_info = cached_version
     ai.provider_manager.get_provider = lambda: provider_checks.append(True)
     ai.disable(ai.MaicaAiStatus.VERSION_OLD, sticky=True)
 
     ai.accessable()
 
     assert provider_checks == []
+    assert ai.version_info is cached_version
     assert ai.status == ai.MaicaAiStatus.VERSION_OLD
     assert ai.is_accessable() is False
 
@@ -3019,6 +3027,181 @@ def test_accessable_rechecks_sticky_disable_before_committing_success(
 
     assert ai.status == ai.MaicaAiStatus.VERSION_OLD
     assert ai.is_accessable() is False
+
+
+def test_get_version_normalizes_server_and_invalid_response_failures(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Provider:
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        def __init__(self, status_code, payload):
+            self.status_code = status_code
+            self.payload = payload
+
+        def json(self):
+            if self.payload is None:
+                raise ValueError("not JSON")
+            return self.payload
+
+    ai.provider_manager = Provider()
+    responses = iter([
+        Response(
+            503,
+            {
+                "success": False,
+                "exception": "maica_unified_error: maintenance",
+            },
+        ),
+        Response(502, None),
+    ])
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: next(responses))
+
+    assert ai.get_version() == {
+        "success": False,
+        "status": "maica_unified_error",
+        "exception": "maintenance",
+        "code": 503,
+    }
+    assert ai.get_version() == {
+        "success": False,
+        "status": "client_response_invalid",
+        "exception": "Version response was not valid JSON",
+        "code": 502,
+    }
+
+
+def test_get_version_normalizes_network_failure(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *args, **kwargs: (_ for _ in ()).throw(IOError("offline")),
+    )
+
+    assert ai.get_version() == {
+        "success": False,
+        "status": "client_network_error",
+        "exception": "Version request failed",
+        "code": None,
+    }
+
+
+def test_accessable_caches_one_version_probe_before_defaults(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        status_code = 200
+
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    version_info = {
+        "success": True,
+        "content": {"fe_blessland_version": "1.8.0"},
+    }
+    calls = []
+
+    def fake_get(url, **kwargs):
+        calls.append(url)
+        if url.endswith("/accessibility"):
+            return Response({"success": True, "content": "serving"})
+        if url.endswith("/version"):
+            return Response(version_info)
+        if url.endswith("/defaults"):
+            return Response({"success": True, "content": {}})
+        raise AssertionError("unexpected URL: {}".format(url))
+
+    ai.provider_manager = Provider()
+    monkeypatch.setattr("requests.get", fake_get)
+
+    assert ai.accessable() is True
+    assert ai.version_info is version_info
+    assert calls == [
+        "https://backend.test/api/accessibility",
+        "https://backend.test/api/version",
+        "https://backend.test/api/defaults",
+    ]
+    assert ai.error_protocol_status is None
+
+
+def test_accessable_keeps_version_failure_separate_and_clears_stale_cache(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        status_code = 200
+
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    version_failure = {
+        "success": False,
+        "status": "client_server_unavailable",
+        "exception": "version unavailable",
+    }
+
+    def successful_access_get(url, **kwargs):
+        if url.endswith("/accessibility"):
+            return Response({"success": True, "content": "serving"})
+        if url.endswith("/version"):
+            return Response(version_failure)
+        if url.endswith("/defaults"):
+            return Response({"success": True, "content": {}})
+        raise AssertionError("unexpected URL: {}".format(url))
+
+    ai.provider_manager = Provider()
+    monkeypatch.setattr("requests.get", successful_access_get)
+
+    assert ai.accessable() is True
+    assert ai.version_info == {
+        "success": False,
+        "status": "client_server_unavailable",
+        "exception": "version unavailable",
+        "code": 200,
+    }
+    assert ai.error_protocol_status is None
+
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *args, **kwargs: Response(
+            {"success": True, "content": "maintenance"}
+        ),
+    )
+
+    assert ai.accessable() is False
+    assert ai.version_info == {"success": False, "content": {}}
+    assert ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN
 
 
 def test_accessable_checks_backend_before_external_network(monkeypatch):

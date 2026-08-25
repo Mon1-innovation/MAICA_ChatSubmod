@@ -864,14 +864,14 @@ screen maica_node_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("Refresh servers list"):
-                action Function(maica_start_provider_task, ai.refresh_provider_list)
+                action Function(maica_start_provider_task, store.maica.refresh_provider_list)
                 sensitive not provider_refresh_busy
 
             textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_node_setting")
 
             textbutton _("Test current node avaliability"):
-                action Function(maica_start_provider_task, ai.accessable)
+                action Function(maica_start_provider_task, store.maica.check_accessibility)
                 sensitive not provider_refresh_busy
 
 screen maica_mspire_setting():

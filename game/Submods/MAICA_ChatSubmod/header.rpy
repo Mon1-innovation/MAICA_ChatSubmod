@@ -914,7 +914,7 @@ init 10 python:
                         "Failed to sync provider id: previous websocket did not stop"
                     )
                     return
-                availability_ready = ai.accessable()
+                availability_ready = store.maica.check_accessibility()
 
                 if reconnect and availability_ready and ai.has_token():
                     ai.init_connect()
