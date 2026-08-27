@@ -1,5 +1,14 @@
 from __future__ import unicode_literals
 
+from maica_savefile import (
+    PLAYER_ADDITION_MAX_BYTES,
+    PLAYER_ADDITIONS_MAX_ITEMS,
+    TEXT_TYPES,
+    PlayerAdditionsValidationError,
+    utf8_byte_length,
+    validate_player_addition_item,
+)
+
 
 SETTING_RENAMES = {
     "sfe_aggressive": "prompt_pname_repl",
@@ -64,22 +73,9 @@ MSPIRE_SEARCH_TYPE_MIGRATIONS = {
 }
 
 try:
-    TEXT_TYPES = (basestring,)
-except NameError:
-    TEXT_TYPES = (str,)
-
-try:
     INTEGER_TYPES = (int, long)
 except NameError:
     INTEGER_TYPES = (int,)
-
-
-def utf8_byte_length(value):
-    if isinstance(value, bytes):
-        return len(value)
-    if isinstance(value, TEXT_TYPES):
-        return len(value.encode("utf-8"))
-    return len(str(value).encode("utf-8"))
 
 
 def _rename_values(values):
@@ -181,8 +177,8 @@ def migrate_setting_values(
 def backup_and_filter_player_additions(
     values,
     backup,
-    limit=512,
-    bytes_limit=1536,
+    limit=PLAYER_ADDITIONS_MAX_ITEMS,
+    bytes_limit=PLAYER_ADDITION_MAX_BYTES,
     backup_initialized=False,
 ):
     if not backup_initialized and not backup:
@@ -192,13 +188,9 @@ def backup_and_filter_player_additions(
     for value in values:
         if len(active) >= limit:
             break
-        if not isinstance(value, TEXT_TYPES):
-            continue
         try:
-            value_bytes = utf8_byte_length(value)
-        except UnicodeError:
-            continue
-        if value_bytes > bytes_limit:
+            validate_player_addition_item(value, bytes_limit=bytes_limit)
+        except PlayerAdditionsValidationError:
             continue
         active.append(value)
     return active

@@ -3,6 +3,7 @@ import logging
 import math
 import re
 import sys
+import textwrap
 import threading
 import urllib.request
 from pathlib import Path
@@ -21,9 +22,94 @@ import maica_mtrigger
 import maica_tasker
 import maica_tasker_sub
 import maica_tasker_sub_sessionsender
+import maica_savefile
 import maica_vista_files_manager
 import maica_v13_migration
 import migrations
+
+
+def load_rpy_python_function(path, name, namespace):
+    source = path.read_text(encoding="utf-8")
+    match = re.search(
+        r"(?m)^(?P<indent>[ \t]*)def\s+{}\s*\([^\n]*\):".format(
+            re.escape(name)
+        ),
+        source,
+    )
+    assert match, "function is missing: {}".format(name)
+    indent = match.group("indent")
+    following = source[match.end():]
+    next_def = re.search(
+        r"(?m)^{}def\s+\w+\s*\(".format(re.escape(indent)),
+        following,
+    )
+    end = match.end() + (next_def.start() if next_def else len(following))
+    exec(textwrap.dedent(source[match.start():end]), namespace)
+    return namespace[name]
+
+
+def make_persistent_upload_runtime(additions, **persistent_values):
+    class Stub(object):
+        pass
+
+    uploaded = []
+    notifications = []
+    warnings = []
+
+    persistent = Stub()
+    for name in (
+        "_seen_ever",
+        "_mas_event_init_lockdb",
+        "_changed",
+        "event_database",
+        "farewell_database",
+        "greeting_database",
+        "_mas_apology_database",
+        "_mas_compliments_database",
+        "_mas_fun_facts_database",
+        "_mas_mood_database",
+        "_mas_songs_database",
+        "_mas_story_database",
+    ):
+        setattr(persistent, name, {})
+    persistent._mas_affection_backups = None
+    persistent._preferences = object()
+    persistent._mas_player_bday = None
+    persistent.mas_player_additions = additions
+    for name, value in persistent_values.items():
+        setattr(persistent, name, value)
+
+    ai = Stub()
+    ai.target_lang = "en"
+    ai.upload_save = lambda payload: uploaded.append(payload) or {"success": True}
+    maica_store = Stub()
+    maica_store.savefile_access_marker_exists = lambda: True
+    maica_store.maica_instance = ai
+    logger = Stub()
+    logger.debug = lambda message: None
+    logger.warning = warnings.append
+    submod_utils = Stub()
+    submod_utils.submod_log = logger
+    store = Stub()
+    store.maica = maica_store
+    store.mas_submod_utils = submod_utils
+    store.player = "Player"
+    store._mas_getAffection = lambda: 42
+    renpy = Stub()
+    renpy.notify = notifications.append
+
+    upload = load_rpy_python_function(
+        PACKAGE_ROOT.parent / "Submods" / "MAICA_ChatSubmod" / "header.rpy",
+        "_upload_persistent_dict",
+        {
+            "_": lambda value: value,
+            "maica_savefile": maica_savefile,
+            "persistent": persistent,
+            "renpy": renpy,
+            "store": store,
+        },
+    )
+    return upload, ai, uploaded, notifications, warnings
 
 
 def test_development_migration_force_current_is_repeatable():
@@ -3679,6 +3765,92 @@ def test_player_additions_does_not_replace_an_initialized_empty_backup():
 
     assert active == ["added-after-migration"]
     assert backup == []
+
+
+def test_savefile_sanitizer_includes_target_lang_and_uses_field_specific_limits():
+    long_general_value = "中" * 513
+    additions = ["a" * 1536, "中" * 512]
+    source = {
+        "target_lang": "auto",
+        "mas_geolocation": long_general_value,
+        "mas_player_additions": additions,
+        "not_in_the_upload_contract": "private",
+    }
+
+    sanitized = maica_savefile.sanitize_persistent_dict(source)
+
+    assert sanitized["target_lang"] == "auto"
+    assert sanitized["mas_geolocation"] == long_general_value
+    assert sanitized["mas_player_additions"] == additions
+    assert sanitized["mas_player_additions"] is not additions
+    assert "not_in_the_upload_contract" not in sanitized
+    assert "REMOVED|TOO_LONG" not in repr(sanitized)
+
+
+def test_savefile_sanitizer_accepts_the_512_item_boundary():
+    additions = ["item-{}".format(index) for index in range(512)]
+
+    sanitized = maica_savefile.sanitize_persistent_dict(
+        {"mas_player_additions": additions}
+    )
+
+    assert sanitized["mas_player_additions"] == additions
+
+
+@pytest.mark.parametrize(
+    ("additions", "message"),
+    (
+        (None, "container must be a list"),
+        (("valid",), "container must be a list"),
+        (["valid"] * 513, "maximum is 512"),
+        (["valid", 7], "item 1: must be text"),
+        (["a" * 1537], "maximum is 1536"),
+        (["\udcff"], "cannot be encoded as UTF-8"),
+    ),
+)
+def test_savefile_sanitizer_rejects_invalid_player_additions(additions, message):
+    with pytest.raises(maica_savefile.PlayerAdditionsValidationError) as exc_info:
+        maica_savefile.sanitize_persistent_dict(
+            {"mas_player_additions": additions}
+        )
+
+    assert message in str(exc_info.value)
+
+
+def test_upload_persistent_dict_sends_target_lang_and_preserves_valid_values():
+    upload, ai, uploaded, notifications, warnings = make_persistent_upload_runtime(
+        ["a" * 1536],
+        mas_geolocation="中" * 513,
+        not_in_the_upload_contract="private",
+    )
+    upload()
+
+    assert len(uploaded) == 1
+    assert uploaded[0]["target_lang"] == "en"
+    assert uploaded[0]["mas_geolocation"] == "中" * 513
+    assert uploaded[0]["mas_player_additions"] == ["a" * 1536]
+    assert uploaded[0]["mas_playername"] == "Player"
+    assert uploaded[0]["mas_affection"] == 42
+    assert "not_in_the_upload_contract" not in uploaded[0]
+    assert warnings == []
+    assert notifications == ["MAICA: Savefile uploaded successfully"]
+
+
+def test_upload_persistent_dict_does_not_overwrite_backend_with_invalid_additions():
+    upload, ai, uploaded, notifications, warnings = make_persistent_upload_runtime(
+        ["a" * 1537]
+    )
+    ai.target_lang = "zh"
+    upload()
+
+    assert uploaded == []
+    assert notifications == [
+        "MAICA: Savefile upload cancelled because MFocus information is invalid"
+    ]
+    assert len(warnings) == 1
+    assert "item 0" in warnings[0]
+    assert "maximum is 1536" in warnings[0]
+    assert "a" * 1537 not in warnings[0]
 
 
 def test_maica_ai_constructs_version_info(isolated_maica_ai_globals):

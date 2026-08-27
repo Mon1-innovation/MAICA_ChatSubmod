@@ -1,4 +1,13 @@
-[
+from __future__ import unicode_literals
+
+import json
+
+
+PLAYER_ADDITIONS_KEY = "mas_player_additions"
+PLAYER_ADDITIONS_MAX_ITEMS = 512
+PLAYER_ADDITION_MAX_BYTES = 1536
+
+PERSISTENT_UPLOAD_KEYS = (
     "mas_playername",
     "mas_player_bday",
     "mas_affection",
@@ -102,7 +111,6 @@
     "_mas_pm_likes_poetry",
     "_mas_pm_likes_board_games",
     "_mas_pm_works_out",
-    "_mas_pm_social_personality",
     "_mas_pm_likes_nature",
     "_mas_pm_swear_frequency",
     "_mas_gender",
@@ -113,5 +121,106 @@
     "_mas_player_bday_spent_time",
     "_mas_d25_spent_d25",
     "_mas_o31_tt_count",
-    "sessions"
-]
+    "sessions",
+)
+
+try:
+    TEXT_TYPES = (basestring,)
+except NameError:
+    TEXT_TYPES = (str,)
+
+
+class PlayerAdditionsValidationError(ValueError):
+    def __init__(self, code, reason, index=None):
+        self.code = code
+        self.reason = reason
+        self.index = index
+        if index is None:
+            message = reason
+        else:
+            message = "item {}: {}".format(index, reason)
+        ValueError.__init__(self, message)
+
+
+def utf8_byte_length(value):
+    if isinstance(value, bytes):
+        return len(value)
+    if isinstance(value, TEXT_TYPES):
+        return len(value.encode("utf-8"))
+    return len(str(value).encode("utf-8"))
+
+
+def validate_player_addition_item(value, bytes_limit=PLAYER_ADDITION_MAX_BYTES, index=None):
+    if not isinstance(value, TEXT_TYPES):
+        raise PlayerAdditionsValidationError("invalid_type", "must be text", index)
+    try:
+        value_bytes = utf8_byte_length(value)
+    except UnicodeError:
+        raise PlayerAdditionsValidationError(
+            "invalid_encoding",
+            "cannot be encoded as UTF-8",
+            index,
+        )
+    if value_bytes > bytes_limit:
+        raise PlayerAdditionsValidationError(
+            "too_long",
+            "uses {} UTF-8 bytes; maximum is {}".format(value_bytes, bytes_limit),
+            index,
+        )
+    return value
+
+
+def validate_player_additions(values):
+    if not isinstance(values, list):
+        raise PlayerAdditionsValidationError(
+            "invalid_container",
+            "container must be a list",
+        )
+    if len(values) > PLAYER_ADDITIONS_MAX_ITEMS:
+        raise PlayerAdditionsValidationError(
+            "too_many",
+            "contains {} items; maximum is {}".format(
+                len(values),
+                PLAYER_ADDITIONS_MAX_ITEMS,
+            )
+        )
+    for index, value in enumerate(values):
+        validate_player_addition_item(value, index=index)
+    return values
+
+
+def _sanitize_value(value, allowed_keys, depth=0):
+    if depth > 3:
+        return "REMOVED|TOO_DEEP"
+    if value is None:
+        return None
+    if isinstance(value, dict):
+        return {
+            key: _sanitize_value(item, allowed_keys, depth + 1)
+            for key, item in value.items()
+            if key in allowed_keys
+        }
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_value(item, allowed_keys, depth + 1) for item in value]
+    try:
+        json.dumps(value)
+        return value
+    except Exception:
+        return "REMOVED|UNSERIALIZABLE"
+
+
+def sanitize_persistent_dict(values, allowed_keys=PERSISTENT_UPLOAD_KEYS):
+    if not isinstance(values, dict):
+        raise TypeError("persistent upload source must be a dictionary")
+
+    allowed_keys = frozenset(allowed_keys)
+    sanitized = {}
+    for key, value in values.items():
+        if key not in allowed_keys:
+            continue
+        if key == PLAYER_ADDITIONS_KEY:
+            validate_player_additions(value)
+            sanitized[key] = list(value)
+        else:
+            sanitized[key] = _sanitize_value(value, allowed_keys)
+    return sanitized

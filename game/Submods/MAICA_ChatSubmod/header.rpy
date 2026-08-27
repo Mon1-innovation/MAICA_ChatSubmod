@@ -77,6 +77,7 @@ define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 init 10 python:
     import logging
     import bot_interface
+    import maica_savefile
     import maica_v13_migration
 
     if _maica_repaired_persistent_containers:
@@ -624,12 +625,17 @@ init 10 python:
             return None
         addition = ("{player_name}" + raw_addition.strip() if prefix_player else raw_addition.strip())
         replacing = edittarget in additions
-        if len(additions) >= 512:
+        if len(additions) >= maica_savefile.PLAYER_ADDITIONS_MAX_ITEMS:
             if not replacing:
                 renpy.notify(_("MAICA: Custom MFocus information has reached the 512-item limit"))
                 return None
-        if len(addition.encode("utf-8")) > 1536:
-            renpy.notify(_("MAICA: A custom MFocus information item cannot exceed 1536 bytes"))
+        try:
+            maica_savefile.validate_player_addition_item(addition)
+        except maica_savefile.PlayerAdditionsValidationError as error:
+            if error.code == "too_long":
+                renpy.notify(_("MAICA: A custom MFocus information item cannot exceed 1536 bytes"))
+            else:
+                renpy.notify(_("MAICA: Input contains invalid text"))
             return None
         if addition in additions and addition != edittarget:
             renpy.notify(_("MAICA: Identical content already exists"))
@@ -659,8 +665,7 @@ init 10 python:
             store.mas_submod_utils.submod_log.debug("MAICA: Skip savefile upload because savefile_access marker is missing")
             return
 
-        max_bytes = 1536
-        import copy, maica_v13_migration
+        import copy
         d = copy.deepcopy(persistent.__dict__)
         d['_seen_ever'].clear()
         d['_mas_event_init_lockdb'].clear()
@@ -689,49 +694,14 @@ init 10 python:
         d['mas_affection'] = store._mas_getAffection()
         d['target_lang'] = store.maica.maica_instance.target_lang
         del d['_preferences']
-        import json_exporter
-        sentiment = json_exporter.persistent_filter
-
-        keys_to_remove = []
-
-        def process_value(value, depth=0):
-            # Prevent infinite recursion
-            if depth > 3:
-                return "REMOVED|TOO_DEEP"
-
-            # Handle None
-            if value is None:
-                return None
-
-            # Recursive processing for dictionaries
-            if isinstance(value, dict):
-                return {k: process_value(v, depth+1) for k, v in value.items() if k in sentiment}
-
-            # Recursive processing for lists/tuples
-            if isinstance(value, (list, tuple)):
-                return [process_value(item, depth+1) for item in value]
-
-            # check serialization and length
-            try:
-                if maica_v13_migration.utf8_byte_length(value) > max_bytes:
-                    return "REMOVED|TOO_LONG"
-
-                # Attempt JSON serialization
-                json.dumps(value)
-                return value
-            except:
-                return "REMOVED|UNSERIALIZABLE"
-
-        keys_to_remove = []
-        for i in list(d.keys()):  # Use list() for Python 2 & 3 compatibility
-            if i not in sentiment:
-                keys_to_remove.append(i)
-                continue
-
-            d[i] = process_value(d[i])
-
-        for key in keys_to_remove:
-            del d[key]
+        try:
+            d = maica_savefile.sanitize_persistent_dict(d)
+        except maica_savefile.PlayerAdditionsValidationError as error:
+            store.mas_submod_utils.submod_log.warning(
+                "MAICA: Savefile upload cancelled because MFocus information is invalid: {}".format(error)
+            )
+            renpy.notify(_("MAICA: Savefile upload cancelled because MFocus information is invalid"))
+            return
         res = store.maica.maica_instance.upload_save(d)
         renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA; Savefile failed to upload"))
 

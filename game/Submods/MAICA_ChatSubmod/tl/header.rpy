@@ -484,6 +484,12 @@ translate chinese strings:
 
 translate chinese strings:
 
+    # game/Submods/MAICA_ChatSubmod/header.rpy:635
+    old "MAICA: Input contains invalid text"
+    new "MAICA: 输入包含无效文本"
+    # game/Submods/MAICA_ChatSubmod/header.rpy:703
+    old "MAICA: Savefile upload cancelled because MFocus information is invalid"
+    new "MAICA: MFocus补充信息无效, 已取消存档上传"
     # game/Submods/MAICA_ChatSubmod/header.rpy:141
     old "MAICA: Savefile uploaded successfully"
     new "MAICA: 存档上传成功"

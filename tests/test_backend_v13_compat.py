@@ -1391,8 +1391,7 @@ def test_c_each_outbound_builder_retires_mt_extraction(relative):
 
 
 def test_c_persistent_exports_retire_mas_sf_hcb():
-    assert "mas_sf_hcb" not in source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")
-    assert "mas_sf_hcb" not in source("game/python-packages/json_exporter.py")
+    assert "mas_sf_hcb" not in source("game/python-packages/maica_savefile.py")
 
 
 def test_d_login_and_generation_start_use_v13_protocol():
@@ -1687,13 +1686,15 @@ def test_f_legality_response_displays_distinct_latitude_and_longitude():
     assert 'old "Location geocode: "' not in translation
 
 
-def test_g_header_shared_additions_helper_enforces_both_byte_limits():
+def test_g_header_shared_additions_helper_uses_the_backend_limits():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     helper = function_body(header, r"_?maica_\w*addition\w*")
-    count_reject = conditional_body(helper, r"len\s*\(\s*\w*additions\w*\s*\)\s*(?:>=\s*512|>\s*511)")
-    byte_reject = conditional_body(helper, r"len\s*\([^\n]*\.encode\s*\(\s*['\"]utf-8['\"]\s*\)[^\n]*\)\s*(?:>\s*1536|>=\s*1537)")
-    for rejection in (count_reject, byte_reject):
-        assert re.search(r"\b(?:return|raise|notify|show_screen)\b", rejection), "limit branch does not reject or notify"
+    contract = source("game/python-packages/maica_savefile.py")
+
+    assert "maica_savefile.PLAYER_ADDITIONS_MAX_ITEMS" in helper
+    assert "maica_savefile.validate_player_addition_item" in helper
+    assert literal_assignment(contract, "PLAYER_ADDITIONS_MAX_ITEMS") == 512
+    assert literal_assignment(contract, "PLAYER_ADDITION_MAX_BYTES") == 1536
 
 
 def test_g_chat_and_screen_call_the_same_additions_helper():
@@ -1722,18 +1723,27 @@ def test_g_old_1000_character_preprocessor_is_retired(relative):
     assert not re.search(r"(?:maxlen\s*=\s*1000|\[:\s*1000\s*\]|len\s*\([^)]*\)\s*>\s*1000)", source(relative)), relative
 
 
-def test_g_persistent_upload_uses_the_player_addition_byte_limit():
+def test_g_persistent_upload_uses_the_field_specific_sanitizer():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     upload = function_body(header, r"_upload_persistent_dict")
-    assert re.search(r"max_bytes\s*=\s*1536\b", upload)
-    assert re.search(r"maica_v13_migration\.utf8_byte_length\s*\(", upload)
+
+    assert "maica_savefile.sanitize_persistent_dict(d)" in upload
+    assert "REMOVED|TOO_LONG" not in upload
+    assert upload.index("sanitize_persistent_dict") < upload.index("upload_save(d)")
+    invalid_branch = block_after(
+        upload,
+        r"except\s+maica_savefile\.PlayerAdditionsValidationError",
+        500,
+    )
+    assert re.search(r"\breturn\b", invalid_branch)
 
 
 def test_g_persistent_upload_includes_the_effective_target_language():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     upload = function_body(header, r"_upload_persistent_dict")
-    persistent_filter = json.loads(
-        source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")
+    upload_keys = literal_assignment(
+        source("game/python-packages/maica_savefile.py"),
+        "PERSISTENT_UPLOAD_KEYS",
     )
 
     assert re.search(
@@ -1741,7 +1751,8 @@ def test_g_persistent_upload_includes_the_effective_target_language():
         r"store\.maica\.maica_instance\.target_lang",
         upload,
     )
-    assert "target_lang" in persistent_filter
+    assert "target_lang" in upload_keys
+    assert "maica_savefile.sanitize_persistent_dict(d)" in upload
 
 
 def test_g_v18_migration_runs_before_persistent_upload():
@@ -1981,5 +1992,15 @@ def test_retired_ws_protocol_identifiers_are_not_registered():
     assert not found, "retired websocket identifiers remain: {}".format(found)
 
 
-def test_persistent_filter_is_valid_json():
-    assert isinstance(json.loads(source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")), (list, dict))
+def test_persistent_upload_filter_has_one_unique_owner():
+    upload_keys = literal_assignment(
+        source("game/python-packages/maica_savefile.py"),
+        "PERSISTENT_UPLOAD_KEYS",
+    )
+
+    assert len(upload_keys) == len(set(upload_keys))
+    assert not (SUBMOD / "persistent_filter.json").exists()
+    assert not re.search(
+        r"(?m)^persistent_filter\s*=",
+        source("game/python-packages/json_exporter.py"),
+    )
