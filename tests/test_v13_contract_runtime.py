@@ -2164,6 +2164,43 @@ def test_init_connect_unknown_unavailability_is_connection_problem(
     assert ai.error_protocol_status == "client_availability_failed"
 
 
+def test_init_connect_does_not_overwrite_in_progress_certificate_check(
+    isolated_maica_ai_globals,
+    monkeypatch,
+):
+    import certifi
+
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = "token-value"
+    check_started = threading.Event()
+    check_release = threading.Event()
+    monkeypatch.setattr(certifi, "set_parent_dir", lambda *args: None, raising=False)
+
+    def blocked_certificate_check():
+        check_started.set()
+        check_release.wait(2.0)
+        return False
+
+    ai.check_certifi = blocked_certificate_check
+    check_thread = threading.Thread(target=ai.accessable)
+    check_thread.start()
+    try:
+        assert check_started.wait(1.0)
+        assert ai.init_connect() is False
+        assert ai.status == ai.MaicaAiStatus.WAIT_AVAILABILITY
+        assert ai.error_protocol_status is None
+        assert ai.error_message is None
+        assert ai.wss_thread is None
+    finally:
+        check_release.set()
+        check_thread.join(2.0)
+
+    assert not check_thread.is_alive()
+    assert ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN
+    assert ai.error_protocol_status == "client_certifi_broken"
+    assert ai.error_message == "SSL/TLS certificate validation is unavailable"
+
+
 def test_init_connect_is_single_flight_and_clears_stale_state_before_start(
     isolated_maica_ai_globals,
 ):

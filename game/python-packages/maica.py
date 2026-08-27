@@ -1217,6 +1217,8 @@ class MaicaAi(ChatBotInterface):
                 return False
 
         if not self.__accessable:
+            if self.is_checking_availability():
+                return False
             self._preserve_or_set_availability_error(
                 "Maica server availability is unknown"
             )
