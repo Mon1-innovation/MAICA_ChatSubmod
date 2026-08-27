@@ -25,8 +25,11 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_prepend_1",
             unlocked=False,
-            random=True,
-            conditional="not renpy.seen_label('maica_prepend_1')",
+            random=False,
+            conditional=(
+                "not renpy.seen_label('maica_prepend_1') "
+                "and not mas_inEVL('maica_prepend_1')"
+            ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -105,7 +108,8 @@ init 5 python:
             conditional=(
                 "maica_topic_main_ready() "
                 "and maica_has_successful_chat() "
-                "and not renpy.seen_label('maica_wants_location2')"
+                "and not renpy.seen_label('maica_wants_location2') "
+                "and not mas_inEVL('maica_wants_location2')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
@@ -145,7 +149,8 @@ init 5 python:
             conditional=(
                 "maica_topic_main_ready() "
                 "and maica_get_successful_chat_count() >= 2 "
-                "and not renpy.seen_label('maica_wants_preferences2')"
+                "and not renpy.seen_label('maica_wants_preferences2') "
+                "and not mas_inEVL('maica_wants_preferences2')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
@@ -248,7 +253,8 @@ init 5 python:
             conditional=(
                 "maica_topic_main_ready() "
                 "and maica_get_successful_chat_count() >= 3 "
-                "and not renpy.seen_label('maica_pre_wants_mvista')"
+                "and not renpy.seen_label('maica_pre_wants_mvista') "
+                "and not mas_inEVL('maica_pre_wants_mvista')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
@@ -297,12 +303,14 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr_gone",
+            random=False,
             pool=False,
             unlocked=False,
             conditional=(
-                "not maica_chr_exist "
-                "and maica_topic_main_ready() "
-                "and not renpy.seen_label('maica_chr_gone')"
+                "maica_topic_main_ready() "
+                "and not maica_chr_exist "
+                "and not renpy.seen_label('maica_chr_gone') "
+                "and not mas_inEVL('maica_chr_gone')"
             ),
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
@@ -321,7 +329,8 @@ init 5 python:
                 "and maica_get_successful_chat_count() >= 4 "
                 "and not renpy.seen_label('maica_chr2') "
                 "and not renpy.seen_label('maica_chr_gone') "
-                "and not renpy.seen_label('maica_chr_corrupted2')"
+                "and not renpy.seen_label('maica_chr_corrupted2') "
+                "and not mas_inEVL('maica_chr2')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)

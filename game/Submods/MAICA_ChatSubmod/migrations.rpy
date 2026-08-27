@@ -163,6 +163,15 @@ init 998 python:
         ("mvista", "maica_pre_wants_mvista", ()),
     )
 
+    _MAICA_DISPATCH_EVENTLABELS = (
+        "maica_prepend_1",
+        "maica_wants_location2",
+        "maica_wants_preferences2",
+        "maica_pre_wants_mvista",
+        "maica_chr2",
+        "maica_chr_gone",
+    )
+
     def _maica_read_source(source_name):
         """Read one canonical source and its legacy aliases in one place."""
         if source_name == "character":
@@ -358,27 +367,27 @@ init 998 python:
         return (
             # Hidden dispatch events.
             ("maica_prepend_1", None, "internal-contract", "internal", False, {
-                "conditional": "not renpy.seen_label('maica_prepend_1')",
-                "action": queue_action, "random": True, "pool": False,
+                "conditional": "not renpy.seen_label('maica_prepend_1') and not mas_inEVL('maica_prepend_1')",
+                "action": queue_action, "random": False, "pool": False,
             }, False, None),
             ("maica_wants_location2", None, "internal-contract", "internal", False, {
-                "conditional": main_gate + "maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2')",
+                "conditional": main_gate + "maica_has_successful_chat() and not renpy.seen_label('maica_wants_location2') and not mas_inEVL('maica_wants_location2')",
                 "action": queue_action, "random": False, "pool": False,
             }, False, None),
             ("maica_wants_preferences2", None, "internal-contract", "internal", False, {
-                "conditional": main_gate + "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2')",
+                "conditional": main_gate + "maica_get_successful_chat_count() >= 2 and not renpy.seen_label('maica_wants_preferences2') and not mas_inEVL('maica_wants_preferences2')",
                 "action": queue_action, "random": False, "pool": False,
             }, False, None),
             ("maica_pre_wants_mvista", None, "internal-contract", "internal", False, {
-                "conditional": main_gate + "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista')",
+                "conditional": main_gate + "maica_get_successful_chat_count() >= 3 and not renpy.seen_label('maica_pre_wants_mvista') and not mas_inEVL('maica_pre_wants_mvista')",
                 "action": queue_action, "random": False, "pool": False,
             }, False, None),
             ("maica_chr2", None, "internal-contract", "internal", False, {
-                "conditional": main_gate + "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2')",
+                "conditional": main_gate + "maica_get_successful_chat_count() >= 4 and not renpy.seen_label('maica_chr2') and not renpy.seen_label('maica_chr_gone') and not renpy.seen_label('maica_chr_corrupted2') and not mas_inEVL('maica_chr2')",
                 "action": queue_action, "random": False, "pool": False,
             }, False, None),
             ("maica_chr_gone", None, "internal-contract", "internal", False, {
-                "conditional": main_gate + "not maica_chr_exist and not renpy.seen_label('maica_chr_gone')",
+                "conditional": main_gate + "not maica_chr_exist and not renpy.seen_label('maica_chr_gone') and not mas_inEVL('maica_chr_gone')",
                 "action": push_action, "random": False, "pool": False,
             }, False, None),
             ("maica_wants_mspire", None, "internal-contract", "internal", False, {
@@ -651,6 +660,204 @@ init 998 python:
             changed = _maica_sync_event_lookup(eventlabel) or changed
         return changed
 
+    def _maica_queue_label(item):
+        if isinstance(item, (tuple, list)) and item:
+            return item[0]
+        return item
+
+    def _maica_dispatch_queue_positions(eventlabel):
+        positions = []
+        try:
+            for index, item in enumerate(getattr(persistent, "event_list", None) or ()):
+                if _maica_queue_label(item) == eventlabel:
+                    positions.append(index)
+        except Exception:
+            pass
+        return positions
+
+    def _maica_normalize_dispatch_queue(reason):
+        """Remove completed/duplicate dispatch entries without touching current ELI data."""
+        result = {
+            "changed": False,
+            "removed": 0,
+            "removed_by_label": {},
+        }
+        try:
+            event_list = getattr(persistent, "event_list", None)
+            if event_list is None:
+                return result
+
+            original = list(event_list)
+            retained = set()
+            repaired_reversed = []
+            # MAS pops from the end. Keeping the last queued copy preserves the
+            # entry that would run first, including one restored by restartEvent.
+            for item in reversed(original):
+                eventlabel = _maica_queue_label(item)
+                if eventlabel not in _MAICA_DISPATCH_EVENTLABELS:
+                    repaired_reversed.append(item)
+                    continue
+
+                completed = _maica_event_shown_count(
+                    _maica_get_event(eventlabel)
+                ) > 0
+                if completed or eventlabel in retained:
+                    result["removed"] += 1
+                    result["removed_by_label"][eventlabel] = (
+                        result["removed_by_label"].get(eventlabel, 0) + 1
+                    )
+                    continue
+
+                retained.add(eventlabel)
+                repaired_reversed.append(item)
+
+            repaired = list(reversed(repaired_reversed))
+            if repaired != original:
+                event_list[:] = repaired
+                result["changed"] = True
+        except Exception as exc:
+            _maica_state_log(
+                "warning",
+                "MAICA: dispatch queue normalization failed ({}) {}: {}".format(
+                    reason,
+                    exc.__class__.__name__,
+                    exc,
+                ),
+            )
+            return result
+
+        if result["changed"]:
+            removed_summary = ", ".join(
+                "{}={}".format(eventlabel, count)
+                for eventlabel, count in sorted(result["removed_by_label"].items())
+            )
+            _maica_state_log(
+                "warning",
+                "MAICA: dispatch queue normalized ({}) removed={} [{}]".format(
+                    reason,
+                    result["removed"],
+                    removed_summary,
+                ),
+            )
+        return result
+
+    def _maica_log_dispatch_diagnostics(reason):
+        """Log enough scheduler state to diagnose a topic that did not dispatch."""
+        try:
+            event_list = getattr(persistent, "event_list", None) or ()
+            current_topic = getattr(persistent, "current_monikatopic", None)
+            mas_globals = getattr(store, "mas_globals", None)
+            idle_mode = getattr(mas_globals, "in_idle_mode", None)
+            pause_until = getattr(mas_globals, "event_unpause_dt", None)
+            affection_known = "mas_curr_affection" in globals()
+            affection = globals().get("mas_curr_affection", None)
+            try:
+                successful_chats = maica_get_successful_chat_count()
+            except Exception:
+                successful_chats = None
+
+            _maica_state_log(
+                "info",
+                "MAICA: dispatch diagnostics ({}) queue_total={} current={!r} "
+                "idle={!r} pause_until={!r} affection={!r} successful_chats={!r}".format(
+                    reason,
+                    len(event_list),
+                    current_topic,
+                    idle_mode,
+                    pause_until,
+                    affection if affection_known else "unavailable",
+                    successful_chats,
+                ),
+            )
+
+            for eventlabel in _MAICA_DISPATCH_EVENTLABELS:
+                event = _maica_get_event(eventlabel)
+                queue_positions = _maica_dispatch_queue_positions(eventlabel)
+                try:
+                    label_exists = bool(renpy.has_label(eventlabel))
+                except Exception:
+                    label_exists = None
+
+                if event is None:
+                    _maica_state_log(
+                        "warning",
+                        "MAICA: dispatch event ({}) label={} event=missing "
+                        "label_exists={!r} queued={} queue_positions={!r} current={}".format(
+                            reason,
+                            eventlabel,
+                            label_exists,
+                            len(queue_positions),
+                            queue_positions,
+                            current_topic == eventlabel,
+                        ),
+                    )
+                    continue
+
+                conditional = getattr(event, "conditional", None)
+                if conditional is None:
+                    condition_result = None
+                else:
+                    try:
+                        checker = getattr(event, "checkConditional", None)
+                        condition_result = (
+                            bool(checker())
+                            if checker is not None
+                            else "unavailable"
+                        )
+                    except Exception as exc:
+                        condition_result = "error:{}:{}".format(
+                            exc.__class__.__name__,
+                            exc,
+                        )
+
+                try:
+                    affection_checker = getattr(event, "checkAffection", None)
+                    affection_result = (
+                        bool(affection_checker(affection))
+                        if affection_known and affection_checker is not None
+                        else "unavailable"
+                    )
+                except Exception as exc:
+                    affection_result = "error:{}:{}".format(
+                        exc.__class__.__name__,
+                        exc,
+                    )
+
+                _maica_state_log(
+                    "debug",
+                    "MAICA: dispatch event ({}) label={} label_exists={!r} "
+                    "seen_label={} seen_ever={} shown_count={} unlocked={!r} "
+                    "random={!r} pool={!r} action={!r} conditional={!r} "
+                    "condition_result={!r} affection_ok={!r} queued={} "
+                    "queue_positions={!r} current={}".format(
+                        reason,
+                        eventlabel,
+                        label_exists,
+                        _maica_seen_label(eventlabel),
+                        _maica_seen_ever(eventlabel),
+                        _maica_event_shown_count(event),
+                        getattr(event, "unlocked", None),
+                        getattr(event, "random", None),
+                        getattr(event, "pool", None),
+                        getattr(event, "action", None),
+                        conditional,
+                        condition_result,
+                        affection_result,
+                        len(queue_positions),
+                        queue_positions,
+                        current_topic == eventlabel,
+                    ),
+                )
+        except Exception as exc:
+            _maica_state_log(
+                "warning",
+                "MAICA: dispatch diagnostics failed ({}) {}: {}".format(
+                    reason,
+                    exc.__class__.__name__,
+                    exc,
+                ),
+            )
+
     def maica_reconcile_topic_state(reason="startup", repair_contracts=False):
         """Run one pipeline: collect -> derive gates -> apply contracts -> log."""
         # ``repair_contracts`` is retained for compatibility with the first
@@ -660,6 +867,7 @@ init 998 python:
         progress = maica_get_topic_progress()
         changes, contracts_changed = _maica_apply_topic_contracts(progress, reason)
         contracts_changed = bool(contracts_changed or legacy_changed)
+        queue_result = _maica_normalize_dispatch_queue(reason)
         if legacy_changed:
             _maica_state_log(
                 "info",
@@ -699,11 +907,15 @@ init 998 python:
             except Exception:
                 pass
 
+        _maica_log_dispatch_diagnostics(reason)
+
         return {
             "progress": progress,
             "changes": changes,
-            "changed": contracts_changed,
+            "changed": bool(contracts_changed or queue_result["changed"]),
             "legacy_changed": bool(legacy_changed),
+            "queue_changed": queue_result["changed"],
+            "queue_removed": queue_result["removed"],
         }
 
     def migration_1_8_17():

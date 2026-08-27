@@ -74,6 +74,15 @@ INTERNAL_EVENTLABELS = (
     "maica_mspire",
 )
 
+DISPATCH_EVENTLABELS = (
+    "maica_prepend_1",
+    "maica_wants_location2",
+    "maica_wants_preferences2",
+    "maica_pre_wants_mvista",
+    "maica_chr2",
+    "maica_chr_gone",
+)
+
 
 def _event_block(eventlabel):
     marker = 'eventlabel="{}"'.format(eventlabel)
@@ -283,6 +292,17 @@ def test_chat_progression_uses_successful_entry_count():
         "maica_wants_mpostal"
     )
     assert "mas_getEV('maica_main').shown_count" not in CHAT_SOURCE
+
+
+def test_one_shot_dispatch_events_are_not_random_and_guard_the_event_list():
+    for eventlabel in DISPATCH_EVENTLABELS:
+        registration = _registration_block(eventlabel)
+        assert "random=False" in registration
+        assert "not mas_inEVL('{}')".format(eventlabel) in registration
+
+    assert "random=True" not in _registration_block("maica_prepend_1")
+    for eventlabel in DISPATCH_EVENTLABELS:
+        assert "not mas_inEVL('{}')".format(eventlabel) in MIGRATION_SOURCE
 
 
 def test_mvista_unlock_is_derived_from_its_intro_seen_state():
@@ -659,6 +679,178 @@ def _load_topic_reconciler(
         namespace["mas_all_ev_db_map"] = db_map
     exec(source, namespace)
     return namespace, persistent, renpy, logger, rebuild_calls
+
+
+def test_dispatch_contracts_block_repeat_actions_after_startup_repair():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    events = {eventlabel: EventStub() for eventlabel in DISPATCH_EVENTLABELS}
+    namespace, persistent, renpy, _, _ = _load_topic_reconciler(events)
+
+    namespace["maica_reconcile_topic_state"](reason="dispatch-runtime")
+    persistent.event_list = []
+
+    def in_event_list(eventlabel):
+        return any(
+            (item[0] if isinstance(item, (tuple, list)) else item) == eventlabel
+            for item in persistent.event_list
+        )
+
+    runtime_globals = dict(namespace)
+    runtime_globals.update({
+        "maica_topic_main_ready": lambda: True,
+        "maica_has_successful_chat": lambda: True,
+        "maica_get_successful_chat_count": lambda: 10,
+        "maica_chr_exist": False,
+        "mas_inEVL": in_event_list,
+        "renpy": renpy,
+    })
+
+    # MAS random selection does not consult a conditional or action. None of
+    # these one-shot dispatchers may therefore remain a random candidate.
+    assert [
+        eventlabel
+        for eventlabel, event in events.items()
+        if event.random
+    ] == []
+
+    for eventlabel in DISPATCH_EVENTLABELS:
+        event = events[eventlabel]
+        assert eval(event.conditional, runtime_globals) is True
+
+        if event.action == "queue":
+            persistent.event_list.insert(0, (eventlabel, False, None))
+        else:
+            assert event.action == "push"
+            persistent.event_list.append((eventlabel, False, None))
+
+        # On a later startup the reconciler restores action/conditional. The
+        # EVL guard must still prevent MAS from dispatching a second copy.
+        assert eval(event.conditional, runtime_globals) is False
+        persistent.event_list[:] = []
+
+
+def test_dispatch_queue_cleanup_preserves_interrupted_event_and_drops_completed_entries():
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.unlocked = False
+            self.shown_count = shown_count
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = None
+            self.action = None
+            self.rules = {}
+
+    events = {eventlabel: EventStub() for eventlabel in DISPATCH_EVENTLABELS}
+    events["maica_wants_preferences2"].shown_count = 1
+    namespace, persistent, _, logger, _ = _load_topic_reconciler(
+        events,
+        seen=("maica_prepend_1", "maica_wants_preferences2"),
+    )
+    persistent.current_monikatopic = "maica_prepend_1"
+    persistent.event_list = [
+        ("maica_prepend_1", False, "older-copy"),
+        ("keep", False, None),
+        ["maica_prepend_1", False, "restart-copy"],
+        "maica_wants_preferences2",
+        ("continue_event", False, None),
+    ]
+
+    result = namespace["maica_reconcile_topic_state"](reason="queue-cleanup")
+
+    # seen_label alone is not completion evidence: a label becomes seen as soon
+    # as it starts. Keep the highest-priority copy while shown_count is zero.
+    assert persistent.event_list == [
+        ("keep", False, None),
+        ["maica_prepend_1", False, "restart-copy"],
+        ("continue_event", False, None),
+    ]
+    assert persistent.current_monikatopic == "maica_prepend_1"
+    assert result["queue_changed"] is True
+    assert result["queue_removed"] == 2
+    assert any(
+        level == "warning" and "dispatch queue normalized" in message
+        for level, message in logger.messages
+    )
+
+
+def test_dispatch_diagnostics_include_scheduler_state_and_survive_bad_condition():
+    class EventStub(object):
+        def __init__(self, eventlabel):
+            self.eventlabel = eventlabel
+            self.unlocked = False
+            self.shown_count = 0
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = "True"
+            self.action = "queue"
+            self.rules = {}
+
+        def checkConditional(self):
+            if self.eventlabel == "maica_chr2":
+                raise ValueError("bad condition")
+            return True
+
+        def checkAffection(self, affection):
+            return affection == 42
+
+    events = {
+        eventlabel: EventStub(eventlabel)
+        for eventlabel in DISPATCH_EVENTLABELS
+    }
+    namespace, persistent, renpy, logger, _ = _load_topic_reconciler(
+        events,
+        successful_count=4,
+    )
+    renpy.has_label = lambda unused_label: True
+    persistent.event_list = [("maica_prepend_1", False, None)]
+    persistent.current_monikatopic = "maica_chr2"
+    namespace["store"].mas_globals = type(
+        "GlobalsStub",
+        (),
+        {"in_idle_mode": False, "event_unpause_dt": "pause-marker"},
+    )()
+    namespace["mas_curr_affection"] = 42
+
+    namespace["_maica_log_dispatch_diagnostics"]("diagnostic-test")
+
+    info_messages = [
+        message for level, message in logger.messages if level == "info"
+    ]
+    debug_messages = [
+        message for level, message in logger.messages if level == "debug"
+    ]
+    assert any(
+        "queue_total=1" in message
+        and "pause_until='pause-marker'" in message
+        and "affection=42" in message
+        and "successful_chats=4" in message
+        for message in info_messages
+    )
+    assert len(debug_messages) == len(DISPATCH_EVENTLABELS)
+    for field in (
+            "seen_label=", "seen_ever=", "shown_count=", "unlocked=",
+            "random=", "pool=", "action=", "conditional=",
+            "condition_result=", "affection_ok=", "queue_positions=",
+            "current=",
+        ):
+        assert all(field in message for message in debug_messages)
+    assert any(
+        "label=maica_chr2" in message
+        and "error:ValueError:bad condition" in message
+        for message in debug_messages
+    )
 
 
 def test_topic_reconciler_enforces_one_way_gate_and_restores_later_progression():
