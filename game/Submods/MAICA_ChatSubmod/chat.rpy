@@ -108,6 +108,7 @@ init 5 python:
             pool=True,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
         ),
         restartBlacklist=True,
@@ -157,6 +158,7 @@ init 5 python:
             unlocked=False,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -198,6 +200,7 @@ init 5 python:
             unlocked=False,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -536,6 +539,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -562,6 +566,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -588,6 +593,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -614,6 +620,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -640,6 +647,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -666,6 +674,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -692,6 +701,7 @@ init 5 python:
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )

@@ -531,8 +531,29 @@ def test_current_character_file_branch_uses_the_migrated_label():
     assert 'renpy.seen_label("maica_chr")' not in TL_CHAT_SOURCE
 
 
-def test_maica_events_do_not_carry_redundant_bookmark_rules():
-    assert "bookmark_rule" not in CHAT_SOURCE
+def test_user_facing_maica_topics_are_bookmark_whitelisted():
+    user_facing_eventlabels = (
+        "maica_main",
+        "maica_mods_location",
+        "maica_mods_preferences",
+        "maica_prepend_reread",
+        "maica_wants_location_reread",
+        "maica_wants_preferences_reread",
+        "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread",
+        "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+
+    for eventlabel in user_facing_eventlabels:
+        event = _event_block(eventlabel)
+        assert (
+            '"bookmark_rule": store.mas_bookmarks_derand.WHITELIST'
+            in event
+        )
+
+    for eventlabel in INTERNAL_EVENTLABELS + GREETING_EVENTLABELS:
+        assert "bookmark_rule" not in _event_block(eventlabel)
 
 
 def test_one_shot_and_reread_events_do_not_fall_through_to_other_topics():
