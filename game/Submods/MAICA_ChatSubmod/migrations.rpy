@@ -7,6 +7,10 @@ init 998 python:
     import maica_v13_migration
 
     _MAICA_UNSET = object()
+    try:
+        _MAICA_STRING_TYPES = (basestring,)
+    except NameError:
+        _MAICA_STRING_TYPES = (str,)
 
     def _maica_state_log(level, message):
         """Write state-repair diagnostics without making migrations depend on a logger stub."""
@@ -130,6 +134,188 @@ init 998 python:
         except Exception:
             return False
 
+    def _maica_event_condition_result(event):
+        """Evaluate an Event conditional without letting diagnostics interrupt startup."""
+        if event is None:
+            return "missing"
+        try:
+            conditional = getattr(event, "conditional", None)
+            if conditional is None:
+                # Keep the existing dispatch diagnostic meaning: no
+                # conditional is reported as ``None`` rather than as an
+                # evaluated ``True``.
+                return None
+            checker = getattr(event, "checkConditional", None)
+            if checker is None:
+                return "unavailable"
+            return bool(checker())
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_event_affection_result(event, affection_known, affection):
+        if event is None or not affection_known:
+            return "unavailable"
+        try:
+            checker = getattr(event, "checkAffection", None)
+            if checker is None:
+                return "unavailable"
+            return bool(checker(affection))
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_greeting_call(function_name, *args, **kwargs):
+        """Call a read-only greeting prerequisite and preserve diagnostic errors."""
+        try:
+            function = globals().get(function_name)
+            if not callable(function):
+                function = getattr(store, function_name, None)
+            if not callable(function):
+                return None
+            return function(*args, **kwargs)
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_greeting_attr(name, default=None):
+        try:
+            if name in globals():
+                return globals().get(name)
+            return getattr(store, name, default)
+        except Exception:
+            return default
+
+    def _maica_greeting_event_attr(event, name, default=None):
+        """Read a GRE Event field without allowing a damaged row to abort logging."""
+        try:
+            return getattr(event, name, default)
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_get_greeting_event(eventlabel):
+        """Read the GRE database before MAS's aggregate lookup.
+
+        MAS builds ``mas_all_ev_db`` as a startup snapshot. A stale EVE entry
+        can therefore shadow the live GRE object after an old save is loaded;
+        greeting selection itself reads ``evhand.greeting_database``.
+        """
+        try:
+            evhand = getattr(store, "evhand", None)
+            greeting_db = getattr(evhand, "greeting_database", None)
+            if greeting_db is not None and hasattr(greeting_db, "get"):
+                event = greeting_db.get(eventlabel)
+                if event is not None:
+                    return event
+        except Exception:
+            pass
+        return _maica_get_event(eventlabel)
+
+    def _maica_greeting_bool_call(function_name, *args, **kwargs):
+        value = _maica_greeting_call(function_name, *args, **kwargs)
+        if value is None:
+            return None
+        if isinstance(value, _MAICA_STRING_TYPES) and value.startswith("error:"):
+            return value
+        try:
+            return bool(value)
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_greeting_is_error(value):
+        return (
+            isinstance(value, _MAICA_STRING_TYPES)
+            and value.startswith("error:")
+        )
+
+    def _maica_greeting_is_unknown(value):
+        # Keep comparisons safe when a diagnostic value is an Event property
+        # with an unusual type (for example a list or a proxy object).
+        return (
+            value is None
+            or (
+                isinstance(value, _MAICA_STRING_TYPES)
+                and value in ("missing", "unavailable")
+            )
+        )
+
+    def _maica_greeting_not(value):
+        if _maica_greeting_is_unknown(value) or _maica_greeting_is_error(value):
+            return value
+        try:
+            return not bool(value)
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_greeting_all(values):
+        unknown = False
+        for value in values:
+            if _maica_greeting_is_error(value):
+                return value
+            if _maica_greeting_is_unknown(value):
+                unknown = True
+            else:
+                try:
+                    if not bool(value):
+                        return False
+                except Exception as exc:
+                    return "error:{}:{}".format(
+                        exc.__class__.__name__,
+                        exc,
+                    )
+        return None if unknown else True
+
+    def _maica_greeting_threshold(value, threshold):
+        if _maica_greeting_is_unknown(value) or _maica_greeting_is_error(value):
+            return value
+        try:
+            return value >= threshold
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+    def _maica_greeting_priority(event):
+        if event is None:
+            return None
+        try:
+            priority_rule = globals().get("MASPriorityRule")
+            if priority_rule is None:
+                priority_rule = getattr(store, "MASPriorityRule", None)
+            getter = getattr(priority_rule, "get_priority", None)
+            if getter is not None:
+                priority = getter(event)
+                if priority is not None:
+                    return priority
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+
+        try:
+            rules = getattr(event, "rules", None)
+            if rules is not None and hasattr(rules, "get"):
+                priority_key = globals().get("EV_RULE_PRIORITY", "rule_priority")
+                priority = rules.get(priority_key)
+                if priority is None and priority_key != "priority":
+                    # Keep compatibility with lightweight/legacy Event stubs.
+                    priority = rules.get("priority")
+                return priority
+        except Exception as exc:
+            return "error:{}:{}".format(exc.__class__.__name__, exc)
+        return None
+
+    def _maica_greeting_registration(eventlabel):
+        """Return the greeting databases that currently contain an event label."""
+        locations = []
+        try:
+            persistent_greetings = getattr(persistent, "greeting_database", None)
+            if persistent_greetings is not None and eventlabel in persistent_greetings:
+                locations.append("persistent")
+        except Exception:
+            pass
+        try:
+            evhand = getattr(store, "evhand", None)
+            runtime_greetings = getattr(evhand, "greeting_database", None)
+            if runtime_greetings is not None and eventlabel in runtime_greetings:
+                locations.append("runtime")
+        except Exception:
+            pass
+        return ",".join(locations) if locations else None
+
     def _maica_mark_seen(eventlabel):
         """Keep canonical seen data usable when a legacy label supplied evidence."""
         try:
@@ -170,6 +356,12 @@ init 998 python:
         "maica_pre_wants_mvista",
         "maica_chr2",
         "maica_chr_gone",
+    )
+
+    _MAICA_GREETING_EVENTLABELS = (
+        "maica_greeting",
+        "maica_wants_mpostal",
+        "maica_chr_corrupted2",
     )
 
     def _maica_read_source(source_name):
@@ -794,34 +986,12 @@ init 998 python:
                     continue
 
                 conditional = getattr(event, "conditional", None)
-                if conditional is None:
-                    condition_result = None
-                else:
-                    try:
-                        checker = getattr(event, "checkConditional", None)
-                        condition_result = (
-                            bool(checker())
-                            if checker is not None
-                            else "unavailable"
-                        )
-                    except Exception as exc:
-                        condition_result = "error:{}:{}".format(
-                            exc.__class__.__name__,
-                            exc,
-                        )
-
-                try:
-                    affection_checker = getattr(event, "checkAffection", None)
-                    affection_result = (
-                        bool(affection_checker(affection))
-                        if affection_known and affection_checker is not None
-                        else "unavailable"
-                    )
-                except Exception as exc:
-                    affection_result = "error:{}:{}".format(
-                        exc.__class__.__name__,
-                        exc,
-                    )
+                condition_result = _maica_event_condition_result(event)
+                affection_result = _maica_event_affection_result(
+                    event,
+                    affection_known,
+                    affection,
+                )
 
                 _maica_state_log(
                     "debug",
@@ -848,10 +1018,380 @@ init 998 python:
                         current_topic == eventlabel,
                     ),
                 )
+
         except Exception as exc:
             _maica_state_log(
                 "warning",
                 "MAICA: dispatch diagnostics failed ({}) {}: {}".format(
+                    reason,
+                    exc.__class__.__name__,
+                    exc,
+                ),
+            )
+
+        # Greeting selection uses a separate MAS database and must remain
+        # observable even if a malformed dispatch queue/event prevented the
+        # regular diagnostics above from completing.
+        try:
+            _maica_log_greeting_diagnostics(reason)
+        except Exception as exc:
+            _maica_state_log(
+                "warning",
+                "MAICA: greeting diagnostics dispatch hook failed ({}) {}: {}".format(
+                    reason,
+                    exc.__class__.__name__,
+                    exc,
+                ),
+            )
+
+    def _maica_log_greeting_diagnostics(reason):
+        """Log greeting selection inputs and each MAICA greeting candidate."""
+        try:
+            greeting_events = tuple(
+                (eventlabel, _maica_get_greeting_event(eventlabel))
+                for eventlabel in _MAICA_GREETING_EVENTLABELS
+            )
+            greetings_registered = any(
+                event is not None for unused_label, event in greeting_events
+            )
+
+            event_list = getattr(persistent, "event_list", None) or ()
+            try:
+                queue_total = len(event_list)
+            except Exception:
+                queue_total = "unavailable"
+            current_topic = getattr(persistent, "current_monikatopic", None)
+            mas_globals = getattr(store, "mas_globals", None)
+            try:
+                pause_until = getattr(mas_globals, "event_unpause_dt", None)
+            except Exception:
+                pause_until = None
+            try:
+                idle_mode = getattr(mas_globals, "in_idle_mode", None)
+            except Exception:
+                idle_mode = None
+            if idle_mode is None:
+                try:
+                    idle_mode = getattr(persistent, "_mas_in_idle_mode", None)
+                except Exception:
+                    idle_mode = None
+            try:
+                affection = globals().get("mas_curr_affection", _MAICA_UNSET)
+                if affection is _MAICA_UNSET:
+                    affection = getattr(store, "mas_curr_affection", None)
+            except Exception:
+                affection = None
+            # ``None`` means the affection value is not available; zero is a
+            # valid affection value and must still be checked.
+            affection_known = affection is not None
+            successful_chats = _maica_greeting_call(
+                "maica_get_successful_chat_count"
+            )
+            selected_greeting = _maica_greeting_attr(
+                "selected_greeting",
+                "unavailable",
+            )
+            _maica_state_log(
+                "info",
+                "MAICA: greeting diagnostics ({}) hook=ch30_preloop "
+                "type={!r} timeout={!r} force={!r} game_crashed={!r} "
+                "closed_self={!r} idle={!r} selected={!r} queue_total={} "
+                "current={!r} pause_until={!r} affection={!r} "
+                "successful_chats={!r}".format(
+                    reason,
+                    getattr(persistent, "_mas_greeting_type", None),
+                    getattr(persistent, "_mas_greeting_type_timeout", None),
+                    getattr(persistent, "_mas_forcegreeting", None),
+                    getattr(persistent, "_mas_game_crashed", None),
+                    getattr(persistent, "closed_self", None),
+                    idle_mode,
+                    selected_greeting,
+                    queue_total,
+                    current_topic,
+                    pause_until,
+                    affection if affection_known else "unavailable",
+                    successful_chats,
+                ),
+            )
+
+            if not greetings_registered:
+                _maica_state_log(
+                    "warning",
+                    "MAICA: greeting diagnostics ({}) no registered greeting events "
+                    "labels={!r}".format(reason, _MAICA_GREETING_EVENTLABELS),
+                )
+                return
+
+            condition_results = {}
+            affection_results = {}
+            for eventlabel, event in greeting_events:
+                queue_positions = _maica_dispatch_queue_positions(eventlabel)
+                try:
+                    label_exists = bool(renpy.has_label(eventlabel))
+                except Exception:
+                    label_exists = None
+                registration = _maica_greeting_registration(eventlabel)
+                registered = registration is not None
+                try:
+                    selected = selected_greeting == eventlabel
+                except Exception:
+                    selected = False
+                try:
+                    selected = selected or (
+                        getattr(selected_greeting, "eventlabel", None)
+                        == eventlabel
+                    )
+                except Exception:
+                    pass
+
+                if event is None:
+                    _maica_state_log(
+                        "warning",
+                        "MAICA: greeting event ({}) label={} event=missing "
+                        "label_exists={!r} registration={!r} registered={!r} queued={} "
+                        "queue_positions={!r} current={} selected={}".format(
+                            reason,
+                            eventlabel,
+                            label_exists,
+                            registration,
+                            registered,
+                            len(queue_positions),
+                            queue_positions,
+                            current_topic == eventlabel,
+                            selected,
+                        ),
+                    )
+                    condition_results[eventlabel] = "missing"
+                    affection_results[eventlabel] = "unavailable"
+                    continue
+
+                condition_result = _maica_event_condition_result(event)
+                affection_result = _maica_event_affection_result(
+                    event,
+                    affection_known,
+                    affection,
+                )
+                condition_results[eventlabel] = condition_result
+                affection_results[eventlabel] = affection_result
+                _maica_state_log(
+                    "debug",
+                    "MAICA: greeting event ({}) label={} label_exists={!r} "
+                    "registration={!r} registered={!r} seen_label={} "
+                    "seen_ever={} shown_count={} "
+                    "unlocked={!r} unlock_date={!r} random={!r} pool={!r} "
+                    "action={!r} flags={!r} "
+                    "priority={!r} category={!r} aff_range={!r} "
+                    "affection_ok={!r} conditional={!r} "
+                    "condition_result={!r} rules={!r} queued={} "
+                    "queue_positions={!r} current={} selected={}".format(
+                        reason,
+                        eventlabel,
+                        label_exists,
+                        registration,
+                        registered,
+                        _maica_seen_label(eventlabel),
+                        _maica_seen_ever(eventlabel),
+                        _maica_event_shown_count(event),
+                        _maica_greeting_event_attr(event, "unlocked"),
+                        _maica_greeting_event_attr(event, "unlock_date"),
+                        _maica_greeting_event_attr(event, "random"),
+                        _maica_greeting_event_attr(event, "pool"),
+                        _maica_greeting_event_attr(event, "action"),
+                        _maica_greeting_event_attr(event, "flags"),
+                        _maica_greeting_priority(event),
+                        _maica_greeting_event_attr(event, "category"),
+                        _maica_greeting_event_attr(event, "aff_range"),
+                        affection_result,
+                        _maica_greeting_event_attr(event, "conditional"),
+                        condition_result,
+                        _maica_greeting_event_attr(event, "rules"),
+                        len(queue_positions),
+                        queue_positions,
+                        current_topic == eventlabel,
+                        selected,
+                    ),
+                )
+
+            # Keep these fields in lockstep with the greeting conditionals in
+            # chat.rpy. The Event result remains the authoritative total when
+            # MAS can evaluate the condition; the fallback makes old/corrupt
+            # Event objects diagnosable as well.
+            generic_start = (
+                getattr(persistent, "_mas_greeting_type", None) is None
+            )
+            prepend_seen = _maica_seen_label("maica_prepend_1")
+            post_door_seen = _maica_seen_label("maica_prepend_2")
+            greeting_seen = _maica_seen_label("maica_greeting")
+            special_day = _maica_greeting_bool_call("mas_isSpecialDay")
+            player_bday = _maica_greeting_bool_call("mas_isplayer_bday")
+            main_ready = _maica_greeting_bool_call("maica_topic_main_ready")
+            chat_threshold = _maica_greeting_threshold(successful_chats, 2)
+            character_changed = _maica_greeting_attr(
+                "maica_chr_changed",
+                None,
+            )
+            if character_changed is not None and not _maica_greeting_is_error(
+                    character_changed
+                ):
+                character_changed = bool(character_changed)
+            mpostal_seen = _maica_seen_label("maica_wants_mpostal")
+            corrupted_seen = _maica_seen_label("maica_chr_corrupted2")
+            character_conflict = _maica_greeting_all(
+                (
+                    character_changed,
+                    _maica_greeting_not(corrupted_seen),
+                )
+            )
+
+            fallback_results = {
+                "maica_greeting": _maica_greeting_all(
+                    (
+                        generic_start,
+                        prepend_seen,
+                        _maica_greeting_not(special_day),
+                        _maica_greeting_not(player_bday),
+                        _maica_greeting_not(post_door_seen),
+                    )
+                ),
+                "maica_wants_mpostal": _maica_greeting_all(
+                    (
+                        generic_start,
+                        main_ready,
+                        chat_threshold,
+                        _maica_greeting_not(special_day),
+                        _maica_greeting_not(player_bday),
+                        _maica_greeting_not(mpostal_seen),
+                        _maica_greeting_not(character_conflict),
+                    )
+                ),
+                "maica_chr_corrupted2": _maica_greeting_all(
+                    (
+                        generic_start,
+                        main_ready,
+                        _maica_greeting_not(special_day),
+                        _maica_greeting_not(player_bday),
+                        character_changed,
+                        _maica_greeting_not(corrupted_seen),
+                    )
+                ),
+            }
+
+            # Normal MAS Event objects expose ``checkAffection`` and that
+            # result must win because it reflects the registered aff_range.
+            # These direct checks mirror the MTTS diagnostics and keep the
+            # condition summary useful for legacy or lightweight Event rows.
+            affectionate_or_higher = _maica_greeting_bool_call(
+                "mas_isMoniAff",
+                higher=True,
+            )
+            normal_or_higher = _maica_greeting_bool_call(
+                "mas_isMoniNormal",
+                higher=True,
+            )
+            affection_fallbacks = {
+                "maica_greeting": affectionate_or_higher,
+                "maica_wants_mpostal": affectionate_or_higher,
+                "maica_chr_corrupted2": normal_or_higher,
+            }
+
+            def _greeting_affection(eventlabel):
+                affection_result = affection_results.get(
+                    eventlabel,
+                    "missing",
+                )
+                if _maica_greeting_is_unknown(affection_result):
+                    return affection_fallbacks.get(
+                        eventlabel,
+                        affection_result,
+                    )
+                return affection_result
+
+            def _greeting_total(eventlabel):
+                # MAS applies the Event conditional and affection range as
+                # separate filters. Report their conjunction as the total so
+                # a passing conditional cannot look available when affection
+                # is outside the greeting's range.
+                condition_result = condition_results.get(eventlabel, "missing")
+                affection_result = _greeting_affection(eventlabel)
+                if condition_result == "missing":
+                    return "missing"
+                if _maica_greeting_is_error(condition_result):
+                    return condition_result
+                if _maica_greeting_is_unknown(condition_result):
+                    condition_result = fallback_results.get(
+                        eventlabel,
+                        condition_result,
+                    )
+                return _maica_greeting_all(
+                    (condition_result, affection_result)
+                )
+
+            _maica_state_log(
+                "debug",
+                "MAICA: maica_greeting condition: generic start={} "
+                "prepend seen={} special day={} player birthday={} "
+                "post-door seen={} greeting seen={} affection threshold={} "
+                "total condition={} condition_result={} reason={}".format(
+                    generic_start,
+                    prepend_seen,
+                    special_day,
+                    player_bday,
+                    post_door_seen,
+                    greeting_seen,
+                    _greeting_affection("maica_greeting"),
+                    _greeting_total("maica_greeting"),
+                    _greeting_total("maica_greeting"),
+                    reason,
+                ),
+            )
+            _maica_state_log(
+                "debug",
+                "MAICA: maica_wants_mpostal condition: generic start={} "
+                "main ready={} successful chats={!r} chat threshold={} "
+                "special day={} player birthday={} greeting seen={} "
+                "character changed={} corruption greeting seen={} "
+                "character conflict={} "
+                "affection threshold={} total condition={} condition_result={} "
+                "reason={}".format(
+                    generic_start,
+                    main_ready,
+                    successful_chats,
+                    chat_threshold,
+                    special_day,
+                    player_bday,
+                    mpostal_seen,
+                    character_changed,
+                    corrupted_seen,
+                    character_conflict,
+                    _greeting_affection("maica_wants_mpostal"),
+                    _greeting_total("maica_wants_mpostal"),
+                    _greeting_total("maica_wants_mpostal"),
+                    reason,
+                ),
+            )
+            _maica_state_log(
+                "debug",
+                "MAICA: maica_chr_corrupted2 condition: generic start={} "
+                "main ready={} special day={} player birthday={} "
+                "character changed={} corruption greeting seen={} "
+                "affection threshold={} total condition={} condition_result={} "
+                "reason={}".format(
+                    generic_start,
+                    main_ready,
+                    special_day,
+                    player_bday,
+                    character_changed,
+                    corrupted_seen,
+                    _greeting_affection("maica_chr_corrupted2"),
+                    _greeting_total("maica_chr_corrupted2"),
+                    _greeting_total("maica_chr_corrupted2"),
+                    reason,
+                ),
+            )
+        except Exception as exc:
+            _maica_state_log(
+                "warning",
+                "MAICA: greeting diagnostics failed ({}) {}: {}".format(
                     reason,
                     exc.__class__.__name__,
                     exc,

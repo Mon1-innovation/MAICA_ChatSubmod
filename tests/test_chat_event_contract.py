@@ -82,6 +82,11 @@ DISPATCH_EVENTLABELS = (
     "maica_chr2",
     "maica_chr_gone",
 )
+GREETING_EVENTLABELS = (
+    "maica_greeting",
+    "maica_wants_mpostal",
+    "maica_chr_corrupted2",
+)
 
 
 def _event_block(eventlabel):
@@ -850,6 +855,178 @@ def test_dispatch_diagnostics_include_scheduler_state_and_survive_bad_condition(
         "label=maica_chr2" in message
         and "error:ValueError:bad condition" in message
         for message in debug_messages
+    )
+
+
+def _greeting_diagnostics_fixture(
+        condition_results=None,
+        affection_results=None,
+        successful_count=4,
+    ):
+    condition_results = condition_results or {}
+    affection_results = affection_results or {}
+
+    class EventStub(object):
+        def __init__(self, eventlabel):
+            self.eventlabel = eventlabel
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = "True"
+            self.action = None
+            self.rules = {"priority": 20}
+            self.category = None
+            self.aff_range = (0, None)
+
+        def checkConditional(self):
+            result = condition_results.get(self.eventlabel, True)
+            if isinstance(result, Exception):
+                raise result
+            return result
+
+        def checkAffection(self, unused_affection):
+            return affection_results.get(self.eventlabel, True)
+
+    events = {
+        eventlabel: EventStub(eventlabel)
+        for eventlabel in DISPATCH_EVENTLABELS + GREETING_EVENTLABELS
+    }
+    namespace, persistent, renpy, logger, _ = _load_topic_reconciler(
+        events,
+        successful_count=successful_count,
+    )
+    renpy.has_label = lambda unused_label: True
+    persistent.event_list = [
+        ("maica_greeting", False, None),
+        ("maica_prepend_1", False, None),
+    ]
+    persistent.current_monikatopic = "maica_greeting"
+    persistent._mas_greeting_type = None
+    persistent._mas_greeting_type_timeout = None
+    persistent._mas_forcegreeting = None
+    namespace["mas_curr_affection"] = 42
+    namespace["maica_topic_main_ready"] = lambda: True
+    namespace["mas_isSpecialDay"] = lambda: False
+    namespace["mas_isplayer_bday"] = lambda: False
+    namespace["mas_isMoniAff"] = lambda higher=False: higher
+    namespace["mas_isMoniNormal"] = lambda higher=False: higher
+    namespace["maica_chr_changed"] = False
+    namespace["selected_greeting"] = "maica_greeting"
+    namespace["store"].evhand.greeting_database = {
+        eventlabel: events[eventlabel]
+        for eventlabel in GREETING_EVENTLABELS
+    }
+    return namespace, logger
+
+
+def test_greeting_diagnostics_report_each_candidate_and_condition_breakdown():
+    namespace, logger = _greeting_diagnostics_fixture()
+
+    namespace["_maica_log_greeting_diagnostics"]("greeting-test")
+
+    debug_messages = [
+        message for level, message in logger.messages if level == "debug"
+    ]
+    event_messages = [
+        message for message in debug_messages if "greeting event" in message
+    ]
+    condition_messages = [
+        message for message in debug_messages if " condition:" in message
+    ]
+    assert len(event_messages) == len(GREETING_EVENTLABELS)
+    assert len(condition_messages) == len(GREETING_EVENTLABELS)
+    for eventlabel in GREETING_EVENTLABELS:
+        assert any(
+            "label={}".format(eventlabel) in message
+            and "condition_result=True" in message
+            and "affection_ok=True" in message
+            for message in event_messages
+        )
+        assert any(
+            "{} condition:".format(eventlabel) in message
+            and "total condition=True" in message
+            and "condition_result=True" in message
+            for message in condition_messages
+        )
+    assert any(
+        "label=maica_greeting" in message and "selected=True" in message
+        for message in event_messages
+    )
+
+
+def test_greeting_diagnostics_include_affection_in_total_condition():
+    namespace, logger = _greeting_diagnostics_fixture(
+        affection_results=dict.fromkeys(GREETING_EVENTLABELS, False),
+    )
+
+    namespace["_maica_log_greeting_diagnostics"]("affection-test")
+
+    condition_messages = [
+        message
+        for level, message in logger.messages
+        if level == "debug" and " condition:" in message
+    ]
+    assert len(condition_messages) == len(GREETING_EVENTLABELS)
+    assert all(
+        "affection threshold=False" in message
+        and "total condition=False" in message
+        and "condition_result=False" in message
+        for message in condition_messages
+    )
+
+
+def test_greeting_diagnostics_fall_back_to_named_affection_checks():
+    namespace, logger = _greeting_diagnostics_fixture()
+    for event in namespace["store"].evhand.greeting_database.values():
+        event.checkAffection = None
+    namespace["mas_isMoniAff"] = lambda higher=False: False
+    namespace["mas_isMoniNormal"] = lambda higher=False: higher
+
+    namespace["_maica_log_greeting_diagnostics"]("affection-fallback-test")
+
+    condition_messages = {
+        eventlabel: next(
+            message
+            for level, message in logger.messages
+            if level == "debug"
+            and "{} condition:".format(eventlabel) in message
+        )
+        for eventlabel in GREETING_EVENTLABELS
+    }
+    for eventlabel in ("maica_greeting", "maica_wants_mpostal"):
+        assert "affection threshold=False" in condition_messages[eventlabel]
+        assert "total condition=False" in condition_messages[eventlabel]
+    assert "affection threshold=True" in condition_messages["maica_chr_corrupted2"]
+    assert "total condition=True" in condition_messages["maica_chr_corrupted2"]
+
+
+def test_greeting_diagnostics_isolate_condition_checker_errors():
+    namespace, logger = _greeting_diagnostics_fixture(
+        condition_results={
+            "maica_wants_mpostal": ValueError("bad greeting condition"),
+        },
+    )
+
+    namespace["_maica_log_greeting_diagnostics"]("error-test")
+
+    event_messages = [
+        message
+        for level, message in logger.messages
+        if level == "debug" and "greeting event" in message
+    ]
+    condition_messages = [
+        message
+        for level, message in logger.messages
+        if level == "debug" and " condition:" in message
+    ]
+    assert len(event_messages) == len(GREETING_EVENTLABELS)
+    assert len(condition_messages) == len(GREETING_EVENTLABELS)
+    assert any(
+        "label=maica_wants_mpostal" in message
+        and "error:ValueError:bad greeting condition" in message
+        for message in event_messages
     )
 
 
