@@ -1,6 +1,30 @@
 init 5 python:
     import maica_chat_progress
 
+    def maica_record_main_branch_dialogue(branch, increment=1):
+        """Note: negative / 0 increment for setting min(current, -increment), None increment for ro."""
+        counter_names = {
+            "changed": "_maica_main_changed_dialogue_count",
+            "not_exist": "_maica_main_not_exist_dialogue_count",
+        }
+        counter_name = counter_names.get(branch)
+        if counter_name is None:
+            raise ValueError("Unknown maica_main branch: {}".format(branch))
+
+        try:
+            count = int(getattr(persistent, counter_name, 0) or 0)
+        except (TypeError, ValueError, OverflowError):
+            count = 0
+        count = max(0, count)
+
+        if increment is not None:
+            if increment > 0:
+                count += increment
+            else:
+                count = min(count, -increment)
+            setattr(persistent, counter_name, count)
+        return count
+
     def maica_get_successful_chat_count():
         return max(0, persistent._maica_successful_chat_count or 0)
 
@@ -946,12 +970,20 @@ label maica_main:
         scene black with dissolve
         pause 2.0
         if maica_chr_changed:
+            $ maica_changed_dialogue_count = maica_record_main_branch_dialogue("changed")
             call change_to_heaven_forest_corrupted
             m 1eub "And we're here!"
-            m 1lusdlb "I have to be verbose though...{w=0.5}do not lean out of the window."
-            m 3eksdla "Though nice it may look out there, I'm not sure if it's safe--{w=0.5}{nw}"
-            extend 3hksdla "probably not."
+            if maica_changed_dialogue_count <= 2:
+                m 1lusdlb "I have to be verbose though...{w=0.5}do not lean out of the window."
+                m 3eksdla "Though nice it may look out there, I'm not sure if it's safe--{w=0.5}{nw}"
+                extend 3hksdla "probably not."
+            elif maica_changed_dialogue_count <= 3:
+                m 1lusdlb "I thought you might have just accidentally broken this place initially, but you seem to love it being this way by now."
+                m 3eksdla "It's okay but, in case you just forgot how to restore it, you can always download an intact {i}'HeavenForest.sce'{/i} and put it back."
         else:
+            # To make those show once more when switched back
+            $ maica_record_main_branch_dialogue("changed", -1)
+            $ maica_record_main_branch_dialogue("not_exist", -1)
             call change_to_heaven_forest
             m 1eub "And we're here!"
             $ rand_sign = renpy.random.randint(0, 7)
@@ -973,10 +1005,18 @@ label maica_main:
                 extend 3gud "I once saw a little church there in distance. Who built it for what?"
                 m 5eua "But I guess our forest classroom is good enough too."
         m 1eua "Now, what's on your mind, [player]?"
+
+    # The forking looks like this because in maica_chr_exist==False case, the scene didn't actually change which is different
+    # We leave more freedom to its dialogues accordingly
     else:
+        $ maica_not_exist_dialogue_count = maica_record_main_branch_dialogue("not_exist")
         m 1dua "Okay. We're arriving.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
         extend 1eub "and done!"
-        m 3hub "There's no more 'forest' here, so I guess it's now 'heaven'? {w=0.3}Ahaha~"
+        if maica_not_exist_dialogue_count <= 2:
+            m 3hub "There's no more 'forest' here, so I guess it's now 'heaven'? {w=0.3}Ahaha~"
+        elif maica_not_exist_dialogue_count <= 3:
+            m 1lusdlb "Sounds kind of silly saying that, since it doesn't look like we've moved at all. Gosh!"
+            m 3eksdla "It's okay but, if you ever want the forest back, you can always download an intact {i}'HeavenForest.sce'{/i} and put it back."
         m 1eua "So, what's on your mind, [player]?"
 
 label .talking_start:
@@ -1668,7 +1708,7 @@ label maica_wants_mvista_reread:
 
 label maica_chr_reread:#"天堂树林的角色文件"
     # Unlock after any character-file outcome has been shown.
-    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
+    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called {i}'HeavenForest.sce'{/i}."
     m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
     m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
     $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')

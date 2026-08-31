@@ -1,6 +1,8 @@
 default persistent._maica_v18_player_additions_backup = None
 default persistent._maica_v18_player_additions_notice_seen = False
 default persistent._maica_successful_chat_count = 0
+default persistent._maica_main_changed_dialogue_count = 0
+default persistent._maica_main_not_exist_dialogue_count = 0
 
 init 998 python:
     import copy

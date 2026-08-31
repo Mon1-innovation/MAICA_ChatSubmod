@@ -414,6 +414,18 @@ translate chinese maica_main_e66cd3e4:
     # extend 3hksdla "probably not."
     extend 3hksdla "多半不是."
 
+# game/Submods/MAICA_ChatSubmod/chat.rpy:981
+
+translate chinese maica_main_21f1f9c7:
+    # m 1lusdlb "I thought you might have just accidentally broken this place initially, but you seem to love it being this way by now."
+    m 1lusdlb "我最开始以为你只是不小心把文件弄坏了, 但现在看来你还挺喜欢这种风景的."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:982
+
+translate chinese maica_main_687d5b2d:
+    # m 3eksdla "It's okay but, in case you just forgot how to restore it, you can always download an intact {i}'HeavenForest.sce'{/i} and put it back."
+    m 3eksdla "我没意见的啦, 不过还是提醒一下, 重新下一个{i}'HeavenForest.sce'{/i}放回去就可以让这片树林恢复正常了."
+
 # game/Submods/MAICA_ChatSubmod/chat.rpy:780
 
 translate chinese maica_main_12fc5251_1:
@@ -521,6 +533,18 @@ translate chinese maica_main_866200a4:
 translate chinese maica_main_fb3cb914:
     # m 3hub "There's no more 'forest' here, so I guess it's now 'heaven'? {w=0.3}Ahaha~"
     m 3hub "既然没有'树林'了, 这里会是'天堂'吗? {w=0.3}哈哈~"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1018
+
+translate chinese maica_main_3cbd809f:
+    # m 1lusdlb "Sounds kind of silly saying that, since it doesn't look like we've moved at all. Gosh!"
+    m 1lusdlb "这样说感觉好笨蛋, 毕竟我们看起来哪也没去. 天哪."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1019
+
+translate chinese maica_main_2fe417f5:
+    # m 3eksdla "It's okay but, if you ever want the forest back, you can always download an intact {i}'HeavenForest.sce'{/i} and put it back."
+    m 3eksdla "我没意见的啦, 不过还是提醒一下, 重新下一个{i}'HeavenForest.sce'{/i}放回去就可以再见到天堂树林了."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:804
 
@@ -1849,11 +1873,11 @@ translate chinese maica_wants_mvista_reread_0ea6ad46:
 
 
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1098
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1711
 
-translate chinese maica_chr_reread_f9344520:
-    # m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
-    m 5ruc "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫'HeavenForest.sce'."
+translate chinese maica_chr_reread_78762373:
+    # m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called {i}'HeavenForest.sce'{/i}."
+    m 5ruc "...它的角色文件? {w=0.5}也许你已经去找过了, 它叫{i}'HeavenForest.sce'{/i}."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1099
 
