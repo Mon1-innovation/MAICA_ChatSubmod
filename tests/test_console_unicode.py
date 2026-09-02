@@ -358,7 +358,7 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     assert talking_setup.index("call maica_show_console") < talking_setup.index("call maica_init_connect")
 
 
-def test_initial_disconnect_uses_common_console_cleanup_for_mspire():
+def test_disconnection_failure_dialogue_is_centralized_and_identifies_mspire_source():
     root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
     main_source = (root / "main.rpy").read_text(encoding="utf-8")
     chat_source = (root / "chat.rpy").read_text(encoding="utf-8")
@@ -368,7 +368,13 @@ def test_initial_disconnect_uses_common_console_cleanup_for_mspire():
     talking_setup = main_source[talking_start:talking_setup_end]
     talking_end_start = main_source.index("label maica_talking.end:")
     talking_end_end = main_source.index("\nlabel maica_talking.ask_mspire_continue:", talking_end_start)
+    talking = main_source[talking_start:talking_end_end]
     talking_end = main_source[talking_end_start:talking_end_end]
+    failure_start = chat_source.index("label maica_connection_failure_dialogue(")
+    failure_end = chat_source.index("\n# Location topics", failure_start)
+    failure = chat_source[failure_start:failure_end]
+    caller_start = chat_source.index("label .talking_start:")
+    caller = chat_source[caller_start:failure_start]
     mspire_start = chat_source.index("label maica_mspire:")
     mspire_end = chat_source.index("\nlabel mspire_mods_preferences:", mspire_start)
     mspire = chat_source[mspire_start:mspire_end]
@@ -378,7 +384,19 @@ def test_initial_disconnect_uses_common_console_cleanup_for_mspire():
     cleanup_jump = talking_setup.index("jump maica_talking.end", set_result)
     assert disconnected < set_result < cleanup_jump
     assert 'return "disconnected"' not in talking_setup
+    assert "$ renpy.dynamic(\"maica_talking_from_mspire\")" in talking_setup
+    assert "$ maica_talking_from_mspire = mspire" in talking_setup
+    assert talking_setup.index("$ maica_talking_from_mspire = mspire") < talking_setup.index("if not prepared:")
+    assert "$ mspire = False" in talking
     assert "call maica_hide_console" in talking_end
+    assert 'if return_code == "disconnected":' in talking_end
+    failure_call = "call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)"
+    assert failure_call in talking_end
+    assert talking_end.index("call maica_hide_console") < talking_end.index(failure_call)
+    assert "label maica_connection_failure_dialogue(from_mspire = False):" in failure
+    assert "ai.status == ai.MaicaAiStatus.SERVER_REJECTED" in failure
+    assert "and from_mspire" in failure
+    assert "call maica_connection_failure_dialogue" not in caller
     assert "call maica_talking(mspire=True)" in mspire
 
 

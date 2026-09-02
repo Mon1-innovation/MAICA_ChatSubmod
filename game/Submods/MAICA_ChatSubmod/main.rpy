@@ -17,6 +17,8 @@ init python:
 
 label maica_talking(mspire = False, prepared = False):
     $ return_code = None
+    $ renpy.dynamic("maica_talking_from_mspire")
+    $ maica_talking_from_mspire = mspire
     if not prepared:
         call maica_show_console
         call maica_init_connect(use_pause_instand_wait = True)
@@ -130,7 +132,7 @@ label maica_talking.asking:
                     ))
                 if ai.is_failed():
                     if ai.len_message_queue() == 0:
-                        # This is already spoken at label .talking_start
+                        # This is already spoken by the common failure dialogue.
                         # renpy.say(m, _("Something may went wrong..."))
                         return_code = "disconnected"
                         break
@@ -208,6 +210,8 @@ label maica_talking.end:
     call maica_hide_console
     if persistent.maica_setting_dict['console']:
         $ store.mas_ptod.clear_console()
+    if return_code == "disconnected":
+        call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)
     # if mspire_user_responsed:
     #     $ maica_apply_setting(True)
     return return_code

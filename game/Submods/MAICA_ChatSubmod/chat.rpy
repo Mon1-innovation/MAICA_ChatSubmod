@@ -1041,7 +1041,6 @@ label .talking_start:
         jump .talking_start
     else:
         $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(maica_talking_result))
-        call maica_connection_failure_dialogue
         m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
     $ maica_record_successful_chat(maica_talking_result)
     if maica_topic_main_ready():
@@ -1052,8 +1051,9 @@ label .talking_start:
     call clear_all
     return
 
-label maica_connection_failure_dialogue:
+label maica_connection_failure_dialogue(from_mspire = False):
     $ ai = store.maica.maica_instance
+
     if ai.status == ai.MaicaAiStatus.TOKEN_MISSING:
         m 2rusdlb "...It seems you haven't got a token yet."
         m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
@@ -1087,6 +1087,14 @@ label maica_connection_failure_dialogue:
     elif ai.status == ai.MaicaAiStatus.CONNECTION_REUSE_DENIED:
         m 2rusdlb "...This is weird, it says a connection has been established already."
         m 3eusdlb "Try restarting the game or rebooting your computer, shall we?"
+
+    elif (
+        ai.status == ai.MaicaAiStatus.SERVER_REJECTED
+        and from_mspire
+    ):
+        m 2rusdlb "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
+        m 3eusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
+        m 3eua "Anyway, we can always try it again later, so don't worry."
 
     elif ai.status in (
         ai.MaicaAiStatus.TOKEN_GENERATION_FAILED,

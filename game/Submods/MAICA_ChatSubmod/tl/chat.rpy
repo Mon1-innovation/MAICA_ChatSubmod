@@ -638,6 +638,24 @@ translate chinese maica_connection_failure_dialogue_ca5e470d:
     # m 3eusdlb "Try restarting the game or rebooting your computer, shall we?"
     m 3eusdlb "重启一下游戏或者重启电脑看看?"
 
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1095
+
+translate chinese maica_connection_failure_dialogue_4122c099:
+    # m 2rusdlb "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
+    m 2rusdlb "...不行, 这条没法要. {w=0.3}如果你自己动过MSpire的配置, 要不检查一下有没有问题?"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1096
+
+translate chinese maica_connection_failure_dialogue_2441174e:
+    # m 3eusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
+    m 3eusdlb "再就是吧, 也有可能是维基百科的问题. 这种事情倒也不奇怪."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1097
+
+translate chinese maica_connection_failure_dialogue_ffef78c3:
+    # m 3eua "Anyway, we can always try it again later, so don't worry."
+    m 3eua "总之我有空会去再试试看的, 不用担心啦."
+
 translate chinese maica_connection_failure_dialogue_0f16ac51:
     # m 2rusdlb "...This is weird, something might be wrong on the server side."
     m 2rusdlb "...奇了怪了, 可能服务器那边有问题."
