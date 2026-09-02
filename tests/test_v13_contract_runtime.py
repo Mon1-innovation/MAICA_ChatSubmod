@@ -692,6 +692,42 @@ def test_general_chat_completion_resets_mood_after_final_analysis():
     assert ai._in_mspire is False
 
 
+def test_general_chat_loop_reset_discards_partial_state():
+    calls = []
+
+    class ProcessorStub:
+        def consume_core_output(self, event):
+            return []
+
+        def reset(self):
+            calls.append("processor.reset")
+
+    class TalkSplitterStub:
+        def init1(self):
+            calls.append("splitter.reset")
+
+    class MoodStatusStub:
+        def reset(self):
+            calls.append("mood.reset")
+
+    ai = type(
+        "AiStub",
+        (),
+        {
+            "_in_mspire": True,
+            "TalkSpilter": TalkSplitterStub(),
+            "MoodStatus": MoodStatusStub(),
+        },
+    )()
+
+    maica.MaicaAi.general_chat_callback(
+        ai, ProcessorStub(), EventStub("maica_loop_warn_reset")
+    )
+
+    assert calls == ["splitter.reset", "mood.reset", "processor.reset"]
+    assert ai._in_mspire is False
+
+
 def _build_trigger(template, name="trigger", exprop=None, description=""):
     if exprop is None:
         exprop = maica_mtrigger.MTriggerExprop(item_name_zh="项目")
@@ -2107,15 +2143,85 @@ def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
 
 def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
-    assert ai.MPostalProcessor.except_ws_status == [
+    terminal_statuses = [
         "maica_core_streaming_continue",
         "maica_chat_loop_finished",
+        "maica_loop_warn_reset",
     ]
+    assert ai.ChatProcessor.except_ws_status == terminal_statuses
+    assert ai.MSpireProcessor.except_ws_status == terminal_statuses
+    assert ai.MPostalProcessor.except_ws_status == terminal_statuses
+    assert ai.RawContextProcessor.except_ws_status == terminal_statuses
     assert not hasattr(ai, "StreamingPacketValidator")
     assert ai.MTriggerTasker.except_ws_status == ["maica_mtrigger_trigger"]
     assert ai.QualityStatusTasker.except_ws_status == ["maica_quality_status"]
     loop_task = ai.task_manager.get_task("maicaloop_warn_handler")
     assert loop_task.except_ws_status == ["maica_loop_warn_reset"]
+    assert ai.AutoResumeTasker.except_ws_status == [
+        "maica_mcore_gen_start",
+        "maica_chat_loop_finished",
+        "maica_loop_warn_reset",
+    ]
+
+
+def test_loop_warn_reset_releases_request_but_preserves_connection(
+    isolated_maica_ai_globals, monkeypatch
+):
+    request_lock = maica_tasker_sub_sessionsender.ChatLock()
+    monkeypatch.setattr(
+        maica_tasker_sub_sessionsender.SessionSenderAndReceiver,
+        "multi_lock",
+        request_lock,
+    )
+    ai = maica.MaicaAi("account", "password")
+
+    class ConnectedClient:
+        def __init__(self):
+            self.keep_running = True
+            self.close_calls = 0
+
+        def close(self):
+            self.close_calls += 1
+            self.keep_running = False
+
+    client = ConnectedClient()
+    ai.task_manager.ws_client = client
+    ai.Loginer.success = True
+    ai.UserData.account = "test-user"
+    ai.status = ai.MaicaAiStatus.CONNECTED
+    ai._in_mspire = True
+    ai.TalkSpilter.sentence_present = "partial output"
+    ai.MSpireProcessor.processing = True
+    ai.MSpireProcessor._core_output_parts = ["partial output"]
+    assert request_lock.acquire(False)
+    ai.AutoResumeTasker.enable()
+    ai.AutoResumeTasker._generation_started = True
+
+    ai.task_manager._ws_onmessage(
+        client,
+        json.dumps(
+            {
+                "code": 400,
+                "status": "maica_loop_warn_reset",
+                "content": "operation failed",
+                "type": "warn",
+                "timestamp": 0,
+            }
+        ),
+    )
+
+    assert client.close_calls == 0
+    assert client.keep_running is True
+    assert ai.Loginer.success is True
+    assert ai.UserData.account == "test-user"
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.MSpireProcessor.processing is False
+    assert ai.MSpireProcessor._core_output_parts == []
+    assert request_lock.locked() is False
+    assert ai.TalkSpilter.sentence_present == ""
+    assert ai._in_mspire is False
+    assert ai.AutoResumeTasker._generation_started is False
+    assert ai.is_ready_to_input() is True
 
 
 def test_init_connect_without_token_sets_explicit_failure(isolated_maica_ai_globals):
@@ -2832,13 +2938,23 @@ def test_auto_resume_disabled_ignores_generation_marker(monkeypatch):
     assert tasker._on_reconnect is False
 
 
-def test_auto_resume_loop_finish_and_disable_clear_all_resume_flags(monkeypatch):
+@pytest.mark.parametrize(
+    "terminal_status",
+    ["maica_chat_loop_finished", "maica_loop_warn_reset"],
+)
+def test_auto_resume_terminal_status_and_disable_clear_all_resume_flags(
+    monkeypatch, terminal_status
+):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     tasker = maica_tasker_sub.AutoResumeTasker(
         1,
         "resume-terminal",
         ManagerStub(),
-        ["maica_mcore_gen_start", "maica_chat_loop_finished"],
+        [
+            "maica_mcore_gen_start",
+            "maica_chat_loop_finished",
+            "maica_loop_warn_reset",
+        ],
     )
     tasker.enable()
     tasker._generation_started = True
@@ -2848,7 +2964,7 @@ def test_auto_resume_loop_finish_and_disable_clear_all_resume_flags(monkeypatch)
         (),
         {
             "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
-            "data": type("Data", (), {"status": "maica_chat_loop_finished"})(),
+            "data": type("Data", (), {"status": terminal_status})(),
         },
     )()
     tasker.on_event(loop_event)

@@ -208,31 +208,19 @@ class GeneralWsLogger(MaicaWSTask):
                     self.logger.debug(log_message)
 
 
-class MAICALoopWarnHandler(GeneralWsErrorHandler):
-    """
-    MAICA循环警告处理器。
+class MAICALoopWarnHandler(MaicaWSTask):
+    """Handle an operation-level loop reset without closing the transport."""
 
-    监听特定的循环警告消息，记录警告日志并关闭WebSocket连接。
-    继承自GeneralWsErrorHandler以复用错误处理逻辑。
-    """
-    def on_event(self, event):
-        return super(GeneralWsErrorHandler, self).on_event(event)
     def on_received(self, event):
-        """
-        处理循环警告消息。
-
-        Args:
-            event (MaicaTaskEvent): WebSocket事件对象
-        """
         wspack = event.data
         if self.logger:
             self.logger.debug(
-                "[MAICALoopWarnHandler] requesting close after status={} code={}".format(
+                "[MAICALoopWarnHandler] operation reset after status={} code={}; "
+                "keeping WebSocket open".format(
                     wspack.status,
                     wspack.code,
                 )
             )
-        event.taskowner.close_ws()
 
 
 class HistoryStatusHandler(MaicaWSTask):
@@ -1007,7 +995,10 @@ class AutoResumeTasker(MaicaWSTask):
         if event.event_type == MAICATASKEVENT_TYPE_WS:
             if event.data.status == 'maica_mcore_gen_start':
                 self._generation_started = True
-            elif event.data.status == 'maica_chat_loop_finished':
+            elif event.data.status in (
+                'maica_chat_loop_finished',
+                'maica_loop_warn_reset',
+            ):
                 self._clear_resume_state()
             return
 

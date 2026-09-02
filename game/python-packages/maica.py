@@ -537,28 +537,44 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="general_chat_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+            except_ws_status=[
+                'maica_core_streaming_continue',
+                'maica_chat_loop_finished',
+                'maica_loop_warn_reset',
+            ]
         )
         self.ChatProcessor._external_callback = self.general_chat_callback
         self.MSpireProcessor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mspire_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+            except_ws_status=[
+                'maica_core_streaming_continue',
+                'maica_chat_loop_finished',
+                'maica_loop_warn_reset',
+            ]
         )
         self.MSpireProcessor._external_callback = self.general_chat_callback
         self.MPostalProcessor = maica_tasker_sub_sessionsender.MAICAMPostalProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="mpostal_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+            except_ws_status=[
+                'maica_core_streaming_continue',
+                'maica_chat_loop_finished',
+                'maica_loop_warn_reset',
+            ]
         )
         self.MPostalProcessor._external_callback = self.mpostal_callback
         self.RawContextProcessor = maica_tasker_sub_sessionsender.MAICARawContextProcessor(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="raw_context_processor",
             manager=self.task_manager,
-            except_ws_status=['maica_core_streaming_continue', 'maica_chat_loop_finished']
+            except_ws_status=[
+                'maica_core_streaming_continue',
+                'maica_chat_loop_finished',
+                'maica_loop_warn_reset',
+            ]
         )
         self.RawContextProcessor._external_callback = self.general_chat_callback
         for processor in (
@@ -581,7 +597,11 @@ class MaicaAi(ChatBotInterface):
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="auto_resume_tasker",
             manager=self.task_manager,
-            except_ws_status=['maica_mcore_gen_start', 'maica_chat_loop_finished'],
+            except_ws_status=[
+                'maica_mcore_gen_start',
+                'maica_chat_loop_finished',
+                'maica_loop_warn_reset',
+            ],
         )
 
         self.KeepAliveTasker = maica_tasker_sub.KeepWsAliveTasker(
@@ -1651,6 +1671,11 @@ class MaicaAi(ChatBotInterface):
             self.MoodStatus.reset()
             # 释放聊天锁，允许下一个聊天请求
             processor.reset()
+        elif event.data.status == "maica_loop_warn_reset":
+            self._in_mspire = False
+            self.TalkSpilter.init1()
+            self.MoodStatus.reset()
+            processor.reset()
     
     def mpostal_callback(self, processor, event):
         core_output = processor.consume_core_output(event)
@@ -1663,7 +1688,10 @@ class MaicaAi(ChatBotInterface):
                 message = message[1:]
             message_step1 = key_replace(message, bot_interface.renpy_symbol_percentage)
             self.message_list.put(('1eua', message_step1))
-        if event.data.status == "maica_chat_loop_finished":
+        if event.data.status in (
+            "maica_chat_loop_finished",
+            "maica_loop_warn_reset",
+        ):
             processor.reset()
 
     def _on_error(self, wsapp, error):
