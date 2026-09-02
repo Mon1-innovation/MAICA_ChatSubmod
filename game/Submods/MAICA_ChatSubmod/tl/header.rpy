@@ -1039,8 +1039,8 @@ translate chinese strings:
     old "! Current main session is set to same as MSpire session which may cause unexpected issues.\n! Please avoid setting these the same value (except 0) unless you literally understand what you're doing."
     new "! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."
     # game/Submods/MAICA_ChatSubmod/header.rpy:1069
-    old "Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Enforces default super params"
-    new "启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数"
+    old "Enable MSpire cache.\n* Only available when MSpire session is 0\n* When enabled, super params and user-level prompt modifications are muted, including prompt_pname_repl, prompt_monika_nickname, MFocus related, etc"
+    new "启用MSpire缓存.\n* 仅当MSpire会话为0时可以使用\n* 启用时, 基于超参数和用户级prompt修改的功能均不会生效, 例如prompt_pname_repl, prompt_monika_nickname, MFocus相关功能等"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1076
     old "Enable MSpire cache.\n! MSpire session not 0, with which MSpire cache conflicts"
     new "启用MSpire缓存.\n! MSpire会话不为0, MSpire缓存不会生效"

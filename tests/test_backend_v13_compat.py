@@ -42,6 +42,7 @@ ADVANCED_SETTING_KEYS = (
     "frequency_penalty",
     "presence_penalty",
     "prompt_pname_repl",
+    "prompt_monika_nickname",
     "prompt_allow_nickname",
     "mf_llm_concl",
     "mf_sf_access_impl",
@@ -1476,6 +1477,55 @@ def test_e_advanced_setting_screen_matches_backend_document_order():
     assert "twk_super" not in ui
 
 
+def test_e_v13004_mspire_defaults_and_tooltips_match_backend_contract():
+    runtime = source("game/python-packages/maica.py")
+    sender = source("game/python-packages/maica_tasker_sub_sessionsender.py")
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    translations = source("game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy")
+    header_translations = source("game/Submods/MAICA_ChatSubmod/tl/header.rpy")
+
+    assert "self.MaicaMSpiretype.in_precise_category" in runtime
+    assert re.search(r"mspire_type\s*=\s*['\"]in_precise_category['\"]", sender)
+    assert re.search(
+        r"['\"]mspire_search_type['\"]\s*:\s*['\"]in_precise_category['\"]",
+        header,
+    )
+
+    for text in (
+        "Fetch a page directly by keyword, requiring exact match",
+        "Search multiple pages by keyword and randomly select one",
+        "Fetch a category directly by keyword, requiring exact match",
+        "Search multiple categories by keyword, then recursively select",
+        "Starting from the keyword, recursively search and select categories or pages",
+        "user-level prompt modifications are muted",
+    ):
+        assert text in screen + header
+
+    for text in (
+        "直接根据关键词拉取页面, 要求准确匹配",
+        "根据关键词搜索多个页面, 从中随机抽取一个页面",
+        "直接根据关键词拉取分类, 要求准确匹配",
+        "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面",
+        "根据关键词直接开始递归地抽取分类或页面",
+        "基于超参数和用户级prompt修改的功能均不会生效",
+    ):
+        assert text in translations + header_translations
+
+
+def test_e_gen_enforce_lang_tooltip_keeps_logic_and_declares_backend_withdrawal():
+    screen = named_screen(
+        source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
+        "maica_advance_setting",
+    )
+    translations = source("game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy")
+
+    assert 'ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang")' in screen
+    assert 'ToggleDict(persistent.maica_advanced_setting, "gen_enforce_lang")' in screen
+    assert "Temporarily withdrawn since backend v1.3.004.rc2" in screen
+    assert "自后端v1.3.004.rc2后, 该功能被暂时撤销" in translations
+
+
 def test_e_advanced_setting_screen_supports_discard_and_independent_local_switches():
     screen = named_screen(
         source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
@@ -1753,6 +1803,19 @@ def test_g_persistent_upload_includes_the_effective_target_language():
     )
     assert "target_lang" in upload_keys
     assert "maica_savefile.sanitize_persistent_dict(d)" in upload
+
+
+def test_g_persistent_upload_includes_mas_monika_nickname_source():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    upload = function_body(header, r"_upload_persistent_dict")
+    upload_keys = literal_assignment(
+        source("game/python-packages/maica_savefile.py"),
+        "PERSISTENT_UPLOAD_KEYS",
+    )
+
+    assert "mas_monikaname" in upload_keys
+    assert "_mas_monika_nickname" in upload
+    assert "select_monika_nickname" in upload
 
 
 def test_g_v18_migration_runs_before_persistent_upload():

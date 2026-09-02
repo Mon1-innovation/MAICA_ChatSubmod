@@ -229,7 +229,7 @@ init 10 python:
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
-        "mspire_search_type":"in_fuzzy_all",
+        "mspire_search_type":"in_precise_category",
         "mspire_session":0,
         "mspire_use_cache":True,
         "log_level":logging.DEBUG,
@@ -257,6 +257,7 @@ init 10 python:
         "seed":0,
         "mf_llm_concl":False,
         "prompt_pname_repl":False,
+        "prompt_monika_nickname":False,
         "mf_const_tools":1,
         "esearch_llm_concl":True,
         "nsfw_acceptive":True,
@@ -689,6 +690,13 @@ init 10 python:
         d['greeting_database'].clear()
         d['greeting_database'].clear()
         d['mas_playername'] = store.player
+        d.pop('mas_monikaname', None)
+        monika_nickname = maica_savefile.select_monika_nickname(
+            getattr(persistent, '_mas_monika_nickname', None),
+            getattr(store, 'm_name', None)
+        )
+        if monika_nickname is not None:
+            d['mas_monikaname'] = monika_nickname
         if persistent._mas_player_bday:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
@@ -1643,7 +1651,7 @@ screen maica_setting():
                             style_prefix "generic_fancy_check"
                             textbutton _("Use cache for MSpire"):
                                 action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                                hovered SetField(_tooltip, "value", _("Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Enforces default super params"))
+                                hovered SetField(_tooltip, "value", _("Enable MSpire cache.\n* Only available when MSpire session is 0\n* When enabled, super params and user-level prompt modifications are muted, including prompt_pname_repl, prompt_monika_nickname, MFocus related, etc"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
                     else:
                         hbox:

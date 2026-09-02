@@ -307,7 +307,7 @@ class MaicaAi(ChatBotInterface):
         self.mspire_session = 0
         self.mspire_sample = 250
         self.mspire_weight = 10
-        self.mspire_type = self.MaicaMSpiretype.in_fuzzy_all
+        self.mspire_type = self.MaicaMSpiretype.in_precise_category
         self.pprt=False
         self.in_mas = True
         self.provider_manager = maica_provider_manager.MaicaProviderManager()
@@ -339,6 +339,7 @@ class MaicaAi(ChatBotInterface):
             "nsfw_acceptive": True,
             "presence_penalty": 0.34,
             "prompt_allow_nickname": True,
+            "prompt_monika_nickname": False,
             "prompt_pname_repl": False,
             "savefile_access": True,
             "seed": None,
@@ -1528,7 +1529,7 @@ class MaicaAi(ChatBotInterface):
         self._clear_response_timeouts()
         self.stat['mspire_count'] += 1
         self.mspire_type = maica_tasker_sub_sessionsender.normalize_mspire_type(
-            getattr(self, "mspire_type", self.MaicaMSpiretype.in_fuzzy_all)
+            getattr(self, "mspire_type", self.MaicaMSpiretype.in_precise_category)
         )
         self.MSpireProcessor.start_request(
             category=self.mspire_category,

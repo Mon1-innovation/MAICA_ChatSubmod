@@ -293,9 +293,19 @@ screen maica_advance_setting():
                         action ToggleDict(persistent.maica_advanced_setting, "prompt_pname_repl")
             hbox:
                 spacing 5
+                textbutton "prompt_monika_nickname":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "prompt_monika_nickname")
+                    hovered SetField(_tooltip, "value", _("Add Monika's nickname to prompts.\n+ Gives the model a concrete understanding of its own nickname, even if it may be completely unrelated to Monika\n- Increases the risk of inconsistent or confused behavior"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('prompt_monika_nickname')
+                if persistent.maica_advanced_setting_status.get("prompt_monika_nickname", False):
+                    textbutton "[persistent.maica_advanced_setting.get('prompt_monika_nickname', False)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "prompt_monika_nickname")
+            hbox:
+                spacing 5
                 textbutton "prompt_allow_nickname":
                     action ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname")
-                    hovered SetField(_tooltip, "value", _("Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May cause unexpected issues"))
+                    hovered SetField(_tooltip, "value", _("Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May affect behavior slightly"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('prompt_allow_nickname')
                 if persistent.maica_advanced_setting_status.get("prompt_allow_nickname", False):
@@ -429,7 +439,7 @@ screen maica_advance_setting():
                 spacing 5
                 textbutton "gen_enforce_lang":
                     action ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang")
-                    hovered SetField(_tooltip, "value", _("Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues"))
+                    hovered SetField(_tooltip, "value", _("Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues\n- Temporarily withdrawn since backend v1.3.004.rc2 due to incompatibility with vLLM's default decoding backend (xgrammar)"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('gen_enforce_lang')
                 if persistent.maica_advanced_setting_status.get("gen_enforce_lang", False):
@@ -886,27 +896,27 @@ screen maica_mspire_setting():
             style_prefix "generic_fancy_check"
             textbutton "precise_page":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "precise_page")
-            text _("Select the single most related page, ignoring sample range. Relatively fast since no recursive search performed.\n"):
+            text _("Fetch a page directly by keyword, requiring exact match. Sample range is ignored and no recursive search is performed. Relatively fast.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "fuzzy_page":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "fuzzy_page")
-            text _("Select one random from multiple related pages. Relatively fast since no recursive search performed.\n"):
+            text _("Search multiple pages by keyword and randomly select one. No recursive search is performed. Relatively fast.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "in_precise_category":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_precise_category")
-            text _("Select the single most related category, then recursively search pages and subcategories. Relatively slow.\n"):
+            text _("Fetch a category directly by keyword, requiring exact match, then recursively select categories or pages until a page is reached. Decent speed.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "in_fuzzy_category":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_category")
-            text _("Select one random from multiple related categories, then recursively search pages and subcategories. Relatively slow.\n"):
+            text _("Search multiple categories by keyword, then recursively select categories or pages until a page is reached. Relatively slow.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "in_fuzzy_all":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_all")
-            text _("Select related pages, categories and subcategories recursively. Relatively slow.\n"):
+            text _("Starting from the keyword, recursively search and select categories or pages until a page is reached. Relatively slow.\n"):
                 style "small_expl_hw"
                 size 15
 

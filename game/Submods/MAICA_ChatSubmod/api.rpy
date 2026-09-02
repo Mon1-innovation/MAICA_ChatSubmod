@@ -1,8 +1,8 @@
 init -1500 python:
     if not config.language:
         config.language = "english"
-    maica_ver = '1.8.21'
-    maica_is_dev = False
+    maica_ver = '1.8.22'
+    maica_is_dev = True
     # 如果是开发版本:
     # - workflow不会自动发布release
     # - 对应migration总是会执行

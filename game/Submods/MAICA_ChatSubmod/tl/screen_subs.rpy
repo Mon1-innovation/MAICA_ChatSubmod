@@ -101,19 +101,19 @@ translate chinese strings:
     old "Refresh servers list"
     new "刷新节点列表"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:719
-    old "Select the single most related page, ignoring sample range. Relatively fast since no recursive search performed.\n"
-    new "仅选取与搜索关键词最接近的一个页面, 此时采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"
+    old ""Fetch a page directly by keyword, requiring exact match. Sample range is ignored and no recursive search is performed. Relatively fast.\n""
+    new "直接根据关键词拉取页面, 要求准确匹配, 且采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:724
-    old "Select one random from multiple related pages. Relatively fast since no recursive search performed.\n"
+    old "Search multiple pages by keyword and randomly select one. No recursive search is performed. Relatively fast.\n"
     new "根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:729
-    old "Select the single most related category, then recursively search pages and subcategories. Relatively slow.\n"
-    new "先仅选取与搜索关键词最接近的一个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"
+    old ""Fetch a category directly by keyword, requiring exact match, then recursively select categories or pages until a page is reached. Decent speed.\n""
+    new "直接根据关键词拉取分类, 要求准确匹配, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应速度中等.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:734
-    old "Select one random from multiple related categories, then recursively search pages and subcategories. Relatively slow.\n"
+    old "Search multiple categories by keyword, then recursively select categories or pages until a page is reached. Relatively slow.\n"
     new "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:739
-    old "Select related pages, categories and subcategories recursively. Relatively slow.\n"
+    old "Starting from the keyword, recursively search and select categories or pages until a page is reached. Relatively slow.\n"
     new "根据关键词直接开始递归地抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应较慢.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:805
     old "Integrated | Change BGM{#maica_trigger_screen}"
@@ -236,10 +236,12 @@ translate chinese strings:
 translate chinese strings:
 
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:378
-    old "Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues"
-    new "实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 截至文档编纂时为止, 该功能仅对目标生成语言en有效\n* 不同解码后端对regex引导的支持性不同, 可能导致表达式失效或工作异常\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题"
-    old "Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May cause unexpected issues"
-    new "实验性功能, 在prompt中允许模型生成[[player_nickname]占位符.\n+ 更符合MAS的对话风格\n- 需要一些额外的前端设计\n- 这可能会造成意料之外的问题"
+    old "Add Monika's nickname to prompts.\n+ Gives the model a concrete understanding of its own nickname, even if it may be completely unrelated to Monika\n- Increases the risk of inconsistent or confused behavior"
+    new "在prompt中补充莫妮卡的昵称.\n+ 模型能理解自身昵称, 即使其与\"莫妮卡\"可能完全无关.\n- 更容易发生表现离群和混乱."
+    old "Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues\n- Temporarily withdrawn since backend v1.3.004.rc2 due to incompatibility with vLLM's default decoding backend (xgrammar)"
+    new "实验性功能, 通过LLM引导式解码(guided_regex)强制使用目标语言输出.\n* 截至文档编纂时为止, 该功能仅对目标生成语言en有效\n* 不同解码后端对regex引导的支持性不同, 可能导致表达式失效或工作异常\n* 启用该功能可能影响模型的表现, 或导致其它意料之外的问题\n- 自后端v1.3.004.rc2后, 该功能被暂时撤销, 因为其与vllm默认的解码后端(xgrammar)不兼容"
+    old "Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May affect behavior slightly"
+    new "实验性功能, 在prompt中允许模型生成[[player_nickname]占位符.\n+ 更符合MAS的对话风格.\n- 需要一些额外的前端设计.\n- 产生的表现可能有轻微差异."
     old "Experimental: implementation of possibly faster savefile access, replacing traditional MFocus implementation.\n* 0: (Traditional) LLM-only implementation\n* 1: RAG + reranker implementation\n* 2: RAG-only implementation\n+ Could be a lot, lot faster\n+ mf_const_sf_access can be enabled only if this is nonzero\n- RAG-only mode does not search from per-query savefile\n- Significantly less precise than traditional implementation, demanding core model's distraction resistance\n- Falls back to 0 if backend does not implement optional requirements"
     new "实验性功能, 从设定集(存档)中快速提取信息的方式, 并替代传统MFocus实现.\n* 0: (传统)纯LLM实现\n* 1: RAG+Reranker实现\n* 2: 纯RAG实现\n+ 会快很多\n+ 仅不为0时可以启用mf_const_sf_access\n- 纯RAG不会检索query携带的存档内容\n- 精度显著低于传统实现, 考验核心模型的抗干扰能力\n- 如果后端没有实现对应的可选要求, 会回退到0"
     old "Experimental: provide extracted information even when MFocus does not call savefile access.\n* 0: (Traditional) MFocus tool only\n* 1: Pre-retrieval + tool\n* 2: Pre-retrieval only\n+ Significantly increases interventionality of savefile data\n- Can introduce distractions and demands core model's distraction resistance\n- Just wasting time in more than half cases"

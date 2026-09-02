@@ -160,6 +160,31 @@ def test_development_migration_runs_after_switching_back_from_newer_version():
     assert calls == ["current"]
 
 
+def test_mspire_13004_migration_changes_legacy_behavior_once():
+    class Stub(object):
+        pass
+
+    persistent = Stub()
+    persistent.maica_setting_dict = {"mspire_search_type": "in_fuzzy_all"}
+    persistent._maica_mspire_13004_search_migrated = False
+    migration = load_rpy_python_function(
+        PACKAGE_ROOT.parent / "Submods" / "MAICA_ChatSubmod" / "migrations.rpy",
+        "migration_1_8_22",
+        {
+            "maica_v13_migration": maica_v13_migration,
+            "persistent": persistent,
+        },
+    )
+
+    migration()
+    assert persistent.maica_setting_dict["mspire_search_type"] == "in_precise_category"
+    assert persistent._maica_mspire_13004_search_migrated is True
+
+    persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_all"
+    migration()
+    assert persistent.maica_setting_dict["mspire_search_type"] == "in_fuzzy_all"
+
+
 class NullLogger:
     def debug(self, *args, **kwargs):
         pass
@@ -1839,6 +1864,15 @@ def test_mspire_ctg_weight_defaults_to_ten():
     processor.process_request(["science"], 1)
     payload = _last_json(manager)
     assert payload["inspire"].get("ctg_weight") == 10
+
+
+def test_mspire_search_type_defaults_to_v13004_precise_category():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    processor.process_request(["science"], 0)
+    assert _last_json(manager)["inspire"]["type"] == "in_precise_category"
 
 
 def test_mspire_without_categories_sends_empty_inspire_object():
@@ -3809,6 +3843,7 @@ def test_savefile_sanitizer_includes_target_lang_and_uses_field_specific_limits(
     additions = ["a" * 1536, "中" * 512]
     source = {
         "target_lang": "auto",
+        "mas_monikaname": "Mika",
         "mas_geolocation": long_general_value,
         "mas_player_additions": additions,
         "not_in_the_upload_contract": "private",
@@ -3817,6 +3852,7 @@ def test_savefile_sanitizer_includes_target_lang_and_uses_field_specific_limits(
     sanitized = maica_savefile.sanitize_persistent_dict(source)
 
     assert sanitized["target_lang"] == "auto"
+    assert sanitized["mas_monikaname"] == "Mika"
     assert sanitized["mas_geolocation"] == long_general_value
     assert sanitized["mas_player_additions"] == additions
     assert sanitized["mas_player_additions"] is not additions
@@ -3857,6 +3893,7 @@ def test_savefile_sanitizer_rejects_invalid_player_additions(additions, message)
 def test_upload_persistent_dict_sends_target_lang_and_preserves_valid_values():
     upload, ai, uploaded, notifications, warnings = make_persistent_upload_runtime(
         ["a" * 1536],
+        _mas_monika_nickname="Mika",
         mas_geolocation="中" * 513,
         not_in_the_upload_contract="private",
     )
@@ -3867,10 +3904,18 @@ def test_upload_persistent_dict_sends_target_lang_and_preserves_valid_values():
     assert uploaded[0]["mas_geolocation"] == "中" * 513
     assert uploaded[0]["mas_player_additions"] == ["a" * 1536]
     assert uploaded[0]["mas_playername"] == "Player"
+    assert uploaded[0]["mas_monikaname"] == "Mika"
     assert uploaded[0]["mas_affection"] == 42
     assert "not_in_the_upload_contract" not in uploaded[0]
     assert warnings == []
     assert notifications == ["MAICA: Savefile uploaded successfully"]
+
+
+def test_monika_nickname_upload_prefers_persistent_and_rejects_transient_placeholder():
+    assert maica_savefile.select_monika_nickname("Mika", "???") == "Mika"
+    assert maica_savefile.select_monika_nickname(None, "Mika") == "Mika"
+    for value in (None, "", "   ", "???", 7):
+        assert maica_savefile.select_monika_nickname(value, "???") is None
 
 
 def test_upload_persistent_dict_does_not_overwrite_backend_with_invalid_additions():

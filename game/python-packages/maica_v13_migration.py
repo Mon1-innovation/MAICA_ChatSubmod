@@ -34,6 +34,7 @@ ADVANCED_SETTING_KEYS = (
     "frequency_penalty",
     "presence_penalty",
     "prompt_pname_repl",
+    "prompt_monika_nickname",
     "prompt_allow_nickname",
     "mf_llm_concl",
     "mf_sf_access_impl",
@@ -137,6 +138,16 @@ def normalize_tristate_values(values, warning_callback=None, fill_missing=True):
             value = default
         values[key] = value
     return values
+
+
+def migrate_mspire_13004_search_type(values):
+    """Preserve pre-1.3.004 MSpire behavior across the backend algorithm change."""
+    if not isinstance(values, dict):
+        return False
+    if values.get("mspire_search_type") != "in_fuzzy_all":
+        return False
+    values["mspire_search_type"] = "in_precise_category"
+    return True
 
 
 def migrate_setting_values(

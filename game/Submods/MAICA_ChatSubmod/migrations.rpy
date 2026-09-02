@@ -3,6 +3,7 @@ default persistent._maica_v18_player_additions_notice_seen = False
 default persistent._maica_successful_chat_count = 0
 default persistent._maica_main_changed_dialogue_count = 0
 default persistent._maica_main_not_exist_dialogue_count = 0
+default persistent._maica_mspire_13004_search_migrated = False
 
 init 998 python:
     import copy
@@ -1464,6 +1465,14 @@ init 998 python:
         # The migration and every-startup audit intentionally share one path.
         maica_reconcile_topic_state(reason="migration_1_8_17")
 
+    def migration_1_8_22():
+        if persistent._maica_mspire_13004_search_migrated:
+            return
+        maica_v13_migration.migrate_mspire_13004_search_type(
+            persistent.maica_setting_dict
+        )
+        persistent._maica_mspire_13004_search_migrated = True
+
     def migration_1_8_0():
         maica_v13_migration.migrate_setting_values(
             persistent.maica_setting_dict,
@@ -1840,4 +1849,5 @@ init 998 python:
         ("1.8.12", migration_1_8_12),
         ("1.8.13", migration_1_8_13),
         ("1.8.17", migration_1_8_17),
+        ("1.8.22", migration_1_8_22),
     ]

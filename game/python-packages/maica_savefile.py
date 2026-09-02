@@ -9,6 +9,7 @@ PLAYER_ADDITION_MAX_BYTES = 1536
 
 PERSISTENT_UPLOAD_KEYS = (
     "mas_playername",
+    "mas_monikaname",
     "mas_player_bday",
     "mas_affection",
     "mas_geolocation",
@@ -128,6 +129,17 @@ try:
     TEXT_TYPES = (basestring,)
 except NameError:
     TEXT_TYPES = (str,)
+
+
+def select_monika_nickname(persistent_value, runtime_value=None):
+    """Prefer MAS's persistent nickname and reject its temporary hidden-name value."""
+    for value in (persistent_value, runtime_value):
+        if not isinstance(value, TEXT_TYPES):
+            continue
+        if not value.strip() or value == "???":
+            continue
+        return value
+    return None
 
 
 class PlayerAdditionsValidationError(ValueError):

@@ -524,11 +524,11 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     用于处理灵感相关的聊天请求，可以进行模糊搜索和缓存使用。
 
     Class Attributes:
-        mspire_type (str): MSpire类型，默认为"in_fuzzy_all"（模糊全文搜索）
+        mspire_type (str): MSpire类型，默认为"in_precise_category"（准确分类后递归搜索）
         use_cache (bool): 是否使用缓存结果，默认为False
     """
 
-    mspire_type = "in_fuzzy_all"
+    mspire_type = "in_precise_category"
     use_cache = False
     ctg_weight = 10
 
