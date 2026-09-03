@@ -1,6 +1,10 @@
 init -1500 python:
-    if not config.language:
+    
+    if _preferences.language:
+        config.language = _preferences.language
+    elif not config.language:
         config.language = "english"
+
     maica_ver = '1.9.0'
     maica_is_dev = True
     # 如果是开发版本:
