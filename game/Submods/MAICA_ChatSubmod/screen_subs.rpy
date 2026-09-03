@@ -559,7 +559,7 @@ screen maica_login():
                     action Show("maica_login_input",message = _("Enter DCC account username{#maica_login_prompt}") ,returnto = "_maica_LoginAcc")
 
         hbox:
-            style_prefix "maica_check"
+            style_prefix "small_expl"
             if use_email:
                 textbutton _("> Use username instead"):
                     text_size 15
