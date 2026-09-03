@@ -1092,8 +1092,8 @@ label maica_connection_failure_dialogue(from_mspire = False):
         ai.status == ai.MaicaAiStatus.SERVER_REJECTED
         and from_mspire
     ):
-        m 2rusdlb "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
-        m 3eusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
+        m 2eksdlc "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
+        m 3rusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
         m 3eua "Anyway, we can always try it again later, so don't worry."
 
     elif ai.status in (
