@@ -2214,7 +2214,10 @@ def test_loop_warn_reset_releases_request_but_preserves_connection(
     assert client.keep_running is True
     assert ai.Loginer.success is True
     assert ai.UserData.account == "test-user"
-    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.status == ai.MaicaAiStatus.SERVER_REJECTED
+    assert ai.error_protocol_status == "maica_loop_warn_reset"
+    assert ai.is_connection_interrupted() is False
+    assert ai.is_failed() is True
     assert ai.MSpireProcessor.processing is False
     assert ai.MSpireProcessor._core_output_parts == []
     assert request_lock.locked() is False
@@ -2222,6 +2225,96 @@ def test_loop_warn_reset_releases_request_but_preserves_connection(
     assert ai._in_mspire is False
     assert ai.AutoResumeTasker._generation_started is False
     assert ai.is_ready_to_input() is True
+
+    ai._prepare_authenticated_operation()
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.error_protocol_status is None
+    assert ai.is_failed() is False
+    assert ai.is_connection_interrupted() is False
+
+
+def test_next_authenticated_request_clears_loop_reset_state(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class ConnectedClient:
+        keep_running = True
+
+        def send(self, payload):
+            self.payload = payload
+
+    client = ConnectedClient()
+    ai.task_manager.ws_client = client
+    ai._MaicaAi__accessable = True
+    ai.Loginer.success = True
+    ai.status = ai.MaicaAiStatus.SERVER_REJECTED
+    ai.error_protocol_status = "maica_loop_warn_reset"
+    ai.error_message = "operation reset"
+    ai.error_protocol_code = 400
+    ai.mtrigger_manager.build_data = lambda *args, **kwargs: {}
+    ai.ChatProcessor.start_request = lambda **kwargs: None
+
+    ai.chat("retry")
+
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.error_protocol_status is None
+    assert ai.is_failed() is False
+    assert ai.is_connection_interrupted() is False
+
+
+def test_login_rejection_is_not_a_transport_interruption(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    ai._handle_login_result(
+        False,
+        "maica_login_token_invalid",
+        "token rejected",
+        400,
+    )
+
+    assert ai.status == ai.MaicaAiStatus.TOKEN_INVALID
+    assert ai.is_connection_interrupted() is False
+    assert ai.is_failed() is True
+
+
+def test_stage_one_loop_reset_does_not_hide_login_rejection(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        keep_running = True
+
+        def close(self):
+            self.keep_running = False
+
+    client = Client()
+    ai.task_manager.ws_client = client
+
+    for status, content in (
+        ("maica_login_token_invalid", "token rejected"),
+        ("maica_loop_warn_reset", "operation reset"),
+    ):
+        ai.task_manager._ws_onmessage(
+            client,
+            json.dumps(
+                {
+                    "code": 400,
+                    "status": status,
+                    "content": content,
+                    "type": "warn",
+                    "timestamp": 0,
+                }
+            ),
+        )
+
+    assert ai.status == ai.MaicaAiStatus.TOKEN_INVALID
+    assert ai.error_protocol_status == "maica_login_token_invalid"
+    assert ai.error_message == "token rejected"
+    assert ai.is_connection_interrupted() is False
 
 
 def test_init_connect_without_token_sets_explicit_failure(isolated_maica_ai_globals):
@@ -2431,6 +2524,24 @@ def test_cancelled_connection_ignores_late_login_result(
     assert ai._connection_in_progress is True
 
 
+def test_interrupted_connection_ignores_late_login_result(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.Loginer.success = True
+    ai._connection_interrupted = True
+    ai.status = ai.MaicaAiStatus.CONNECT_PROBLEM
+    ai.error_protocol_status = "client_connection_closed"
+    ai.error_message = "network lost"
+
+    ai._handle_login_result(True)
+
+    assert ai.Loginer.success is False
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_connection_closed"
+    assert ai.is_connection_interrupted() is True
+
+
 def test_close_during_connection_is_intentional_and_does_not_set_13411(
     isolated_maica_ai_globals,
 ):
@@ -2623,6 +2734,27 @@ def test_unexpected_close_sets_numeric_connection_failure(
     assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
     assert ai.error_protocol_status == "client_connection_closed"
     assert ai.error_message == "network lost"
+
+
+def test_unexpected_close_overrides_a_previous_operation_failure(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        def close(self):
+            pass
+
+    client = Client()
+    ai.Loginer.success = True
+    ai.status = ai.MaicaAiStatus.SERVER_REJECTED
+    ai.error_protocol_status = "maica_input_query_censored"
+
+    ai._on_close(client, 1006, "network lost")
+
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_connection_closed"
+    assert ai.is_connection_interrupted() is True
 
 
 def test_maica_runtime_has_no_websocket_cookie_owner(isolated_maica_ai_globals):

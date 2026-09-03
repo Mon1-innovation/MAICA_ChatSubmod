@@ -277,6 +277,8 @@ class MaicaAi(ChatBotInterface):
         self._connection_in_progress = False
         self._connection_cancel_requested = False
         self._connection_close_in_progress = False
+        # Transport failures are tracked separately from frontend status codes.
+        self._connection_interrupted = False
         self._sticky_disable_status = None
         self.MoodStatus = emotion_analyze_v2.EmoSelector(None, None, None)
         self.public_key = None
@@ -474,12 +476,13 @@ class MaicaAi(ChatBotInterface):
             console_logger=self.console_logger
         )
 
-        maica_tasker_sub.MAICALoopWarnHandler(
+        loop_warn_task = maica_tasker_sub.MAICALoopWarnHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
             name="maicaloop_warn_handler",
             manager=self.task_manager,
             except_ws_status=['maica_loop_warn_reset']
         )
+        loop_warn_task.set_reset_callback(self._handle_loop_warn_reset)
 
         self.HistoryStatus = maica_tasker_sub.HistoryStatusHandler(
             task_type=maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
@@ -818,26 +821,46 @@ class MaicaAi(ChatBotInterface):
         with connection_lock:
             return self._set_error_unlocked(status, message, code, fallback)
 
+    def _handle_loop_warn_reset(self, event):
+        """Convert a backend loop reset into a one-shot frontend operation error."""
+        if self._is_login_rejection():
+            return
+        packet = event.data
+        self.set_error(
+            getattr(packet, "status", "maica_loop_warn_reset"),
+            getattr(packet, "content", None),
+            getattr(packet, "code", None),
+            fallback=self.MaicaAiStatus.SERVER_REJECTED,
+        )
+
     def _handle_login_result(self, success, status=None, message=None, code=None):
-        if self._connection_cancelled():
+        if self._connection_cancelled() or self.is_connection_interrupted():
             self.Loginer.success = False
             return
         if success:
+            self._set_connection_interrupted(False)
             self.clear_error(self.MaicaAiStatus.CONNECTED)
         else:
+            # A rejected login is an intentional policy decision, not a
+            # transport failure.  The login task closes this socket itself.
+            self._set_connection_interrupted(False)
             self.set_error(status, message, code, self.MaicaAiStatus.TOKEN_INVALID)
         self._mark_connection_handshake_complete()
 
     def _handle_ws_failure(self, status, message=None, code=None):
+        if self._connection_cancelled() or status == "maica_loop_warn_reset":
+            return False
         login_failures = (
             self.Loginer.LOGIN_FAILURE_STATUSES + self.Loginer.PREAUTH_FAILURE_STATUSES
         )
         if not self.Loginer.success and status in login_failures:
             return False
+        self._set_connection_interrupted(True)
         self.set_error(status, message, code, self.MaicaAiStatus.SERVER_ERROR)
         return True
 
     def _handle_response_timeout(self, processor_name, timeout):
+        self._set_connection_interrupted(True)
         self.set_error(
             "client_response_timeout",
             "{} timed out after {:.1f} seconds".format(processor_name, timeout),
@@ -1178,6 +1201,58 @@ class MaicaAi(ChatBotInterface):
         with connection_lock:
             return self._connection_cancel_requested
 
+    def _set_connection_interrupted(self, interrupted=True):
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            previous = bool(getattr(self, "_connection_interrupted", False))
+            self._connection_interrupted = bool(interrupted)
+            return previous
+        with connection_lock:
+            previous = bool(getattr(self, "_connection_interrupted", False))
+            self._connection_interrupted = bool(interrupted)
+            return previous
+
+    def is_connection_interrupted(self):
+        """Return whether the authenticated transport needs to be reopened."""
+        connection_lock = getattr(self, "_connection_state_lock", None)
+        if connection_lock is None:
+            interrupted = bool(getattr(self, "_connection_interrupted", False))
+            closing = bool(getattr(self, "_connection_close_in_progress", False))
+            cancelled = bool(getattr(self, "_connection_cancel_requested", False))
+        else:
+            with connection_lock:
+                interrupted = bool(getattr(self, "_connection_interrupted", False))
+                closing = bool(getattr(self, "_connection_close_in_progress", False))
+                cancelled = bool(getattr(self, "_connection_cancel_requested", False))
+        if interrupted or closing or cancelled:
+            return interrupted
+        # Keep the predicate correct if a driver dies before its callback runs.
+        return bool(
+            getattr(getattr(self, "Loginer", None), "success", False)
+            and not self.is_connected()
+        )
+
+    def _is_login_rejection(self):
+        loginer = getattr(self, "Loginer", None)
+        if getattr(loginer, "success", False):
+            return False
+        statuses = tuple(
+            getattr(loginer, "LOGIN_FAILURE_STATUSES", ())
+        ) + tuple(
+            getattr(loginer, "PREAUTH_FAILURE_STATUSES", ())
+        )
+        if getattr(self, "error_protocol_status", None) in statuses:
+            return True
+        return getattr(self, "status", None) in (
+            self.MaicaAiStatus.TOKEN_CORRUPTED,
+            self.MaicaAiStatus.TOKEN_INVALID,
+            self.MaicaAiStatus.LOGIN_BLOCKED,
+            self.MaicaAiStatus.ACCOUNT_BANNED,
+            self.MaicaAiStatus.EMAIL_UNVERIFIED,
+            self.MaicaAiStatus.TOS_UNACCEPTED,
+            self.MaicaAiStatus.CONNECTION_REUSE_DENIED,
+        )
+
     def _mark_connection_handshake_complete(self):
         connection_lock = getattr(self, "_connection_state_lock", None)
         if connection_lock is None:
@@ -1194,6 +1269,7 @@ class MaicaAi(ChatBotInterface):
             with self._connection_state_lock:
                 if self.wss_thread is current_thread:
                     if self._connection_cancel_requested:
+                        self._set_connection_interrupted(False)
                         self.clear_error(self.MaicaAiStatus.IDLE)
                     self._connection_in_progress = False
                     self._connection_cancel_requested = False
@@ -1267,6 +1343,7 @@ class MaicaAi(ChatBotInterface):
             self._connection_in_progress = True
             self._connection_cancel_requested = False
             try:
+                self._set_connection_interrupted(False)
                 self.task_manager.reset_all_task()
                 self._clear_response_timeouts()
                 self.Loginer.set_token(self.ciphertext)
@@ -1281,6 +1358,7 @@ class MaicaAi(ChatBotInterface):
                 self._connection_in_progress = False
                 self._connection_cancel_requested = False
                 self.wss_thread = None
+                self._set_connection_interrupted(True)
                 self.set_error(
                     "client_network_error",
                     "Failed to start WebSocket connection thread",
@@ -1341,6 +1419,7 @@ class MaicaAi(ChatBotInterface):
         except Exception:
             import traceback
             if not self._connection_cancelled():
+                self._set_connection_interrupted(True)
                 self.set_error(
                     "client_network_error",
                     "Failed to initialize WebSocket client",
@@ -1362,6 +1441,7 @@ class MaicaAi(ChatBotInterface):
                 or self.task_manager.ws_client is not ws_client
             ):
                 return
+            self._set_connection_interrupted(True)
             self.set_error(
                 "client_network_error",
                 "Connection timed out after {:.1f} seconds".format(self.CONNECTION_TIMEOUT),
@@ -1394,21 +1474,32 @@ class MaicaAi(ChatBotInterface):
         except Exception as e:
             import traceback
             if not self._connection_cancelled():
+                self._set_connection_interrupted(True)
                 self.set_error("client_network_error", "WebSocket connection failed")
             self.console_logger.error("wss_session.run_forever() failed: {}".format(e))
             logger.error("Maica::_init_connect wss_session.run_forever() failed: {}".format(traceback.format_exc()))
         finally:
             if connection_timer is not None:
                 connection_timer.cancel()
-            if (
+            unexpected_close = bool(
                 not self._connection_cancelled()
-                and not self.Loginer.success
-                and not self.is_failed()
-            ):
-                self.set_error(
-                    "client_network_error",
-                    "WebSocket closed before authentication completed",
-                )
+                and not self.is_connected()
+                and not self._is_login_rejection()
+            )
+            if unexpected_close:
+                was_interrupted = self._set_connection_interrupted(True)
+                if not was_interrupted or not self.error_protocol_status:
+                    if self.Loginer.success:
+                        self.set_error(
+                            "client_connection_closed",
+                            "WebSocket connection closed unexpectedly",
+                            fallback=self.MaicaAiStatus.CONNECT_PROBLEM,
+                        )
+                    else:
+                        self.set_error(
+                            "client_network_error",
+                            "WebSocket closed before authentication completed",
+                        )
             if self.multi_lock.locked():
                 self.multi_lock.release()
                 logger.debug("Maica::_init_connect released lock because WebSocket closed")
@@ -1423,6 +1514,7 @@ class MaicaAi(ChatBotInterface):
         """返回maica是否可以接受输入消息了"""
         return bool(
             self.is_connected()
+            and not self.is_connection_interrupted()
             and self.Loginer.success
             and not maica_tasker_sub_sessionsender.SessionSenderAndReceiver.multi_lock.locked()
         )
@@ -1450,13 +1542,20 @@ class MaicaAi(ChatBotInterface):
     
     def is_failed(self):
         """返回maica是否处于异常状态"""
-        if bool(
-            self.MaicaAiStatus.is_submod_exception(self.status)
-            or self.task_manager.is_task_failed()
+        task_manager = getattr(self, "task_manager", None)
+        return bool(
+            self.is_connection_interrupted()
+            or bool(task_manager and task_manager.is_task_failed())
             or self.response_timed_out()
-        ):
-            return True
-        return bool(self.Loginer.success and not self.is_connected())
+            or self.MaicaAiStatus.is_submod_exception(
+                getattr(self, "status", None)
+            )
+        )
+
+    def _prepare_authenticated_operation(self):
+        """Clear a retryable operation error immediately before a new request."""
+        if getattr(self, "error_protocol_status", None) == "maica_loop_warn_reset":
+            self.clear_error(self.MaicaAiStatus.CONNECTED)
 
     def response_timed_out(self):
         return any(
@@ -1485,7 +1584,8 @@ class MaicaAi(ChatBotInterface):
 
     def is_connected(self):
         """返回maica是否连接服务器, 不检查状态码"""
-        return bool(getattr(self.task_manager.ws_client, "keep_running", False)) #\
+        task_manager = getattr(self, "task_manager", None)
+        return bool(getattr(getattr(task_manager, "ws_client", None), "keep_running", False)) #\
             #or self.wss_thread.is_alive() if self.wss_thread else False
 
     def get_status_description(self):
@@ -1545,6 +1645,7 @@ class MaicaAi(ChatBotInterface):
                 "the WebSocket is not ready to accept input",
             )
             return
+        self._prepare_authenticated_operation()
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.stat['mspire_count'] += 1
@@ -1578,6 +1679,7 @@ class MaicaAi(ChatBotInterface):
                 "the WebSocket is not ready to accept input",
             )
             return
+        self._prepare_authenticated_operation()
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.stat['mpostal_count'] += 1
@@ -1622,6 +1724,7 @@ class MaicaAi(ChatBotInterface):
     def send_settings(self, send_mtrigger=True):
         data = self.build_setting_config()
         if self.is_connected() and self.Loginer.success:
+            self._prepare_authenticated_operation()
             if send_mtrigger:
                 self.send_mtrigger()
             self.SettingSender.start_event(data)
@@ -1695,27 +1798,32 @@ class MaicaAi(ChatBotInterface):
             processor.reset()
 
     def _on_error(self, wsapp, error):
-        if not self._connection_cancelled() and not self.is_failed():
-            self.set_error("client_network_error", u"{}".format(error))
+        if not self._connection_cancelled():
+            was_interrupted = self._set_connection_interrupted(True)
+            if not was_interrupted or not self.error_protocol_status:
+                self.set_error("client_network_error", u"{}".format(error))
         self.task_manager._ws_onerror(wsapp, error)
         if wsapp:
             wsapp.close()
 
     def _on_close(self, wsapp, close_status_code=None, close_msg=None):
         logger.debug("MaicaAi::_on_close {}|{}".format(close_status_code, close_msg))
-        intentional_close = wsapp in self._intentional_ws_closes
-        self._intentional_ws_closes.discard(wsapp)
-        if (
-            not intentional_close
-            and self.Loginer.success
-            and not self.MaicaAiStatus.is_submod_exception(self.status)
-        ):
-            self.set_error(
-                "client_connection_closed",
-                close_msg or "WebSocket connection closed unexpectedly",
-                close_status_code,
-                self.MaicaAiStatus.CONNECT_PROBLEM,
+        with self._connection_state_lock:
+            intentional_close = bool(
+                wsapp in self._intentional_ws_closes
+                or self._connection_close_in_progress
+                or self._connection_cancel_requested
             )
+        self._intentional_ws_closes.discard(wsapp)
+        if not intentional_close and not self._is_login_rejection():
+            was_interrupted = self._set_connection_interrupted(True)
+            if not was_interrupted or not self.error_protocol_status:
+                self.set_error(
+                    "client_connection_closed",
+                    close_msg or "WebSocket connection closed unexpectedly",
+                    close_status_code,
+                    self.MaicaAiStatus.CONNECT_PROBLEM,
+                )
         if wsapp:
             wsapp.close()
         self.task_manager._ws_onclose(wsapp, close_status_code, close_msg)
@@ -1732,6 +1840,7 @@ class MaicaAi(ChatBotInterface):
                 "the WebSocket is not ready to accept input",
             )
             return
+        self._prepare_authenticated_operation()
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.ChatProcessor.start_request(
@@ -1775,6 +1884,7 @@ class MaicaAi(ChatBotInterface):
                 "the WebSocket is not ready to accept input",
             )
             return
+        self._prepare_authenticated_operation()
         self.QualityStatusTasker.clear()
         self._clear_response_timeouts()
         self.RawContextProcessor.start_request(
@@ -1941,6 +2051,8 @@ class MaicaAi(ChatBotInterface):
                 "service availability is not ready",
             )
             return False
+        if self.is_connected() and self.Loginer.success:
+            self._prepare_authenticated_operation()
         import json
         self.SessionReseter.start_event(chat_session = self.chat_session)
         self.message_list.clear()
@@ -2077,6 +2189,7 @@ class MaicaAi(ChatBotInterface):
         """
         with self._connection_state_lock:
             self._connection_close_in_progress = True
+            self._set_connection_interrupted(False)
             connection_thread = self.wss_thread
             self._connection_cancel_requested = bool(
                 self._connection_in_progress

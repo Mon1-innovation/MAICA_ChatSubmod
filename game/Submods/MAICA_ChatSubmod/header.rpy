@@ -1128,7 +1128,7 @@ screen maica_setting_pane():
                 provider_refresh_error.get("exception") or "",
                 160,
             )
-        if connection_busy and not ai.is_failed():
+        if connection_busy and not ai.is_connection_interrupted():
             stat = ai.get_status_description()
         else:
             stat = _("Not connected") if not ai.wss_session else _("Connection established") if ai.is_connected() else _("Connection closed")

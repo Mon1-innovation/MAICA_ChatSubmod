@@ -389,7 +389,7 @@ def test_disconnection_failure_dialogue_is_centralized_and_identifies_mspire_sou
     assert talking_setup.index("$ maica_talking_from_mspire = mspire") < talking_setup.index("if not prepared:")
     assert "$ mspire = False" in talking
     assert "call maica_hide_console" in talking_end
-    assert 'if return_code == "disconnected":' in talking_end
+    assert 'if return_code in ("disconnected", "operation_failed"):' in talking_end
     failure_call = "call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)"
     assert failure_call in talking_end
     assert talking_end.index("call maica_hide_console") < talking_end.index(failure_call)

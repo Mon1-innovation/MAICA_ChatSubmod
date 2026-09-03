@@ -106,7 +106,7 @@ def test_mpostal_original_and_preview_have_separate_cleanup_lifetimes():
     assert success_guard in read_flow
     assert "store.maica.delete_mpostal_original(cur_postal)" in read_flow
     assert "delete_mpostal_preview" not in read_flow
-    assert read_flow.index("if ai.response_timed_out():") < read_flow.index(success_guard)
+    assert read_flow.index("if ai.is_failed():") < read_flow.index(success_guard)
 
     original_cleanup = api_source[
         api_source.index("def delete_mpostal_original(postal):"):

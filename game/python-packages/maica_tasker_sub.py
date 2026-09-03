@@ -211,6 +211,9 @@ class GeneralWsLogger(MaicaWSTask):
 class MAICALoopWarnHandler(MaicaWSTask):
     """Handle an operation-level loop reset without closing the transport."""
 
+    def set_reset_callback(self, callback):
+        self._reset_callback = callback
+
     def on_received(self, event):
         wspack = event.data
         if self.logger:
@@ -221,6 +224,9 @@ class MAICALoopWarnHandler(MaicaWSTask):
                     wspack.code,
                 )
             )
+        callback = getattr(self, "_reset_callback", None)
+        if callback:
+            callback(event)
 
 
 class HistoryStatusHandler(MaicaWSTask):

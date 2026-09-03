@@ -130,11 +130,15 @@ label maica_talking.asking:
                     ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
                     gen_time
                     ))
-                if ai.is_failed():
+                if ai.is_connection_interrupted():
                     if ai.len_message_queue() == 0:
                         # This is already spoken by the common failure dialogue.
                         # renpy.say(m, _("Something may went wrong..."))
                         return_code = "disconnected"
+                        break
+                elif ai.is_failed():
+                    if ai.len_message_queue() == 0:
+                        return_code = "operation_failed"
                         break
                 if ai.len_message_queue() == 0:
                     #renpy.show(monika 1eua)
@@ -159,7 +163,11 @@ label maica_talking.asking:
             if ai.response_timed_out():
                 # renpy.say(m, _("Something may went wrong..."))
                 return_code = "disconnected"
-            if return_code == "disconnected":
+            elif ai.is_connection_interrupted():
+                return_code = "disconnected"
+            elif ai.is_failed():
+                return_code = "operation_failed"
+            if return_code in ("disconnected", "operation_failed"):
                 break
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             return_code = "mtrigger_triggering"
@@ -210,7 +218,7 @@ label maica_talking.end:
     call maica_hide_console
     if persistent.maica_setting_dict['console']:
         $ store.mas_ptod.clear_console()
-    if return_code == "disconnected":
+    if return_code in ("disconnected", "operation_failed"):
         call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)
     # if mspire_user_responsed:
     #     $ maica_apply_setting(True)
@@ -315,7 +323,13 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
             renpy.pause(2.3)
 
         while True:
-            if ai.is_failed():
+            if ai.is_connection_interrupted() or (
+                ai.is_failed()
+                and (
+                    not ai.Loginer.success
+                    or (not ai.is_connected() and not ai.is_connecting())
+                )
+            ):
                 store.mas_submod_utils.submod_log.error(
                     "maica_init_connect failed: status={}, protocol_status={}, detail={}".format(
                         ai.status,
@@ -417,13 +431,8 @@ label maica_mpostal_read:
                 store.mas_ptod.write_command("Time consumed: {:.2f}".format(
                     gen_time
                     ))
-                if ai.is_failed():
-                    if ai.len_message_queue() == 0:
-                        cur_postal["responsed_status"] = "failed"
-                        cur_postal["responsed_content"] = cur_postal["responsed_content"] + renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]" + "\nt{}".format(time.time()))) + ("\n" if len(cur_postal["responsed_content"]) else "")
-
-                        _return = "failed"
-                        break
+                if ai.is_failed() and ai.len_message_queue() == 0:
+                    break
                 if ai.len_message_queue() == 0:
                     store.mas_ptod.write_command("Wait message...")
                     renpy.pause(1.0)
@@ -433,7 +442,7 @@ label maica_mpostal_read:
                 cur_postal["responsed_status"] = "received"
                 _return = "success"
 
-            if ai.response_timed_out():
+            if ai.is_failed():
                 cur_postal["responsed_status"] = "failed"
                 cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
                 _return = "failed"
