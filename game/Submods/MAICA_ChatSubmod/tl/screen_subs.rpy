@@ -101,13 +101,13 @@ translate chinese strings:
     old "Refresh servers list"
     new "刷新节点列表"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:719
-    old ""Fetch a page directly by keyword, requiring exact match. Sample range is ignored and no recursive search is performed. Relatively fast.\n""
+    old "Fetch a page directly by keyword, requiring exact match. Sample range is ignored and no recursive search is performed. Relatively fast.\n"
     new "直接根据关键词拉取页面, 要求准确匹配, 且采样广度不生效. 此种类条目不执行递归查找, 响应较快.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:724
     old "Search multiple pages by keyword and randomly select one. No recursive search is performed. Relatively fast.\n"
     new "根据关键词搜索多个页面, 从中随机抽取一个页面. 此种类条目不执行递归查找, 响应较快.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:729
-    old ""Fetch a category directly by keyword, requiring exact match, then recursively select categories or pages until a page is reached. Decent speed.\n""
+    old "Fetch a category directly by keyword, requiring exact match, then recursively select categories or pages until a page is reached. Decent speed.\n"
     new "直接根据关键词拉取分类, 要求准确匹配, 再从其中递归地随机抽取分类或页面, 直至最终抽取到一个页面. 此种类条目响应速度中等.\n"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:734
     old "Search multiple categories by keyword, then recursively select categories or pages until a page is reached. Relatively slow.\n"
