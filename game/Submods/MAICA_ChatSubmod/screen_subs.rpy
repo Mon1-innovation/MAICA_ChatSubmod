@@ -198,7 +198,7 @@ screen maica_advance_setting():
             style_prefix "generic_fancy_check"
             hbox:
                 style_prefix "maica_check"
-                text _("For detailed explainations of these params, refer to "):
+                text _("For detailed explanations of these params, refer to "):
                     size 20
                 textbutton _("{u}MAICA official documents{/u}"):
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md")

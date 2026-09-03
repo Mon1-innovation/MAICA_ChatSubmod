@@ -5,7 +5,7 @@ translate chinese strings:
     old "auto | Auto"
     new "auto | 自动"
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:209
-    old "For detailed explainations of these params, refer to "
+    old "For detailed explanations of these params, refer to "
     new "关于这些参数的详细解释, 参见 "
     # game/Submods/MAICA_ChatSubmod/screen_subs.rpy:210
     old "{u}MAICA official documents{/u}"
