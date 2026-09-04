@@ -346,6 +346,85 @@ def test_login_tasker_treats_preauth_unified_error_as_login_failure(monkeypatch)
     assert results == [(False, "maica_unified_error", "detail", 500)]
 
 
+def test_login_tasker_treats_preauth_uncaught_exception_as_server_failure(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.MAICALoginTasker(
+        1,
+        "login-preauth-uncaught",
+        manager,
+        except_ws_status=list(maica_tasker_sub.MAICALoginTasker.PREAUTH_FAILURE_STATUSES),
+    )
+    results = []
+    tasker.set_result_callback(lambda *args: results.append(args))
+
+    tasker.on_event(_ws_event(manager, "maica_uncaught_exception", code=500))
+
+    assert tasker.success is False
+    assert tasker.status == tasker.MAICATASK_STATUS_ERROR
+    assert manager.closed is True
+    assert results == [(False, "maica_uncaught_exception", "detail", 500)]
+
+
+@pytest.mark.parametrize(
+    "protocol_status, code, fallback, expected_status",
+    [
+        ("maica_unified_error", None, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_uncaught_exception", None, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unknown_failure", 500, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unknown_failure", "599", None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unified_warning", 503, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unknown_failure", 400, None, maica.MaicaAi.MaicaAiStatus.SERVER_REJECTED),
+        ("maica_unknown_failure", 600, None, maica.MaicaAi.MaicaAiStatus.SERVER_REJECTED),
+        (
+            "maica_unknown_failure",
+            400,
+            maica.MaicaAi.MaicaAiStatus.TOKEN_INVALID,
+            maica.MaicaAi.MaicaAiStatus.TOKEN_INVALID,
+        ),
+    ],
+)
+def test_protocol_status_classifies_explicit_and_5xx_server_failures(
+    protocol_status, code, fallback, expected_status
+):
+    assert maica.MaicaAi.MaicaAiStatus.from_protocol_status(
+        protocol_status,
+        fallback,
+        code,
+    ) == expected_status
+
+
+def test_set_error_classifies_uncaught_exception_as_server_error():
+    ai = object.__new__(maica.MaicaAi)
+    ai.status = ai.MaicaAiStatus.IDLE
+
+    ai.set_error("maica_uncaught_exception", "backend failed", 500)
+
+    assert ai.status == ai.MaicaAiStatus.SERVER_ERROR
+    assert ai.get_error_result() == {
+        "success": False,
+        "status": "maica_uncaught_exception",
+        "exception": "backend failed",
+        "code": 500,
+    }
+
+
+@pytest.mark.parametrize(
+    "code, should_close",
+    [(599, True), (600, False)],
+)
+def test_general_ws_error_handler_uses_5xx_code_range(monkeypatch, code, should_close):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    handler = maica_tasker_sub.GeneralWsErrorHandler(1, "ws-error-range", manager)
+
+    handler.on_event(
+        _ws_event(manager, "maica_unknown_failure", code=code, event_type="warn")
+    )
+
+    assert manager.closed is should_close
+
+
 def test_general_ws_error_handler_can_defer_login_failure_close(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     manager = ManagerStub()
@@ -2315,6 +2394,41 @@ def test_stage_one_loop_reset_does_not_hide_login_rejection(
     assert ai.error_protocol_status == "maica_login_token_invalid"
     assert ai.error_message == "token rejected"
     assert ai.is_connection_interrupted() is False
+
+
+def test_uncaught_exception_websocket_packet_becomes_server_error(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        keep_running = True
+
+        def close(self):
+            self.keep_running = False
+
+    client = Client()
+    ai.task_manager.ws_client = client
+
+    ai.task_manager._ws_onmessage(
+        client,
+        json.dumps(
+            {
+                "code": 500,
+                "status": "maica_uncaught_exception",
+                "content": "backend crashed",
+                "type": "error",
+                "timestamp": 0,
+            }
+        ),
+    )
+
+    assert ai.status == ai.MaicaAiStatus.SERVER_ERROR
+    assert ai.error_protocol_status == "maica_uncaught_exception"
+    assert ai.error_protocol_code == 500
+    assert ai.error_message == "backend crashed"
+    assert ai.status != ai.MaicaAiStatus.SERVER_REJECTED
+    assert client.keep_running is False
 
 
 def test_init_connect_without_token_sets_explicit_failure(isolated_maica_ai_globals):

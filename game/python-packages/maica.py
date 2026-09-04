@@ -145,6 +145,7 @@ class MaicaAi(ChatBotInterface):
             "maica_connection_reuse_denied": CONNECTION_REUSE_DENIED,
             "maica_unified_warning": SERVER_REJECTED,
             "maica_unified_error": SERVER_ERROR,
+            "maica_uncaught_exception": SERVER_ERROR,
             "client_token_generation_failed": TOKEN_GENERATION_FAILED,
             "client_server_unavailable": SERVER_MAINTAIN,
             "client_availability_failed": CONNECT_PROBLEM,
@@ -155,11 +156,18 @@ class MaicaAi(ChatBotInterface):
         }
 
         @classmethod
-        def from_protocol_status(cls, status, fallback=None):
-            return cls._protocol_error_map.get(
-                status,
-                cls.SERVER_REJECTED if fallback is None else fallback,
-            )
+        def from_protocol_status(cls, status, fallback=None, code=None):
+            mapped_status = cls._protocol_error_map.get(status)
+            if mapped_status == cls.SERVER_ERROR:
+                return mapped_status
+            try:
+                if 500 <= int(code) < 600:
+                    return cls.SERVER_ERROR
+            except (TypeError, ValueError):
+                pass
+            if mapped_status is not None:
+                return mapped_status
+            return cls.SERVER_REJECTED if fallback is None else fallback
         _descriptions = {
             IDLE: u"MAICA is idle",
             WAIT_AVAILABILITY: u"Checking service availability",
@@ -812,7 +820,7 @@ class MaicaAi(ChatBotInterface):
         self.error_protocol_status = status
         self.error_message = message
         self.error_protocol_code = code
-        self.status = self.MaicaAiStatus.from_protocol_status(status, fallback)
+        self.status = self.MaicaAiStatus.from_protocol_status(status, fallback, code)
 
     def set_error(self, status, message=None, code=None, fallback=None):
         connection_lock = getattr(self, "_connection_state_lock", None)

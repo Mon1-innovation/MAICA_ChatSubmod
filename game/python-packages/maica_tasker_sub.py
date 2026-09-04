@@ -97,7 +97,11 @@ class GeneralWsErrorHandler(MaicaWSTask):
             return
         else:
             wspack = event.data
-            if wspack.type == 'error' or 500 <= wspack.code <= 600:
+            try:
+                is_server_error = 500 <= int(wspack.code) < 600
+            except (TypeError, ValueError):
+                is_server_error = False
+            if wspack.type == 'error' or is_server_error:
                 if self._error_callback:
                     if self._error_callback(wspack.status, wspack.content, wspack.code) is False:
                         return
@@ -496,6 +500,7 @@ class MAICALoginTasker(MaicaWSTask):
     PREAUTH_FAILURE_STATUSES = (
         'maica_unified_warning',
         'maica_unified_error',
+        'maica_uncaught_exception',
     )
 
     def set_result_callback(self, callback):
