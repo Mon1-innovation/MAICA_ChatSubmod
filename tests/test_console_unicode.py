@@ -7,6 +7,14 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[1] / "game" / "python-packages"
 if str(PACKAGE_ROOT) not in sys.path:
     sys.path.insert(0, str(PACKAGE_ROOT))
 
+MAICA_API_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "api.rpy"
+)
+
 import bot_interface
 import logger_manager
 import maica_provider_manager
@@ -15,9 +23,61 @@ import maica_tasker
 import maica_tasker_sub
 
 
+def _load_maica_input_value():
+    source = MAICA_API_PATH.read_text(encoding="utf-8")
+    start = source.index("    class MaicaInputValue(store.InputValue):")
+    end = source.index("\n    import store\n", start)
+    class_source = "\n".join(
+        line[4:] if line.startswith("    ") else line
+        for line in source[start:end].splitlines()
+    )
+    namespace = {
+        "store": type("Store", (), {"InputValue": object}),
+        "unicode": str,
+        "bot_interface": bot_interface,
+    }
+    exec(compile(class_source, str(MAICA_API_PATH), "exec"), namespace)
+    return namespace["MaicaInputValue"]
+
+
 def test_key_replace_preserves_unicode_text():
     assert bot_interface.to_unicode("错误".encode("utf-8")) == "错误"
     assert bot_interface.key_replace("状态: 中文", {"状态": "错误"}) == "错误: 中文"
+
+
+def test_maica_input_value_decodes_short_utf8_clipboard_text():
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text(b"Espa\xc3\xb1ol")
+    assert input_value.get_text() == "Espa\u00f1ol"
+
+    input_value.set_text("\u4e2d\u6587".encode("utf-8"))
+    assert input_value.get_text() == "\u4e2d\u6587"
+
+
+def test_maica_input_value_uses_local_encoding_fallback(monkeypatch):
+    monkeypatch.setattr(bot_interface.sys, "getfilesystemencoding", lambda: "gbk")
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text("\u4e2d\u6587".encode("gbk"))
+
+    assert input_value.get_text() == "\u4e2d\u6587"
+
+
+def test_maica_input_value_replaces_invalid_clipboard_bytes():
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text(b"\xff")
+
+    assert input_value.get_text() == "\ufffd"
+
+
+def test_maica_input_value_retains_375_character_limit():
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text(b"x" * 376)
+
+    assert input_value.get_text() == "x" * 375
 
 
 def test_renpy_text_escape_handles_external_markup_and_none():

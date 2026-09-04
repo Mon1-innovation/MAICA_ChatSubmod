@@ -5,8 +5,8 @@ init -1500 python:
     elif not config.language:
         config.language = "english"
 
-    maica_ver = '1.9.0'
-    maica_is_dev = False
+    maica_ver = '1.9.1'
+    maica_is_dev = True
     # 如果是开发版本:
     # - workflow不会自动发布release
     # - 对应migration总是会执行
@@ -72,13 +72,23 @@ init 5 python in maica:
                 # 's' is already Unicode
                 res = s
             else:
-                # Detect encoding and decode to Unicode
-                encoding_info = chardet.detect(s)
-                encoding = encoding_info['encoding']
-                if encoding is not None:
-                    res = s.decode(encoding)
-                else:
-                    res = s.decode('utf-8', errors='replace')
+                # Clipboard bytes need a stable fallback order: UTF-8 first,
+                # then local Ren'Py encodings, then UTF-8 replacement.
+                res = bot_interface.to_unicode(s)
+
+                # Historical heuristic retained for future investigation:
+                # it may have been added to support legacy non-UTF-8 clipboard
+                # data. Do not re-enable it without a reliable source encoding.
+                # chardet can classify short UTF-8 text such as
+                # b"Espa\xc3\xb1ol" as ISO-8859-9. Ren'Py 6.99 may not have
+                # that codec available (raising LookupError); even when it is
+                # available, decoding valid UTF-8 with that guess corrupts text.
+                # encoding_info = chardet.detect(s)
+                # encoding = encoding_info['encoding']
+                # if encoding is not None:
+                #     res = s.decode(encoding)
+                # else:
+                #     res = s.decode('utf-8', errors='replace')
             if len(res) > 375:
                 res = res[:375]
             return res
