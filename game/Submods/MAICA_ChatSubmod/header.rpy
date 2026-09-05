@@ -350,10 +350,9 @@ init 10 python:
             "settings": {
                 "enable_mf": False,
                 "use_custom_model_config": True,
-                "mt_context_rnds": 0,
                 "mf_precheck_mt": False,
                 "mf_sf_access_impl": 2,
-                "mf_const_sf_access": 1,
+                "mf_const_sf_access": 2,
             },
         },
         {
@@ -384,6 +383,8 @@ init 10 python:
                 "mf_llm_concl": True,
                 "mf_disable_loop": False,
                 "mt_disable_loop": False,
+                "mf_context_rnds": 1,
+                "mt_context_rnds": 1,
                 "mf_const_sf_access": 1,
             },
         },
