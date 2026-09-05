@@ -640,15 +640,15 @@ translate chinese maica_connection_failure_dialogue_ca5e470d:
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1095
 
-translate chinese maica_connection_failure_dialogue_4122c099:
-    # m 2rusdlb "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
-    m 2rusdlb "...不行, 这条没法要. {w=0.3}如果你自己动过MSpire的配置, 要不检查一下有没有问题?"
+translate chinese maica_connection_failure_dialogue_2bdfb156:
+    # m 2eksdlc "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
+    m 2eksdlc "...不行, 这条没法要. {w=0.3}如果你自己动过MSpire的配置, 要不检查一下有没有问题?"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1096
 
-translate chinese maica_connection_failure_dialogue_2441174e:
-    # m 3eusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
-    m 3eusdlb "再就是吧, 也有可能是维基百科的问题. 这种事情倒也不奇怪."
+translate chinese maica_connection_failure_dialogue_862367e0:
+    # m 3rusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
+    m 3rusdlb "再就是吧, 也有可能是维基百科的问题. 这种事情倒也不奇怪."
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1097
 
