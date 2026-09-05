@@ -128,6 +128,9 @@ init 5 python in maica:
         on_change=change_token,
     )
     maica_instance = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    maica_instance.Loginer.set_frontend_id(
+        "blessland|{}".format(store.maica_ver)
+    )
     maica_instance.ascii_icon = r"""
     __  ___ ___     ____ ______ ___
    /  |/  //   |   /  _// ____//   |

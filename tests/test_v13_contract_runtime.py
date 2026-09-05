@@ -2216,8 +2216,20 @@ def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     manager = ManagerStub()
     tasker = maica_tasker_sub.MAICALoginTasker(1, "login", manager)
+    tasker.set_frontend_id("blessland|1.9.1")
     tasker.on_manual_run("token")
-    assert _last_json(manager) == {"type": "auth", "access_token": "token"}
+    assert _last_json(manager) == {
+        "type": "auth",
+        "access_token": "token",
+        "frontend_id": "blessland|1.9.1",
+    }
+
+
+def test_login_frontend_id_uses_the_declared_submod_version():
+    api = (PACKAGE_ROOT.parent / "Submods" / "MAICA_ChatSubmod" / "api.rpy").read_text(
+        encoding="utf-8"
+    )
+    assert '"blessland|{}".format(store.maica_ver)' in api
 
 
 def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):

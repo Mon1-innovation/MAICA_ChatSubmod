@@ -485,6 +485,7 @@ class MAICALoginTasker(MaicaWSTask):
         super(MAICALoginTasker, self).__init__(task_type, name, manager=manager, except_ws_status=except_ws_status)
         self.success = False
         self._result_callback = None
+        self._frontend_id = None
         self.__token = ''
 
     LOGIN_FAILURE_STATUSES = (
@@ -506,6 +507,9 @@ class MAICALoginTasker(MaicaWSTask):
     def set_result_callback(self, callback):
         self._result_callback = callback
 
+    def set_frontend_id(self, frontend_id):
+        self._frontend_id = frontend_id
+
     def _notify_result(self, success, status=None, message=None, code=None):
         if self._result_callback:
             self._result_callback(success, status, message, code)
@@ -522,7 +526,10 @@ class MAICALoginTasker(MaicaWSTask):
         Raises:
             RuntimeError: 如果manager或ws_client为None
         """
-        data = json.dumps({'type': 'auth', 'access_token': token})
+        request = {'type': 'auth', 'access_token': token}
+        if self._frontend_id:
+            request['frontend_id'] = self._frontend_id
+        data = json.dumps(request)
         if self.manager is None:
             raise RuntimeError("MAICALoginTasker: manager is None")
         if self.manager.ws_client is None:
