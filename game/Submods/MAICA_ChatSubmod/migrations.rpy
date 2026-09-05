@@ -643,17 +643,17 @@ init 998 python:
             }, True, None),
             # Greeting events stay registered and are gated by their conditionals.
             ("maica_greeting", None, "greeting-contract", "greeting", True, {
-                "conditional": "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
+                "conditional": "maica_greeting_type_allows_override() and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
                 "action": None, "random": False, "pool": False,
-            }, False, ("skip_visual", None, 20)),
+            }, False, ("skip_visual", None, 20, True)),
             ("maica_wants_mpostal", None, "greeting-contract", "greeting", True, {
-                "conditional": main_gate + "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+                "conditional": main_gate + "maica_greeting_type_allows_override() and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
                 "action": None, "random": False, "pool": False,
-            }, False, (None, "monika 3hubsa", 20)),
+            }, False, (None, "monika 3hubsa", 20, True)),
             ("maica_chr_corrupted2", None, "greeting-contract", "greeting", True, {
-                "conditional": main_gate + "persistent._mas_greeting_type is None and not mas_isSpecialDay() and not mas_isplayer_bday() and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+                "conditional": main_gate + "maica_greeting_type_allows_override() and not mas_isSpecialDay() and not mas_isplayer_bday() and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
                 "action": None, "random": False, "pool": False,
-            }, False, ("skip_visual", None, 0)),
+            }, False, ("skip_visual", None, 0, True)),
         )
 
     def _maica_update_greeting_rules(eventlabel, rule_spec):
@@ -668,11 +668,18 @@ init 998 python:
                 rules = {}
                 event.rules = rules
             previous_rules = dict(rules)
-            skip_visual, forced_exp, priority = rule_spec
+            skip_visual, forced_exp, priority = rule_spec[:3]
+            override_type = bool(rule_spec[3]) if len(rule_spec) > 3 else False
             if forced_exp is not None:
-                rules.update(MASGreetingRule.create_rule(forced_exp=forced_exp))
+                rules.update(MASGreetingRule.create_rule(
+                    forced_exp=forced_exp,
+                    override_type=override_type,
+                ))
             else:
-                rules.update(MASGreetingRule.create_rule(skip_visual=bool(skip_visual)))
+                rules.update(MASGreetingRule.create_rule(
+                    skip_visual=bool(skip_visual),
+                    override_type=override_type,
+                ))
             rules.update(MASPriorityRule.create_rule(priority))
             return rules != previous_rules
         except Exception:
@@ -1639,15 +1646,15 @@ init 998 python:
         # their old greeting and priority rules, so repair those explicitly.
         greeting_repairs = {
             "maica_chr_corrupted2": (
-                "persistent._mas_greeting_type is None and not mas_isSpecialDay() and renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+                "maica_greeting_type_allows_override() and not mas_isSpecialDay() and renpy.seen_label('maica_greeting') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
                 0,
             ),
             "maica_greeting": (
-                "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
+                "maica_greeting_type_allows_override() and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not renpy.seen_label('maica_greeting')",
                 20,
             ),
             "maica_wants_mpostal": (
-                "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+                "maica_greeting_type_allows_override() and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
                 20,
             ),
         }
@@ -1657,7 +1664,10 @@ init 998 python:
                 ev.conditional = conditional
                 ev.action = None
                 ev.unlocked = True
-                ev.rules.update(MASGreetingRule.create_rule(skip_visual=True))
+                ev.rules.update(MASGreetingRule.create_rule(
+                    skip_visual=True,
+                    override_type=True,
+                ))
                 ev.rules.update(MASPriorityRule.create_rule(priority))
 
         reread_repairs = {
@@ -1753,9 +1763,9 @@ init 998 python:
         # door action. Use the first shared post-door label as completion so a
         # safe quit from the black-screen menu does not consume the intro.
         event_conditions = {
-            "maica_greeting": "persistent._mas_greeting_type is None and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
-            "maica_chr_corrupted2": "persistent._mas_greeting_type is None and not mas_isSpecialDay() and not mas_isplayer_bday() and renpy.seen_label('maica_prepend_2') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
-            "maica_wants_mpostal": "persistent._mas_greeting_type is None and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
+            "maica_greeting": "maica_greeting_type_allows_override() and renpy.seen_label('maica_prepend_1') and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_prepend_2')",
+            "maica_chr_corrupted2": "maica_greeting_type_allows_override() and not mas_isSpecialDay() and not mas_isplayer_bday() and renpy.seen_label('maica_prepend_2') and maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2')",
+            "maica_wants_mpostal": "maica_greeting_type_allows_override() and maica_get_successful_chat_count() >= 2 and not mas_isSpecialDay() and not mas_isplayer_bday() and not renpy.seen_label('maica_wants_mpostal') and not (maica_chr_changed and not renpy.seen_label('maica_chr_corrupted2'))",
             "maica_chr_gone": "not maica_chr_exist and renpy.seen_label('maica_prepend_2') and not renpy.seen_label('maica_chr_gone')",
         }
         for eventlabel, conditional in event_conditions.items():
@@ -1766,7 +1776,10 @@ init 998 python:
         mpostal_ev = mas_getEV("maica_wants_mpostal")
         if mpostal_ev is not None:
             mpostal_ev.rules.update(
-                MASGreetingRule.create_rule(forced_exp="monika 3hubsa")
+                MASGreetingRule.create_rule(
+                    forced_exp="monika 3hubsa",
+                    override_type=True,
+                )
             )
 
         mas_rebuildEventLists()

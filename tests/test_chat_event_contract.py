@@ -361,7 +361,8 @@ def test_maica_greetings_use_the_mas_selection_contract():
     ):
         event = _registration_block(eventlabel)
         assert "unlocked=True" in event
-        assert "persistent._mas_greeting_type is None" in event
+        assert "maica_greeting_type_allows_override()" in event
+        assert "override_type=True" in event
         assert "not mas_isSpecialDay()" in event
         assert "not mas_isplayer_bday()" in event
         assert "action=EV_ACT_UNLOCK" not in event
@@ -379,6 +380,34 @@ def test_maica_greetings_use_the_mas_selection_contract():
     compact_mpostal = _without_whitespace(mpostal)
     assert '"andnot(maica_chr_changed"' in compact_mpostal
     assert '"andnotrenpy.seen_label(\'maica_chr_corrupted2\'))"' in compact_mpostal
+
+
+def test_maica_greeting_type_override_skips_only_recovery_types():
+    start = CHAT_SOURCE.index("    def maica_greeting_type_allows_override")
+    end = CHAT_SOURCE.index("\n\n# Core conversation events", start)
+    source = textwrap.dedent(CHAT_SOURCE[start:end])
+
+    class PersistentStub(object):
+        _mas_greeting_type = None
+
+    class GreetingsStub(object):
+        TYPE_CRASHED = "generic_crash"
+        TYPE_RELOAD = "reload_dlg"
+
+    namespace = {
+        "persistent": PersistentStub(),
+        "store": type("StoreStub", (), {"mas_greetings": GreetingsStub})(),
+    }
+    exec(source, namespace)
+    allows_override = namespace["maica_greeting_type_allows_override"]
+
+    for greeting_type in (None, "sleep", "work", "school"):
+        namespace["persistent"]._mas_greeting_type = greeting_type
+        assert allows_override() is True
+
+    for greeting_type in ("generic_crash", "reload_dlg"):
+        namespace["persistent"]._mas_greeting_type = greeting_type
+        assert allows_override() is False
 
 
 def test_chat_side_branches_are_not_gated_by_chr2():
@@ -584,7 +613,10 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '"maica_wants_preferences": "maica_wants_preferences2"' in MIGRATION_SOURCE
     assert "ev.random = False" in MIGRATION_SOURCE
     assert "ev.action = None" in MIGRATION_SOURCE
-    assert "MASGreetingRule.create_rule(skip_visual=True)" in MIGRATION_SOURCE
+    assert "MASGreetingRule.create_rule(" in MIGRATION_SOURCE
+    assert "override_type=override_type" in MIGRATION_SOURCE
+    assert 'forced_exp="monika 3hubsa"' in MIGRATION_SOURCE
+    assert "override_type=True" in MIGRATION_SOURCE
     assert "MASPriorityRule.create_rule(priority)" in MIGRATION_SOURCE
     assert "mas_rebuildEventLists()" in MIGRATION_SOURCE
     assert 'renpy.seen_label("maica_prepend_2")' in MIGRATION_SOURCE
@@ -1554,7 +1586,16 @@ def test_current_greeting_contract_is_applied_before_mas_selects_one():
         assert "{}.rules.update({})".format(event_var, rules_var) in registration
 
     assert 'mpostal_ev = mas_getEV("maica_wants_mpostal")' in MIGRATION_SOURCE
-    assert 'MASGreetingRule.create_rule(forced_exp="monika 3hubsa")' in MIGRATION_SOURCE
+    mpostal_migration_start = MIGRATION_SOURCE.index(
+        'mpostal_ev = mas_getEV("maica_wants_mpostal")'
+    )
+    mpostal_migration_end = MIGRATION_SOURCE.index(
+        "mas_rebuildEventLists()",
+        mpostal_migration_start,
+    )
+    mpostal_migration = MIGRATION_SOURCE[mpostal_migration_start:mpostal_migration_end]
+    assert 'forced_exp="monika 3hubsa"' in mpostal_migration
+    assert "override_type=True" in mpostal_migration
 
 
 def test_heaven_forest_round_trip_preserves_the_mas_room_state():

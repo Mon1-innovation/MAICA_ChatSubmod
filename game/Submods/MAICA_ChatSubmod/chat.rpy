@@ -41,6 +41,22 @@ init 5 python:
     def maica_has_successful_chat():
         return maica_get_successful_chat_count() > 0
 
+    def maica_greeting_type_allows_override():
+        """Allow MAICA greetings to outrank ordinary typed greetings.
+
+        Keep crash/reload recovery greetings authoritative while allowing
+        sleep/work/etc. to participate in the normal priority comparison.
+        """
+        greeting_type = getattr(persistent, "_mas_greeting_type", None)
+        blocked_types = ("generic_crash", "reload_dlg")
+        mas_greetings = getattr(store, "mas_greetings", None)
+        if mas_greetings is not None:
+            for type_name in ("TYPE_CRASHED", "TYPE_RELOAD"):
+                type_value = getattr(mas_greetings, type_name, None)
+                if type_value is not None:
+                    blocked_types += (type_value,)
+        return greeting_type not in blocked_types
+
 
 # Core conversation events
 init 5 python:
@@ -61,7 +77,7 @@ init 5 python:
 
 init 5 python:
     greeting_conditional = (
-        "persistent._mas_greeting_type is None "
+        "maica_greeting_type_allows_override() "
         "and renpy.seen_label('maica_prepend_1') "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
@@ -70,7 +86,8 @@ init 5 python:
     greeting_rules = dict()
     greeting_rules.update(
         MASGreetingRule.create_rule(
-            skip_visual=True
+            skip_visual=True,
+            override_type=True
         )
     )
     greeting_rules.update(MASPriorityRule.create_rule(20))
@@ -232,7 +249,7 @@ init 5 python:
 
 init 5 python:
     mpostal_greeting_conditional = (
-        "persistent._mas_greeting_type is None "
+        "maica_greeting_type_allows_override() "
         "and maica_topic_main_ready() "
         "and maica_get_successful_chat_count() >= 2 "
         "and not mas_isSpecialDay() "
@@ -244,7 +261,8 @@ init 5 python:
     mpostal_greeting_rules = dict()
     mpostal_greeting_rules.update(
         MASGreetingRule.create_rule(
-            forced_exp="monika 3hubsa"
+            forced_exp="monika 3hubsa",
+            override_type=True
         )
     )
     mpostal_greeting_rules.update(MASPriorityRule.create_rule(20))
@@ -292,7 +310,7 @@ init 5 python:
 # Character-file events
 init 5 python:
     corrupted_greeting_conditional = (
-        "persistent._mas_greeting_type is None "
+        "maica_greeting_type_allows_override() "
         "and maica_topic_main_ready() "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
@@ -302,7 +320,8 @@ init 5 python:
     corrupted_greeting_rules = dict()
     corrupted_greeting_rules.update(
         MASGreetingRule.create_rule(
-            skip_visual=True
+            skip_visual=True,
+            override_type=True
         )
     )
     corrupted_greeting_rules.update(MASPriorityRule.create_rule(0))
