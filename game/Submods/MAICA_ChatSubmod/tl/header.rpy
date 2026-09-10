@@ -494,7 +494,7 @@ translate chinese strings:
     old "MAICA: Savefile uploaded successfully"
     new "MAICA: 存档上传成功"
     # game/Submods/MAICA_ChatSubmod/header.rpy:141
-    old "MAICA; Savefile failed to upload"
+    old "MAICA: Savefile failed to upload"
     new "MAICA: 存档上传失败"
     # game/Submods/MAICA_ChatSubmod/header.rpy:145
     old "MAICA: Chat session reset"

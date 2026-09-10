@@ -712,7 +712,7 @@ init 10 python:
             renpy.notify(_("MAICA: Savefile upload cancelled because MFocus information is invalid"))
             return
         res = store.maica.maica_instance.upload_save(d)
-        renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA; Savefile failed to upload"))
+        renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA: Savefile failed to upload"))
 
     def reset_session():
         store.maica.maica_instance.reset_chat_session()
