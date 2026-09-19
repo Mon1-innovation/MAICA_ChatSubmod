@@ -413,8 +413,7 @@ init 999 python in maica:
 
     def mtrigger_idle_callback(arg):
         ai.console_logger.debug("<mtrigger> mtrigger_idle_callback called")
-        store.MASEventList.push("mtrigger_brb")
-        return "stop"
+        store.renpy.call("mtrigger_idle")
     idle_trigger = MTriggerBase(customize_template, "idle", callback=mtrigger_idle_callback, description=_("Integrated | Be right back"), method=MTriggerMethod.table,
         exprop=MTriggerExprop(item_name_zh="当玩家表示想要短暂离开(<1小时)时调用", item_name_en="Call when the player indicates they want to take a temporary leave (<1 hour)."))
     ai.mtrigger_manager.add_trigger(idle_trigger)

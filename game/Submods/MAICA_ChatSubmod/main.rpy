@@ -249,8 +249,11 @@ label .next:
     if not mtrigger_manager.has_triggered():
         return mtrigger_action
     $ mtrigger_step_action = {"stop": False}
+    # renpy.call() resumes after run_trigger(), leaving its result unassigned.
+    # A confirmed label action can request a stop through Ren'Py's return value.
+    $ _return = None
     $ mtrigger_step_action = mtrigger_manager.run_trigger()
-    if mtrigger_step_action.get("stop"):
+    if mtrigger_step_action.get("stop") or _return == "stop":
         $ mtrigger_action["stop"] = True
         return mtrigger_action
     jump .next

@@ -219,7 +219,7 @@ def test_standalone_idle_callback_uses_the_full_reconnect_lifecycle():
 
     pause = _label_block(main_source, "maica_pause_connection")
     reconnect = _label_block(main_source, "maica_reconnect")
-    idle_callback = _label_block(label_source, "mtrigger_idle_callback")
+    idle_callback = _label_block(label_source, "_mtrigger_idle_callback")
 
     assert "ai.close_wss_session()" in pause
     assert "call maica_pause_connection" in reconnect

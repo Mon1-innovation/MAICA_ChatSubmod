@@ -1,3 +1,6 @@
+# Trigger entry points ask for confirmation before running their actions.
+# Internal action, selector, and callback labels are grouped below as _mtrigger_*.
+
 label mtrigger_change_clothes(outfit_name):
     call maica_pause_connection
     call maica_hide_console
@@ -59,6 +62,7 @@ label mtrigger_change_hair(outfit_name):
             pass
     call maica_show_console
     return
+
 label mtrigger_unwear_acs(outfit_to_wear):
     call maica_pause_connection
     call maica_hide_console
@@ -88,7 +92,7 @@ label mtrigger_change_acs(outfit_name):
         "Should I change it now, [player]?{fast}"
         "Okay":
             if outfit_name == "mas_pick_a_clothes":
-                call mtrigger_acs_select
+                call _mtrigger_acs_select
                 call maica_show_console
                 return
             call mas_transition_to_emptydesk
@@ -108,28 +112,6 @@ label mtrigger_change_acs(outfit_name):
         "Nevermind{#maica_host_nevermind}":
             pass
     call maica_show_console
-    return
-label mtrigger_acs_select:
-
-    menu:
-        "[renpy.substitute(store.mas_selspr.get_prompt('choker'))]" if 'choker' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('clothes'))]" if 'clothes' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['clothes']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('earrings'))]" if 'earrings' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['earrings']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('hair'))]" if 'hair' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['hair']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('hat'))]" if 'hat' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['hat']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-clip'))]" if 'left-hair-clip' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-clip']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]" if 'left-hair-flower' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-flower']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]" if 'necklace' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['necklace']['_ev'])
-        "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]" if 'ribbon' in store.mas_selspr.PROMPT_MAP:
-            $ renpy.call(store.mas_selspr.PROMPT_MAP['ribbon']['_ev'])
     return
 
 label mtrigger_kiss:
@@ -169,66 +151,63 @@ label mtrigger_leave:
     menu:
         "Leaving already?{fast}"
         "Yes{#maica_host_yes}":
-            m 1eka "See you around, [player]!"
-            jump mtrigger_quit
-            return
+            jump _mtrigger_leave
+        "I'll be right back. Leave the game open.":
+            jump _mtrigger_start_idle
+        "I'd like to take you with me.":
+            jump _mtrigger_takeout
         "Not yet{#maica_host_not_yet}":
             m 1eka "Thanks for that, [player]."
-            call maica_show_console
-    return
-
-label mtrigger_quit:
-    $ persistent.closed_self = True #Monika happily closes herself
-    $ mas_clearNotifs()
-    jump _quit
+    call maica_show_console
     return
 
 label mtrigger_location:
     call maica_pause_connection
     call maica_hide_console
-    if mas_isMoniEnamored(higher=True):
-        call monika_change_background
-    else:
-        m 1eua "Seems we don't have anywhere to go right now..."
-        m 1eksdlb "Sorry for that, [player]."
+    m "Shall we go somewhere else, [player]?{nw}"
+    $ _history_list.pop()
+    menu:
+        "Shall we go somewhere else, [player]?{fast}"
+        "Okay":
+            if mas_isMoniEnamored(higher=True):
+                call monika_change_background
+            else:
+                m 1eua "Seems we don't have anywhere to go right now..."
+                m 1eksdlb "Sorry for that, [player]."
+        "Nevermind{#maica_host_nevermind}":
+            pass
     call maica_show_console
     return
 
 label mtrigger_weather(weather):
     call maica_pause_connection
     call maica_hide_console
-    call mas_change_weather(weather, by_user=True, set_persistent=True)
+    m "Would you like me to change the weather, [player]?{nw}"
+    $ _history_list.pop()
+    menu:
+        "Would you like me to change the weather, [player]?{fast}"
+        "Okay":
+            call mas_change_weather(weather, by_user=True, set_persistent=True)
+        "Nevermind{#maica_host_nevermind}":
+            pass
     call maica_show_console
     return
 
 label mtrigger_idle:
+    # The backend's idle trigger means BRB; it is not a separate action.
+    call maica_pause_connection
     call maica_hide_console
-    m "Going already?{nw}"
+    m "Will you be right back, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Going already?{fast}"
+        "Will you be right back, [player]?{fast}"
         "Yes{#maica_host_yes}":
-            m 1eka "Okay, [player]!"
-            pass
+            jump _mtrigger_start_idle
+        "I'm leaving for now. Please close the game.":
+            jump _mtrigger_leave
         "Nevermind{#maica_host_nevermind}":
             m 1eka "Alright, [player]."
-            call maica_show_console
-            return
-    return "idle"
-
-label mtrigger_idle_callback:
-    call maica_reconnect
-    m 1eka "You're back, [player]!"
-    m 1eka "I was starting missing you."
-    #jump maica_main.talking_start
-    return
-
-label mtrigger_brb:
-    call maica_hide_console
-    hide screen mas_background_timed_jump
-    $ _history_list.pop()
-    $ persistent._mas_idle_data["mtrigger_idle"] = True
-    $ mas_setupIdleMode("mtrigger_idle", "mtrigger_idle_callback")
+    call maica_show_console
     return
 
 label mtrigger_hold:
@@ -281,14 +260,31 @@ label mtrigger_music_auto(cls, selection):
 label mtrigger_neteasemusic_search(keyword):
     call maica_pause_connection
     call maica_hide_console
-    $ store.np_util.Music_Search(keyword)
-    call np_menu_display
+    m "Shall I search for '[keyword]', [player]?{nw}"
+    $ _history_list.pop()
+    menu:
+        "Shall I search for '[keyword]', [player]?{fast}"
+        "Okay":
+            $ store.np_util.Music_Search(keyword)
+            call np_menu_display
+        "Nevermind{#maica_host_nevermind}":
+            pass
     call maica_show_console
     return
 
 label mtrigger_youtubemusic_search(keyword):
     call maica_pause_connection
     call maica_hide_console
+    m "Shall I search for '[keyword]', [player]?{nw}"
+    $ _history_list.pop()
+    menu:
+        "Shall I search for '[keyword]', [player]?{fast}"
+        "Okay":
+            pass
+        "Nevermind{#maica_host_nevermind}":
+            call maica_show_console
+            return
+
     if ytm_utils.is_online():
         if not ytm_globals.is_playing:
             m 1eub "Of course!"
@@ -301,7 +297,7 @@ label mtrigger_youtubemusic_search(keyword):
     python:
         ready = False
 
-    label .input_loop:
+    label ._input_loop:
         show monika 1eua at t11
         $ raw_search_request = keyword
         $ lower_search_request = raw_search_request.lower()
@@ -328,14 +324,14 @@ label mtrigger_youtubemusic_search(keyword):
                     not renpy.seen_label("ytm_monika_find_music.reaction_your_reality")
                     and "your reality" in lower_search_request
                 ):
-                    label .reaction_your_reality:
+                    label ._reaction_your_reality:
                         m 3hua "Good choice, [player]~"
 
                 elif (
                     not renpy.seen_label("ytm_monika_find_music.reaction_ily")
                     and "i love you" in lower_search_request
                 ):
-                    label .reaction_ily:
+                    label ._reaction_ily:
                         m 1hubsa "I love you too! Ehehe~"
 
                 m 1dsa "Let me see what I can find.{w=0.5}{nw}"
@@ -344,7 +340,7 @@ label mtrigger_youtubemusic_search(keyword):
                 call ytm_search_loop
                 $ menu_list = _return
 
-                label .menu_display:
+                label ._menu_display:
                     if menu_list:
                         m 1eub "Alright! Look what I've found!"
                         show monika 1eua at t21
@@ -354,7 +350,7 @@ label mtrigger_youtubemusic_search(keyword):
                         if isinstance(_return, ytm_utils.VideoInfo):
                             call .ytm_process_audio_info(_return.url, add_to_search_hist=False, add_to_audio_hist=True)
                             if not _return:
-                                jump .menu_display
+                                jump ._menu_display
 
                         elif _return == ytm_globals.SCR_MENU_CHANGED_MIND:
                             if not ytm_globals.is_playing:
@@ -366,7 +362,7 @@ label mtrigger_youtubemusic_search(keyword):
 
                         elif _return == ytm_globals.SCR_MENU_ANOTHER_SING:
                             m 1eub "Alright!"
-                            jump .input_loop
+                            jump ._input_loop
 
                         else:
                             # aka the part you will never get to
@@ -390,8 +386,9 @@ label mtrigger_takeout:
     menu:
         "Are we going now, [player]?{fast}"
         "Yes{#maica_host_yes}":
-            call bye_going_somewhere
-            jump mtrigger_quit
+            jump _mtrigger_takeout
+        "I'm leaving for now. Please close the game.":
+            jump _mtrigger_leave
         "Nevermind{#maica_host_nevermind}":
             pass
     call maica_show_console
@@ -400,13 +397,83 @@ label mtrigger_takeout:
 label mtrigger_backup:
     call maica_pause_connection
     call maica_hide_console
-    if renpy.has_label('extra_mas_backup'):
-        call extra_mas_backup
-    elif renpy.has_label('mas_backup'):
-        call mas_backup
-    else:
-        m "Something might went wrong...could you do it yourself please?"
+    m "Shall I make a backup now, [player]?{nw}"
+    $ _history_list.pop()
+    menu:
+        "Shall I make a backup now, [player]?{fast}"
+        "Okay":
+            if renpy.has_label('extra_mas_backup'):
+                call extra_mas_backup
+            elif renpy.has_label('mas_backup'):
+                call mas_backup
+            else:
+                m "Something might went wrong...could you do it yourself please?"
+        "Nevermind{#maica_host_nevermind}":
+            pass
     call maica_show_console
+    return
+
+# Internal helpers. Menu choices above already confirm these actions.
+
+label _mtrigger_leave:
+    m 1eka "See you around, [player]!"
+    jump _mtrigger_quit
+
+label _mtrigger_takeout:
+    call bye_going_somewhere
+    # MAS also returns normally when the player cancels or Monika declines.
+    if _return == "quit":
+        jump _mtrigger_quit
+    call maica_show_console
+    return
+
+label _mtrigger_quit:
+    $ persistent.closed_self = True #Monika happily closes herself
+    $ mas_clearNotifs()
+    jump _quit
+
+label _mtrigger_start_idle:
+    m 1eka "Okay, [player]!"
+    # Enter idle mode after MAICA has restored the room and finished its event.
+    $ MASEventList.push("_mtrigger_brb")
+    return "stop"
+
+label _mtrigger_brb:
+    call maica_hide_console
+    hide screen mas_background_timed_jump
+    # Keep the existing persistent key; only the callback label is renamed.
+    $ persistent._mas_idle_data["mtrigger_idle"] = True
+    $ mas_setupIdleMode("mtrigger_idle", "_mtrigger_idle_callback")
+    return
+
+label _mtrigger_idle_callback:
+    call maica_reconnect
+    m 1eka "You're back, [player]!"
+    m 1eka "I was starting missing you."
+    return
+
+label _mtrigger_acs_select:
+    menu:
+        "[renpy.substitute(store.mas_selspr.get_prompt('choker'))]" if 'choker' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['choker']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('clothes'))]" if 'clothes' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['clothes']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('earrings'))]" if 'earrings' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['earrings']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('hair'))]" if 'hair' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['hair']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('hat'))]" if 'hat' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['hat']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-clip'))]" if 'left-hair-clip' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-clip']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('left-hair-flower'))]" if 'left-hair-flower' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['left-hair-flower']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('necklace'))]" if 'necklace' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['necklace']['_ev'])
+        "[renpy.substitute(store.mas_selspr.get_prompt('ribbon'))]" if 'ribbon' in store.mas_selspr.PROMPT_MAP:
+            $ renpy.call(store.mas_selspr.PROMPT_MAP['ribbon']['_ev'])
+        "Nevermind{#maica_host_nevermind}":
+            pass
     return
 
 # Quality status is handled independently in screen_subs.rpy.
