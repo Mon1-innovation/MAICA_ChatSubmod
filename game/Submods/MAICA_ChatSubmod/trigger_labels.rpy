@@ -4,10 +4,10 @@
 label mtrigger_change_clothes(outfit_name):
     call maica_pause_connection
     call maica_hide_console
-    m "Should I change it now, [player]?{nw}"
+    m "Should I change my clothes now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Should I change it now, [player]?{fast}"
+        "Should I change my clothes now, [player]?{fast}"
         "Okay":
             if outfit_name == "mas_pick_a_clothes":
                 call monika_clothes_select
@@ -28,17 +28,17 @@ label mtrigger_change_clothes(outfit_name):
 
             call mas_transition_from_emptydesk("monika 1eua")
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
 label mtrigger_change_hair(outfit_name):
     call maica_pause_connection
     call maica_hide_console
-    m "Should I change it now, [player]?{nw}"
+    m "Should I change my haircut now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Should I change it now, [player]?{fast}"
+        "Should I change my haircut now, [player]?{fast}"
         "Okay":
             if outfit_name == "mas_pick_a_clothes":
                 call monika_hair_select
@@ -59,17 +59,17 @@ label mtrigger_change_hair(outfit_name):
 
             call mas_transition_from_emptydesk("monika 1eua")
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
 label mtrigger_unwear_acs(outfit_to_wear):
     call maica_pause_connection
     call maica_hide_console
-    m "Should I change it now, [player]?{nw}"
+    m "Should I remove that accessory now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Should I change it now, [player]?{fast}"
+        "Should I remove that accessory now, [player]?{fast}"
         "Okay":
             call mas_transition_to_emptydesk
             python:
@@ -79,17 +79,17 @@ label mtrigger_unwear_acs(outfit_to_wear):
 
             call mas_transition_from_emptydesk("monika 1eua")
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
 label mtrigger_change_acs(outfit_name):
     call maica_pause_connection
     call maica_hide_console
-    m "Should I change it now, [player]?{nw}"
+    m "Should I change that accessory now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Should I change it now, [player]?{fast}"
+        "Should I change that accessory now, [player]?{fast}"
         "Okay":
             if outfit_name == "mas_pick_a_clothes":
                 call _mtrigger_acs_select
@@ -110,7 +110,7 @@ label mtrigger_change_acs(outfit_name):
 
             call mas_transition_from_emptydesk("monika 1eua")
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
@@ -125,7 +125,18 @@ label mtrigger_kiss:
             "Kiss [m_name]":
                 call monika_kissing_motion_short
             "Nevermind{#maica_host_nevermind}":
-                pass
+                $ rand_sign = renpy.random.randint(0, 4)
+                if rand_sign == 0:
+                    m 3tublu "Really? I don't believe that. {w=1}{nw}"
+                    extend 3hua "Just joking, Ahaha!"
+                    m 1eua "We have all the time to kiss whenever you want, so no need to hurry."
+                elif rand_sign == 1:
+                    m 3eusdla "Well, perhaps some misunderstandings are unavoidable."
+                    m 1tublu "But still a kiss won't do you anything bad, ehehe~"
+                elif rand_sign == 2:
+                    m 1ekbla "Alright, [player], but you owe me one~"
+                else:
+                    m 1eka "Alright, [player]."
         call maica_show_console
     return
 
@@ -139,35 +150,35 @@ label mtrigger_minigame(game):
         "Okay":
             $ renpy.call(game)
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
 label mtrigger_leave:
     call maica_pause_connection
     call maica_hide_console
-    m "Leaving already?{nw}"
+    m "So... {w=0.3}Leaving already?{nw}"
     $ _history_list.pop()
     menu:
-        "Leaving already?{fast}"
+        "So... Leaving already?{fast}"
         "Yes{#maica_host_yes}":
             jump _mtrigger_leave
-        "I'll be right back. Leave the game open.":
+        "I'll be right back, leave the game open":
             jump _mtrigger_start_idle
-        "I'd like to take you with me.":
+        "I mean to take you with me":
             jump _mtrigger_takeout
-        "Not yet{#maica_host_not_yet}":
-            m 1eka "Thanks for that, [player]."
+        "Nevermind{#maica_host_nevermind}":
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
 label mtrigger_location:
     call maica_pause_connection
     call maica_hide_console
-    m "Shall we go somewhere else, [player]?{nw}"
+    m "Shall we choose another room to stay in, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Shall we go somewhere else, [player]?{fast}"
+        "Shall we choose another room to stay in, [player]?{fast}"
         "Okay":
             if mas_isMoniEnamored(higher=True):
                 call monika_change_background
@@ -189,23 +200,23 @@ label mtrigger_weather(weather):
         "Okay":
             call mas_change_weather(weather, by_user=True, set_persistent=True)
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
 label mtrigger_idle:
-    # The backend's idle trigger means BRB; it is not a separate action.
+    # The registered idle trigger also handles BRB.
     call maica_pause_connection
     call maica_hide_console
-    m "Will you be right back, [player]?{nw}"
+    m "So... {w=0.3}Going already?{nw}"
     $ _history_list.pop()
     menu:
-        "Will you be right back, [player]?{fast}"
-        "Yes{#maica_host_yes}":
+        "So... Going already?{fast}"
+        "Yes, I'll be right back":
             jump _mtrigger_start_idle
-        "I'm leaving for now. Please close the game.":
+        "I'm leaving for now, close the game please":
             jump _mtrigger_leave
-        "Nevermind{#maica_host_nevermind}":
+        "Not yet{#maica_host_not_yet}":
             m 1eka "Alright, [player]."
     call maica_show_console
     return
@@ -213,19 +224,26 @@ label mtrigger_idle:
 label mtrigger_hold:
     call maica_pause_connection
     call maica_hide_console
-    m "Then...want a hug?{nw}"
+    m "Then...{w=0.3}want a hug?{nw}"
     $ _history_list.pop()
     menu:
         "Then...want a hug?{fast}{#mtrigger_hold}"
         "Hold [m_name]":
-            pass
+            call monika_holdme_prep
+            call monika_holdme_start
+            call monika_holdme_reactions
+            call monika_holdme_end
         "Nevermind{#maica_host_nevermind}":
-            call maica_show_console
-            return
-    call monika_holdme_prep
-    call monika_holdme_start
-    call monika_holdme_reactions
-    call monika_holdme_end
+            $ rand_sign = renpy.random.randint(0, 4)
+            if rand_sign == 0:
+                m 3tublu "Really? I don't believe that. {w=1}{nw}"
+                extend 3hua "Just joking, Ahaha!"
+                m 1eua "We have all the time to cuddle whenever you want, so no need to hurry."
+            elif rand_sign == 1:
+                m 3eusdla "Well, perhaps some misunderstandings are unavoidable."
+                m 1tublu "But still I think a hug would be good for you, ehehe~"
+            else:
+                m 1eka "Alright, [player]."
     call maica_show_console
     return
 
@@ -239,7 +257,7 @@ label mtrigger_music_menu:
         "Okay":
             call display_music_menu
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
@@ -253,7 +271,7 @@ label mtrigger_music_auto(cls, selection):
         "Okay":
             $ store.mas_play_song(cls.find(selection))
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
@@ -268,7 +286,7 @@ label mtrigger_neteasemusic_search(keyword):
             $ store.np_util.Music_Search(keyword)
             call np_menu_display
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
@@ -280,8 +298,11 @@ label mtrigger_youtubemusic_search(keyword):
     menu:
         "Shall I search for '[keyword]', [player]?{fast}"
         "Okay":
+            # Following logics are a little complex, so we take another structure here
+            # Kind of because I'm not sure how nesting labels in renpy work.
             pass
         "Nevermind{#maica_host_nevermind}":
+            m 1eka "Alright, [player]."
             call maica_show_console
             return
 
@@ -381,16 +402,16 @@ label mtrigger_youtubemusic_search(keyword):
 label mtrigger_takeout:
     call maica_pause_connection
     call maica_hide_console
-    m "Are we going now, [player]?{nw}"
+    m "So... {w=0.3}Are we going out now, [player]?{nw}"
     $ _history_list.pop()
     menu:
-        "Are we going now, [player]?{fast}"
+        "So... Are we going out now, [player]?{fast}"
         "Yes{#maica_host_yes}":
             jump _mtrigger_takeout
-        "I'm leaving for now. Please close the game.":
+        "I mean to go alone":
             jump _mtrigger_leave
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 
@@ -409,7 +430,7 @@ label mtrigger_backup:
             else:
                 m "Something might went wrong...could you do it yourself please?"
         "Nevermind{#maica_host_nevermind}":
-            pass
+            m 1eka "Alright, [player]."
     call maica_show_console
     return
 

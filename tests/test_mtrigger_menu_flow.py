@@ -1,6 +1,7 @@
 """Exercise trigger menus and Ren'Py call transfers without a running MAS game."""
 
 import ast
+import datetime
 import re
 import textwrap
 from types import SimpleNamespace
@@ -12,12 +13,13 @@ import maica_mtrigger
 
 
 YES = "Yes{#maica_host_yes}"
-BRB = "Yes, I'll be right back."
+BRB = "Yes, I'll be right back"
 CANCEL = "Nevermind{#maica_host_nevermind}"
 STAY = "Not yet{#maica_host_not_yet}"
-IDLE = "I'll be right back. Leave the game open."
-LEAVE = "I'm leaving for now. Please close the game."
-TAKEOUT = "I'd like to take you with me."
+IDLE = "I'll be right back, leave the game open"
+LEAVE = "I'm leaving for now, close the game please"
+TAKEOUT = "I mean to take you with me"
+ALONE = "I mean to go alone"
 
 
 class Return(Exception):
@@ -63,7 +65,7 @@ def _compile(body):
             statement = "raise Jump({!r})".format(statement[5:])
         elif statement == "return" or statement.startswith("return "):
             statement = "raise Return({})".format(statement[7:] or "None")
-        elif re.match(r'm(?: \w+)* "', statement):
+        elif re.match(r'(?:m|extend)(?: \w+)* "', statement):
             statement = "_say({})".format(statement[statement.index('"'):])
         elif statement.startswith("hide "):
             statement = "pass"
@@ -87,7 +89,12 @@ class Flow:
             "mas_clearNotifs": lambda: self.calls.append("mas_clearNotifs"),
             "mas_setupIdleMode": lambda *args: self.calls.append(("idle", args)),
             "mas_isMoniEnamored": lambda **kwargs: True,
-            "renpy": SimpleNamespace(has_label=lambda label: True),
+            "mas_shouldKiss": lambda *args: True,
+            "datetime": datetime,
+            "renpy": SimpleNamespace(
+                has_label=lambda label: True,
+                random=SimpleNamespace(randint=lambda low, high: low),
+            ),
             "store": SimpleNamespace(
                 np_util=SimpleNamespace(
                     Music_Search=lambda keyword: self.calls.append(("search", keyword))
@@ -106,6 +113,7 @@ class Flow:
             "mtrigger_idle", "mtrigger_leave", "mtrigger_takeout",
             "mtrigger_weather(weather)", "mtrigger_location",
             "mtrigger_neteasemusic_search(keyword)", "mtrigger_backup",
+            "mtrigger_kiss", "mtrigger_hold",
             "_mtrigger_start_idle", "_mtrigger_brb", "_mtrigger_idle_callback",
             "_mtrigger_leave", "_mtrigger_takeout", "_mtrigger_quit",
         )
@@ -153,8 +161,8 @@ class Flow:
 @pytest.mark.parametrize(
     "label, choice",
     [
-        ("mtrigger_idle", CANCEL),
-        ("mtrigger_leave", STAY),
+        ("mtrigger_idle", STAY),
+        ("mtrigger_leave", CANCEL),
         ("mtrigger_takeout", CANCEL),
         ("mtrigger_weather", CANCEL),
         ("mtrigger_location", CANCEL),
@@ -190,7 +198,7 @@ def test_idle_is_queued_only_after_confirmation_and_keeps_the_return_callback(la
 
 @pytest.mark.parametrize(
     "label, choice",
-    [("mtrigger_leave", YES), ("mtrigger_idle", LEAVE), ("mtrigger_takeout", LEAVE)],
+    [("mtrigger_leave", YES), ("mtrigger_idle", LEAVE), ("mtrigger_takeout", ALONE)],
 )
 def test_leaving_uses_the_confirmed_quit_path(label, choice):
     flow = Flow(choice)
@@ -241,7 +249,7 @@ def _manager(callbacks):
     return manager
 
 
-@pytest.mark.parametrize("choice, stopped", [(BRB, True), (CANCEL, False)])
+@pytest.mark.parametrize("choice, stopped", [(BRB, True), (STAY, False)])
 def test_real_idle_callback_propagates_stop_only_when_the_menu_confirms(choice, stopped):
     flow = Flow(choice)
     source = _source("trigger.rpy")
@@ -275,6 +283,37 @@ def test_dispatcher_clears_stale_label_results_and_keeps_python_callback_results
     flow.namespace["_return"] = "stop"
     flow.namespace["mtrigger_manager"] = _manager([lambda _arg: callback_result])
     assert flow.run(".next") == {"stop": callback_result == "stop"}
+
+
+@pytest.mark.parametrize("label", ["mtrigger_kiss", "mtrigger_hold"])
+@pytest.mark.parametrize("random_value", range(5))
+def test_affection_cancellation_only_speaks_and_restores_console(label, random_value):
+    flow = Flow(CANCEL)
+    flow.namespace["renpy"].random.randint = lambda low, high: random_value
+    assert flow.run(label) is None
+    assert flow.console_visible
+    assert flow.calls == [
+        "maica_pause_connection", "maica_hide_console", "maica_show_console",
+    ]
+
+
+@pytest.mark.parametrize(
+    "label, choice, actions",
+    [
+        ("mtrigger_kiss", "Kiss [m_name]", ["monika_kissing_motion_short"]),
+        ("mtrigger_hold", "Hold [m_name]", [
+            "monika_holdme_prep", "monika_holdme_start",
+            "monika_holdme_reactions", "monika_holdme_end",
+        ]),
+    ],
+)
+def test_affection_confirmation_runs_the_action_then_restores_console(label, choice, actions):
+    flow = Flow(choice)
+    assert flow.run(label) is None
+    assert flow.console_visible
+    assert flow.calls == [
+        "maica_pause_connection", "maica_hide_console",
+    ] + actions + ["maica_show_console"]
 
 
 def test_every_public_trigger_entry_has_a_confirmation_and_cancellation():
