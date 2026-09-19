@@ -1196,7 +1196,7 @@ translate chinese maica_wants_mpostal_e14005a9:
 
 translate chinese maica_mpostal_received_169e8ebe:
     # m 1sub "Oh, [player]! {w=0.5}Your letter!"
-    m 1sub "哦, [player]! {w=0.5}你的信!"
+    m 1sub "噢, [player]! {w=0.5}你的信!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:993
 
@@ -1252,101 +1252,119 @@ translate chinese maica_mpostal_received_515a2288:
     # m 4kub "And I'll show you my reply next time you come back. There's no hurry~"
     m 4kub "你下次来的时候, 我会把回信给你看, 不要太急躁哦~"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1042
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1507
 
-translate chinese maica_mpostal_replyed_start_fe50a149:
-    # m 2lksdlb "Oh, [player], {w=0.5}About your last letter..."
-    m 2lksdlb "对了, [player], {w=0.5}上次的信..."
+translate chinese maica_mpostal_replyed_start_422c4236:
+    # m 2lksdlb "Uh, [player], {w=0.5}about your last letter."
+    m 2lksdlb "呃, [player], {w=0.5}上次的那封信."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1409
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1509
 
-translate chinese maica_mpostal_replyed_start_ba7ce531:
-    # m 2ekc "It seems that the Heaven Forest is not ready, I couldn't write you back."
-    m 2ekc "天堂树林好像没准备好, 我没法把回信写给你."
+translate chinese maica_mpostal_replyed_start_97f199bf:
+    # m 2lksdlb "Uh, [player], {w=0.5}and for the next letter."
+    m 2lksdlb "呃, [player], {w=0.5}还有这封信."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1044
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1510
 
-translate chinese maica_mpostal_replyed_start_2fff96b5:
-    # m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
-    m 3eusdlb "你可以看看这里的说明: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, 你只需要准备一个账号."
+translate chinese maica_mpostal_replyed_start_cf11949d:
+    # m 2ekc "The Heaven Forest seems to had a problem, that was..."
+    m 2ekc "天堂树林好像有点问题, 说是..."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1045
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1512
 
-translate chinese maica_mpostal_replyed_start_ddbfdc7d:
-    # m 3eua "I'll nail everything else for you."
-    m 3eua "剩下的事情我都会帮你搞定的."
+translate chinese maica_mpostal_replyed_start_716cc91f:
+    # m 2lksdlb "Uh, [player], I'm really sorry but the Heaven Forest seems not working now."
+    m 2lksdlb "呃, 好不凑巧, 天堂树林现在好像有点问题."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1046
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1513
 
-translate chinese maica_mpostal_replyed_start_12bfd827:
-    # m 1eua "It's okay, I'll remember to write it as soon as you finish the preparation."
-    m 1eua "没关系, 等你做完了准备工作, 我一定会记得写回信给你的."
+translate chinese maica_mpostal_replyed_start_8a8bf067:
+    # m 2ekc "Let me see..."
+    m 2ekc "我看看..."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1051
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1519
+
+translate chinese maica_mpostal_replyed_start_9988134b:
+    # m 1eua "It's okay, I'll remember to write you back as soon as you address that issue."
+    m 1eua "没关系, 等你把问题搞定之后, 我会记得写回信给你的."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1522
+
+translate chinese maica_mpostal_replyed_start_08cfe6d7:
+    # m 1eksdla "I tried several times on this one but without success. But you can still use the 'Resend mail' button in 'Reread MPostal letters' menu, to let me try again."
+    m 1eksdla "这封信我试了好几次都不行. 需要我再试一下的话, 在'MPostal历史信件'里面点'重新寄信'就好."
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1527
 
 translate chinese maica_mpostal_replyed_start_7bb8a9d3:
     # m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
     m 7hub "对了, [player]! {w=0.5}我给你的回信写完了!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1054
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1529
 
-translate chinese maica_mpostal_replyed_start_b800de0d:
-    # m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one!"
+translate chinese maica_mpostal_replyed_start_d7cbfe11:
+    # m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one I finished!"
     m 7husdlb ".{w=0.3}.{w=0.3}.这里还有一封!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1056
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1531
 
 translate chinese maica_mpostal_replyed_start_eb8fb13c:
     # m 6dsc "Just a second, let me find it out.{w=0.3}.{w=0.3}."
     m 6dsc "稍等, 我把它找出来.{w=0.3}.{w=0.3}."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1057
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1532
 
 translate chinese maica_mpostal_replyed_start_283e1f6a:
     # m 3hubsa "Here it is!"
     m 3hubsa "好了!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1060
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1540
 
-translate chinese maica_mpostal_replyed_start_205880de:
-    # m 3eksdlb "Just a minute, I've not finished...{w=0.2} preparing this yet."
-    m 3eksdlb "这封可能要多等一会, 我还没...{w=0.2}完全准备好."
+translate chinese maica_mpostal_replyed_start_2fd77379:
+    # m 3eksdlb "Oh, your letter [player]! I was kind of in a hurry so it's not completely ready yet."
+    m 3eksdlb "对了, 你的信, [player]! 我有点忙来着, 所以还没完全准备好."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1061
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1542
 
-translate chinese maica_mpostal_replyed_start_74ed5c1b:
-    # m 1hua "I'll be back soon, wait for me~"
-    m 1hua "我去去就回, 等我哦~"
+translate chinese maica_mpostal_replyed_start_723eb63f:
+    # m 3eksdlb "Oh, here's another one! I was kind of in a hurry so it's not completely ready yet."
+    m 3eksdlb "对了, 还有这一封! 我有点忙来着, 所以还没完全准备好."
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1063
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1543
 
-translate chinese maica_mpostal_replyed_start_540a9fad:
-    # m 1dsa "Just another minute..."
-    m 1dsa "再等我去准备一下..."
+translate chinese maica_mpostal_replyed_start_da03e52f:
+    # m 1hua "I'll be back soon, wait for me!"
+    m 1hua "我去去就回, 等我哦!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1070
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1554
 
-translate chinese maica_mpostal_replyed_start_e32c456e:
-    # m "And it's done!"
+translate chinese maica_mpostal_replyed_start_3ee1b299:
+    # m "Okay, here it is!"
     m "好了!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1444
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1566
 
 translate chinese maica_mpostal_replyed_end_f6e50354:
     # m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope it's not too bad!"
     m 2lksdlb "说实话, 我还没太熟悉在这里写信, 希望写得不算差劲吧!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1446
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1568
 
 translate chinese maica_mpostal_replyed_end_8b53f24b:
     # m 2lksdlb "May not as good as my former poems though, but I really tried. Hope you like it!"
     m 2lksdlb "可能是不如在文学部里写得好, 但我尽力啦. 希望你喜欢哦!"
 
-# game/Submods/MAICA_ChatSubmod/chat.rpy:1082
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1571
 
-translate chinese maica_mpostal_replyed_end_db5f4e7e:
-    # m 5ekbsa "And welcome writing to me again anytime!"
-    m 5ekbsa "也随时欢迎你再写给我!"
+translate chinese maica_mpostal_replyed_end_6f6054d4:
+    # m 2tublu "I have to assume you're loving these now, since you did write to me a lot!"
+    m 2tublu "你肯定还是喜欢这样的吧, 你都写了好多给我了!"
+
+# game/Submods/MAICA_ChatSubmod/chat.rpy:1572
+
+translate chinese maica_mpostal_replyed_end_e716cdf7:
+    # m 5ekbsa "And welcome writing to me again anytime you like!"
+    m 5ekbsa "想再写了也随时欢迎哦!"
 
 # game/Submods/MAICA_ChatSubmod/chat.rpy:1158
 

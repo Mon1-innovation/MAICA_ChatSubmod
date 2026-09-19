@@ -491,9 +491,19 @@ init 5 python:
 
     def is_mail_waiting_reply():
         for i in persistent._maica_send_or_received_mpostals:
-            if i["responsed_status"] in ("received", "failed"):
+            if i["responsed_status"] in ("received", "failed", "newfatal"):
                 return True
         return False
+
+    def maica_retry_mpostal(postal, reset_count=False):
+        """Delay the next attempt without changing the original letter time."""
+        import time
+        postal["retry_after"] = (
+            time.time() + persistent.maica_setting_dict["mpostal_default_reply_time"] * 60
+        )
+        postal["responsed_status"] = "delaying"
+        if reset_count:
+            postal["failed_count"] = 0
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal_reply():
@@ -516,6 +526,12 @@ init 5 python:
             if wait_replying_count > 3:
                 min_response_time *= 2
             if i["responsed_status"] == "delaying":
+                # Retries wait a full interval after the failure is acknowledged.
+                if i.get("retry_after") is not None:
+                    if time.time() >= i["retry_after"]:
+                        i["responsed_status"] = "notupload"
+                        i.pop("retry_after", None)
+                    continue
                 # 时间计算
                 last_sesh_ed = persistent.sessions.get("last_session_end", datetime.datetime.now())
 
@@ -530,7 +546,7 @@ init 5 python:
                 if time.time() - float(i['time']) > min_response_time:
                     i["responsed_status"] = "notupload"
 
-            elif i["responsed_status"] in ("received", "failed"):
+            elif i["responsed_status"] in ("received", "failed", "newfatal"):
                 wait_replying_count += 1
 
         return
@@ -1070,9 +1086,9 @@ label .talking_start:
     call clear_all
     return
 
-label maica_connection_failure_dialogue(from_mspire = False, status_code = None):
+label maica_connection_failure_dialogue(from_mspire = False, status_code = None, fallback_to_current = True):
     $ ai = store.maica.maica_instance
-    $ failure_status = ai.status if status_code is None else status_code
+    $ failure_status = ai.status if (status_code is None and fallback_to_current) else status_code
 
     if failure_status == ai.MaicaAiStatus.TOKEN_MISSING:
         m 2rusdlb "...It seems you haven't got a token yet."
@@ -1467,35 +1483,33 @@ label maica_mpostal_received:
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
     $ ev = mas_getEV("maica_mpostal_replyed")
-    python:
-
-        def _curr_count():
-            curr_queue_count = 0
-            for i in persistent._maica_send_or_received_mpostals:
-                if i["responsed_status"] == "received":
-                    curr_queue_count += 1
-            return curr_queue_count
-
     $ seq = 0
+    $ all_seq = 0
+    $ mpostal_shown_count = 0
 
     # 这里是生成结果
-label maica_mpostal_replyed.select_letter(is_repeat=False):
+label maica_mpostal_replyed.select_letter:
+    $ is_repeat = False
     $ current = None
     python:
         for letter in persistent._maica_send_or_received_mpostals:
-            if letter["responsed_status"] in ["received", "failed", "notupload"]:
+            all_seq += 1
+            # If there's "notupload" in queue, we generate them together to make game experience smoother
+            # Though those don't actively trigger mpostal_replyed
+            if letter["responsed_status"] in ["received", "failed", "newfatal", "notupload"]:
                 current = letter
                 break
     if current is None:
         jump maica_mpostal_replyed.end
-
-label maica_mpostal_replyed.start:
     $ seq += 1
 
+label maica_mpostal_replyed.start:
     # This method iters over ALL history letters.
     # That means we cannot include "fatal"s in, because they'd come up every time before manually handled.
     # So we only write reactions for non-stale status.
-    if current["responsed_status"] in ("failed"):
+
+    # newfatal is acknowledged once, then kept as fatal for manual handling.
+    if current["responsed_status"] in ("failed", "newfatal"):
         if not is_repeat:
             if seq <= 1:
                 m 2lksdlb "Uh, [player], {w=0.5}about your last letter."#担心
@@ -1506,12 +1520,17 @@ label maica_mpostal_replyed.start:
             m 2lksdlb "Uh, [player], I'm really sorry but the Heaven Forest seems not working now."
             m 2ekc "Let me see..."
 
-        call maica_connection_failure_dialogue(status_code = current.get("failure_status"))
+        $ failure_status = current.get("failure_status")
+        $ fallback_to_current = "failure_status" not in current
+        call maica_connection_failure_dialogue(status_code = failure_status, fallback_to_current = fallback_to_current)
         if current["responsed_status"] == "failed":
             m 1eua "It's okay, I'll remember to write you back as soon as you address that issue."
-            $ current["responsed_status"] = "notupload"
+            $ maica_retry_mpostal(current)
+        elif current["responsed_status"] == "newfatal":
+            m 1eksdla "I tried several times on this one but without success. But you can still use the 'Resend mail' button in 'Reread MPostal letters' menu, to let me try again."
+            $ current["responsed_status"] = "fatal"
 
-    elif current["responsed_status"] in ("received"):
+    elif current["responsed_status"] == "received":
         if seq <= 1:
             m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
         else:
@@ -1522,8 +1541,9 @@ label maica_mpostal_replyed.start:
 
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
+        $ mpostal_shown_count += 1
 
-    elif current["responsed_status"] in ("notupload"):
+    elif current["responsed_status"] == "notupload":
         if seq <= 1:
             m 3eksdlb "Oh, your letter [player]! I was kind of in a hurry so it's not completely ready yet."#尴尬
         else:
@@ -1533,26 +1553,29 @@ label maica_mpostal_replyed.start:
         show black with dissolve
         call maica_mpostal_read
 
-        if _return == "failed":
+        if current["responsed_status"] != "received":
             hide black with dissolve
-            # 直接重新开始, 失败的信会提示失败, 理论应与current一致
-            jump maica_mpostal_replyed.select_letter(is_repeat=True)
+            # The batch result belongs to all letters; inspect this letter only.
+            $ is_repeat = True
+            jump maica_mpostal_replyed.start
 
         m "Okay, here it is!"
         hide black with dissolve
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
+        $ mpostal_shown_count += 1
 
     jump maica_mpostal_replyed.select_letter
 
 label maica_mpostal_replyed.end:
+    if not mpostal_shown_count:
+        return "no_unlock"
     if ev.shown_count <= 2:
         m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope it's not too bad!"
     elif ev.shown_count <= 4:
         m 2lksdlb "May not as good as my former poems though, but I really tried. Hope you like it!"
     else:
-        $ it = renpy.substitute(_("it") if seq <= 1 else _("these"))
-        m 2tublu "I have to assume you're loving {it} now, since you did write to me a lot!"
+        m 2tublu "I have to assume you're loving these now, since you did write to me a lot!"
     m 5ekbsa "And welcome writing to me again anytime you like!"
     return "no_unlock"
 

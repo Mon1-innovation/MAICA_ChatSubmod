@@ -1107,9 +1107,9 @@ screen maica_mpostals():
                                         Function(_maica_call_in_new_context_preserve_layers, "maica_mpostal_show_backtoscreen", postal["responsed_content"])
                                 ]
 
-                        if postal["responsed_status"] in ("fatal"):
+                        if postal["responsed_status"] == "fatal":
                             textbutton _("Resend mail"):
-                                action SetDict(postal, "responsed_status", "delaying")
+                                action Function(maica_retry_mpostal, postal, reset_count=True)
                         hbox:
                             textbutton _("Delete"):
                                 action Function(_delete_postal, postal)

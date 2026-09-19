@@ -99,10 +99,7 @@ def test_mpostal_original_and_preview_have_separate_cleanup_lifetimes():
         main_source.index("label maica_mpostal_read:"):
         main_source.index("label maica_mpostal_read.failed:")
     ]
-    success_guard = (
-        'if _return == "success" and '
-        'cur_postal["responsed_status"] == "received":'
-    )
+    success_guard = 'if cur_postal["responsed_status"] == "received":'
     assert success_guard in read_flow
     assert "store.maica.delete_mpostal_original(cur_postal)" in read_flow
     assert "delete_mpostal_preview" not in read_flow

@@ -382,39 +382,66 @@ label maica_connect_from_settings:
     return
 
 label maica_mpostal_read:
+    $ renpy.dynamic("mpostal_read_result")
+    $ mpostal_read_result = "success"
     $ mas_HKBRaiseShield()
     if persistent.maica_setting_dict.get("show_console_when_reply", False):
         call maica_show_console
     else:
         window hide
     call maica_mpostal_load
-    call maica_init_connect(use_pause_instand_wait = True)
-    if _return == "disconnected":
-        jump maica_mpostal_read.failed
-
     python:
         ai = store.maica.maica_instance
-        import time
+        import bot_interface
         import traceback
 
-        def _save_mpostal_failure_snapshot(postal):
+        def _save_mpostal_failure_snapshot(postal, error=None):
             """Keep the request failure details with the postal that caused them."""
-            postal["failure_status"] = getattr(ai, "status", None)
-            postal["failure_protocol_status"] = getattr(ai, "error_protocol_status", None)
-            postal["failure_protocol_code"] = getattr(ai, "error_protocol_code", None)
-            failure_message = getattr(ai, "error_message", None)
-            postal["failure_message"] = (
-                None if failure_message is None else u"{}".format(failure_message)
+            # Local setup errors do not update ai.status. Do not attribute them
+            # to an earlier request or to the current healthy connection.
+            postal["failure_status"] = getattr(ai, "status", None) if error is None else None
+            postal["failure_protocol_status"] = (
+                getattr(ai, "error_protocol_status", None) if error is None
+                else "client_mpostal_failed"
             )
+            postal["failure_protocol_code"] = getattr(ai, "error_protocol_code", None) if error is None else None
+            failure_message = getattr(ai, "error_message", None) if error is None else error
+            postal["failure_message"] = (
+                None if failure_message is None else bot_interface.to_unicode(failure_message)
+            )
+
+        def _record_mpostal_failure(postal, error=None):
+            _save_mpostal_failure_snapshot(postal, error)
+            postal["responsed_status"] = "failed"
+            postal["failed_count"] = postal.get("failed_count", 0) + 1
+            if postal["failed_count"] >= 3:
+                postal["responsed_status"] = "newfatal"
+                postal["responsed_content"] = renpy.substitute(
+                    _("Failed replying mail. Not retrying because failure count limit reached")
+                ) + "\n" + (postal.get("responsed_content") or "")
+                store.mas_submod_utils.submod_log.error(
+                    "label maica_mpostal_read: retry limit reached for '{}'".format(
+                        postal["raw_title"]
+                    )
+                )
 
         pending_postals = [
             postal
             for postal in persistent._maica_send_or_received_mpostals
             if postal["responsed_status"] == "notupload"
         ]
+
+    call maica_init_connect(use_pause_instand_wait = True)
+    if _return != "success":
+        python:
+            mpostal_read_result = "failed"
+            for cur_postal in pending_postals:
+                _record_mpostal_failure(cur_postal)
+        jump maica_mpostal_read.failed
+
+    python:
         total_pending = len(pending_postals)
         for current_index, cur_postal in enumerate(pending_postals, 1):
-            start_time = time.time()
             try:
                 vista_info = cur_postal.get("vista_image_info") or {}
                 uuid = vista_info.get("uuid")
@@ -424,17 +451,10 @@ label maica_mpostal_read:
                         uuid = store.maica.upload_vista_image(image_source)
                         cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
                 ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if uuid else None)
-            except Exception:
-                _save_mpostal_failure_snapshot(cur_postal)
-                cur_postal["responsed_status"] = "failed"
-                cur_postal["failed_count"] = cur_postal.get("failed_count", 0) + 1
-                _return = "failed"
+            except Exception as error:
+                _record_mpostal_failure(cur_postal, error)
+                mpostal_read_result = "failed"
                 store.mas_submod_utils.submod_log.error("label maica_mpostal_read: request setup failed: {}".format(traceback.format_exc()))
-                if cur_postal["failed_count"] >= 3:
-                    cur_postal["responsed_status"] = "fatal"
-                    cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" + cur_postal["responsed_content"]
-                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: retry limit reached for '{}'".format(cur_postal["raw_title"]))
-                    break
                 continue
 
             ai.console_logger.info("<Function> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, total_pending))
@@ -456,35 +476,26 @@ label maica_mpostal_read:
                 message = ai.get_message()
                 cur_postal["responsed_content"] = message[1]
                 cur_postal["responsed_status"] = "received"
-                _return = "success"
 
             if ai.is_failed():
-                _save_mpostal_failure_snapshot(cur_postal)
-                cur_postal["responsed_status"] = "failed"
-                cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
-                _return = "failed"
+                cur_postal["responsed_content"] = (cur_postal.get("responsed_content") or "") + renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
+                _record_mpostal_failure(cur_postal)
+            elif cur_postal["responsed_status"] != "received":
+                _record_mpostal_failure(
+                    cur_postal, "MPostal request ended without a reply"
+                )
 
-            if _return == "success" and cur_postal["responsed_status"] == "received":
+            if cur_postal["responsed_status"] == "received":
                 store.maica.delete_mpostal_original(cur_postal)
-
-            if _return != 'success':
-                if cur_postal.get("failed_count", 0) >= 3:
-                    cur_postal["responsed_status"] = "fatal"
-                    cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" +cur_postal["responsed_content"]
-                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: retry limit reached for '{}'".format(cur_postal["raw_title"]))
-                    break
-                else:
-                    if "failed_count" not in cur_postal:
-                        cur_postal["failed_count"] = 0
-                    cur_postal["failed_count"] += 1
-
+            else:
+                mpostal_read_result = "failed"
 
 label maica_mpostal_read.failed:
     call maica_hide_console
     if not persistent.maica_setting_dict.get("show_console_when_reply", False):
         window show
     $ mas_HKBRaiseShield()
-    return _return
+    return mpostal_read_result
 
 
 label maica_mpostal_show(content = "no content"):
