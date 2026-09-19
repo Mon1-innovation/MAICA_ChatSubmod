@@ -316,10 +316,10 @@ def test_fatal_transition_notifies_once_and_does_not_block_other_letters(harness
     assert failed["responsed_status"] == "fatal"
     assert success["responsed_status"] == "readed"
     assert h.shown == ["reply:b"]
-    assert sum("stop retrying" in line for line in h.dialogue) == 1
+    assert sum("Resend mail" in line for line in h.dialogue) == 1
     assert not h.namespace["is_mail_waiting_reply"]()
     h.flow.call("maica_mpostal_replyed")
-    assert sum("stop retrying" in line for line in h.dialogue) == 1
+    assert sum("Resend mail" in line for line in h.dialogue) == 1
     h.namespace["maica_retry_mpostal"](failed, reset_count=True)
     assert failed["failed_count"] == 0 and failed["responsed_status"] == "delaying"
 
@@ -344,7 +344,7 @@ def test_three_failures_each_wait_for_acknowledgement_and_retry_interval(harness
         assert letter["responsed_status"] == ("fatal" if count == 3 else "notupload")
         assert "retry_after" not in letter
         assert letter["time"] == "1"
-    assert sum("stop retrying" in line for line in h.dialogue) == 1
+    assert sum("Resend mail" in line for line in h.dialogue) == 1
     assert h.shown == [] and h.deleted == []
 
 
