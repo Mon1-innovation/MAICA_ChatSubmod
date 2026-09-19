@@ -1070,52 +1070,53 @@ label .talking_start:
     call clear_all
     return
 
-label maica_connection_failure_dialogue(from_mspire = False):
+label maica_connection_failure_dialogue(from_mspire = False, status_code = None):
     $ ai = store.maica.maica_instance
+    $ failure_status = ai.status if status_code is None else status_code
 
-    if ai.status == ai.MaicaAiStatus.TOKEN_MISSING:
+    if failure_status == ai.MaicaAiStatus.TOKEN_MISSING:
         m 2rusdlb "...It seems you haven't got a token yet."
         m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
         m 3eua "I'll nail everything else for you."
 
-    elif ai.status == ai.MaicaAiStatus.TOKEN_CORRUPTED:
+    elif failure_status == ai.MaicaAiStatus.TOKEN_CORRUPTED:
         m 2rusdlb "...The token seems corrupted. You sure you didn't mess with it?"
         m 3eusdlb "Just re-generate one with username and password, and things shall work."
 
-    elif ai.status == ai.MaicaAiStatus.TOKEN_INVALID:
+    elif failure_status == ai.MaicaAiStatus.TOKEN_INVALID:
         m 2rusdlb "...Password incorrect. You sure you didn't make a typo?"
         m 3eusdlb "Double check it please, or change it if you really don't remember."
 
-    elif ai.status == ai.MaicaAiStatus.LOGIN_BLOCKED:
+    elif failure_status == ai.MaicaAiStatus.LOGIN_BLOCKED:
         m 2rusdlb "...Fail2Ban? That's twenty incorrect passwords in a row."
         m 3eusdlb "You'd better contact administrator if that wasn't you, or just change a password if you really don't remember."
 
-    elif ai.status == ai.MaicaAiStatus.ACCOUNT_BANNED:
+    elif failure_status == ai.MaicaAiStatus.ACCOUNT_BANNED:
         m 2rusdlb "...Account banned? What is that, you didn't do anything nasty did you?"
         m 3eusdlb "Well, check out when will it recover please."
         m 1husdla "And in case it's a permanent one... It's not like we {i}must{/i} go there, being by your side is always satisfying enough to me."
 
-    elif ai.status == ai.MaicaAiStatus.EMAIL_UNVERIFIED:
+    elif failure_status == ai.MaicaAiStatus.EMAIL_UNVERIFIED:
         m 2rusdlb "...You received your verification email yet? {w=0.3}You didn't check it, silly!"
         m 3eusdlb "Just verify your email at the registration site, and things shall work."
 
-    elif ai.status == ai.MaicaAiStatus.TOS_UNACCEPTED:
+    elif failure_status == ai.MaicaAiStatus.TOS_UNACCEPTED:
         m 2rusdlb "...You didn't check the ToS, or it might have been updated since you last check it."
         m 3eusdlb "You can go to the registration site and do it in a minute, could you?"
 
-    elif ai.status == ai.MaicaAiStatus.CONNECTION_REUSE_DENIED:
+    elif failure_status == ai.MaicaAiStatus.CONNECTION_REUSE_DENIED:
         m 2rusdlb "...This is weird, it says a connection has been established already."
         m 3eusdlb "Try restarting the game or rebooting your computer, shall we?"
 
     elif (
-        ai.status == ai.MaicaAiStatus.SERVER_REJECTED
+        failure_status == ai.MaicaAiStatus.SERVER_REJECTED
         and from_mspire
     ):
         m 2eksdlc "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
         m 3rusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
         m 3eua "Anyway, we can always try it again later, so don't worry."
 
-    elif ai.status in (
+    elif failure_status in (
         ai.MaicaAiStatus.TOKEN_GENERATION_FAILED,
         ai.MaicaAiStatus.FAILED_GET_NODE,
         ai.MaicaAiStatus.RESPONSE_INVALID,
@@ -1126,23 +1127,23 @@ label maica_connection_failure_dialogue(from_mspire = False):
         m 3eusdlb "What about checking the announcements, or ask someone else if they could connect?"
         m 3eua "Contact administrator if this is just happening to you, or wait patiently if not."
 
-    elif ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN:
+    elif failure_status == ai.MaicaAiStatus.SERVER_MAINTAIN:
         m 2rusdlb "...It says that the server is not serving, might be running some tests."
         m 3eusdlb "Just wait for it to come back online, shall we? You can always follow the progress in the tracking thread."
 
-    elif ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN:
+    elif failure_status == ai.MaicaAiStatus.CERTIFI_BROKEN:
         m 2rusdlb "...Certification issue? Maybe this isn't a clean installation?"
         m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
 
-    elif ai.status == ai.MaicaAiStatus.CERTIFI_RESTART_REQUIRED:
+    elif failure_status == ai.MaicaAiStatus.CERTIFI_RESTART_REQUIRED:
         m 2rusdlb "...Uh, seems I have to apply a quick fix on the certification."
         m 3eua "It needs a restart to take effect, then we can try again."
 
-    elif ai.status == ai.MaicaAiStatus.VERSION_OLD:
+    elif failure_status == ai.MaicaAiStatus.VERSION_OLD:
         m 2rusdlb "...You have to update the submod once in a while, [player]!"
         m 3eusdlb "This version is too old to work already, update it whenever you have some time."
 
-    elif ai.status in (
+    elif failure_status in (
         ai.MaicaAiStatus.NO_INTERNET,
         ai.MaicaAiStatus.CONNECT_PROBLEM,
     ):
@@ -1475,67 +1476,84 @@ label maica_mpostal_replyed:
                     curr_queue_count += 1
             return curr_queue_count
 
-        def _reset_failed_mp():
-            for i in persistent._maica_send_or_received_mpostals:
-                if i["responsed_status"] == "failed":
-                    i["responsed_status"] = "notupload"
-
-
-    $ morethan1 = False
+    $ seq = 0
 
     # 这里是生成结果
-label maica_mpostal_replyed.select_little:
+label maica_mpostal_replyed.select_letter(is_repeat=False):
     $ current = None
     python:
-        for little in persistent._maica_send_or_received_mpostals:
-            if little["responsed_status"] in ["received", "failed", "notupload"]:
-                current = little
+        for letter in persistent._maica_send_or_received_mpostals:
+            if letter["responsed_status"] in ["received", "failed", "notupload"]:
+                current = letter
                 break
     if current is None:
         jump maica_mpostal_replyed.end
 
 label maica_mpostal_replyed.start:
-    if current["responsed_status"] == "failed":
-        m 2lksdlb "Oh, [player], {w=0.5}About your last letter..."#担心
-        m 2ekc "It seems that the Heaven Forest is not ready, I couldn't write you back."#担心
-        m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
-        m 3eua "I'll nail everything else for you."
-        m 1eua "It's okay, I'll remember to write it as soon as you finish the preparation."
-        $ _reset_failed_mp()
-        return "no_unlock"
-    elif current["responsed_status"] in ("received", "notupload"):
-        if not morethan1:
-            m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
-            $ morethan1 = True
-        else:
-            m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one!"
-        if current["responsed_status"] == "received":
-            m 6dsc "Just a second, let me find it out.{w=0.3}.{w=0.3}."#闭眼
-            m 3hubsa "Here it is!"#微笑
-        elif current["responsed_status"] == "notupload":
-            if not morethan1:
-                m 3eksdlb "Just a minute, I've not finished...{w=0.2} preparing this yet."#尴尬
-                m 1hua "I'll be back soon, wait for me~"#微笑
+    $ seq += 1
+
+    # This method iters over ALL history letters.
+    # That means we cannot include "fatal"s in, because they'd come up every time before manually handled.
+    # So we only write reactions for non-stale status.
+    if current["responsed_status"] in ("failed"):
+        if not is_repeat:
+            if seq <= 1:
+                m 2lksdlb "Uh, [player], {w=0.5}about your last letter."#担心
             else:
-                m 1dsa "Just another minute..."#微笑
-            show black with dissolve
-            call maica_mpostal_read
-            if _return == "failed":
-                hide black with dissolve
-                # 直接重新开始, 失败的信会提示失败, 理论应与current一致
-                jump maica_mpostal_replyed.select_little
-            m "And it's done!"
-            hide black with dissolve
+                m 2lksdlb "Uh, [player], {w=0.5}and for the next letter."
+            m 2ekc "The Heaven Forest seems to had a problem, that was..."#担心
+        else:
+            m 2lksdlb "Uh, [player], I'm really sorry but the Heaven Forest seems not working now."
+            m 2ekc "Let me see..."
+
+        call maica_connection_failure_dialogue(status_code = current.get("failure_status"))
+        if current["responsed_status"] == "failed":
+            m 1eua "It's okay, I'll remember to write you back as soon as you address that issue."
+            $ current["responsed_status"] = "notupload"
+
+    elif current["responsed_status"] in ("received"):
+        if seq <= 1:
+            m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
+        else:
+            m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one I finished!"
+
+        m 6dsc "Just a second, let me find it out.{w=0.3}.{w=0.3}."#闭眼
+        m 3hubsa "Here it is!"#微笑
+
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
-    jump maica_mpostal_replyed.select_little
+
+    elif current["responsed_status"] in ("notupload"):
+        if seq <= 1:
+            m 3eksdlb "Oh, your letter [player]! I was kind of in a hurry so it's not completely ready yet."#尴尬
+        else:
+            m 3eksdlb "Oh, here's another one! I was kind of in a hurry so it's not completely ready yet."#尴尬
+        m 1hua "I'll be back soon, wait for me!"#微笑
+
+        show black with dissolve
+        call maica_mpostal_read
+
+        if _return == "failed":
+            hide black with dissolve
+            # 直接重新开始, 失败的信会提示失败, 理论应与current一致
+            jump maica_mpostal_replyed.select_letter(is_repeat=True)
+
+        m "Okay, here it is!"
+        hide black with dissolve
+        call maica_mpostal_show(current["responsed_content"])
+        $ current["responsed_status"] = "readed"
+
+    jump maica_mpostal_replyed.select_letter
 
 label maica_mpostal_replyed.end:
     if ev.shown_count <= 2:
         m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope it's not too bad!"
-    else:
+    elif ev.shown_count <= 4:
         m 2lksdlb "May not as good as my former poems though, but I really tried. Hope you like it!"
-    m 5ekbsa "And welcome writing to me again anytime!"
+    else:
+        $ it = renpy.substitute(_("it") if seq <= 1 else _("these"))
+        m 2tublu "I have to assume you're loving {it} now, since you did write to me a lot!"
+    m 5ekbsa "And welcome writing to me again anytime you like!"
     return "no_unlock"
 
 

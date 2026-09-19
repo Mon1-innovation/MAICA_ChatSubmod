@@ -418,10 +418,22 @@ def test_reviewed_source_contracts_are_kept_in_sync():
         main_source.index("label maica_mpostal_read:"):
         main_source.index("label maica_mpostal_read.failed:")
     ]
+    chat_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "chat.rpy"
+    ).read_text(encoding="utf-8")
     assert mpostal_source.index("try:") < mpostal_source.index(
         "store.maica.upload_vista_image"
     )
     assert "vista_info = cur_postal.get(\"vista_image_info\") or {}" in mpostal_source
+    assert 'postal["failure_status"] = getattr(ai, "status", None)' in mpostal_source
+    assert 'postal["failure_protocol_status"] = getattr(ai, "error_protocol_status", None)' in mpostal_source
+    assert 'postal["failure_protocol_code"] = getattr(ai, "error_protocol_code", None)' in mpostal_source
+    assert mpostal_source.count("_save_mpostal_failure_snapshot(cur_postal)") == 2
+    assert 'call maica_connection_failure_dialogue(status_code = current.get("failure_status"))' in chat_source
 
 
 def test_get_history_returns_dict_on_unavailable_service():

@@ -296,6 +296,10 @@ label maica_mpostal_load:
                     "time": str(time.time()),
                     "responsed_content": "",
                     "responsed_status":"delaying",
+                    "failure_status": None,
+                    "failure_protocol_status": None,
+                    "failure_protocol_code": None,
+                    "failure_message": None,
                     "failed_count":0,
                 }
                 store.maica.prepare_mpostal_preview(postal)
@@ -392,6 +396,17 @@ label maica_mpostal_read:
         ai = store.maica.maica_instance
         import time
         import traceback
+
+        def _save_mpostal_failure_snapshot(postal):
+            """Keep the request failure details with the postal that caused them."""
+            postal["failure_status"] = getattr(ai, "status", None)
+            postal["failure_protocol_status"] = getattr(ai, "error_protocol_status", None)
+            postal["failure_protocol_code"] = getattr(ai, "error_protocol_code", None)
+            failure_message = getattr(ai, "error_message", None)
+            postal["failure_message"] = (
+                None if failure_message is None else u"{}".format(failure_message)
+            )
+
         pending_postals = [
             postal
             for postal in persistent._maica_send_or_received_mpostals
@@ -410,6 +425,7 @@ label maica_mpostal_read:
                         cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
                 ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if uuid else None)
             except Exception:
+                _save_mpostal_failure_snapshot(cur_postal)
                 cur_postal["responsed_status"] = "failed"
                 cur_postal["failed_count"] = cur_postal.get("failed_count", 0) + 1
                 _return = "failed"
@@ -443,6 +459,7 @@ label maica_mpostal_read:
                 _return = "success"
 
             if ai.is_failed():
+                _save_mpostal_failure_snapshot(cur_postal)
                 cur_postal["responsed_status"] = "failed"
                 cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
                 _return = "failed"

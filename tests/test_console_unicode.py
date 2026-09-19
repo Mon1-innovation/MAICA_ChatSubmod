@@ -453,8 +453,10 @@ def test_disconnection_failure_dialogue_is_centralized_and_identifies_mspire_sou
     failure_call = "call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)"
     assert failure_call in talking_end
     assert talking_end.index("call maica_hide_console") < talking_end.index(failure_call)
-    assert "label maica_connection_failure_dialogue(from_mspire = False):" in failure
-    assert "ai.status == ai.MaicaAiStatus.SERVER_REJECTED" in failure
+    assert "label maica_connection_failure_dialogue(from_mspire = False, status_code = None):" in failure
+    assert "$ failure_status = ai.status if status_code is None else status_code" in failure
+    assert "failure_status == ai.MaicaAiStatus.SERVER_REJECTED" in failure
+    assert "ai.status == ai.MaicaAiStatus.SERVER_REJECTED" not in failure
     assert "and from_mspire" in failure
     assert "call maica_connection_failure_dialogue" not in caller
     assert "call maica_talking(mspire=True)" in mspire

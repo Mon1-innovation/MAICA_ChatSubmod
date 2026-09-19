@@ -34,7 +34,11 @@ define _maica_selected_visuals = []
 #    "mpostal_attachment_path":"",
 #    "vista_image_info":{},
 #    "responsed_content": "",
-#    "responsed_status":"delaying|notupload|received|readed|failed|fatal"
+#    "responsed_status":"delaying|notupload|received|readed|failed|fatal",
+#    "failure_status": None,
+#    "failure_protocol_status": None,
+#    "failure_protocol_code": None,
+#    "failure_message": None
 #}
 
 init 5 python in maica:
