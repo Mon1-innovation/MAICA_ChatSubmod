@@ -1484,7 +1484,6 @@ label maica_mpostal_received:
 label maica_mpostal_replyed:
     $ ev = mas_getEV("maica_mpostal_replyed")
     $ seq = 0
-    $ all_seq = 0
     $ mpostal_shown_count = 0
 
     # 这里是生成结果
@@ -1493,7 +1492,6 @@ label maica_mpostal_replyed.select_letter:
     $ current = None
     python:
         for letter in persistent._maica_send_or_received_mpostals:
-            all_seq += 1
             # If there's "notupload" in queue, we generate them together to make game experience smoother
             # Though those don't actively trigger mpostal_replyed
             if letter["responsed_status"] in ["received", "failed", "newfatal", "notupload"]:
