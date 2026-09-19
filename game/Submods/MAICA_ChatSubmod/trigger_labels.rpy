@@ -255,7 +255,14 @@ label mtrigger_music_menu:
     menu:
         "Wanna change the music now, [player]?{fast}"
         "Okay":
-            call display_music_menu
+            # ``display_music_menu`` only returns the selected track.  The
+            # native MAS entry point handles that result after opening the
+            # menu, so mirror that flow here as well.
+            $ selected_track = renpy.call_in_new_context("display_music_menu")
+            if selected_track == store.songs.NO_SONG:
+                $ selected_track = store.songs.FP_NO_SONG
+            if selected_track != store.songs.current_track:
+                $ store.mas_play_song(selected_track, set_per=True)
         "Nevermind{#maica_host_nevermind}":
             m 1eka "Alright, [player]."
     call maica_show_console
