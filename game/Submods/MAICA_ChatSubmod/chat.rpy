@@ -1138,6 +1138,7 @@ label maica_connection_failure_dialogue(from_mspire = False, status_code = None,
         ai.MaicaAiStatus.RESPONSE_INVALID,
         ai.MaicaAiStatus.SERVER_REJECTED,
         ai.MaicaAiStatus.SERVER_ERROR,
+        ai.MaicaAiStatus.CONNECT_PROBLEM,
     ):
         m 2rusdlb "...This is weird, something might be wrong on the server side."
         m 3eusdlb "What about checking the announcements, or ask someone else if they could connect?"
@@ -1161,7 +1162,6 @@ label maica_connection_failure_dialogue(from_mspire = False, status_code = None,
 
     elif failure_status in (
         ai.MaicaAiStatus.NO_INTERNET,
-        ai.MaicaAiStatus.CONNECT_PROBLEM,
     ):
         m 2rusdlb "...You sure you're connected to the internet? I didn't find it!"
         m 3eusdlb "Check your internet connectivity, and disable proxy if you're using one."
