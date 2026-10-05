@@ -178,6 +178,12 @@ class FakeAI:
         self.error_protocol_code = 500
         self.error_message = "timed out"
 
+    def fail_no_internet(self):
+        self.status = self.MaicaAiStatus.NO_INTERNET
+        self.error_protocol_status = "client_no_internet"
+        self.error_protocol_code = None
+        self.error_message = "external network check failed"
+
     def is_responding(self):
         return False
 
@@ -270,7 +276,8 @@ def test_connection_failure_gets_cleanup_dialogue_and_delayed_retry(harness, con
     assert all(letter["retry_after"] == h.clock[0] + 600 for letter in letters)
     assert all(letter["time"] == "1" for letter in letters)
     assert h.ai.started == [] and h.shown == []
-    assert any("connected to the internet" in line for line in h.dialogue)
+    assert any("server side" in line for line in h.dialogue)
+    assert not any("connected to the internet" in line for line in h.dialogue)
     assert not any("Hope you like" in line or "hope it's not too bad" in line for line in h.dialogue)
     assert "hide black with dissolve" in h.visuals
     h.hide_console.assert_called_once()
@@ -376,7 +383,16 @@ def test_legacy_failed_letter_keeps_current_status_fallback(harness):
     h = harness([letter])
     h.ai.fail_connection()
     h.flow.call("maica_mpostal_replyed")
+    assert any("server side" in line for line in h.dialogue)
+
+
+def test_no_internet_status_uses_connectivity_dialogue(harness):
+    letter = postal(status="failed")
+    h = harness([letter])
+    h.ai.fail_no_internet()
+    h.flow.call("maica_mpostal_replyed")
     assert any("connected to the internet" in line for line in h.dialogue)
+    assert not any("server side" in line for line in h.dialogue)
 
 
 def test_success_result_survives_console_cleanup(harness):
