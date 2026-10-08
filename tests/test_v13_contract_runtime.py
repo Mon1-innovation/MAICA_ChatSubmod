@@ -1,7 +1,9 @@
 import json
 import logging
 import math
+import re
 import sys
+import textwrap
 import threading
 import urllib.request
 from pathlib import Path
@@ -20,9 +22,94 @@ import maica_mtrigger
 import maica_tasker
 import maica_tasker_sub
 import maica_tasker_sub_sessionsender
+import maica_savefile
 import maica_vista_files_manager
 import maica_v13_migration
 import migrations
+
+
+def load_rpy_python_function(path, name, namespace):
+    source = path.read_text(encoding="utf-8")
+    match = re.search(
+        r"(?m)^(?P<indent>[ \t]*)def\s+{}\s*\([^\n]*\):".format(
+            re.escape(name)
+        ),
+        source,
+    )
+    assert match, "function is missing: {}".format(name)
+    indent = match.group("indent")
+    following = source[match.end():]
+    next_def = re.search(
+        r"(?m)^{}def\s+\w+\s*\(".format(re.escape(indent)),
+        following,
+    )
+    end = match.end() + (next_def.start() if next_def else len(following))
+    exec(textwrap.dedent(source[match.start():end]), namespace)
+    return namespace[name]
+
+
+def make_persistent_upload_runtime(additions, **persistent_values):
+    class Stub(object):
+        pass
+
+    uploaded = []
+    notifications = []
+    warnings = []
+
+    persistent = Stub()
+    for name in (
+        "_seen_ever",
+        "_mas_event_init_lockdb",
+        "_changed",
+        "event_database",
+        "farewell_database",
+        "greeting_database",
+        "_mas_apology_database",
+        "_mas_compliments_database",
+        "_mas_fun_facts_database",
+        "_mas_mood_database",
+        "_mas_songs_database",
+        "_mas_story_database",
+    ):
+        setattr(persistent, name, {})
+    persistent._mas_affection_backups = None
+    persistent._preferences = object()
+    persistent._mas_player_bday = None
+    persistent.mas_player_additions = additions
+    for name, value in persistent_values.items():
+        setattr(persistent, name, value)
+
+    ai = Stub()
+    ai.target_lang = "en"
+    ai.upload_save = lambda payload: uploaded.append(payload) or {"success": True}
+    maica_store = Stub()
+    maica_store.savefile_access_marker_exists = lambda: True
+    maica_store.maica_instance = ai
+    logger = Stub()
+    logger.debug = lambda message: None
+    logger.warning = warnings.append
+    submod_utils = Stub()
+    submod_utils.submod_log = logger
+    store = Stub()
+    store.maica = maica_store
+    store.mas_submod_utils = submod_utils
+    store.player = "Player"
+    store._mas_getAffection = lambda: 42
+    renpy = Stub()
+    renpy.notify = notifications.append
+
+    upload = load_rpy_python_function(
+        PACKAGE_ROOT.parent / "Submods" / "MAICA_ChatSubmod" / "header.rpy",
+        "_upload_persistent_dict",
+        {
+            "_": lambda value: value,
+            "maica_savefile": maica_savefile,
+            "persistent": persistent,
+            "renpy": renpy,
+            "store": store,
+        },
+    )
+    return upload, ai, uploaded, notifications, warnings
 
 
 def test_development_migration_force_current_is_repeatable():
@@ -71,6 +158,31 @@ def test_development_migration_runs_after_switching_back_from_newer_version():
     migration.migrate()
 
     assert calls == ["current"]
+
+
+def test_mspire_13004_migration_changes_legacy_behavior_once():
+    class Stub(object):
+        pass
+
+    persistent = Stub()
+    persistent.maica_setting_dict = {"mspire_search_type": "in_fuzzy_all"}
+    persistent._maica_mspire_13004_search_migrated = False
+    migration = load_rpy_python_function(
+        PACKAGE_ROOT.parent / "Submods" / "MAICA_ChatSubmod" / "migrations.rpy",
+        "migration_1_8_22",
+        {
+            "maica_v13_migration": maica_v13_migration,
+            "persistent": persistent,
+        },
+    )
+
+    migration()
+    assert persistent.maica_setting_dict["mspire_search_type"] == "in_precise_category"
+    assert persistent._maica_mspire_13004_search_migrated is True
+
+    persistent.maica_setting_dict["mspire_search_type"] = "in_fuzzy_all"
+    migration()
+    assert persistent.maica_setting_dict["mspire_search_type"] == "in_fuzzy_all"
 
 
 class NullLogger:
@@ -232,6 +344,85 @@ def test_login_tasker_treats_preauth_unified_error_as_login_failure(monkeypatch)
     assert tasker.status == tasker.MAICATASK_STATUS_ERROR
     assert manager.closed is True
     assert results == [(False, "maica_unified_error", "detail", 500)]
+
+
+def test_login_tasker_treats_preauth_uncaught_exception_as_server_failure(monkeypatch):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    tasker = maica_tasker_sub.MAICALoginTasker(
+        1,
+        "login-preauth-uncaught",
+        manager,
+        except_ws_status=list(maica_tasker_sub.MAICALoginTasker.PREAUTH_FAILURE_STATUSES),
+    )
+    results = []
+    tasker.set_result_callback(lambda *args: results.append(args))
+
+    tasker.on_event(_ws_event(manager, "maica_uncaught_exception", code=500))
+
+    assert tasker.success is False
+    assert tasker.status == tasker.MAICATASK_STATUS_ERROR
+    assert manager.closed is True
+    assert results == [(False, "maica_uncaught_exception", "detail", 500)]
+
+
+@pytest.mark.parametrize(
+    "protocol_status, code, fallback, expected_status",
+    [
+        ("maica_unified_error", None, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_uncaught_exception", None, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unknown_failure", 500, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unknown_failure", "599", None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unified_warning", 503, None, maica.MaicaAi.MaicaAiStatus.SERVER_ERROR),
+        ("maica_unknown_failure", 400, None, maica.MaicaAi.MaicaAiStatus.SERVER_REJECTED),
+        ("maica_unknown_failure", 600, None, maica.MaicaAi.MaicaAiStatus.SERVER_REJECTED),
+        (
+            "maica_unknown_failure",
+            400,
+            maica.MaicaAi.MaicaAiStatus.TOKEN_INVALID,
+            maica.MaicaAi.MaicaAiStatus.TOKEN_INVALID,
+        ),
+    ],
+)
+def test_protocol_status_classifies_explicit_and_5xx_server_failures(
+    protocol_status, code, fallback, expected_status
+):
+    assert maica.MaicaAi.MaicaAiStatus.from_protocol_status(
+        protocol_status,
+        fallback,
+        code,
+    ) == expected_status
+
+
+def test_set_error_classifies_uncaught_exception_as_server_error():
+    ai = object.__new__(maica.MaicaAi)
+    ai.status = ai.MaicaAiStatus.IDLE
+
+    ai.set_error("maica_uncaught_exception", "backend failed", 500)
+
+    assert ai.status == ai.MaicaAiStatus.SERVER_ERROR
+    assert ai.get_error_result() == {
+        "success": False,
+        "status": "maica_uncaught_exception",
+        "exception": "backend failed",
+        "code": 500,
+    }
+
+
+@pytest.mark.parametrize(
+    "code, should_close",
+    [(599, True), (600, False)],
+)
+def test_general_ws_error_handler_uses_5xx_code_range(monkeypatch, code, should_close):
+    monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
+    manager = ManagerStub()
+    handler = maica_tasker_sub.GeneralWsErrorHandler(1, "ws-error-range", manager)
+
+    handler.on_event(
+        _ws_event(manager, "maica_unknown_failure", code=code, event_type="warn")
+    )
+
+    assert manager.closed is should_close
 
 
 def test_general_ws_error_handler_can_defer_login_failure_close(monkeypatch):
@@ -580,6 +771,42 @@ def test_general_chat_completion_resets_mood_after_final_analysis():
     assert ai._in_mspire is False
 
 
+def test_general_chat_loop_reset_discards_partial_state():
+    calls = []
+
+    class ProcessorStub:
+        def consume_core_output(self, event):
+            return []
+
+        def reset(self):
+            calls.append("processor.reset")
+
+    class TalkSplitterStub:
+        def init1(self):
+            calls.append("splitter.reset")
+
+    class MoodStatusStub:
+        def reset(self):
+            calls.append("mood.reset")
+
+    ai = type(
+        "AiStub",
+        (),
+        {
+            "_in_mspire": True,
+            "TalkSpilter": TalkSplitterStub(),
+            "MoodStatus": MoodStatusStub(),
+        },
+    )()
+
+    maica.MaicaAi.general_chat_callback(
+        ai, ProcessorStub(), EventStub("maica_loop_warn_reset")
+    )
+
+    assert calls == ["splitter.reset", "mood.reset", "processor.reset"]
+    assert ai._in_mspire is False
+
+
 def _build_trigger(template, name="trigger", exprop=None, description=""):
     if exprop is None:
         exprop = maica_mtrigger.MTriggerExprop(item_name_zh="项目")
@@ -643,6 +870,21 @@ def _new_mtrigger_handler(monkeypatch):
         manager=ManagerStub(),
         except_ws_status=["maica_mtrigger"],
     )
+
+
+def test_builtin_container_helpers_accept_plain_and_revertable_subclasses():
+    class RevertableDict(dict):
+        pass
+
+    class RevertableList(list):
+        pass
+
+    assert maica_mtrigger.is_builtin_dict({})
+    assert maica_mtrigger.is_builtin_dict(RevertableDict())
+    assert not maica_mtrigger.is_builtin_dict([])
+    assert maica_mtrigger.is_builtin_list([])
+    assert maica_mtrigger.is_builtin_list(RevertableList())
+    assert not maica_mtrigger.is_builtin_list({})
 
 
 def _new_quality_handler(monkeypatch):
@@ -900,6 +1142,178 @@ def test_switch_build_uses_curr_item_instead_of_curr_value():
     ).build()
     assert switch_data["exprop"].get("curr_item") == "one"
     assert "curr_value" not in switch_data["exprop"]
+
+
+def test_switch_allows_unknown_current_item_and_omits_curr_item():
+    switch_data = _build_trigger(
+        maica_mtrigger.common_switch_template,
+        exprop=maica_mtrigger.MTriggerExprop(
+            item_name_zh="选项", item_list=["one"], curr_value=None
+        ),
+    ).build()
+
+    assert "curr_item" not in switch_data["exprop"]
+
+
+def test_mtrigger_manager_skips_invalid_runtime_trigger_with_context(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.common_switch_template,
+            name="bad_runtime",
+            exprop=maica_mtrigger.MTriggerExprop(
+                item_name_zh="选项",
+                item_list=["ok", ""],
+                curr_value="ok",
+            ),
+        )
+    )
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.common_switch_template,
+            name="good_runtime",
+            exprop=maica_mtrigger.MTriggerExprop(
+                item_name_zh="选项", item_list=["ok"], curr_value=None
+            ),
+        )
+    )
+
+    payload = manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert [item["name"] for item in payload] == ["good_runtime"]
+    assert any(
+        "name='bad_runtime'" in message
+        and "phase=build" in message
+        and "item_list entry at index 1" in message
+        for message in messages
+    )
+
+
+def test_mtrigger_build_does_not_clear_queued_callbacks_or_running_state():
+    manager = maica_mtrigger.MTriggerManager()
+    trigger = _build_trigger(
+        maica_mtrigger.customize_template,
+        name="queued_build",
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    manager.add_trigger(trigger)
+    manager.triggered("queued_build", {})
+    queued_before = list(manager.triggered_list)
+    manager._running = True
+
+    manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert manager.triggered_list == queued_before
+    assert manager._running is True
+
+
+def test_mtrigger_manager_skips_condition_failure_and_keeps_valid_trigger(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    def failing_condition():
+        raise RuntimeError("condition failed")
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(
+        maica_mtrigger.MTriggerBase(
+            maica_mtrigger.customize_template,
+            "bad_condition",
+            condition=failing_condition,
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.customize_template,
+            name="good_condition",
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+
+    payload = manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert [item["name"] for item in payload] == ["good_condition"]
+    assert any(
+        "name='bad_condition'" in message
+        and "phase=condition" in message
+        and "condition failed" in message
+        for message in messages
+    )
+
+
+def test_mtrigger_manager_skips_non_json_trigger_data_with_context(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    class NonJsonTrigger(maica_mtrigger.MTriggerBase):
+        def build(self):
+            return {"name": self.name, "invalid": object()}
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    manager.add_trigger(
+        NonJsonTrigger(
+            maica_mtrigger.customize_template,
+            "non_json",
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+    manager.add_trigger(
+        _build_trigger(
+            maica_mtrigger.customize_template,
+            name="json_ok",
+            exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+        )
+    )
+
+    payload = manager.build_data(maica_mtrigger.MTriggerMethod.request, full=True)
+
+    assert [item["name"] for item in payload] == ["json_ok"]
+    assert any(
+        "name='non_json'" in message
+        and "phase=serialize" in message
+        and "not JSON serializable" in message
+        for message in messages
+    )
+
+
+@pytest.mark.parametrize(
+    ("value", "reason"),
+    [
+        (None, "must be a string"),
+        (False, "must be a string"),
+        ("", "must not be empty"),
+        ("x" * 257, "must be at most 256 characters"),
+    ],
+)
+def test_dynamic_mtrigger_item_helper_rejects_invalid_values(value, reason):
+    target = {"kept": 1}
+
+    assert maica_mtrigger.add_valid_mtrigger_item(target, value, 2) == reason
+    assert target == {"kept": 1}
+
+
+def test_dynamic_mtrigger_item_helper_keeps_valid_items_and_rejects_duplicates():
+    target = {}
+
+    assert maica_mtrigger.add_valid_mtrigger_item(target, "valid", 1) is None
+    assert maica_mtrigger.add_valid_mtrigger_item(target, "valid", 2) == "duplicate item name"
+    assert target == {"valid": 1}
 
 
 def test_meter_build_preserves_zero_curr_value():
@@ -1261,10 +1675,144 @@ def test_hair_trigger_keeps_nonselectable_current_hair_out_of_choices():
 
     assert "HAIR_SEL_MAP[store.monika_chr.hair.name]" not in hair_source
     assert "HAIR_SEL_MAP.get(store.monika_chr.hair.name)" in hair_source
-    assert 'return "__none__"' in hair_source
+    assert "return None" in hair_source
     assert "if self.outfit_has_and_unlocked(key)" in hair_source
     assert "curr_value = self.current_item()" in hair_source
     assert "self.exprop.curr_value = self.current_item()" in hair_source
+
+
+def test_builtin_dynamic_switch_sources_use_logged_item_filtering():
+    trigger_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+
+    assert "def log_invalid_mtrigger(" in trigger_source
+    assert "def _add_mtrigger_item(" in trigger_source
+    assert "add_valid_mtrigger_item(target, display_name, mapped_value)" in trigger_source
+    for source_name in (
+        "store.mas_selspr.CLOTH_SEL_MAP",
+        "store.mas_games.game_db",
+        "store.mas_weather.WEATHER_MAP",
+        "store.songs.music_choices",
+        "store.mas_selspr.HAIR_SEL_MAP",
+        "store.mas_selspr.ACS_SEL_MAP",
+    ):
+        assert source_name in trigger_source
+
+    assert "trigger={} source={} key={} index={}" in trigger_source
+    assert "type={} value={} reason={}" in trigger_source
+    assert "reserved built-in item name" in trigger_source
+
+
+def test_maica_namespace_container_guards_use_builtin_helpers():
+    root = Path(__file__).resolve().parents[1]
+    trigger_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+    api_source = (
+        root / "game" / "Submods" / "MAICA_ChatSubmod" / "api.rpy"
+    ).read_text(encoding="utf-8")
+    maica_block = api_source.split("init 5 python in maica:", 1)[1].split(
+        "\ninit ", 1
+    )[0]
+
+    assert trigger_source.count("is_builtin_dict(data)") == 3
+    assert "isinstance(data, dict)" not in trigger_source
+    assert "from maica_mtrigger import is_builtin_dict, is_builtin_list" in maica_block
+    assert "is_builtin_dict(store.persistent.maica_stat)" in maica_block
+    assert "is_builtin_dict(store.persistent.maica_mtrigger_status)" in maica_block
+    assert "is_builtin_list(store.persistent._maica_visuals)" in maica_block
+    assert not re.search(r"(?<![\w.])persistent\b", maica_block)
+    for legacy_guard in (
+        "isinstance(postal, dict)",
+        "isinstance(preview, dict)",
+        "isinstance(other, dict)",
+        "isinstance(other_preview, dict)",
+    ):
+        assert legacy_guard not in maica_block
+
+
+def test_minigame_fixed_labels_take_precedence_over_mas_event_wrappers():
+    trigger_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "trigger.rpy"
+    ).read_text(encoding="utf-8")
+    minigame_source = trigger_source.split("    def get_unlocked_games():", 1)[1].split(
+        "    class MinigameTrigger(MTriggerBase):", 1
+    )[0]
+
+    dynamic_loop = minigame_source.index("for index, ev in enumerate(game_values):")
+    assert minigame_source.index('"Pong", "game_pong"') < dynamic_loop
+    assert minigame_source.index('"Hangman",\n                "game_hangman"') < dynamic_loop
+
+
+def test_mtrigger_screen_builds_lengths_once_and_uses_cached_item_lengths():
+    screen_source = (
+        Path(__file__).resolve().parents[1]
+        / "game"
+        / "Submods"
+        / "MAICA_ChatSubmod"
+        / "screen_subs.rpy"
+    ).read_text(encoding="utf-8")
+    screen = screen_source.split("screen maica_triggers():", 1)[1]
+
+    assert screen.count("maica_triggers.get_length(0)") == 1
+    assert screen.count("maica_triggers.get_length(1)") == 1
+    assert "len(trigger)" not in screen
+    assert "get_trigger_length(trigger, use_cached=True)" in screen
+    assert "get_trigger_state(trigger)" in screen
+    assert "if trigger_condition_met:" in screen
+    assert "trigger.condition()" not in screen
+
+
+def test_mtrigger_manager_reports_condition_failures_as_inactive(monkeypatch):
+    messages = []
+
+    class CaptureLogger:
+        def warning(self, message):
+            messages.append(message)
+
+    def failing_condition():
+        raise RuntimeError("ui condition failed")
+
+    monkeypatch.setattr(maica_mtrigger, "logger", CaptureLogger())
+    manager = maica_mtrigger.MTriggerManager()
+    trigger = maica_mtrigger.MTriggerBase(
+        maica_mtrigger.customize_template,
+        "ui_condition",
+        condition=failing_condition,
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    manager.add_trigger(trigger)
+
+    assert manager.is_trigger_active(trigger) is False
+    assert any(
+        "name='ui_condition'" in message
+        and "ui condition failed" in message
+        for message in messages
+    )
+
+
+def test_mtrigger_manager_returns_enabled_and_condition_state_once():
+    calls = []
+    manager = maica_mtrigger.MTriggerManager()
+    trigger = maica_mtrigger.MTriggerBase(
+        maica_mtrigger.customize_template,
+        "state_once",
+        condition=lambda: calls.append(True) or True,
+        exprop=maica_mtrigger.MTriggerExprop(item_name_zh="项目"),
+    )
+    manager.add_trigger(trigger)
+
+    assert manager.get_trigger_state(trigger) == (True, True)
+    assert calls == [True]
 
 
 def test_general_query_accepts_exactly_4096_utf8_bytes():
@@ -1433,6 +1981,15 @@ def test_mspire_ctg_weight_defaults_to_ten():
     assert payload["inspire"].get("ctg_weight") == 10
 
 
+def test_mspire_search_type_defaults_to_v13004_precise_category():
+    manager = ManagerStub()
+    processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
+        1, "mspire", manager
+    )
+    processor.process_request(["science"], 0)
+    assert _last_json(manager)["inspire"]["type"] == "in_precise_category"
+
+
 def test_mspire_without_categories_sends_empty_inspire_object():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
@@ -1553,14 +2110,13 @@ def test_mspire_rejects_non_boolean_explicit_use_cache(use_cache):
         processor.process_request(["science"], 0, use_cache=use_cache)
 
 
-def test_mspire_cache_is_only_allowed_for_session_zero():
+def test_mspire_cache_is_ignored_for_nonzero_session():
     manager = ManagerStub()
     processor = maica_tasker_sub_sessionsender.MAICAMSpireProcessor(
         1, "mspire", manager
     )
-    with pytest.raises(ValueError):
-        processor.process_request(["science"], 1, use_cache=True)
-    processor.process_request(["science"], 1, use_cache=False)
+    processor.process_request(["science"], 1, use_cache=True)
+    assert _last_json(manager)["inspire"]["use_cache"] is False
 
 
 @pytest.mark.parametrize("category", [[], ["science"]])
@@ -1660,21 +2216,231 @@ def test_login_payload_explicitly_identifies_auth_request(monkeypatch):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     manager = ManagerStub()
     tasker = maica_tasker_sub.MAICALoginTasker(1, "login", manager)
+    tasker.set_frontend_id("blessland|1.9.1")
     tasker.on_manual_run("token")
-    assert _last_json(manager) == {"type": "auth", "access_token": "token"}
+    assert _last_json(manager) == {
+        "type": "auth",
+        "access_token": "token",
+        "frontend_id": "blessland|1.9.1",
+    }
+
+
+def test_login_frontend_id_uses_the_declared_submod_version():
+    api = (PACKAGE_ROOT.parent / "Submods" / "MAICA_ChatSubmod" / "api.rpy").read_text(
+        encoding="utf-8"
+    )
+    assert '"blessland|{}".format(store.maica_ver)' in api
 
 
 def test_maica_registers_current_websocket_status_contracts(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
-    assert ai.MPostalProcessor.except_ws_status == [
+    terminal_statuses = [
         "maica_core_streaming_continue",
         "maica_chat_loop_finished",
+        "maica_loop_warn_reset",
     ]
+    assert ai.ChatProcessor.except_ws_status == terminal_statuses
+    assert ai.MSpireProcessor.except_ws_status == terminal_statuses
+    assert ai.MPostalProcessor.except_ws_status == terminal_statuses
+    assert ai.RawContextProcessor.except_ws_status == terminal_statuses
     assert not hasattr(ai, "StreamingPacketValidator")
     assert ai.MTriggerTasker.except_ws_status == ["maica_mtrigger_trigger"]
     assert ai.QualityStatusTasker.except_ws_status == ["maica_quality_status"]
     loop_task = ai.task_manager.get_task("maicaloop_warn_handler")
     assert loop_task.except_ws_status == ["maica_loop_warn_reset"]
+    assert ai.AutoResumeTasker.except_ws_status == [
+        "maica_mcore_gen_start",
+        "maica_chat_loop_finished",
+        "maica_loop_warn_reset",
+    ]
+
+
+def test_loop_warn_reset_releases_request_but_preserves_connection(
+    isolated_maica_ai_globals, monkeypatch
+):
+    request_lock = maica_tasker_sub_sessionsender.ChatLock()
+    monkeypatch.setattr(
+        maica_tasker_sub_sessionsender.SessionSenderAndReceiver,
+        "multi_lock",
+        request_lock,
+    )
+    ai = maica.MaicaAi("account", "password")
+
+    class ConnectedClient:
+        def __init__(self):
+            self.keep_running = True
+            self.close_calls = 0
+
+        def close(self):
+            self.close_calls += 1
+            self.keep_running = False
+
+    client = ConnectedClient()
+    ai.task_manager.ws_client = client
+    ai.Loginer.success = True
+    ai.UserData.account = "test-user"
+    ai.status = ai.MaicaAiStatus.CONNECTED
+    ai._in_mspire = True
+    ai.TalkSpilter.sentence_present = "partial output"
+    ai.MSpireProcessor.processing = True
+    ai.MSpireProcessor._core_output_parts = ["partial output"]
+    assert request_lock.acquire(False)
+    ai.AutoResumeTasker.enable()
+    ai.AutoResumeTasker._generation_started = True
+
+    ai.task_manager._ws_onmessage(
+        client,
+        json.dumps(
+            {
+                "code": 400,
+                "status": "maica_loop_warn_reset",
+                "content": "operation failed",
+                "type": "warn",
+                "timestamp": 0,
+            }
+        ),
+    )
+
+    assert client.close_calls == 0
+    assert client.keep_running is True
+    assert ai.Loginer.success is True
+    assert ai.UserData.account == "test-user"
+    assert ai.status == ai.MaicaAiStatus.SERVER_REJECTED
+    assert ai.error_protocol_status == "maica_loop_warn_reset"
+    assert ai.is_connection_interrupted() is False
+    assert ai.is_failed() is True
+    assert ai.MSpireProcessor.processing is False
+    assert ai.MSpireProcessor._core_output_parts == []
+    assert request_lock.locked() is False
+    assert ai.TalkSpilter.sentence_present == ""
+    assert ai._in_mspire is False
+    assert ai.AutoResumeTasker._generation_started is False
+    assert ai.is_ready_to_input() is True
+
+    ai._prepare_authenticated_operation()
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.error_protocol_status is None
+    assert ai.is_failed() is False
+    assert ai.is_connection_interrupted() is False
+
+
+def test_next_authenticated_request_clears_loop_reset_state(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class ConnectedClient:
+        keep_running = True
+
+        def send(self, payload):
+            self.payload = payload
+
+    client = ConnectedClient()
+    ai.task_manager.ws_client = client
+    ai._MaicaAi__accessable = True
+    ai.Loginer.success = True
+    ai.status = ai.MaicaAiStatus.SERVER_REJECTED
+    ai.error_protocol_status = "maica_loop_warn_reset"
+    ai.error_message = "operation reset"
+    ai.error_protocol_code = 400
+    ai.mtrigger_manager.build_data = lambda *args, **kwargs: {}
+    ai.ChatProcessor.start_request = lambda **kwargs: None
+
+    ai.chat("retry")
+
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.error_protocol_status is None
+    assert ai.is_failed() is False
+    assert ai.is_connection_interrupted() is False
+
+
+def test_login_rejection_is_not_a_transport_interruption(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    ai._handle_login_result(
+        False,
+        "maica_login_token_invalid",
+        "token rejected",
+        400,
+    )
+
+    assert ai.status == ai.MaicaAiStatus.TOKEN_INVALID
+    assert ai.is_connection_interrupted() is False
+    assert ai.is_failed() is True
+
+
+def test_stage_one_loop_reset_does_not_hide_login_rejection(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        keep_running = True
+
+        def close(self):
+            self.keep_running = False
+
+    client = Client()
+    ai.task_manager.ws_client = client
+
+    for status, content in (
+        ("maica_login_token_invalid", "token rejected"),
+        ("maica_loop_warn_reset", "operation reset"),
+    ):
+        ai.task_manager._ws_onmessage(
+            client,
+            json.dumps(
+                {
+                    "code": 400,
+                    "status": status,
+                    "content": content,
+                    "type": "warn",
+                    "timestamp": 0,
+                }
+            ),
+        )
+
+    assert ai.status == ai.MaicaAiStatus.TOKEN_INVALID
+    assert ai.error_protocol_status == "maica_login_token_invalid"
+    assert ai.error_message == "token rejected"
+    assert ai.is_connection_interrupted() is False
+
+
+def test_uncaught_exception_websocket_packet_becomes_server_error(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        keep_running = True
+
+        def close(self):
+            self.keep_running = False
+
+    client = Client()
+    ai.task_manager.ws_client = client
+
+    ai.task_manager._ws_onmessage(
+        client,
+        json.dumps(
+            {
+                "code": 500,
+                "status": "maica_uncaught_exception",
+                "content": "backend crashed",
+                "type": "error",
+                "timestamp": 0,
+            }
+        ),
+    )
+
+    assert ai.status == ai.MaicaAiStatus.SERVER_ERROR
+    assert ai.error_protocol_status == "maica_uncaught_exception"
+    assert ai.error_protocol_code == 500
+    assert ai.error_message == "backend crashed"
+    assert ai.status != ai.MaicaAiStatus.SERVER_REJECTED
+    assert client.keep_running is False
 
 
 def test_init_connect_without_token_sets_explicit_failure(isolated_maica_ai_globals):
@@ -1755,6 +2521,43 @@ def test_init_connect_unknown_unavailability_is_connection_problem(
     assert ai.init_connect() is False
     assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
     assert ai.error_protocol_status == "client_availability_failed"
+
+
+def test_init_connect_does_not_overwrite_in_progress_certificate_check(
+    isolated_maica_ai_globals,
+    monkeypatch,
+):
+    import certifi
+
+    ai = maica.MaicaAi("account", "password")
+    ai.ciphertext = "token-value"
+    check_started = threading.Event()
+    check_release = threading.Event()
+    monkeypatch.setattr(certifi, "set_parent_dir", lambda *args: None, raising=False)
+
+    def blocked_certificate_check():
+        check_started.set()
+        check_release.wait(2.0)
+        return False
+
+    ai.check_certifi = blocked_certificate_check
+    check_thread = threading.Thread(target=ai.accessable)
+    check_thread.start()
+    try:
+        assert check_started.wait(1.0)
+        assert ai.init_connect() is False
+        assert ai.status == ai.MaicaAiStatus.WAIT_AVAILABILITY
+        assert ai.error_protocol_status is None
+        assert ai.error_message is None
+        assert ai.wss_thread is None
+    finally:
+        check_release.set()
+        check_thread.join(2.0)
+
+    assert not check_thread.is_alive()
+    assert ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN
+    assert ai.error_protocol_status == "client_certifi_broken"
+    assert ai.error_message == "SSL/TLS certificate validation is unavailable"
 
 
 def test_init_connect_is_single_flight_and_clears_stale_state_before_start(
@@ -1845,6 +2648,24 @@ def test_cancelled_connection_ignores_late_login_result(
     assert ai.Loginer.success is False
     assert ai.status == ai.MaicaAiStatus.IDLE
     assert ai._connection_in_progress is True
+
+
+def test_interrupted_connection_ignores_late_login_result(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.Loginer.success = True
+    ai._connection_interrupted = True
+    ai.status = ai.MaicaAiStatus.CONNECT_PROBLEM
+    ai.error_protocol_status = "client_connection_closed"
+    ai.error_message = "network lost"
+
+    ai._handle_login_result(True)
+
+    assert ai.Loginer.success is False
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_connection_closed"
+    assert ai.is_connection_interrupted() is True
 
 
 def test_close_during_connection_is_intentional_and_does_not_set_13411(
@@ -2004,6 +2825,23 @@ def test_intentional_close_clears_login_failure_state(isolated_maica_ai_globals)
     assert client in ai._intentional_ws_closes
 
 
+def test_close_without_transport_preserves_availability_failure(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.set_error(
+        "client_provider_unavailable",
+        "provider lookup failed",
+        fallback=ai.MaicaAiStatus.FAILED_GET_NODE,
+    )
+
+    ai.close_wss_session()
+
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.error_protocol_status == "client_provider_unavailable"
+    assert ai.error_message == "provider lookup failed"
+
+
 def test_unexpected_close_sets_numeric_connection_failure(
     isolated_maica_ai_globals,
 ):
@@ -2022,6 +2860,27 @@ def test_unexpected_close_sets_numeric_connection_failure(
     assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
     assert ai.error_protocol_status == "client_connection_closed"
     assert ai.error_message == "network lost"
+
+
+def test_unexpected_close_overrides_a_previous_operation_failure(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Client:
+        def close(self):
+            pass
+
+    client = Client()
+    ai.Loginer.success = True
+    ai.status = ai.MaicaAiStatus.SERVER_REJECTED
+    ai.error_protocol_status = "maica_input_query_censored"
+
+    ai._on_close(client, 1006, "network lost")
+
+    assert ai.status == ai.MaicaAiStatus.CONNECT_PROBLEM
+    assert ai.error_protocol_status == "client_connection_closed"
+    assert ai.is_connection_interrupted() is True
 
 
 def test_maica_runtime_has_no_websocket_cookie_owner(isolated_maica_ai_globals):
@@ -2337,13 +3196,23 @@ def test_auto_resume_disabled_ignores_generation_marker(monkeypatch):
     assert tasker._on_reconnect is False
 
 
-def test_auto_resume_loop_finish_and_disable_clear_all_resume_flags(monkeypatch):
+@pytest.mark.parametrize(
+    "terminal_status",
+    ["maica_chat_loop_finished", "maica_loop_warn_reset"],
+)
+def test_auto_resume_terminal_status_and_disable_clear_all_resume_flags(
+    monkeypatch, terminal_status
+):
     monkeypatch.setattr(maica_tasker, "default_logger", NullLogger())
     tasker = maica_tasker_sub.AutoResumeTasker(
         1,
         "resume-terminal",
         ManagerStub(),
-        ["maica_mcore_gen_start", "maica_chat_loop_finished"],
+        [
+            "maica_mcore_gen_start",
+            "maica_chat_loop_finished",
+            "maica_loop_warn_reset",
+        ],
     )
     tasker.enable()
     tasker._generation_started = True
@@ -2353,7 +3222,7 @@ def test_auto_resume_loop_finish_and_disable_clear_all_resume_flags(monkeypatch)
         (),
         {
             "event_type": maica_tasker.MAICATASKEVENT_TYPE_WS,
-            "data": type("Data", (), {"status": "maica_chat_loop_finished"})(),
+            "data": type("Data", (), {"status": terminal_status})(),
         },
     )()
     tasker.on_event(loop_event)
@@ -2646,12 +3515,18 @@ def test_accessable_preserves_sticky_version_disable_before_probe(
 ):
     ai = maica.MaicaAi("account", "password")
     provider_checks = []
+    cached_version = {
+        "success": True,
+        "content": {"fe_blessland_version": "99.0.0"},
+    }
+    ai.version_info = cached_version
     ai.provider_manager.get_provider = lambda: provider_checks.append(True)
     ai.disable(ai.MaicaAiStatus.VERSION_OLD, sticky=True)
 
     ai.accessable()
 
     assert provider_checks == []
+    assert ai.version_info is cached_version
     assert ai.status == ai.MaicaAiStatus.VERSION_OLD
     assert ai.is_accessable() is False
 
@@ -2683,6 +3558,181 @@ def test_accessable_rechecks_sticky_disable_before_committing_success(
 
     assert ai.status == ai.MaicaAiStatus.VERSION_OLD
     assert ai.is_accessable() is False
+
+
+def test_get_version_normalizes_server_and_invalid_response_failures(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+
+    class Provider:
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        def __init__(self, status_code, payload):
+            self.status_code = status_code
+            self.payload = payload
+
+        def json(self):
+            if self.payload is None:
+                raise ValueError("not JSON")
+            return self.payload
+
+    ai.provider_manager = Provider()
+    responses = iter([
+        Response(
+            503,
+            {
+                "success": False,
+                "exception": "maica_unified_error: maintenance",
+            },
+        ),
+        Response(502, None),
+    ])
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: next(responses))
+
+    assert ai.get_version() == {
+        "success": False,
+        "status": "maica_unified_error",
+        "exception": "maintenance",
+        "code": 503,
+    }
+    assert ai.get_version() == {
+        "success": False,
+        "status": "client_response_invalid",
+        "exception": "Version response was not valid JSON",
+        "code": 502,
+    }
+
+
+def test_get_version_normalizes_network_failure(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *args, **kwargs: (_ for _ in ()).throw(IOError("offline")),
+    )
+
+    assert ai.get_version() == {
+        "success": False,
+        "status": "client_network_error",
+        "exception": "Version request failed",
+        "code": None,
+    }
+
+
+def test_accessable_caches_one_version_probe_before_defaults(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        status_code = 200
+
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    version_info = {
+        "success": True,
+        "content": {"fe_blessland_version": "1.8.0"},
+    }
+    calls = []
+
+    def fake_get(url, **kwargs):
+        calls.append(url)
+        if url.endswith("/accessibility"):
+            return Response({"success": True, "content": "serving"})
+        if url.endswith("/version"):
+            return Response(version_info)
+        if url.endswith("/defaults"):
+            return Response({"success": True, "content": {}})
+        raise AssertionError("unexpected URL: {}".format(url))
+
+    ai.provider_manager = Provider()
+    monkeypatch.setattr("requests.get", fake_get)
+
+    assert ai.accessable() is True
+    assert ai.version_info is version_info
+    assert calls == [
+        "https://backend.test/api/accessibility",
+        "https://backend.test/api/version",
+        "https://backend.test/api/defaults",
+    ]
+    assert ai.error_protocol_status is None
+
+
+def test_accessable_keeps_version_failure_separate_and_clears_stale_cache(
+    isolated_maica_ai_globals, monkeypatch
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+
+    class Provider:
+        def get_provider(self):
+            return True
+
+        def get_api_url(self):
+            return "https://backend.test/api"
+
+    class Response:
+        status_code = 200
+
+        def __init__(self, payload):
+            self.payload = payload
+
+        def json(self):
+            return self.payload
+
+    version_failure = {
+        "success": False,
+        "status": "client_server_unavailable",
+        "exception": "version unavailable",
+    }
+
+    def successful_access_get(url, **kwargs):
+        if url.endswith("/accessibility"):
+            return Response({"success": True, "content": "serving"})
+        if url.endswith("/version"):
+            return Response(version_failure)
+        if url.endswith("/defaults"):
+            return Response({"success": True, "content": {}})
+        raise AssertionError("unexpected URL: {}".format(url))
+
+    ai.provider_manager = Provider()
+    monkeypatch.setattr("requests.get", successful_access_get)
+
+    assert ai.accessable() is True
+    assert ai.version_info == {
+        "success": False,
+        "status": "client_server_unavailable",
+        "exception": "version unavailable",
+        "code": 200,
+    }
+    assert ai.error_protocol_status is None
+
+    monkeypatch.setattr(
+        "requests.get",
+        lambda *args, **kwargs: Response(
+            {"success": True, "content": "maintenance"}
+        ),
+    )
+
+    assert ai.accessable() is False
+    assert ai.version_info == {"success": False, "content": {}}
+    assert ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN
 
 
 def test_accessable_checks_backend_before_external_network(monkeypatch):
@@ -2726,6 +3776,94 @@ def test_accessable_checks_backend_before_external_network(monkeypatch):
     ai.accessable()
     assert ai.status == ai.MaicaAiStatus.NO_INTERNET
     assert ai.get_error_result()["status"] == "client_no_internet"
+
+
+def test_provider_refresh_routes_disconnected_failure_through_ai_status(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai.in_mas = False
+
+    class Provider:
+        def get_provider(self):
+            assert ai.is_checking_availability() is True
+            return False
+
+        def get_provider_id(self):
+            return 1
+
+        def get_last_refresh_error(self):
+            return {
+                "status": "client_provider_unavailable",
+                "exception": "catalog lookup failed",
+                "code": None,
+            }
+
+    ai.provider_manager = Provider()
+    ai.can_access_internet = lambda: True
+
+    assert ai.refresh_provider_list() is False
+    assert ai.status == ai.MaicaAiStatus.FAILED_GET_NODE
+    assert ai.error_protocol_status == "client_provider_unavailable"
+    assert ai.error_message == "catalog lookup failed"
+    assert ai.is_checking_availability() is False
+
+
+def test_provider_refresh_preserves_connected_runtime_status(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
+    ai.status = ai.MaicaAiStatus.CONNECTED
+    ai.task_manager.ws_client = type("ConnectedClient", (), {"keep_running": True})()
+
+    class Provider:
+        def get_provider(self):
+            return False
+
+        def get_last_refresh_error(self):
+            return {
+                "status": "client_provider_unavailable",
+                "exception": "catalog refresh failed",
+                "code": None,
+            }
+
+    ai.provider_manager = Provider()
+
+    assert ai.refresh_provider_list() is False
+    assert ai.status == ai.MaicaAiStatus.CONNECTED
+    assert ai.is_accessable() is True
+    assert ai.get_provider_refresh_error()["exception"] == "catalog refresh failed"
+    assert ai.is_failed() is False
+
+
+def test_provider_refresh_preserves_disconnected_authentication_error(
+    isolated_maica_ai_globals,
+):
+    ai = maica.MaicaAi("account", "password")
+    ai._MaicaAi__accessable = True
+    ai.status = ai.MaicaAiStatus.TOKEN_INVALID
+    ai.error_protocol_status = "maica_login_token_invalid"
+    ai.error_message = "token rejected"
+
+    class Provider:
+        def get_provider(self):
+            return False
+
+        def get_last_refresh_error(self):
+            return {
+                "status": "client_provider_unavailable",
+                "exception": "catalog refresh failed",
+                "code": None,
+            }
+
+    ai.provider_manager = Provider()
+
+    assert ai.refresh_provider_list() is False
+    assert ai.status == ai.MaicaAiStatus.TOKEN_INVALID
+    assert ai.error_protocol_status == "maica_login_token_invalid"
+    assert ai.error_message == "token rejected"
+    assert ai.get_provider_refresh_error()["exception"] == "catalog refresh failed"
 
 
 def test_accessable_only_uses_maintenance_for_explicit_non_serving(monkeypatch):
@@ -3074,6 +4212,103 @@ def test_player_additions_does_not_replace_an_initialized_empty_backup():
     assert backup == []
 
 
+def test_savefile_sanitizer_includes_target_lang_and_uses_field_specific_limits():
+    long_general_value = "中" * 513
+    additions = ["a" * 1536, "中" * 512]
+    source = {
+        "target_lang": "auto",
+        "mas_monikaname": "Mika",
+        "mas_geolocation": long_general_value,
+        "mas_player_additions": additions,
+        "not_in_the_upload_contract": "private",
+    }
+
+    sanitized = maica_savefile.sanitize_persistent_dict(source)
+
+    assert sanitized["target_lang"] == "auto"
+    assert sanitized["mas_monikaname"] == "Mika"
+    assert sanitized["mas_geolocation"] == long_general_value
+    assert sanitized["mas_player_additions"] == additions
+    assert sanitized["mas_player_additions"] is not additions
+    assert "not_in_the_upload_contract" not in sanitized
+    assert "REMOVED|TOO_LONG" not in repr(sanitized)
+
+
+def test_savefile_sanitizer_accepts_the_512_item_boundary():
+    additions = ["item-{}".format(index) for index in range(512)]
+
+    sanitized = maica_savefile.sanitize_persistent_dict(
+        {"mas_player_additions": additions}
+    )
+
+    assert sanitized["mas_player_additions"] == additions
+
+
+@pytest.mark.parametrize(
+    ("additions", "message"),
+    (
+        (None, "container must be a list"),
+        (("valid",), "container must be a list"),
+        (["valid"] * 513, "maximum is 512"),
+        (["valid", 7], "item 1: must be text"),
+        (["a" * 1537], "maximum is 1536"),
+        (["\udcff"], "cannot be encoded as UTF-8"),
+    ),
+)
+def test_savefile_sanitizer_rejects_invalid_player_additions(additions, message):
+    with pytest.raises(maica_savefile.PlayerAdditionsValidationError) as exc_info:
+        maica_savefile.sanitize_persistent_dict(
+            {"mas_player_additions": additions}
+        )
+
+    assert message in str(exc_info.value)
+
+
+def test_upload_persistent_dict_sends_target_lang_and_preserves_valid_values():
+    upload, ai, uploaded, notifications, warnings = make_persistent_upload_runtime(
+        ["a" * 1536],
+        _mas_monika_nickname="Mika",
+        mas_geolocation="中" * 513,
+        not_in_the_upload_contract="private",
+    )
+    upload()
+
+    assert len(uploaded) == 1
+    assert uploaded[0]["target_lang"] == "en"
+    assert uploaded[0]["mas_geolocation"] == "中" * 513
+    assert uploaded[0]["mas_player_additions"] == ["a" * 1536]
+    assert uploaded[0]["mas_playername"] == "Player"
+    assert uploaded[0]["mas_monikaname"] == "Mika"
+    assert uploaded[0]["mas_affection"] == 42
+    assert "not_in_the_upload_contract" not in uploaded[0]
+    assert warnings == []
+    assert notifications == ["MAICA: Savefile uploaded successfully"]
+
+
+def test_monika_nickname_upload_prefers_persistent_and_rejects_transient_placeholder():
+    assert maica_savefile.select_monika_nickname("Mika", "???") == "Mika"
+    assert maica_savefile.select_monika_nickname(None, "Mika") == "Mika"
+    for value in (None, "", "   ", "???", 7):
+        assert maica_savefile.select_monika_nickname(value, "???") is None
+
+
+def test_upload_persistent_dict_does_not_overwrite_backend_with_invalid_additions():
+    upload, ai, uploaded, notifications, warnings = make_persistent_upload_runtime(
+        ["a" * 1537]
+    )
+    ai.target_lang = "zh"
+    upload()
+
+    assert uploaded == []
+    assert notifications == [
+        "MAICA: Savefile upload cancelled because MFocus information is invalid"
+    ]
+    assert len(warnings) == 1
+    assert "item 0" in warnings[0]
+    assert "maximum is 1536" in warnings[0]
+    assert "a" * 1537 not in warnings[0]
+
+
 def test_maica_ai_constructs_version_info(isolated_maica_ai_globals):
     ai = maica.MaicaAi("account", "password")
     assert hasattr(ai, "version_info")
@@ -3110,3 +4345,32 @@ def test_get_message_normalizes_ellipsis_before_pause_processing():
     message = ai.get_message()
 
     assert message[1] == "..."
+
+
+def test_get_message_keeps_temperature_symbols_in_the_raw_message():
+    class MessageQueueStub:
+        def __len__(self):
+            return 1
+
+        def get(self):
+            return ["1eua", "室温 21℃，体温 98.6℉", False]
+
+    ai = object.__new__(maica.MaicaAi)
+    ai.message_list = MessageQueueStub()
+
+    message = ai.get_message()
+
+    assert message[1] == "室温 21℃，体温 98.6℉"
+
+
+def test_prepare_message_normalizes_values_in_raw_and_display_modes():
+    class TalkSplitterStub:
+        def add_pauses(self, value):
+            return value + "{w=0.3}"
+
+    ai = object.__new__(maica.MaicaAi)
+    ai.TalkSpilter = TalkSplitterStub()
+
+    assert ai.prepare_message_for_renpy(Ellipsis, escape_for_renpy=False) == "..."
+    assert ai.prepare_message_for_renpy(12, escape_for_renpy=False) == "12"
+    assert ai.prepare_message_for_renpy(Ellipsis) == "...{w=0.3}"

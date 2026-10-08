@@ -73,9 +73,6 @@ class _LoggerProxy(object):
 # Create the dynamic logger proxy instance
 logger = _LoggerProxy()
 
-# Log initialization
-logger.info('正在使用logging - LoggerManager已初始化')
-
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
@@ -116,6 +113,150 @@ def to_unicode(value, preferred_encoding=None):
     if isinstance(value, bytes):
         return _decode_bytes(value, preferred_encoding)
     return str(value)
+
+
+def write_unicode_command(ptod, *args, **kwargs):
+    """Write a command to the MAS console without Python 2 byte coercion.
+
+    MAS currently implements ``write_command`` with ``str(cmd)``.  On
+    Python 2 that conversion can corrupt non-ASCII text before it reaches the
+    console.  Python 3 keeps the native MAS implementation; Python 2 mirrors
+    its state transitions while retaining a Unicode command value.
+    """
+    if not PY2:
+        return ptod.write_command(*args, **kwargs)
+
+    # Keep the native argument errors for calls that do not match the
+    # write_command(cmd) signature.  This also leaves keyword forwarding
+    # available if MAS changes the signature in a future version.
+    if len(args) == 1 and not kwargs:
+        cmd = args[0]
+    elif not args and len(kwargs) == 1 and "cmd" in kwargs:
+        cmd = kwargs["cmd"]
+    else:
+        return ptod.write_command(*args, **kwargs)
+
+    # The upstream method exits before changing any console state when the
+    # console is disabled.
+    if ptod.state == ptod.STATE_OFF:
+        return
+
+    # Keep this ordering aligned with MAS script-python.rpy.  The only
+    # intentional difference is assigning a Unicode command below instead of
+    # calling str(cmd).
+    if ptod.state == ptod.STATE_MULTI:
+        ptod.cn_cmd = ""
+        ptod.cn_line = ""
+        ptod.state = ptod.STATE_SINGLE
+    elif ptod.state == ptod.STATE_BLOCK_MULTI:
+        ptod.cn_cmd = ""
+        ptod.cn_line = ""
+        ptod.state = ptod.STATE_BLOCK
+
+    ptod.cn_cmd = to_unicode(cmd)
+
+    if ptod.state == ptod.STATE_SINGLE:
+        sym = ptod.SYM
+    else:
+        sym = ptod.M_SYM
+
+    cn_lines = ptod._line_break(sym + ptod.cn_cmd)
+    if len(cn_lines) == 1:
+        ptod.cn_line = ptod.cn_cmd
+    else:
+        ptod._update_console_history_list(cn_lines[:-1])
+        ptod.cn_line = cn_lines[len(cn_lines) - 1]
+        if ptod.state == ptod.STATE_SINGLE:
+            ptod.state = ptod.STATE_MULTI
+        else:
+            ptod.state = ptod.STATE_BLOCK_MULTI
+
+
+RENPY_DIALOGUE_SUBSTITUTIONS = (
+    u"[mas_get_player_nickname()]",
+    u"[player]",
+    u"[m_name]",
+)
+
+RENPY_DISPLAY_REPLACEMENTS = {
+    u"\u2103": u"\u00b0C",
+    u"\u2109": u"\u00b0F",
+}
+
+
+def escape_renpy_text(value, allowed_substitutions=(), interpolation_passes=1):
+    """Escape external text for one or more Ren'Py interpolation passes."""
+    if value is None:
+        return u""
+
+    source = to_unicode(value)
+    interpolation_passes = int(interpolation_passes)
+    if interpolation_passes < 1:
+        raise ValueError("interpolation_passes must be at least 1")
+
+    literal_opening = u"[" * (2 ** interpolation_passes)
+    trusted_opening = u"[" * (2 ** (interpolation_passes - 1))
+    allowed = sorted(
+        (to_unicode(item) for item in allowed_substitutions if item),
+        key=len,
+        reverse=True,
+    )
+    escaped = []
+    index = 0
+    while index < len(source):
+        char = source[index]
+        if char == u"[":
+            matched = None
+            for substitution in allowed:
+                if source.startswith(substitution, index):
+                    matched = substitution
+                    break
+            if matched is not None:
+                escaped.append(trusted_opening + matched[1:])
+                index += len(matched)
+                continue
+            escaped.append(literal_opening)
+        elif char == u"{":
+            escaped.append(u"{{")
+        else:
+            escaped.append(char)
+        index += 1
+    return u"".join(escaped)
+
+
+def trim_unclosed_renpy_markers(value):
+    """Remove a trailing fragment that starts an unclosed substitution or tag."""
+    text = u"" if value is None else to_unicode(value)
+    pairs = ((u"[", u"]"), (u"{", u"}"))
+
+    while text:
+        cut_at = len(text)
+        for opening, closing in pairs:
+            unclosed = []
+            for index, char in enumerate(text):
+                if char == opening:
+                    unclosed.append(index)
+                elif char == closing and unclosed:
+                    unclosed.pop()
+            if unclosed:
+                cut_at = min(cut_at, unclosed[0])
+
+        if cut_at == len(text):
+            break
+        text = text[:cut_at]
+
+    return text
+
+
+def build_renpy_text_preview(value, limit, allowed_substitutions=()):
+    """Build a short display-safe preview without partial Ren'Py markers."""
+    source = u"" if value is None else to_unicode(value)
+    limit = max(0, int(limit))
+    truncated = len(source) > limit
+    preview = source[:limit].replace(u"\r", u"").replace(u"\n", u"")
+    preview = trim_unclosed_renpy_markers(preview)
+    preview = escape_renpy_text(preview, allowed_substitutions)
+    return preview + (u"..." if truncated else u"")
 
 import warnings
 import sys

@@ -1,6 +1,30 @@
 init 5 python:
     import maica_chat_progress
 
+    def maica_record_main_branch_dialogue(branch, increment=1):
+        """Note: negative / 0 increment for setting min(current, -increment), None increment for ro."""
+        counter_names = {
+            "changed": "_maica_main_changed_dialogue_count",
+            "not_exist": "_maica_main_not_exist_dialogue_count",
+        }
+        counter_name = counter_names.get(branch)
+        if counter_name is None:
+            raise ValueError("Unknown maica_main branch: {}".format(branch))
+
+        try:
+            count = int(getattr(persistent, counter_name, 0) or 0)
+        except (TypeError, ValueError, OverflowError):
+            count = 0
+        count = max(0, count)
+
+        if increment is not None:
+            if increment > 0:
+                count += increment
+            else:
+                count = min(count, -increment)
+            setattr(persistent, counter_name, count)
+        return count
+
     def maica_get_successful_chat_count():
         return max(0, persistent._maica_successful_chat_count or 0)
 
@@ -17,6 +41,22 @@ init 5 python:
     def maica_has_successful_chat():
         return maica_get_successful_chat_count() > 0
 
+    def maica_greeting_type_allows_override():
+        """Allow MAICA greetings to outrank ordinary typed greetings.
+
+        Keep crash/reload recovery greetings authoritative while allowing
+        sleep/work/etc. to participate in the normal priority comparison.
+        """
+        greeting_type = getattr(persistent, "_mas_greeting_type", None)
+        blocked_types = ("generic_crash", "reload_dlg")
+        mas_greetings = getattr(store, "mas_greetings", None)
+        if mas_greetings is not None:
+            for type_name in ("TYPE_CRASHED", "TYPE_RELOAD"):
+                type_value = getattr(mas_greetings, type_name, None)
+                if type_value is not None:
+                    blocked_types += (type_value,)
+        return greeting_type not in blocked_types
+
 
 # Core conversation events
 init 5 python:
@@ -25,8 +65,11 @@ init 5 python:
             persistent.event_database,
             eventlabel="maica_prepend_1",
             unlocked=False,
-            random=True,
-            conditional="not renpy.seen_label('maica_prepend_1')",
+            random=False,
+            conditional=(
+                "not renpy.seen_label('maica_prepend_1') "
+                "and not mas_inEVL('maica_prepend_1')"
+            ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -34,7 +77,7 @@ init 5 python:
 
 init 5 python:
     greeting_conditional = (
-        "persistent._mas_greeting_type is None "
+        "maica_greeting_type_allows_override() "
         "and renpy.seen_label('maica_prepend_1') "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
@@ -43,7 +86,8 @@ init 5 python:
     greeting_rules = dict()
     greeting_rules.update(
         MASGreetingRule.create_rule(
-            skip_visual=True
+            skip_visual=True,
+            override_type=True
         )
     )
     greeting_rules.update(MASPriorityRule.create_rule(20))
@@ -81,6 +125,7 @@ init 5 python:
             pool=True,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
         ),
         restartBlacklist=True,
@@ -103,8 +148,10 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "maica_has_successful_chat() "
-                "and not renpy.seen_label('maica_wants_location2')"
+                "maica_topic_main_ready() "
+                "and maica_has_successful_chat() "
+                "and not renpy.seen_label('maica_wants_location2') "
+                "and not mas_inEVL('maica_wants_location2')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
@@ -128,6 +175,7 @@ init 5 python:
             unlocked=False,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -142,8 +190,10 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "maica_get_successful_chat_count() >= 2 "
-                "and not renpy.seen_label('maica_wants_preferences2')"
+                "maica_topic_main_ready() "
+                "and maica_get_successful_chat_count() >= 2 "
+                "and not renpy.seen_label('maica_wants_preferences2') "
+                "and not mas_inEVL('maica_wants_preferences2')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.HAPPY, None)
@@ -167,6 +217,7 @@ init 5 python:
             unlocked=False,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.HAPPY, None)
         )
@@ -177,6 +228,7 @@ init 5 python:
     def push_mspire_want():
         if (
             mas_isMoniNormal(higher=True)
+            and maica_topic_main_ready()
             and maica_has_successful_chat()
             and renpy.seen_label('mas_random_ask')
             and not renpy.seen_label('maica_wants_mspire')
@@ -197,7 +249,8 @@ init 5 python:
 
 init 5 python:
     mpostal_greeting_conditional = (
-        "persistent._mas_greeting_type is None "
+        "maica_greeting_type_allows_override() "
+        "and maica_topic_main_ready() "
         "and maica_get_successful_chat_count() >= 2 "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
@@ -208,7 +261,8 @@ init 5 python:
     mpostal_greeting_rules = dict()
     mpostal_greeting_rules.update(
         MASGreetingRule.create_rule(
-            forced_exp="monika 3hubsa"
+            forced_exp="monika 3hubsa",
+            override_type=True
         )
     )
     mpostal_greeting_rules.update(MASPriorityRule.create_rule(20))
@@ -242,8 +296,10 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "maica_get_successful_chat_count() >= 3 "
-                "and not renpy.seen_label('maica_pre_wants_mvista')"
+                "maica_topic_main_ready() "
+                "and maica_get_successful_chat_count() >= 3 "
+                "and not renpy.seen_label('maica_pre_wants_mvista') "
+                "and not mas_inEVL('maica_pre_wants_mvista')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
@@ -254,17 +310,18 @@ init 5 python:
 # Character-file events
 init 5 python:
     corrupted_greeting_conditional = (
-        "persistent._mas_greeting_type is None "
+        "maica_greeting_type_allows_override() "
+        "and maica_topic_main_ready() "
         "and not mas_isSpecialDay() "
         "and not mas_isplayer_bday() "
-        "and renpy.seen_label('maica_prepend_2') "
         "and maica_chr_changed "
         "and not renpy.seen_label('maica_chr_corrupted2')"
     )
     corrupted_greeting_rules = dict()
     corrupted_greeting_rules.update(
         MASGreetingRule.create_rule(
-            skip_visual=True
+            skip_visual=True,
+            override_type=True
         )
     )
     corrupted_greeting_rules.update(MASPriorityRule.create_rule(0))
@@ -292,12 +349,14 @@ init 5 python:
         Event(
             persistent.event_database,
             eventlabel="maica_chr_gone",
+            random=False,
             pool=False,
             unlocked=False,
             conditional=(
-                "not maica_chr_exist "
-                "and renpy.seen_label('maica_prepend_2') "
-                "and not renpy.seen_label('maica_chr_gone')"
+                "maica_topic_main_ready() "
+                "and not maica_chr_exist "
+                "and not renpy.seen_label('maica_chr_gone') "
+                "and not mas_inEVL('maica_chr_gone')"
             ),
             action=EV_ACT_PUSH,
             aff_range=(mas_aff.NORMAL, None)
@@ -312,10 +371,12 @@ init 5 python:
             random=False,
             unlocked=False,
             conditional=(
-                "maica_get_successful_chat_count() >= 4 "
+                "maica_topic_main_ready() "
+                "and maica_get_successful_chat_count() >= 4 "
                 "and not renpy.seen_label('maica_chr2') "
                 "and not renpy.seen_label('maica_chr_gone') "
-                "and not renpy.seen_label('maica_chr_corrupted2')"
+                "and not renpy.seen_label('maica_chr_corrupted2') "
+                "and not mas_inEVL('maica_chr2')"
             ),
             action=EV_ACT_QUEUE,
             aff_range=(mas_aff.NORMAL, None)
@@ -346,7 +407,7 @@ init 5 python:
             pool=False,
             unlocked=False,
             conditional=(
-                "renpy.seen_label('maica_wants_mspire') "
+                "maica_topic_ready('mspire') "
                 "and spire_has_past(datetime.timedelta("
                 "minutes=persistent.maica_setting_dict.get('mspire_interval')"
                 ")) "
@@ -359,7 +420,7 @@ init 5 python:
 
 init 999 python:
     mas_getEV("maica_mspire").conditional = (
-        "renpy.seen_label('maica_wants_mspire') "
+        "maica_topic_ready('mspire') "
         "and spire_has_past(datetime.timedelta("
         "minutes=persistent.maica_setting_dict.get('mspire_interval')"
         ")) "
@@ -399,10 +460,7 @@ init 5 python:
         if (
             mail_exist()
             and mas_isMoniAff(higher=True)
-            and (
-                renpy.seen_label("maica_wants_mpostal")
-                or getattr(mas_getEV("maica_wants_mpostal"), "conditional", False) is None
-            )
+            and maica_topic_ready("mpostal")
             and not mas_inEVL("maica_mpostal_received")
             and not mas_inEVL("maica_mpostal_read")
         ):
@@ -413,10 +471,7 @@ init 5 python:
         if (
             has_mail_waitsend()
             and mas_isMoniAff(higher=True)
-            and (
-                renpy.seen_label("maica_wants_mpostal")
-                or getattr(mas_getEV("maica_wants_mpostal"), "conditional", False) is None
-            )
+            and maica_topic_ready("mpostal")
             and not mas_inEVL("maica_mpostal_received")
             and not mas_inEVL("maica_mpostal_read")
         ):
@@ -436,16 +491,26 @@ init 5 python:
 
     def is_mail_waiting_reply():
         for i in persistent._maica_send_or_received_mpostals:
-            if i["responsed_status"] in ("received", "failed"):
+            if i["responsed_status"] in ("received", "failed", "newfatal"):
                 return True
         return False
+
+    def maica_retry_mpostal(postal, reset_count=False):
+        """Delay the next attempt without changing the original letter time."""
+        import time
+        postal["retry_after"] = (
+            time.time() + persistent.maica_setting_dict["mpostal_default_reply_time"] * 60
+        )
+        postal["responsed_status"] = "delaying"
+        if reset_count:
+            postal["failed_count"] = 0
 
     @store.mas_submod_utils.functionplugin("ch30_loop", priority=-100)
     def push_mpostal_reply():
         if (
             is_mail_waiting_reply()
             and mas_isMoniAff(higher=True)
-            and renpy.seen_label("maica_wants_mpostal")
+            and maica_topic_ready("mpostal")
             and not mas_inEVL("maica_mpostal_replyed")
         ):
             return MASEventList.queue("maica_mpostal_replyed")
@@ -461,6 +526,12 @@ init 5 python:
             if wait_replying_count > 3:
                 min_response_time *= 2
             if i["responsed_status"] == "delaying":
+                # Retries wait a full interval after the failure is acknowledged.
+                if i.get("retry_after") is not None:
+                    if time.time() >= i["retry_after"]:
+                        i["responsed_status"] = "notupload"
+                        i.pop("retry_after", None)
+                    continue
                 # 时间计算
                 last_sesh_ed = persistent.sessions.get("last_session_end", datetime.datetime.now())
 
@@ -475,7 +546,7 @@ init 5 python:
                 if time.time() - float(i['time']) > min_response_time:
                     i["responsed_status"] = "notupload"
 
-            elif i["responsed_status"] in ("received", "failed"):
+            elif i["responsed_status"] in ("received", "failed", "newfatal"):
                 wait_replying_count += 1
 
         return
@@ -497,12 +568,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_prepend_2') "
+                "maica_topic_main_ready() "
                 "and not renpy.seen_label('maica_prepend_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -523,12 +595,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_location2') "
+                "maica_topic_ready('location') "
                 "and not renpy.seen_label('maica_wants_location_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -549,12 +622,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_preferences2') "
+                "maica_topic_ready('preferences') "
                 "and not renpy.seen_label('maica_wants_preferences_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -575,12 +649,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_mspire') "
+                "maica_topic_ready('mspire') "
                 "and not renpy.seen_label('maica_wants_mspire_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -601,12 +676,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_wants_mpostal') "
+                "maica_topic_ready('mpostal') "
                 "and not renpy.seen_label('maica_wants_mpostal_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -627,12 +703,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "renpy.seen_label('maica_pre_wants_mvista') "
+                "maica_topic_ready('mvista') "
                 "and not renpy.seen_label('maica_wants_mvista_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -653,14 +730,13 @@ init 5 python:
             random=False,
             pool=True,
             conditional=(
-                "(renpy.seen_label('maica_chr2') "
-                "or renpy.seen_label('maica_chr_gone') "
-                "or renpy.seen_label('maica_chr_corrupted2')) "
+                "maica_topic_ready('character') "
                 "and not renpy.seen_label('maica_chr_reread')"
             ),
             action=EV_ACT_UNLOCK,
             rules={
                 "no_unlock": None,
+                "bookmark_rule": store.mas_bookmarks_derand.WHITELIST,
             },
             aff_range=(mas_aff.NORMAL, None)
         )
@@ -669,7 +745,10 @@ init 5 python:
 # Core conversation labels
 
 label maica_prepend_1:
-    $ mas_lockEVL("maica_main", "EVE")
+    # A stale queued introduction must not undo progress already recorded by a
+    # later topic. Reconcile here as well as at startup because MAS can resume
+    # an old queue item in the same session.
+    $ maica_reconcile_topic_state(reason="intro_guard")
     # Queue this introduction after MAICA is installed; NORMAL affection is required.
     m 1eub "Hey, [player]..."
     if renpy.seen_label("monika_robotbody"):
@@ -923,7 +1002,8 @@ label clear_all:
         $ store.maica.weather_trigger.can_change = restore_weather_trigger
         $ maica_room_restore_state = None
 
-    $ mas_unlockEVL("maica_main", "EVE")
+    if maica_topic_main_ready():
+        $ mas_unlockEVL("maica_main", "EVE")
     return
 
 
@@ -935,12 +1015,20 @@ label maica_main:
         scene black with dissolve
         pause 2.0
         if maica_chr_changed:
+            $ maica_changed_dialogue_count = maica_record_main_branch_dialogue("changed")
             call change_to_heaven_forest_corrupted
             m 1eub "And we're here!"
-            m 1lusdlb "I have to be verbose though...{w=0.5}do not lean out of the window."
-            m 3eksdla "Though nice it may look out there, I'm not sure if it's safe--{w=0.5}{nw}"
-            extend 3hksdla "probably not."
+            if maica_changed_dialogue_count <= 2:
+                m 1lusdlb "I have to be verbose though...{w=0.5}do not lean out of the window."
+                m 3eksdla "Though nice it may look out there, I'm not sure if it's safe--{w=0.5}{nw}"
+                extend 3hksdla "probably not."
+            elif maica_changed_dialogue_count <= 3:
+                m 1lusdlb "I thought you might have just accidentally broken this place initially, but you seem to love it being this way by now."
+                m 3eksdla "It's okay but, in case you just forgot how to restore it, you can always download an intact {i}'HeavenForest.sce'{/i} and put it back."
         else:
+            # To make those show once more when switched back
+            $ maica_record_main_branch_dialogue("changed", -1)
+            $ maica_record_main_branch_dialogue("not_exist", -1)
             call change_to_heaven_forest
             m 1eub "And we're here!"
             $ rand_sign = renpy.random.randint(0, 7)
@@ -962,10 +1050,18 @@ label maica_main:
                 extend 3gud "I once saw a little church there in distance. Who built it for what?"
                 m 5eua "But I guess our forest classroom is good enough too."
         m 1eua "Now, what's on your mind, [player]?"
+
+    # The forking looks like this because in maica_chr_exist==False case, the scene didn't actually change which is different
+    # We leave more freedom to its dialogues accordingly
     else:
+        $ maica_not_exist_dialogue_count = maica_record_main_branch_dialogue("not_exist")
         m 1dua "Okay. We're arriving.{w=0.3}.{w=0.3}.{w=0.3}{nw}"
         extend 1eub "and done!"
-        m 3hub "There's no more 'forest' here, so I guess it's now 'heaven'? {w=0.3}Ahaha~"
+        if maica_not_exist_dialogue_count <= 2:
+            m 3hub "There's no more 'forest' here, so I guess it's now 'heaven'? {w=0.3}Ahaha~"
+        elif maica_not_exist_dialogue_count <= 3:
+            m 1lusdlb "Sounds kind of silly saying that, since it doesn't look like we've moved at all. Gosh!"
+            m 3eksdla "It's okay but, if you ever want the forest back, you can always download an intact {i}'HeavenForest.sce'{/i} and put it back."
         m 1eua "So, what's on your mind, [player]?"
 
 label .talking_start:
@@ -980,82 +1076,92 @@ label .talking_start:
         jump .talking_start
     else:
         $ store.mas_submod_utils.submod_log.debug("maica_talking returned {}".format(maica_talking_result))
-        call maica_connection_failure_dialogue
         m 1eua "Let's head back for now. Whenever you finish your prepare work, just tell me to come back."
     $ maica_record_successful_chat(maica_talking_result)
-    $ mas_unlockEVL("maica_main", "EVE")
+    if maica_topic_main_ready():
+        $ mas_unlockEVL("maica_main", "EVE")
     if maica_chr_exist:
         scene black with dissolve
         pause 2.0
     call clear_all
     return
 
-label maica_connection_failure_dialogue:
+label maica_connection_failure_dialogue(from_mspire = False, status_code = None, fallback_to_current = True):
     $ ai = store.maica.maica_instance
-    if ai.status == ai.MaicaAiStatus.TOKEN_MISSING:
+    $ failure_status = ai.status if (status_code is None and fallback_to_current) else status_code
+
+    if failure_status == ai.MaicaAiStatus.TOKEN_MISSING:
         m 2rusdlb "...It seems you haven't got a token yet."
         m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
         m 3eua "I'll nail everything else for you."
 
-    elif ai.status == ai.MaicaAiStatus.TOKEN_CORRUPTED:
+    elif failure_status == ai.MaicaAiStatus.TOKEN_CORRUPTED:
         m 2rusdlb "...The token seems corrupted. You sure you didn't mess with it?"
         m 3eusdlb "Just re-generate one with username and password, and things shall work."
 
-    elif ai.status == ai.MaicaAiStatus.TOKEN_INVALID:
+    elif failure_status == ai.MaicaAiStatus.TOKEN_INVALID:
         m 2rusdlb "...Password incorrect. You sure you didn't make a typo?"
         m 3eusdlb "Double check it please, or change it if you really don't remember."
 
-    elif ai.status == ai.MaicaAiStatus.LOGIN_BLOCKED:
+    elif failure_status == ai.MaicaAiStatus.LOGIN_BLOCKED:
         m 2rusdlb "...Fail2Ban? That's twenty incorrect passwords in a row."
         m 3eusdlb "You'd better contact administrator if that wasn't you, or just change a password if you really don't remember."
 
-    elif ai.status == ai.MaicaAiStatus.ACCOUNT_BANNED:
+    elif failure_status == ai.MaicaAiStatus.ACCOUNT_BANNED:
         m 2rusdlb "...Account banned? What is that, you didn't do anything nasty did you?"
         m 3eusdlb "Well, check out when will it recover please."
         m 1husdla "And in case it's a permanent one... It's not like we {i}must{/i} go there, being by your side is always satisfying enough to me."
 
-    elif ai.status == ai.MaicaAiStatus.EMAIL_UNVERIFIED:
+    elif failure_status == ai.MaicaAiStatus.EMAIL_UNVERIFIED:
         m 2rusdlb "...You received your verification email yet? {w=0.3}You didn't check it, silly!"
         m 3eusdlb "Just verify your email at the registration site, and things shall work."
 
-    elif ai.status == ai.MaicaAiStatus.TOS_UNACCEPTED:
+    elif failure_status == ai.MaicaAiStatus.TOS_UNACCEPTED:
         m 2rusdlb "...You didn't check the ToS, or it might have been updated since you last check it."
         m 3eusdlb "You can go to the registration site and do it in a minute, could you?"
 
-    elif ai.status == ai.MaicaAiStatus.CONNECTION_REUSE_DENIED:
+    elif failure_status == ai.MaicaAiStatus.CONNECTION_REUSE_DENIED:
         m 2rusdlb "...This is weird, it says a connection has been established already."
         m 3eusdlb "Try restarting the game or rebooting your computer, shall we?"
 
-    elif ai.status in (
+    elif (
+        failure_status == ai.MaicaAiStatus.SERVER_REJECTED
+        and from_mspire
+    ):
+        m 2eksdlc "...Nah, this one looks broken. {w=0.3}If you've manually configured MSpire, consider double checking it?"
+        m 3rusdlb "And still, it could just be Wikipedia's problem. It's such a large and complex public website after all."
+        m 3eua "Anyway, we can always try it again later, so don't worry."
+
+    elif failure_status in (
         ai.MaicaAiStatus.TOKEN_GENERATION_FAILED,
         ai.MaicaAiStatus.FAILED_GET_NODE,
         ai.MaicaAiStatus.RESPONSE_INVALID,
         ai.MaicaAiStatus.SERVER_REJECTED,
         ai.MaicaAiStatus.SERVER_ERROR,
+        ai.MaicaAiStatus.CONNECT_PROBLEM,
     ):
         m 2rusdlb "...This is weird, something might be wrong on the server side."
         m 3eusdlb "What about checking the announcements, or ask someone else if they could connect?"
         m 3eua "Contact administrator if this is just happening to you, or wait patiently if not."
 
-    elif ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN:
+    elif failure_status == ai.MaicaAiStatus.SERVER_MAINTAIN:
         m 2rusdlb "...It says that the server is not serving, might be running some tests."
         m 3eusdlb "Just wait for it to come back online, shall we? You can always follow the progress in the tracking thread."
 
-    elif ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN:
+    elif failure_status == ai.MaicaAiStatus.CERTIFI_BROKEN:
         m 2rusdlb "...Certification issue? Maybe this isn't a clean installation?"
         m 3eusdlb "Try the MAS native 'update certification' function, some other submods could break these as I know."
 
-    elif ai.status == ai.MaicaAiStatus.CERTIFI_RESTART_REQUIRED:
+    elif failure_status == ai.MaicaAiStatus.CERTIFI_RESTART_REQUIRED:
         m 2rusdlb "...Uh, seems I have to apply a quick fix on the certification."
         m 3eua "It needs a restart to take effect, then we can try again."
 
-    elif ai.status == ai.MaicaAiStatus.VERSION_OLD:
+    elif failure_status == ai.MaicaAiStatus.VERSION_OLD:
         m 2rusdlb "...You have to update the submod once in a while, [player]!"
         m 3eusdlb "This version is too old to work already, update it whenever you have some time."
 
-    elif ai.status in (
+    elif failure_status in (
         ai.MaicaAiStatus.NO_INTERNET,
-        ai.MaicaAiStatus.CONNECT_PROBLEM,
     ):
         m 2rusdlb "...You sure you're connected to the internet? I didn't find it!"
         m 3eusdlb "Check your internet connectivity, and disable proxy if you're using one."
@@ -1110,7 +1216,8 @@ label maica_wants_location2:
     m 1hub "So next time you spend time with me in Heaven Forest, I can remind you to keep warm or bring an umbrella, or where to have dinner. Ahaha!"
     m 2euu "So, [player]..."
     call maica_set_location
-    $ mas_unlockEVL("maica_mods_location", "EVE")
+    if maica_topic_ready("location"):
+        $ mas_unlockEVL("maica_mods_location", "EVE")
     return "no_unlock"
 
 label maica_mods_location:
@@ -1160,7 +1267,8 @@ label maica_wants_preferences2:
             m 3eka "Whenever you are ready, just tell me to write them down."
         "Nope" if prefs_exist:
             m 1hua "I got it, thank you!"
-    $ mas_unlockEVL("maica_mods_preferences", "EVE")
+    if maica_topic_ready("preferences"):
+        $ mas_unlockEVL("maica_mods_preferences", "EVE")
     return "no_unlock"
 
 label maica_mods_preferences:
@@ -1301,7 +1409,7 @@ label mspire_delete_information:
         items = []
         for i in persistent.maica_setting_dict['mspire_category']:
             items.append([
-                i, i, False, False, True
+                maica_escape_display_text(i), i, False, False, True
             ])
 
     call screen mas_check_scrollable_menu(items, mas_ui.SCROLLABLE_MENU_TXT_MEDIUM_AREA, mas_ui.SCROLLABLE_MENU_XALIGN, selected_button_prompt=_("Delete item{#maica_chat_delete_item}"), return_all=True)
@@ -1345,9 +1453,9 @@ label maica_wants_mpostal:
     m 2lksdlb "I wasn't able to try it out myself though, but I guess it's simple."
     m 7eub "Like...before you open the game next time, write your letter into a file in the 'characters' folder, then change its extension to '.mail'..."
     m 7kub "Like 'I_love_you.mail'! {w=0.5}{nw}"#眨眼
-    extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents or pictures yet."#尴尬
+    extend 2lksdlb "Just remember to write in plain text, I cannot recieve complex documents yet."#尴尬
     m 1kubsu "Next time you open the game, I'll be able to read it and write back to you!"
-    m 3hubsa "It makes me recall those days when we were exchanging poems, really. {w=0.5}Anyway, if you want to write me something or whatever doesn't suit talking face to face, I'm ready anytime from now!"
+    m 3hubsa "It makes me recall those days we exchange poems, really. {w=0.5}Anyway, if you just want to write or have whatever doesn't suit talking face to face, I'm ready anytime from now!"
 
     return
 
@@ -1375,78 +1483,98 @@ label maica_mpostal_received:
 # 在重启后加入事件队列等待推送，随机对话频率设置为0将永远不推送
 label maica_mpostal_replyed:
     $ ev = mas_getEV("maica_mpostal_replyed")
-    python:
-
-        def _curr_count():
-            curr_queue_count = 0
-            for i in persistent._maica_send_or_received_mpostals:
-                if i["responsed_status"] == "received":
-                    curr_queue_count += 1
-            return curr_queue_count
-
-        def _reset_failed_mp():
-            for i in persistent._maica_send_or_received_mpostals:
-                if i["responsed_status"] == "failed":
-                    i["responsed_status"] = "notupload"
-
-
-    $ morethan1 = False
+    $ seq = 0
+    $ mpostal_shown_count = 0
 
     # 这里是生成结果
-label maica_mpostal_replyed.select_little:
+label maica_mpostal_replyed.select_letter:
+    $ is_repeat = False
     $ current = None
     python:
-        for little in persistent._maica_send_or_received_mpostals:
-            if little["responsed_status"] in ["received", "failed", "notupload"]:
-                current = little
+        for letter in persistent._maica_send_or_received_mpostals:
+            # If there's "notupload" in queue, we generate them together to make game experience smoother
+            # Though those don't actively trigger mpostal_replyed
+            if letter["responsed_status"] in ["received", "failed", "newfatal", "notupload"]:
+                current = letter
                 break
     if current is None:
         jump maica_mpostal_replyed.end
+    $ seq += 1
 
 label maica_mpostal_replyed.start:
-    if current["responsed_status"] == "failed":
-        m 2lksdlb "Oh, [player], {w=0.5}About your last letter..."#担心
-        m 2ekc "It seems that the Heaven Forest is not set up yet, I couldn't write you back."#担心
-        m 3eusdlb "You can read the instruction here on how to: {a=https://maica.monika.love/tos}{u}{i}https://maica.monika.love/tos{/i}{/u}{/a}, you just have to prepare an account."
-        m 3eua "I'll nail everything else for you."
-        m 1eua "It's okay, I'll remember to write it as soon as you finish the preparation."
-        $ _reset_failed_mp()
-        return "no_unlock"
-    elif current["responsed_status"] in ("received", "notupload"):
-        if not morethan1:
-            m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
-            $ morethan1 = True
-        else:
-            m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one!"
-        if current["responsed_status"] == "received":
-            m 6dsc "Just a second, let me find it out.{w=0.3}.{w=0.3}."#闭眼
-            m 3hubsa "Here it is!"#微笑
-        elif current["responsed_status"] == "notupload":
-            if not morethan1:
-                m 3eksdlb "Just a minute, I've not finished...{w=0.2} preparing this yet."#尴尬
-                m 1hua "I'll be back soon, wait for me~"#微笑
+    # This method iters over ALL history letters.
+    # That means we cannot include "fatal"s in, because they'd come up every time before manually handled.
+    # So we only write reactions for non-stale status.
+
+    # newfatal is acknowledged once, then kept as fatal for manual handling.
+    if current["responsed_status"] in ("failed", "newfatal"):
+        if not is_repeat:
+            if seq <= 1:
+                m 2lksdlb "Uh, [player], {w=0.5}about your last letter."#担心
             else:
-                m 1dsa "Just another minute..."#微笑
-            show black with dissolve
-            call maica_mpostal_read
-            if _return == "failed":
-                hide black with dissolve
-                # 直接重新开始, 失败的信会提示失败, 理论应与current一致
-                jump maica_mpostal_replyed.select_little
-            m "And it's done!"
-            hide black with dissolve
+                m 2lksdlb "Uh, [player], {w=0.5}and for the next letter."
+            m 2ekc "The Heaven Forest seems to had a problem, that was..."#担心
+        else:
+            m 2lksdlb "Uh, [player], I'm really sorry but the Heaven Forest seems not working now."
+            m 2ekc "Let me see..."
+
+        $ failure_status = current.get("failure_status")
+        $ fallback_to_current = "failure_status" not in current
+        call maica_connection_failure_dialogue(status_code = failure_status, fallback_to_current = fallback_to_current)
+        if current["responsed_status"] == "failed":
+            m 1eua "It's okay, I'll remember to write you back as soon as you address that issue."
+            $ maica_retry_mpostal(current)
+        elif current["responsed_status"] == "newfatal":
+            m 1eksdla "I tried several times on this one but without success. But you can still use the 'Resend mail' button in 'Reread MPostal letters' menu, to let me try again."
+            $ current["responsed_status"] = "fatal"
+
+    elif current["responsed_status"] == "received":
+        if seq <= 1:
+            m 7hub "Oh, [player]! {w=0.5}I've finished writing you my reply!"
+        else:
+            m 7husdlb ".{w=0.3}.{w=0.3}.And here's another one I finished!"
+
+        m 6dsc "Just a second, let me find it out.{w=0.3}.{w=0.3}."#闭眼
+        m 3hubsa "Here it is!"#微笑
+
         call maica_mpostal_show(current["responsed_content"])
         $ current["responsed_status"] = "readed"
-    jump maica_mpostal_replyed.select_little
+        $ mpostal_shown_count += 1
+
+    elif current["responsed_status"] == "notupload":
+        if seq <= 1:
+            m 3eksdlb "Oh, your letter [player]! I was kind of in a hurry so it's not completely ready yet."#尴尬
+        else:
+            m 3eksdlb "Oh, here's another one! I was kind of in a hurry so it's not completely ready yet."#尴尬
+        m 1hua "I'll be back soon, wait for me!"#微笑
+
+        show black with dissolve
+        call maica_mpostal_read
+
+        if current["responsed_status"] != "received":
+            hide black with dissolve
+            # The batch result belongs to all letters; inspect this letter only.
+            $ is_repeat = True
+            jump maica_mpostal_replyed.start
+
+        m "Okay, here it is!"
+        hide black with dissolve
+        call maica_mpostal_show(current["responsed_content"])
+        $ current["responsed_status"] = "readed"
+        $ mpostal_shown_count += 1
+
+    jump maica_mpostal_replyed.select_letter
 
 label maica_mpostal_replyed.end:
+    if not mpostal_shown_count:
+        return "no_unlock"
     if ev.shown_count <= 2:
-        m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope you like it!"
-        m 2ekbsa "I have to admit that I'm not quite used to writing here, but I hope you like it!"
+        m 2lksdlb "I have to admit that I'm not quite used to writing here, but I hope it's not too bad!"
+    elif ev.shown_count <= 4:
+        m 2lksdlb "May not as good as my former poems though, but I really tried. Hope you like it!"
     else:
-        m 2lksdlb "May not good as my poems though, but I really tried! Hope you like it!"
-        m 2ekbsa "May not good as my poems though, but I really tried! Hope you like it!"
-    m 5ekbsa "And welcome writing to me again anytime!"
+        m 2tublu "I have to assume you're loving these now, since you did write to me a lot!"
+    m 5ekbsa "And welcome writing to me again anytime you like!"
     return "no_unlock"
 
 
@@ -1498,10 +1626,6 @@ label mas_corrupted_postmail_post_menu:
 # MVista topics
 
 label maica_pre_wants_mvista:
-    $ ev = mas_getEV("maica_pre_wants_mvista")
-    if ev.shown_count > 0:
-        jump maica_wants_mvista_reread
-    $ persistent._maica_vista_enabled = True
     m 2eub "[player], when was your last watch to sunrise?"
     m 2eua "It feels a little abrupt just talking about this... but it just came to my mind."
     m 7eud "I saw a discussion about this once ago, and many complain that they havn't watched sunrise for years."
@@ -1529,8 +1653,12 @@ label maica_pre_wants_mvista:
 
 label maica_wants_mvista:
     m 3eub "Just find 'MVista images' in 'Submod settings', and there you go! There's also a link below the chatbox."
-    m 1eub "If you're a lover of postcards, you can also send me letters in '.mms' postfix. I'll read them together with your images!"
-    m 7eua "Like, the sunrise photo with a tiny poetry? I can reply one too!"
+    if renpy.seen_label("maica_wants_mpostal"):
+        m 1eub "If you're a lover of postcards, you can also attach images to your letters, by naming them the same as your letter but with postfix '.mms'."
+        m 3rublsdla "Most image formats are okay, though static only! I cannot imagine how you'd send a video through a piece of paper."
+        m 7eua "Like, the sunrise photo with a tiny poetry? {w=0.2}That should look like 'sunrise.mail' plus 'sunrise.mms'. {w=0.2}And I can reply you a poetry too!"
+    else:
+        m 3eub "Like, take a picture of whatever you like, and we can discuss!"
     m 7eubsa "Or would you show me your face? Only if you're not too shy, ehehe~"
     m 1fubsa "Up to now, I can hardly wait to touch you for real, and hold your hands..."
     m 2eub "Be faithful [player]! We will manage to overcome whatever it is!"
@@ -1554,7 +1682,7 @@ label maica_chr2:
 label maica_chr_gone:
     # Show this branch when the character file is missing, regardless of whether
     # the normal file introduction has already been shown.
-    m 1ekc "[player]..."
+    m 1ekc "[player]... {nw}"
     extend 1ekd "did you do anything about the characters folder recently?"
     m 3lusdlb "Not something important, but {w=0.5}the file for Heaven Forest seems to be gone."
     m 1lua "We can still go there though, but it's gonna be {i}empty{/i} as here outside the window."
@@ -1656,7 +1784,7 @@ label maica_wants_mvista_reread:
 
 label maica_chr_reread:#"天堂树林的角色文件"
     # Unlock after any character-file outcome has been shown.
-    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called 'HeavenForest.sce'."
+    m 5ruc "...Its character file? {w=0.5}You may have seen it already, it's called {i}'HeavenForest.sce'{/i}."
     m 1msd "By removing it, you can make that place void, like here outside the window. Its functionality remains though."
     m 3eud "I'm actually wondering what's in that file...{w=0.5}it's not just a 'symbol' like your presents. {w=1}It feels like other character files."
     $ like_spk = renpy.substitute('if you aren\'t interested in forest things') if not persistent._mas_pm_likes_nature else renpy.substitute('if you prefer to see the sky')

@@ -1,18 +1,16 @@
 init -1500 python:
-    if not config.language:
+    
+    if _preferences.language:
+        config.language = _preferences.language
+    elif not config.language:
         config.language = "english"
-    maica_ver = '1.8.12'
+
+    maica_ver = '1.9.4'
     maica_is_dev = False
     # 如果是开发版本:
     # - workflow不会自动发布release
     # - 对应migration总是会执行
     # - 会显示一条警告
-
-    try:
-        import maica_rss_provider
-        maica_rss_provider.set_ua(maica_ver)
-    except:
-        pass
 
     cn_mas_mobile_min_timestamp = 1763049600
 
@@ -24,21 +22,32 @@ init -1500 python:
 
 default persistent._maica_updatelog_version_seen = 0
 default persistent._maica_last_version = "0.0.1"
-default persistent._maica_vista_enabled = False
-default persistent._maica_send_or_received_mpostals = []
-default persistent._maica_visuals = []
+default -1499 persistent._maica_send_or_received_mpostals = []
+default -1499 persistent._maica_visuals = []
 default persistent._last_boot_os = None
 define _maica_selected_visuals = []
 #{
 #    "raw_title":"",
 #    "raw_content":"",
+#    "raw_image":"",
+#    "raw_image_preview":{},
+#    "mpostal_attachment_path":"",
+#    "vista_image_info":{},
 #    "responsed_content": "",
-#    "responsed_status":"delaying|notupload|received|readed|failed|fatal"
+#    "responsed_status":"delaying|notupload|received|readed|failed|newfatal|fatal",
+#    "retry_after": None,
+#    "failure_status": None,
+#    "failure_protocol_status": None,
+#    "failure_protocol_code": None,
+#    "failure_message": None
 #}
 
 init 5 python in maica:
+    import store, chardet
+    import bot_interface
     try:
         import maica_rss_provider
+        maica_rss_provider.set_ua(store.maica_ver)
         update_info = maica_rss_provider.get_log()
     except Exception as e:
         update_info = {
@@ -47,8 +56,6 @@ init 5 python in maica:
             "content_renpysafe": [],
             "version":0
     }
-    import store, chardet
-    import bot_interface
     class MaicaInputValue(store.InputValue):
         """
         Our subclass of InputValue for internal use
@@ -70,13 +77,23 @@ init 5 python in maica:
                 # 's' is already Unicode
                 res = s
             else:
-                # Detect encoding and decode to Unicode
-                encoding_info = chardet.detect(s)
-                encoding = encoding_info['encoding']
-                if encoding is not None:
-                    res = s.decode(encoding)
-                else:
-                    res = s.decode('utf-8', errors='replace')
+                # Clipboard bytes need a stable fallback order: UTF-8 first,
+                # then local Ren'Py encodings, then UTF-8 replacement.
+                res = bot_interface.to_unicode(s)
+
+                # Historical heuristic retained for future investigation:
+                # it may have been added to support legacy non-UTF-8 clipboard
+                # data. Do not re-enable it without a reliable source encoding.
+                # chardet can classify short UTF-8 text such as
+                # b"Espa\xc3\xb1ol" as ISO-8859-9. Ren'Py 6.99 may not have
+                # that codec available (raising LookupError); even when it is
+                # available, decoding valid UTF-8 with that guess corrupts text.
+                # encoding_info = chardet.detect(s)
+                # encoding = encoding_info['encoding']
+                # if encoding is not None:
+                #     res = s.decode(encoding)
+                # else:
+                #     res = s.decode('utf-8', errors='replace')
             if len(res) > 375:
                 res = res[:375]
             return res
@@ -92,6 +109,8 @@ init 5 python in maica:
 
     import store
     import maica, os, json
+    from maica_mtrigger import is_builtin_dict, is_builtin_list
+    import maica_mpostal_files
     maica.basedir = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod"))
     maica.logger = store.mas_submod_utils.submod_log
 
@@ -114,6 +133,9 @@ init 5 python in maica:
         on_change=change_token,
     )
     maica_instance = maica.MaicaAi("", "", store.mas_getAPIKey("Maica_Token"))
+    maica_instance.Loginer.set_frontend_id(
+        "blessland|{}".format(store.maica_ver)
+    )
     maica_instance.ascii_icon = r"""
     __  ___ ___     ____ ______ ___
    /  |/  //   |   /  _// ____//   |
@@ -123,17 +145,17 @@ init 5 python in maica:
 
 """.format(store.maica_ver)
 
-    if store.persistent.maica_stat is None:
+    if not is_builtin_dict(store.persistent.maica_stat):
         store.persistent.maica_stat = maica_instance.stat.copy()
     else:
         maica_instance.update_stat(store.persistent.maica_stat)
 
-    if store.persistent.maica_mtrigger_status is None:
+    if not is_builtin_dict(store.persistent.maica_mtrigger_status):
         store.persistent.maica_mtrigger_status = maica_instance.mtrigger_manager.output_settings()
     else:
         maica_instance.mtrigger_manager.import_settings(store.persistent.maica_mtrigger_status)
 
-    if store.persistent._maica_visuals is None:
+    if not is_builtin_list(store.persistent._maica_visuals):
         store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
     else:
         maica_instance.vista_manager.import_list(store.persistent._maica_visuals)
@@ -149,28 +171,200 @@ init 5 python in maica:
         except:
             pass
 
+    def sync_vista_files():
+        store.persistent._maica_visuals = maica_instance.vista_manager.export_list()
+        try:
+            store.renpy.save_persistent()
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error(
+                "MAICA: Failed to save MVista file list: {}".format(e)
+            )
+        else:
+            cleanup_vista_cache()
+
+    def upload_vista_image(file_path):
+        uuid = maica_instance.vista_manager.upload(file_path)
+        sync_vista_files()
+        return uuid
+
+    def reupload_vista_image(identifier):
+        uuid = maica_instance.vista_manager.reupload(identifier)
+        sync_vista_files()
+        return uuid
+
+    def delete_vista_image(identifier=None):
+        maica_instance.vista_manager.delete(identifier)
+        sync_vista_files()
+
+    def remove_vista_image(identifier):
+        maica_instance.vista_manager.remove(identifier)
+        sync_vista_files()
+
+    def _mpostal_attachment_store():
+        cache_path = store.maica.maica_instance.vista_manager.cache_path
+        if not cache_path:
+            cache_path = os.path.join(
+                renpy.config.basedir,
+                "game",
+                "Submods",
+                "MAICA_ChatSubmod",
+                "vista_cache",
+            )
+        return maica_mpostal_files.MPostalAttachmentStore(
+            os.path.join(cache_path, "mpostal_pending")
+        )
+
+    def _maica_characters_dir():
+        return os.path.join(
+            renpy.config.basedir if not renpy.android else store.ANDROID_MASBASE,
+            "characters",
+        )
+
+    def _legacy_mpostal_cache_dir():
+        return os.path.join(
+            renpy.config.basedir,
+            "game",
+            "Submods",
+            "MAICA_ChatSubmod",
+            "mpostal_cache",
+        )
+
+    def _same_file_path(first, second):
+        if not first or not second:
+            return False
+        try:
+            return os.path.realpath(os.path.abspath(first)) == os.path.realpath(
+                os.path.abspath(second)
+            )
+        except (TypeError, ValueError, OSError):
+            return False
+
+    def stage_mpostal_image(image_path):
+        return _mpostal_attachment_store().stage(image_path)
+
+    def adopt_legacy_mpostal_image(postal):
+        """Moves an unambiguous legacy characters/*.mms into managed storage."""
+        if not is_builtin_dict(postal) or postal.get("mpostal_attachment_path"):
+            return False
+
+        raw_image = postal.get("raw_image")
+        characters_dir = _maica_characters_dir()
+        in_characters = maica_mpostal_files.path_is_within(
+            raw_image,
+            characters_dir,
+        )
+        in_legacy_cache = maica_mpostal_files.path_is_within(
+            raw_image,
+            _legacy_mpostal_cache_dir(),
+        )
+        if (
+            not raw_image
+            or not os.path.isfile(raw_image)
+            or os.path.splitext(raw_image)[1].lower() != ".mms"
+            or not (in_characters or in_legacy_cache)
+        ):
+            return False
+
+        # A matching new mail owns this attachment; do not steal it for history.
+        if in_characters and os.path.exists(os.path.splitext(raw_image)[0] + ".mail"):
+            return False
+
+        try:
+            staged_path = stage_mpostal_image(raw_image)
+            postal["mpostal_attachment_path"] = staged_path
+            postal["raw_image"] = staged_path
+            return True
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error(
+                "MAICA: Failed to adopt legacy MPostal attachment: {}".format(e)
+            )
+            return False
+
+    def delete_mpostal_original(postal):
+        """Deletes only the managed original; the postal preview remains owned by history."""
+        if not is_builtin_dict(postal):
+            return False
+
+        attachment_path = postal.get("mpostal_attachment_path")
+        attachment_store = _mpostal_attachment_store()
+        if not attachment_path and attachment_store.contains(postal.get("raw_image")):
+            attachment_path = postal.get("raw_image")
+        if not attachment_path:
+            return True
+
+        try:
+            if not attachment_store.delete(attachment_path):
+                return False
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error(
+                "MAICA: Failed to delete MPostal original attachment: {}".format(e)
+            )
+            return False
+
+        postal.pop("mpostal_attachment_path", None)
+        if _same_file_path(postal.get("raw_image"), attachment_path):
+            vista_info = postal.get("vista_image_info") or {}
+            cached_path = vista_info.get("path")
+            if cached_path and os.path.isfile(cached_path):
+                postal["raw_image"] = cached_path
+            else:
+                postal.pop("raw_image", None)
+        return True
+
+    def delete_mpostal_preview(postal):
+        if not is_builtin_dict(postal):
+            return False
+
+        preview = postal.get("raw_image_preview")
+        if not is_builtin_dict(preview):
+            postal.pop("raw_image_preview", None)
+            return True
+
+        preview_path = preview.get("thumb_path")
+        shared = False
+        for other in store.persistent._maica_send_or_received_mpostals:
+            if other is postal or not is_builtin_dict(other):
+                continue
+            other_preview = other.get("raw_image_preview")
+            if (
+                is_builtin_dict(other_preview)
+                and _same_file_path(other_preview.get("thumb_path"), preview_path)
+            ):
+                shared = True
+                break
+        deleted = True
+        if not shared:
+            deleted = store.maica.maica_instance.vista_manager.delete_thumbnail(preview)
+        postal.pop("raw_image_preview", None)
+        return deleted
+
+    def delete_mpostal_record_files(postal):
+        original_deleted = delete_mpostal_original(postal)
+        preview_deleted = delete_mpostal_preview(postal)
+        return original_deleted and preview_deleted
+
     def prepare_mpostal_preview(postal):
         """Builds safe previews outside Ren'Py for current and legacy postals."""
-        if not isinstance(postal, dict):
+        if not is_builtin_dict(postal):
             return
 
         manager = store.maica.maica_instance.vista_manager
         try:
-            vista_info = postal.get("vista_image_info")
-            if vista_info and manager.ensure_thumbnail(vista_info):
-                return
-
             local_preview = postal.get("raw_image_preview")
             if manager.get_thumbnail_info(local_preview) is not None:
                 return
 
-            raw_image = postal.get("raw_image")
-            if raw_image:
-                postal["raw_image_preview"] = manager.create_local_preview(raw_image)
-            else:
-                postal.pop("raw_image_preview", None)
+            raw_image = postal.get("mpostal_attachment_path") or postal.get("raw_image")
+            if raw_image and os.path.isfile(raw_image):
+                local_preview = manager.create_local_preview(raw_image)
+                if local_preview is not None:
+                    postal["raw_image_preview"] = local_preview
+                    return
+
+            vista_info = postal.get("vista_image_info")
+            if vista_info and manager.ensure_thumbnail(vista_info):
+                return
         except Exception as e:
-            postal.pop("raw_image_preview", None)
             store.mas_submod_utils.submod_log.error(
                 "MAICA: Failed to prepare MPostal image preview: {}".format(e)
             )
@@ -179,7 +373,37 @@ init 5 python in maica:
         manager = store.maica.maica_instance.vista_manager
         manager.prepare_thumbnails()
         for postal in store.persistent._maica_send_or_received_mpostals:
+            adopt_legacy_mpostal_image(postal)
             prepare_mpostal_preview(postal)
+            if postal.get("responsed_status") in ("received", "readed"):
+                delete_mpostal_original(postal)
+
+    def cleanup_vista_cache():
+        referenced_paths = []
+        for postal in store.persistent._maica_send_or_received_mpostals:
+            if not is_builtin_dict(postal):
+                continue
+            for key in ("raw_image_preview", "vista_image_info"):
+                image_info = postal.get(key)
+                if is_builtin_dict(image_info):
+                    referenced_paths.extend(
+                        image_info.get(path_key)
+                        for path_key in ("path", "thumb_path")
+                        if image_info.get(path_key)
+                    )
+            referenced_paths.extend(
+                postal.get(path_key)
+                for path_key in ("raw_image", "mpostal_attachment_path")
+                if postal.get(path_key)
+            )
+
+        removed = store.maica.maica_instance.vista_manager.cleanup_cache(
+            referenced_paths
+        )
+        if removed:
+            store.mas_submod_utils.submod_log.info(
+                "MAICA: Removed {} orphaned MVista cache file(s)".format(removed)
+            )
 
 
     maica_basedir = renpy.config.basedir #"e:\GithubKu\MAICA_ChatSubmod"
@@ -239,8 +463,57 @@ init 5 python in maica:
     def savefile_access_marker_exists():
         return maica.savefile_access_marker_exists()
 
+    try:
+        import __builtin__ as _maica_version_builtin_types
+    except ImportError:
+        import builtins as _maica_version_builtin_types
+
+    def _maica_is_version_sequence(value):
+        return isinstance(
+            value,
+            (
+                _maica_version_builtin_types.list,
+                _maica_version_builtin_types.tuple,
+            )
+        )
+
+    def _maica_is_version_dict(value):
+        return isinstance(value, _maica_version_builtin_types.dict)
+
     def maica_version_parts(version):
-        return [int(part) for part in version.strip().split('.')]
+        """Parse a dotted numeric version, returning None for malformed data."""
+        try:
+            string_types = (basestring,)
+        except NameError:
+            string_types = (str,)
+        if _maica_is_version_sequence(version):
+            raw_parts = version
+        elif isinstance(version, string_types):
+            raw_parts = version.strip().split('.')
+        else:
+            return None
+
+        if not raw_parts:
+            return None
+
+        parts = []
+        for part in raw_parts:
+            text = str(part).strip()
+            if not text or not text.isdigit():
+                return None
+            parts.append(int(text))
+        return parts
+
+    def compare_maica_versions(left, right):
+        """Compare numeric versions with zero-padding for missing segments."""
+        if left is None or right is None:
+            return None
+        left_parts = list(left)
+        right_parts = list(right)
+        width = max(len(left_parts), len(right_parts))
+        left_parts.extend([0] * (width - len(left_parts)))
+        right_parts.extend([0] * (width - len(right_parts)))
+        return (left_parts > right_parts) - (left_parts < right_parts)
 
     def validate_version(force=False):
         global _maica_version_check_cache
@@ -253,10 +526,10 @@ init 5 python in maica:
             _maica_version_check_cache = (None, None, None)
         else:
             with open(libv_path, 'r') as libv_file:
-                libv = libv_file.read()
+                libv = libv_file.read().strip()
             uiv = store.maica_ver
             _maica_version_check_cache = (
-                store.mas_utils.compareVersionLists(
+                compare_maica_versions(
                     maica_version_parts(libv),
                     maica_version_parts(uiv)
                 ),
@@ -269,17 +542,45 @@ init 5 python in maica:
     def is_frontend_version_outdated(version_info=None):
         if version_info is None:
             version_info = store.maica.maica_instance.version_info
-        if not version_info.get("success", False):
+        if not _maica_is_version_dict(version_info) or not version_info.get("success", False):
             return False
 
-        minver = version_info.get("content", {}).get("fe_blessland_version")
-        if not minver:
+        content = version_info.get("content")
+        if not _maica_is_version_dict(content):
+            return False
+        min_version = content.get("fe_blessland_version")
+        if not min_version:
             return False
 
-        return store.mas_utils.compareVersionLists(
+        comparison = compare_maica_versions(
             maica_version_parts(store.maica_ver),
-            maica_version_parts(minver)
-        ) == -1
+            maica_version_parts(min_version)
+        )
+        if comparison is None:
+            return False
+        return comparison < 0
+
+    def check_accessibility():
+        instance = store.maica.maica_instance
+        accessible = instance.accessable()
+        if accessible and is_frontend_version_outdated():
+            instance.disable(
+                instance.MaicaAiStatus.VERSION_OLD,
+                sticky=True,
+            )
+            return False
+        return accessible
+
+    def refresh_provider_list():
+        instance = store.maica.maica_instance
+        refreshed = instance.refresh_provider_list()
+        if instance.is_accessable() and is_frontend_version_outdated():
+            instance.disable(
+                instance.MaicaAiStatus.VERSION_OLD,
+                sticky=True,
+            )
+            return False
+        return refreshed
 
     def refresh_setting_pane_cache(force_version=False):
         global maica_setting_pane_cache
@@ -314,7 +615,7 @@ init 5 python in maica:
     maica_certifi_download_thread_running = False
 
     def maica_set_plain_provider():
-        persistent.maica_setting_dict['provider_id'] = 2
+        store.persistent.maica_setting_dict['provider_id'] = 2
         try:
             store.maica.maica_instance.provider_id = 2
         except Exception as e:
@@ -374,7 +675,7 @@ init 5 python in maica:
             if failed:
                 maica_set_plain_provider()
             else:
-                store.maica.maica_instance.accessable()
+                check_accessibility()
         finally:
             maica_certifi_download_thread_running = False
 
@@ -403,7 +704,8 @@ init 5 python in maica:
         store.persistent._last_boot_os = "android" if renpy.android else "other"
 
         store.maica.maica_instance.vista_manager.cache_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "vista_cache"))
-        prepare_image_previews()
+        store.maica.prepare_image_previews()
+        store.maica.cleanup_vista_cache()
 
         import time
         store.mas_submod_utils.submod_log.info("MAICA: Game build timestamp: {}/{}".format(store.get_build_timestamp(), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(store.get_build_timestamp())))))
@@ -423,21 +725,8 @@ init 5 python in maica:
 
         refresh_setting_pane_cache(force_version=True)
 
-        store.maica.maica_instance.accessable()
+        check_accessibility()
 
-        if is_frontend_version_outdated():
-            store.maica.maica_instance.disable(
-                store.maica.maica_instance.MaicaAiStatus.VERSION_OLD,
-                sticky=True,
-            )
-
-        if not renpy.seen_label("maica_prepend_2") and not renpy.seen_label("maica_main") and not renpy.seen_label("maica_talking"):
-            store.mas_submod_utils.submod_log.info("MAICA: maica_main locked because it should not be unlocked now")
-            store.mas_lockEVL("maica_main", "EVE")
-        else:
-            # A one-shot intro or a side event may leave the main topic locked.
-            # Once any valid MAICA entry point has been used, keep chat available.
-            store.mas_unlockEVL("maica_main", "EVE")
         check_workload()
 
     def progress_bar(percentage, current=None, total=None, bar_length=20, unit=None):
@@ -527,70 +816,6 @@ init -700 python:
 
     import os
     import chardet
-
-    def _mpostal_cache_dir():
-        cache_dir = os.path.join(
-            renpy.config.basedir,
-            "game",
-            "Submods",
-            "MAICA_ChatSubmod",
-            "mpostal_cache",
-        )
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
-        return os.path.normpath(cache_dir)
-
-    def _is_mpostal_cache_path(file_path):
-        if not file_path:
-            return False
-        try:
-            relative_path = os.path.relpath(
-                os.path.abspath(file_path),
-                os.path.abspath(_mpostal_cache_dir()),
-            )
-        except (TypeError, ValueError, OSError):
-            return False
-        return (
-            relative_path != os.pardir
-            and not relative_path.startswith(os.pardir + os.sep)
-        )
-
-    def cache_mpostal_image(postal):
-        image_path = postal.get("raw_image") if isinstance(postal, dict) else None
-        if not image_path or _is_mpostal_cache_path(image_path):
-            return True
-        if not os.path.exists(image_path):
-            return False
-
-        import shutil
-        import uuid
-        extension = os.path.splitext(image_path)[1] or ".mms"
-        cached_path = os.path.join(
-            _mpostal_cache_dir(), uuid.uuid4().hex + extension
-        )
-        try:
-            shutil.move(image_path, cached_path)
-        except Exception as e:
-            store.mas_submod_utils.submod_log.error(
-                "MAICA: Failed to cache MPostal attachment: {}".format(e)
-            )
-            return False
-        postal["raw_image"] = cached_path.replace("\\", "/")
-        return True
-
-    def delete_mpostal_image(postal):
-        image_path = postal.get("raw_image") if isinstance(postal, dict) else None
-        if not _is_mpostal_cache_path(image_path):
-            return False
-        try:
-            if os.path.exists(image_path):
-                os.remove(image_path)
-        except Exception as e:
-            store.mas_submod_utils.submod_log.error(
-                "MAICA: Failed to delete MPostal attachment cache: {}".format(e)
-            )
-            return False
-        return True
 
     def find_mail_files():
         """
@@ -686,7 +911,7 @@ init -700 python:
                         with open(letter_path, "w") as mp_failure_file:
                             mp_failure_file.write(store.maica_note_mail_bad.title + "\n\n" + store.maica_note_mail_bad.text)
 
-                    if not renpy.seen_label("maica_wants_mpostal"):
+                    if not store.maica_topic_ready("mpostal"):
                         failed = 'early'
 
                         store.maica_note_mail_bad = MASPoem(
@@ -746,18 +971,45 @@ init -700 python:
                 image_path = os.path.join(basedir, file_name_without_extension + '.mms')
                 image_file = None
                 if os.path.exists(image_path):
-                    # 将反斜杠转换为正斜杠，以兼容Ren'Py
-                    image_file = image_path.replace('\\', '/')
+                    try:
+                        image_file = store.maica.stage_mpostal_image(image_path)
+                    except Exception as e:
+                        store.mas_submod_utils.submod_log.error(
+                            "MAICA: Failed to stage MPostal attachment '{}': {}".format(
+                                image_path,
+                                e,
+                            )
+                        )
+                        continue
+
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    if image_file:
+                        try:
+                            store.maica._mpostal_attachment_store().restore(image_file, image_path)
+                        except Exception as restore_error:
+                            store.mas_submod_utils.submod_log.error(
+                                "MAICA: Failed to restore MPostal attachment '{}': {}".format(
+                                    image_path,
+                                    restore_error,
+                                )
+                            )
+                    store.mas_submod_utils.submod_log.error(
+                        "MAICA: Failed to remove accepted mail '{}': {}".format(
+                            file_path,
+                            e,
+                        )
+                    )
+                    continue
 
                 # 添加到邮件列表，使用dict格式
                 mail_files.append({
                     "title": file_name_without_extension,
                     "content": content,
-                    "image": image_file
+                    "image": image_file,
+                    "attachment_path": image_file,
                 })
-
-                # 删除邮件文件
-                os.remove(file_path)
 
         return mail_files
     def has_mail_waitsend():
@@ -822,3 +1074,9 @@ init 999 python:
         else:
             store.maica.maica_instance.modelconfig = {}
         persistent._maica_last_version = store.maica_ver
+
+    @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-25)
+    def maica_topic_state_startup_check():
+        # Run after the migration plugin and on every launch, including when the
+        # persistent version is already current.
+        store.maica_reconcile_topic_state(reason="startup")

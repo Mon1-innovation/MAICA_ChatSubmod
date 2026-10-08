@@ -23,6 +23,20 @@ API_SOURCE = (
     / "MAICA_ChatSubmod"
     / "api.rpy"
 ).read_text(encoding="utf-8")
+HEADER_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "header.rpy"
+).read_text(encoding="utf-8")
+VISTA_SCREEN_SOURCE = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "screen_subs_vista.rpy"
+).read_text(encoding="utf-8")
 HEAVEN_FOREST_SOURCE = (
     Path(__file__).resolve().parents[1]
     / "game"
@@ -58,6 +72,20 @@ INTERNAL_EVENTLABELS = (
     "maica_wants_location2",
     "maica_pre_wants_mvista",
     "maica_mspire",
+)
+
+DISPATCH_EVENTLABELS = (
+    "maica_prepend_1",
+    "maica_wants_location2",
+    "maica_wants_preferences2",
+    "maica_pre_wants_mvista",
+    "maica_chr2",
+    "maica_chr_gone",
+)
+GREETING_EVENTLABELS = (
+    "maica_greeting",
+    "maica_wants_mpostal",
+    "maica_chr_corrupted2",
 )
 
 
@@ -271,6 +299,26 @@ def test_chat_progression_uses_successful_entry_count():
     assert "mas_getEV('maica_main').shown_count" not in CHAT_SOURCE
 
 
+def test_one_shot_dispatch_events_are_not_random_and_guard_the_event_list():
+    for eventlabel in DISPATCH_EVENTLABELS:
+        registration = _registration_block(eventlabel)
+        assert "random=False" in registration
+        assert "not mas_inEVL('{}')".format(eventlabel) in registration
+
+    assert "random=True" not in _registration_block("maica_prepend_1")
+    for eventlabel in DISPATCH_EVENTLABELS:
+        assert "not mas_inEVL('{}')".format(eventlabel) in MIGRATION_SOURCE
+
+
+def test_mvista_unlock_is_derived_from_its_intro_seen_state():
+    assert "default persistent._maica_vista_enabled" not in API_SOURCE
+    assert "persistent._maica_vista_enabled" not in CHAT_SOURCE
+    assert "persistent._maica_vista_enabled" not in HEADER_SOURCE
+    assert "persistent._maica_vista_enabled" not in VISTA_SCREEN_SOURCE
+    assert HEADER_SOURCE.count('maica_topic_ready("mvista")') == 2
+    assert 'store.maica_topic_ready("mvista")' in VISTA_SCREEN_SOURCE
+
+
 def test_internal_events_are_explicitly_locked_out_of_talk_menus():
     for eventlabel in INTERNAL_EVENTLABELS:
         assert "unlocked=False" in _event_block(eventlabel)
@@ -313,7 +361,8 @@ def test_maica_greetings_use_the_mas_selection_contract():
     ):
         event = _registration_block(eventlabel)
         assert "unlocked=True" in event
-        assert "persistent._mas_greeting_type is None" in event
+        assert "maica_greeting_type_allows_override()" in event
+        assert "override_type=True" in event
         assert "not mas_isSpecialDay()" in event
         assert "not mas_isplayer_bday()" in event
         assert "action=EV_ACT_UNLOCK" not in event
@@ -326,10 +375,39 @@ def test_maica_greetings_use_the_mas_selection_contract():
 
     corruption = _registration_block("maica_chr_corrupted2")
     mpostal = _registration_block("maica_wants_mpostal")
-    assert "renpy.seen_label('maica_prepend_2')" in corruption
+    assert "maica_topic_main_ready()" in corruption
+    assert "renpy.seen_label('maica_prepend_2')" not in corruption
     compact_mpostal = _without_whitespace(mpostal)
     assert '"andnot(maica_chr_changed"' in compact_mpostal
     assert '"andnotrenpy.seen_label(\'maica_chr_corrupted2\'))"' in compact_mpostal
+
+
+def test_maica_greeting_type_override_skips_only_recovery_types():
+    start = CHAT_SOURCE.index("    def maica_greeting_type_allows_override")
+    end = CHAT_SOURCE.index("\n\n# Core conversation events", start)
+    source = textwrap.dedent(CHAT_SOURCE[start:end])
+
+    class PersistentStub(object):
+        _mas_greeting_type = None
+
+    class GreetingsStub(object):
+        TYPE_CRASHED = "generic_crash"
+        TYPE_RELOAD = "reload_dlg"
+
+    namespace = {
+        "persistent": PersistentStub(),
+        "store": type("StoreStub", (), {"mas_greetings": GreetingsStub})(),
+    }
+    exec(source, namespace)
+    allows_override = namespace["maica_greeting_type_allows_override"]
+
+    for greeting_type in (None, "sleep", "work", "school"):
+        namespace["persistent"]._mas_greeting_type = greeting_type
+        assert allows_override() is True
+
+    for greeting_type in ("generic_crash", "reload_dlg"):
+        namespace["persistent"]._mas_greeting_type = greeting_type
+        assert allows_override() is False
 
 
 def test_chat_side_branches_are_not_gated_by_chr2():
@@ -347,34 +425,37 @@ def test_chat_side_branches_are_not_gated_by_chr2():
 
 def test_every_reread_event_uses_its_source_topic():
     source_to_reread = {
-        "maica_prepend_2": "maica_prepend_reread",
-        "maica_wants_preferences2": "maica_wants_preferences_reread",
-        "maica_wants_location2": "maica_wants_location_reread",
-        "maica_wants_mspire": "maica_wants_mspire_reread",
-        "maica_wants_mpostal": "maica_wants_mpostal_reread",
-        "maica_pre_wants_mvista": "maica_wants_mvista_reread",
+        "location": "maica_wants_location_reread",
+        "preferences": "maica_wants_preferences_reread",
+        "mspire": "maica_wants_mspire_reread",
+        "mpostal": "maica_wants_mpostal_reread",
+        "mvista": "maica_wants_mvista_reread",
     }
     for source, reread in source_to_reread.items():
         block = _event_block(reread)
-        assert "renpy.seen_label('{}')".format(source) in block
+        assert "maica_topic_ready('{}')".format(source) in block
         assert "not renpy.seen_label('{}')".format(reread) in block
         assert "action=EV_ACT_UNLOCK" in block
 
+    heaven = _event_block("maica_prepend_reread")
+    assert "maica_topic_main_ready()" in heaven
+    assert "renpy.seen_label('maica_prepend_2')" not in heaven
+
     chr_reread = _event_block("maica_chr_reread")
+    assert "maica_topic_ready('character')" in chr_reread
     for source in ("maica_chr2", "maica_chr_gone", "maica_chr_corrupted2"):
-        assert "renpy.seen_label('{}')".format(source) in chr_reread
+        assert "renpy.seen_label('{}')".format(source) not in chr_reread
     assert "not renpy.seen_label('maica_chr_reread')" in chr_reread
     assert "action=EV_ACT_UNLOCK" in chr_reread
 
-    for reread in tuple(source_to_reread.values()) + ("maica_chr_reread",):
+    for reread in tuple(source_to_reread.values()) + (
+            "maica_prepend_reread", "maica_chr_reread"):
         assert 'eventlabel="{}"'.format(reread) in CHAT_SOURCE
 
 
 def test_mpostal_conditional_attribute_is_looked_up_by_name():
-    assert CHAT_SOURCE.count(
-        'getattr(mas_getEV("maica_wants_mpostal"), "conditional", False)'
-    ) == 2
-    assert 'getattr(mas_getEV("maica_wants_mpostal"), conditional,' not in CHAT_SOURCE
+    assert CHAT_SOURCE.count('maica_topic_ready("mpostal")') == 3
+    assert 'getattr(mas_getEV("maica_wants_mpostal"), "conditional", False)' not in CHAT_SOURCE
 
 
 def test_mspire_choices_and_dispatch_respect_the_registered_state():
@@ -479,8 +560,29 @@ def test_current_character_file_branch_uses_the_migrated_label():
     assert 'renpy.seen_label("maica_chr")' not in TL_CHAT_SOURCE
 
 
-def test_maica_events_do_not_carry_redundant_bookmark_rules():
-    assert "bookmark_rule" not in CHAT_SOURCE
+def test_user_facing_maica_topics_are_bookmark_whitelisted():
+    user_facing_eventlabels = (
+        "maica_main",
+        "maica_mods_location",
+        "maica_mods_preferences",
+        "maica_prepend_reread",
+        "maica_wants_location_reread",
+        "maica_wants_preferences_reread",
+        "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread",
+        "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+
+    for eventlabel in user_facing_eventlabels:
+        event = _event_block(eventlabel)
+        assert (
+            '"bookmark_rule": store.mas_bookmarks_derand.WHITELIST'
+            in event
+        )
+
+    for eventlabel in INTERNAL_EVENTLABELS + GREETING_EVENTLABELS:
+        assert "bookmark_rule" not in _event_block(eventlabel)
 
 
 def test_one_shot_and_reread_events_do_not_fall_through_to_other_topics():
@@ -501,7 +603,7 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '("1.8.10", migration_1_8_10)' in MIGRATION_SOURCE
     assert '("1.8.11", migration_1_8_11)' in MIGRATION_SOURCE
     assert '("1.8.12", migration_1_8_12)' in MIGRATION_SOURCE
-    assert "maica_ver = '1.8.12'" in API_SOURCE
+    assert '("1.8.13", migration_1_8_13)' in MIGRATION_SOURCE
     assert "maica_has_successful_chat()" in MIGRATION_SOURCE
     assert "persistent._maica_successful_chat_count" in MIGRATION_SOURCE
     assert 'getattr(main_ev, "shown_count", 0)' in MIGRATION_SOURCE
@@ -511,7 +613,10 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '"maica_wants_preferences": "maica_wants_preferences2"' in MIGRATION_SOURCE
     assert "ev.random = False" in MIGRATION_SOURCE
     assert "ev.action = None" in MIGRATION_SOURCE
-    assert "MASGreetingRule.create_rule(skip_visual=True)" in MIGRATION_SOURCE
+    assert "MASGreetingRule.create_rule(" in MIGRATION_SOURCE
+    assert "override_type=override_type" in MIGRATION_SOURCE
+    assert 'forced_exp="monika 3hubsa"' in MIGRATION_SOURCE
+    assert "override_type=True" in MIGRATION_SOURCE
     assert "MASPriorityRule.create_rule(priority)" in MIGRATION_SOURCE
     assert "mas_rebuildEventLists()" in MIGRATION_SOURCE
     assert 'renpy.seen_label("maica_prepend_2")' in MIGRATION_SOURCE
@@ -521,6 +626,773 @@ def test_chat_migration_repairs_legacy_seen_relationships():
     assert '"maica_set_location_reread": "maica_mods_location"' in MIGRATION_SOURCE
     assert 'mas_unlockEVL("maica_wants_location_reread", "EVE")' in MIGRATION_SOURCE
     assert "persistent.event_database.pop(old_label, None)" in MIGRATION_SOURCE
+    assert '("1.8.17", migration_1_8_17)' in MIGRATION_SOURCE
+
+
+def test_v1817_migration_and_startup_share_the_complete_topic_reconciler():
+    assert 'def maica_reconcile_topic_state(reason="startup", repair_contracts=False):' in MIGRATION_SOURCE
+    assert 'reason="migration_1_8_17"' in MIGRATION_SOURCE
+    assert 'maica_reconcile_topic_state(reason="startup")' in API_SOURCE
+    assert "_MAICA_SOURCE_DEFINITIONS" in MIGRATION_SOURCE
+    assert "_maica_topic_contract_specs" in MIGRATION_SOURCE
+    assert '("maica_main", "main_ready", "main_evidence"' in MIGRATION_SOURCE
+    assert '("maica_prepend_reread", "heaven_reread_ready", "heaven_reread_evidence"' in MIGRATION_SOURCE
+    assert '("maica_wants_location_reread", "location_seen", "location_evidence"' in MIGRATION_SOURCE
+    assert '("maica_chr_reread", "character_seen", "character_evidence"' in MIGRATION_SOURCE
+    assert 'fields["clear_unlock_date"] = not expected' in MIGRATION_SOURCE
+    assert "legacy_changed" in MIGRATION_SOURCE
+    assert "maica_topic_ready" in MIGRATION_SOURCE
+    assert "topic state corrected" in MIGRATION_SOURCE
+    assert "topic state check" in MIGRATION_SOURCE
+    assert '"maica_pre_set_location"' in MIGRATION_SOURCE
+    assert '"maica_set_location_reread"' in MIGRATION_SOURCE
+    assert '"maica_chr_corrupted"' in MIGRATION_SOURCE
+
+
+def _load_topic_reconciler(
+        events,
+        seen=(),
+        seen_ever=(),
+        successful_count=0,
+        aggregate=None,
+        db_map=None,
+    ):
+    start = MIGRATION_SOURCE.index("    _MAICA_UNSET = object()")
+    end = MIGRATION_SOURCE.index("\n    def migration_1_8_0()", start)
+    source = textwrap.dedent(MIGRATION_SOURCE[start:end])
+
+    class PersistentStub(object):
+        def __init__(self):
+            self._seen_ever = dict.fromkeys(seen_ever, True)
+            self._maica_vista_enabled = False
+            self.event_database = {}
+
+    class RenpyStub(object):
+        def __init__(self):
+            self.seen = set(seen)
+
+        def seen_label(self, eventlabel):
+            return eventlabel in self.seen
+
+    class LoggerStub(object):
+        def __init__(self):
+            self.messages = []
+
+        def debug(self, message):
+            self.messages.append(("debug", message))
+
+        def info(self, message):
+            self.messages.append(("info", message))
+
+        def warning(self, message):
+            self.messages.append(("warning", message))
+
+    class GreetingRuleStub(object):
+        @staticmethod
+        def create_rule(**kwargs):
+            return kwargs
+
+    class PriorityRuleStub(object):
+        @staticmethod
+        def create_rule(priority):
+            return {"priority": priority}
+
+    persistent = PersistentStub()
+    renpy = RenpyStub()
+    logger = LoggerStub()
+    store = type(
+        "StoreStub",
+        (),
+        {
+            "mas_submod_utils": type(
+                "SubmodUtilsStub",
+                (),
+                {"submod_log": logger},
+            )(),
+            "evhand": type("EventHandlerStub", (), {"event_database": {}})(),
+        },
+    )()
+    rebuild_calls = []
+    def get_event(eventlabel):
+        if aggregate is not None:
+            return aggregate.get(eventlabel, events.get(eventlabel))
+        return events.get(eventlabel)
+
+    namespace = {
+        "mas_getEV": get_event,
+        "mas_rebuildEventLists": lambda: rebuild_calls.append(True),
+        "maica_has_successful_chat": lambda: successful_count > 0,
+        "maica_get_successful_chat_count": lambda: successful_count,
+        "persistent": persistent,
+        "renpy": renpy,
+        "store": store,
+        "MASGreetingRule": GreetingRuleStub,
+        "MASPriorityRule": PriorityRuleStub,
+        "maica_chr_exist": True,
+        "maica_chr_changed": False,
+    }
+    if aggregate is not None:
+        namespace["mas_all_ev_db"] = aggregate
+    if db_map is not None:
+        namespace["mas_all_ev_db_map"] = db_map
+    exec(source, namespace)
+    return namespace, persistent, renpy, logger, rebuild_calls
+
+
+def test_dispatch_contracts_block_repeat_actions_after_startup_repair():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    events = {eventlabel: EventStub() for eventlabel in DISPATCH_EVENTLABELS}
+    namespace, persistent, renpy, _, _ = _load_topic_reconciler(events)
+
+    namespace["maica_reconcile_topic_state"](reason="dispatch-runtime")
+    persistent.event_list = []
+
+    def in_event_list(eventlabel):
+        return any(
+            (item[0] if isinstance(item, (tuple, list)) else item) == eventlabel
+            for item in persistent.event_list
+        )
+
+    runtime_globals = dict(namespace)
+    runtime_globals.update({
+        "maica_topic_main_ready": lambda: True,
+        "maica_has_successful_chat": lambda: True,
+        "maica_get_successful_chat_count": lambda: 10,
+        "maica_chr_exist": False,
+        "mas_inEVL": in_event_list,
+        "renpy": renpy,
+    })
+
+    # MAS random selection does not consult a conditional or action. None of
+    # these one-shot dispatchers may therefore remain a random candidate.
+    assert [
+        eventlabel
+        for eventlabel, event in events.items()
+        if event.random
+    ] == []
+
+    for eventlabel in DISPATCH_EVENTLABELS:
+        event = events[eventlabel]
+        assert eval(event.conditional, runtime_globals) is True
+
+        if event.action == "queue":
+            persistent.event_list.insert(0, (eventlabel, False, None))
+        else:
+            assert event.action == "push"
+            persistent.event_list.append((eventlabel, False, None))
+
+        # On a later startup the reconciler restores action/conditional. The
+        # EVL guard must still prevent MAS from dispatching a second copy.
+        assert eval(event.conditional, runtime_globals) is False
+        persistent.event_list[:] = []
+
+
+def test_dispatch_queue_cleanup_preserves_interrupted_event_and_drops_completed_entries():
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.unlocked = False
+            self.shown_count = shown_count
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = None
+            self.action = None
+            self.rules = {}
+
+    events = {eventlabel: EventStub() for eventlabel in DISPATCH_EVENTLABELS}
+    events["maica_wants_preferences2"].shown_count = 1
+    namespace, persistent, _, logger, _ = _load_topic_reconciler(
+        events,
+        seen=("maica_prepend_1", "maica_wants_preferences2"),
+    )
+    persistent.current_monikatopic = "maica_prepend_1"
+    persistent.event_list = [
+        ("maica_prepend_1", False, "older-copy"),
+        ("keep", False, None),
+        ["maica_prepend_1", False, "restart-copy"],
+        "maica_wants_preferences2",
+        ("continue_event", False, None),
+    ]
+
+    result = namespace["maica_reconcile_topic_state"](reason="queue-cleanup")
+
+    # seen_label alone is not completion evidence: a label becomes seen as soon
+    # as it starts. Keep the highest-priority copy while shown_count is zero.
+    assert persistent.event_list == [
+        ("keep", False, None),
+        ["maica_prepend_1", False, "restart-copy"],
+        ("continue_event", False, None),
+    ]
+    assert persistent.current_monikatopic == "maica_prepend_1"
+    assert result["queue_changed"] is True
+    assert result["queue_removed"] == 2
+    assert any(
+        level == "warning" and "dispatch queue normalized" in message
+        for level, message in logger.messages
+    )
+
+
+def test_dispatch_diagnostics_include_scheduler_state_and_survive_bad_condition():
+    class EventStub(object):
+        def __init__(self, eventlabel):
+            self.eventlabel = eventlabel
+            self.unlocked = False
+            self.shown_count = 0
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = "True"
+            self.action = "queue"
+            self.rules = {}
+
+        def checkConditional(self):
+            if self.eventlabel == "maica_chr2":
+                raise ValueError("bad condition")
+            return True
+
+        def checkAffection(self, affection):
+            return affection == 42
+
+    events = {
+        eventlabel: EventStub(eventlabel)
+        for eventlabel in DISPATCH_EVENTLABELS
+    }
+    namespace, persistent, renpy, logger, _ = _load_topic_reconciler(
+        events,
+        successful_count=4,
+    )
+    renpy.has_label = lambda unused_label: True
+    persistent.event_list = [("maica_prepend_1", False, None)]
+    persistent.current_monikatopic = "maica_chr2"
+    namespace["store"].mas_globals = type(
+        "GlobalsStub",
+        (),
+        {"in_idle_mode": False, "event_unpause_dt": "pause-marker"},
+    )()
+    namespace["mas_curr_affection"] = 42
+
+    namespace["_maica_log_dispatch_diagnostics"]("diagnostic-test")
+
+    info_messages = [
+        message for level, message in logger.messages if level == "info"
+    ]
+    debug_messages = [
+        message for level, message in logger.messages if level == "debug"
+    ]
+    assert any(
+        "queue_total=1" in message
+        and "pause_until='pause-marker'" in message
+        and "affection=42" in message
+        and "successful_chats=4" in message
+        for message in info_messages
+    )
+    assert len(debug_messages) == len(DISPATCH_EVENTLABELS)
+    for field in (
+            "seen_label=", "seen_ever=", "shown_count=", "unlocked=",
+            "random=", "pool=", "action=", "conditional=",
+            "condition_result=", "affection_ok=", "queue_positions=",
+            "current=",
+        ):
+        assert all(field in message for message in debug_messages)
+    assert any(
+        "label=maica_chr2" in message
+        and "error:ValueError:bad condition" in message
+        for message in debug_messages
+    )
+
+
+def _greeting_diagnostics_fixture(
+        condition_results=None,
+        affection_results=None,
+        successful_count=4,
+    ):
+    condition_results = condition_results or {}
+    affection_results = affection_results or {}
+
+    class EventStub(object):
+        def __init__(self, eventlabel):
+            self.eventlabel = eventlabel
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = "True"
+            self.action = None
+            self.rules = {"priority": 20}
+            self.category = None
+            self.aff_range = (0, None)
+
+        def checkConditional(self):
+            result = condition_results.get(self.eventlabel, True)
+            if isinstance(result, Exception):
+                raise result
+            return result
+
+        def checkAffection(self, unused_affection):
+            return affection_results.get(self.eventlabel, True)
+
+    events = {
+        eventlabel: EventStub(eventlabel)
+        for eventlabel in DISPATCH_EVENTLABELS + GREETING_EVENTLABELS
+    }
+    namespace, persistent, renpy, logger, _ = _load_topic_reconciler(
+        events,
+        successful_count=successful_count,
+    )
+    renpy.has_label = lambda unused_label: True
+    persistent.event_list = [
+        ("maica_greeting", False, None),
+        ("maica_prepend_1", False, None),
+    ]
+    persistent.current_monikatopic = "maica_greeting"
+    persistent._mas_greeting_type = None
+    persistent._mas_greeting_type_timeout = None
+    persistent._mas_forcegreeting = None
+    namespace["mas_curr_affection"] = 42
+    namespace["maica_topic_main_ready"] = lambda: True
+    namespace["mas_isSpecialDay"] = lambda: False
+    namespace["mas_isplayer_bday"] = lambda: False
+    namespace["mas_isMoniAff"] = lambda higher=False: higher
+    namespace["mas_isMoniNormal"] = lambda higher=False: higher
+    namespace["maica_chr_changed"] = False
+    namespace["selected_greeting"] = "maica_greeting"
+    namespace["store"].evhand.greeting_database = {
+        eventlabel: events[eventlabel]
+        for eventlabel in GREETING_EVENTLABELS
+    }
+    return namespace, logger
+
+
+def test_greeting_diagnostics_report_each_candidate_and_condition_breakdown():
+    namespace, logger = _greeting_diagnostics_fixture()
+
+    namespace["_maica_log_greeting_diagnostics"]("greeting-test")
+
+    debug_messages = [
+        message for level, message in logger.messages if level == "debug"
+    ]
+    event_messages = [
+        message for message in debug_messages if "greeting event" in message
+    ]
+    condition_messages = [
+        message for message in debug_messages if " condition:" in message
+    ]
+    assert len(event_messages) == len(GREETING_EVENTLABELS)
+    assert len(condition_messages) == len(GREETING_EVENTLABELS)
+    for eventlabel in GREETING_EVENTLABELS:
+        assert any(
+            "label={}".format(eventlabel) in message
+            and "condition_result=True" in message
+            and "affection_ok=True" in message
+            for message in event_messages
+        )
+        assert any(
+            "{} condition:".format(eventlabel) in message
+            and "total condition=True" in message
+            and "condition_result=True" in message
+            for message in condition_messages
+        )
+    assert any(
+        "label=maica_greeting" in message and "selected=True" in message
+        for message in event_messages
+    )
+
+
+def test_greeting_diagnostics_include_affection_in_total_condition():
+    namespace, logger = _greeting_diagnostics_fixture(
+        affection_results=dict.fromkeys(GREETING_EVENTLABELS, False),
+    )
+
+    namespace["_maica_log_greeting_diagnostics"]("affection-test")
+
+    condition_messages = [
+        message
+        for level, message in logger.messages
+        if level == "debug" and " condition:" in message
+    ]
+    assert len(condition_messages) == len(GREETING_EVENTLABELS)
+    assert all(
+        "affection threshold=False" in message
+        and "total condition=False" in message
+        and "condition_result=False" in message
+        for message in condition_messages
+    )
+
+
+def test_greeting_diagnostics_fall_back_to_named_affection_checks():
+    namespace, logger = _greeting_diagnostics_fixture()
+    for event in namespace["store"].evhand.greeting_database.values():
+        event.checkAffection = None
+    namespace["mas_isMoniAff"] = lambda higher=False: False
+    namespace["mas_isMoniNormal"] = lambda higher=False: higher
+
+    namespace["_maica_log_greeting_diagnostics"]("affection-fallback-test")
+
+    condition_messages = {
+        eventlabel: next(
+            message
+            for level, message in logger.messages
+            if level == "debug"
+            and "{} condition:".format(eventlabel) in message
+        )
+        for eventlabel in GREETING_EVENTLABELS
+    }
+    for eventlabel in ("maica_greeting", "maica_wants_mpostal"):
+        assert "affection threshold=False" in condition_messages[eventlabel]
+        assert "total condition=False" in condition_messages[eventlabel]
+    assert "affection threshold=True" in condition_messages["maica_chr_corrupted2"]
+    assert "total condition=True" in condition_messages["maica_chr_corrupted2"]
+
+
+def test_greeting_diagnostics_isolate_condition_checker_errors():
+    namespace, logger = _greeting_diagnostics_fixture(
+        condition_results={
+            "maica_wants_mpostal": ValueError("bad greeting condition"),
+        },
+    )
+
+    namespace["_maica_log_greeting_diagnostics"]("error-test")
+
+    event_messages = [
+        message
+        for level, message in logger.messages
+        if level == "debug" and "greeting event" in message
+    ]
+    condition_messages = [
+        message
+        for level, message in logger.messages
+        if level == "debug" and " condition:" in message
+    ]
+    assert len(event_messages) == len(GREETING_EVENTLABELS)
+    assert len(condition_messages) == len(GREETING_EVENTLABELS)
+    assert any(
+        "label=maica_wants_mpostal" in message
+        and "error:ValueError:bad greeting condition" in message
+        for message in event_messages
+    )
+
+
+def test_topic_reconciler_enforces_one_way_gate_and_restores_later_progression():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    namespace, _, renpy, logger, rebuild_calls = _load_topic_reconciler(events)
+
+    result = namespace["maica_reconcile_topic_state"](reason="test")
+
+    assert events["maica_main"].unlocked is False
+    assert events["maica_wants_location_reread"].unlocked is False
+    assert events["maica_chr_reread"].unlocked is False
+    assert events["maica_prepend_reread"].unlocked is False
+    assert events["maica_greeting"].unlocked is True
+    assert result["progress"]["main_evidence"] == "not-seen"
+    assert result["changed"] is True
+    assert any(level == "warning" for level, _ in logger.messages)
+
+    # Downstream history is retained as evidence, but it cannot promote the
+    # main gate or any child unlock while the Heaven Forest flow is absent.
+    renpy.seen.update(("maica_wants_location2", "maica_chr2"))
+    result = namespace["maica_reconcile_topic_state"](reason="test-later")
+
+    assert events["maica_main"].unlocked is False
+    assert events["maica_prepend_reread"].unlocked is False
+    assert events["maica_mods_location"].unlocked is False
+    assert events["maica_wants_location_reread"].unlocked is False
+    assert events["maica_chr_reread"].unlocked is False
+    assert result["progress"]["main_evidence"] == "not-seen"
+    assert result["progress"]["location_evidence"].startswith("blocked-by:main")
+    assert result["progress"]["character_evidence"].startswith("blocked-by:main")
+    assert any("evidence=" in message for level, message in logger.messages if level == "info")
+    assert rebuild_calls
+
+    # Once the main history appears, the earlier source evidence can restore
+    # the children. The Heaven Forest reread follows the main gate even when
+    # its own intro label is absent from the old save.
+    renpy.seen.add("maica_main")
+    result = namespace["maica_reconcile_topic_state"](reason="test-main-only")
+    assert events["maica_main"].unlocked is True
+    assert events["maica_prepend_reread"].unlocked is True
+    assert events["maica_mods_location"].unlocked is True
+    assert events["maica_wants_location_reread"].unlocked is True
+    assert events["maica_chr_reread"].unlocked is True
+    assert result["progress"]["heaven_reread_evidence"].startswith("implied-by:maica_main")
+
+    rebuild_count = len(rebuild_calls)
+    repeat = namespace["maica_reconcile_topic_state"](reason="test-repeat")
+    assert repeat["changed"] is False
+    assert len(rebuild_calls) == rebuild_count
+
+
+def test_topic_reconciler_does_not_use_stale_main_unlock_as_evidence():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = True
+            self.shown_count = 0
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    namespace, _, _, _, _ = _load_topic_reconciler(events)
+
+    result = namespace["maica_reconcile_topic_state"](reason="stale-main")
+
+    assert result["progress"]["main_evidence"] == "not-seen"
+    assert events["maica_main"].unlocked is False
+    assert events["maica_prepend_reread"].unlocked is False
+
+
+def test_topic_progress_reads_legacy_tuple_shown_count_as_source_evidence():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = False
+            self.shown_count = 0
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = None
+            self.action = None
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    # MAS persistent Event rows store shown_count at tuple index 12.
+    legacy_row = [None] * 13
+    legacy_row[0] = "maica_pre_set_location"
+    legacy_row[12] = 1
+    events["maica_pre_set_location"] = legacy_row
+    namespace, persistent, _, _, _ = _load_topic_reconciler(
+        events,
+        seen=("maica_prepend_2",),
+    )
+
+    progress = namespace["maica_get_topic_progress"]()
+
+    assert progress["main_ready"] is True
+    assert progress["location_seen"] is True
+    assert progress["location_evidence"] == "shown_count:maica_pre_set_location"
+    assert persistent._seen_ever["maica_wants_location2"] is True
+
+
+def test_v1817_migration_cleans_legacy_records_and_rebuilds_once():
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.unlocked = True
+            self.shown_count = shown_count
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    namespace, persistent, _, _, rebuild_calls = _load_topic_reconciler(
+        events,
+        seen=("maica_prepend_2",),
+    )
+    legacy_event = EventStub(shown_count=1)
+    persistent.event_database["maica_pre_set_location"] = legacy_event
+    namespace["store"].evhand.event_database["maica_chr"] = EventStub(shown_count=1)
+
+    namespace["migration_1_8_17"]()
+
+    assert "maica_pre_set_location" not in persistent.event_database
+    assert "maica_chr" not in namespace["store"].evhand.event_database
+    assert persistent._seen_ever["maica_wants_location2"] is True
+    assert persistent._seen_ever["maica_chr2"] is True
+    assert events["maica_mods_location"].unlocked is True
+    assert events["maica_chr_reread"].unlocked is True
+    assert len(rebuild_calls) == 1
+
+
+def test_v1817_cleanup_refreshes_mas_aggregate_after_eve_label_removal():
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.unlocked = True
+            self.shown_count = shown_count
+            self.unlock_date = "legacy"
+            self.pool = True
+            self.random = True
+            self.conditional = "legacy"
+            self.action = "legacy"
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    aggregate = dict(events)
+    db_map = {"EVE": {}, "GRE": {}}
+    namespace, persistent, _, logger, rebuild_calls = _load_topic_reconciler(
+        events,
+        seen=("maica_prepend_2",),
+        aggregate=aggregate,
+        db_map=db_map,
+    )
+
+    eve_db = namespace["store"].evhand.event_database
+    db_map["EVE"] = eve_db
+    old_location = EventStub(shown_count=1)
+    old_eve_corrupted = EventStub(shown_count=1)
+    current_greeting = EventStub()
+    persistent.event_database["maica_pre_set_location"] = old_location
+    eve_db["maica_pre_set_location"] = old_location
+    eve_db["maica_chr_corrupted2"] = old_eve_corrupted
+    db_map["GRE"]["maica_chr_corrupted2"] = current_greeting
+    aggregate["maica_pre_set_location"] = old_location
+    aggregate["maica_chr_corrupted2"] = old_eve_corrupted
+
+    namespace["migration_1_8_17"]()
+
+    assert "maica_pre_set_location" not in aggregate
+    assert aggregate["maica_chr_corrupted2"] is current_greeting
+    assert "maica_pre_set_location" not in eve_db
+    assert "maica_chr_corrupted2" not in eve_db
+    assert len(rebuild_calls) == 1
+    assert any(
+        level == "info" and "legacy topic records normalized" in message
+        for level, message in logger.messages
+    )
+
+    # A second audit must not read a detached Event left in the old snapshot.
+    result = namespace["maica_reconcile_topic_state"](reason="aggregate-repeat")
+    assert result["changed"] is False
+
+
+def test_v1817_cleanup_migrates_legacy_queue_and_topic_references():
+    class EventStub(object):
+        def __init__(self):
+            self.unlocked = False
+            self.shown_count = 0
+            self.unlock_date = None
+            self.pool = False
+            self.random = False
+            self.conditional = None
+            self.action = None
+            self.rules = {}
+
+    labels = (
+        "maica_prepend_1", "maica_greeting", "maica_main",
+        "maica_wants_location2", "maica_mods_location",
+        "maica_wants_preferences2", "maica_mods_preferences",
+        "maica_wants_mspire", "maica_wants_mpostal",
+        "maica_pre_wants_mvista", "maica_chr_corrupted2",
+        "maica_chr_gone", "maica_chr2", "maica_mspire",
+        "maica_mpostal_received", "maica_mpostal_replyed",
+        "maica_prepend_reread", "maica_wants_location_reread",
+        "maica_wants_preferences_reread", "maica_wants_mspire_reread",
+        "maica_wants_mpostal_reread", "maica_wants_mvista_reread",
+        "maica_chr_reread",
+    )
+    events = {label: EventStub() for label in labels}
+    namespace, persistent, _, _, _ = _load_topic_reconciler(
+        events,
+        seen=("maica_prepend_2",),
+    )
+    persistent.event_list = [
+        ("maica_pre_set_location", False, None),
+        "maica_chr",
+        ("keep", False, None),
+    ]
+    persistent._mas_player_bookmarked = ["maica_set_location_reread", "keep"]
+    persistent._mas_player_derandomed = ["maica_wants_preferences", "keep"]
+    persistent.flagged_monikatopic = "maica_chr"
+
+    namespace["migration_1_8_17"]()
+
+    assert persistent.event_list == [
+        ("maica_wants_location2", False, None),
+        "maica_chr2",
+        ("keep", False, None),
+    ]
+    assert persistent._mas_player_bookmarked == ["maica_mods_location", "keep"]
+    assert persistent._mas_player_derandomed == ["maica_wants_preferences2", "keep"]
+    assert persistent.flagged_monikatopic == "maica_chr2"
 
 
 def test_latest_migration_repairs_internal_and_mvista_reread_state():
@@ -600,6 +1472,49 @@ def test_latest_migration_repairs_persistent_event_objects_at_runtime():
     assert len(rebuild_calls) == 3
 
 
+def test_mvista_seen_migration_preserves_legacy_unlock_state():
+    start = MIGRATION_SOURCE.index("    def migration_1_8_13():")
+    end = MIGRATION_SOURCE.index("\n    migration_queue =", start)
+    migration = textwrap.dedent(MIGRATION_SOURCE[start:end])
+
+    class EventStub(object):
+        def __init__(self, shown_count=0):
+            self.shown_count = shown_count
+            self.unlocked = False
+
+    class PersistentStub(object):
+        def __init__(self):
+            self._maica_vista_enabled = True
+            self._seen_ever = {}
+
+    class RenpyStub(object):
+        def __init__(self):
+            self.seen = set()
+
+        def seen_label(self, eventlabel):
+            return eventlabel in self.seen
+
+    events = {
+        "maica_pre_wants_mvista": EventStub(),
+        "maica_wants_mvista_reread": EventStub(),
+    }
+    persistent = PersistentStub()
+    rebuild_calls = []
+    namespace = {
+        "mas_getEV": events.get,
+        "mas_rebuildEventLists": lambda: rebuild_calls.append(True),
+        "persistent": persistent,
+        "renpy": RenpyStub(),
+    }
+    exec(migration, namespace)
+
+    namespace["migration_1_8_13"]()
+
+    assert persistent._seen_ever["maica_pre_wants_mvista"] is True
+    assert events["maica_wants_mvista_reread"].unlocked is True
+    assert rebuild_calls == [True]
+
+
 def test_greeting_retries_until_the_post_door_flow_starts():
     greeting = _registration_block("maica_greeting")
     gone = _event_block("maica_chr_gone")
@@ -607,7 +1522,8 @@ def test_greeting_retries_until_the_post_door_flow_starts():
 
     assert "not renpy.seen_label('maica_prepend_2')" in greeting
     assert "not renpy.seen_label('maica_greeting')" not in greeting
-    assert "renpy.seen_label('maica_prepend_2')" in gone
+    assert "maica_topic_main_ready()" in gone
+    assert "renpy.seen_label('maica_prepend_2')" not in gone
     assert "if mas_isplayer_bday():" in label
     assert "jump i_greeting_monikaroom" in label
     assert "call monikaroom_greeting_cleanup" in _label_block("maica_prepend_2")
@@ -670,7 +1586,16 @@ def test_current_greeting_contract_is_applied_before_mas_selects_one():
         assert "{}.rules.update({})".format(event_var, rules_var) in registration
 
     assert 'mpostal_ev = mas_getEV("maica_wants_mpostal")' in MIGRATION_SOURCE
-    assert 'MASGreetingRule.create_rule(forced_exp="monika 3hubsa")' in MIGRATION_SOURCE
+    mpostal_migration_start = MIGRATION_SOURCE.index(
+        'mpostal_ev = mas_getEV("maica_wants_mpostal")'
+    )
+    mpostal_migration_end = MIGRATION_SOURCE.index(
+        "mas_rebuildEventLists()",
+        mpostal_migration_start,
+    )
+    mpostal_migration = MIGRATION_SOURCE[mpostal_migration_start:mpostal_migration_end]
+    assert 'forced_exp="monika 3hubsa"' in mpostal_migration
+    assert "override_type=True" in mpostal_migration
 
 
 def test_heaven_forest_round_trip_preserves_the_mas_room_state():

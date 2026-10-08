@@ -120,10 +120,10 @@ screen maica_log():
         use maica_common_inner_frame():
             style_prefix "console_font"
 
-            use divider_small(maica_log.get("title"))
+            use divider_small(maica_escape_display_text(maica_log.get("title")))
 
-            for content in maica_log.get("content"):
-                text content.replace("[", "[[").replace("{", "{{").replace("【", "【【"):
+            for content in maica_log.get("content") or []:
+                text maica_escape_display_text(content):
                     size 18
                 use divider_plain_small()
         hbox:
@@ -137,6 +137,10 @@ screen maica_tz_setting():
         store.timezone_dict = store.maica_timezone_dict
         store.timezone_list = sorted(list(store.timezone_dict.keys()))
         current_tz = store.maica_get_system_timezone()
+        language_tz = store.maica_get_language_default_timezone(
+            persistent.maica_setting_dict.get("target_lang")
+        )
+        selected_tz = persistent.maica_setting_dict.get("tz")
 
     modal True
     zorder 92
@@ -148,28 +152,34 @@ screen maica_tz_setting():
             text _("{size=-10}If your timezone is not listed here, decide by your local UTC timezone.")
 
             hbox:
-                style_prefix "maica_check"
                 textbutton _("Language default"):
-                    action [
-                        SetDict(persistent.maica_setting_dict, "tz", 'Asia/Shanghai' if store.maica.maica_instance.target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn else 'America/Indiana/Vincennes'),
-                        SetField(persistent, "_maica_tz_mode", "manual")
-                    ]
+                    action Function(
+                        store.maica_select_timezone,
+                        language_tz,
+                        "language"
+                    )
+                    selected persistent._maica_tz_mode == "language"
 
             hbox:
-                style_prefix "maica_check"
                 textbutton _("System default"):
-                    action [
-                        SetDict(persistent.maica_setting_dict, "tz", current_tz),
-                        SetField(persistent, "_maica_tz_mode", "system")
-                    ]
+                    action Function(
+                        store.maica_select_timezone,
+                        current_tz,
+                        "system"
+                    )
+                    selected persistent._maica_tz_mode == "system"
+
+            use divider_plain_small()
 
             for item in timezone_list:
                 hbox:
                     textbutton "UTC" + "{}".format("+" if item >= 0 else "") + str(item) + "|" + timezone_dict[item]:
-                        action [
-                            SetDict(persistent.maica_setting_dict, "tz", timezone_dict[item]),
-                            SetField(persistent, "_maica_tz_mode", "manual")
-                        ]
+                        action Function(
+                            store.maica_select_timezone,
+                            timezone_dict[item],
+                            "manual"
+                        )
+                        selected selected_tz == timezone_dict[item]
         hbox:
             xpos 10
             style_prefix "confirm"
@@ -188,7 +198,7 @@ screen maica_advance_setting():
             style_prefix "generic_fancy_check"
             hbox:
                 style_prefix "maica_check"
-                text _("For detailed explainations of these params, refer to "):
+                text _("For detailed explanations of these params, refer to "):
                     size 20
                 textbutton _("{u}MAICA official documents{/u}"):
                     action OpenURL("https://github.com/Mon1-innovation/MAICA/blob/main/document/API%20Documents.md")
@@ -283,9 +293,19 @@ screen maica_advance_setting():
                         action ToggleDict(persistent.maica_advanced_setting, "prompt_pname_repl")
             hbox:
                 spacing 5
+                textbutton "prompt_monika_nickname":
+                    action ToggleDict(persistent.maica_advanced_setting_status, "prompt_monika_nickname")
+                    hovered SetField(_tooltip, "value", _("Add Monika's nickname to prompts.\n+ Gives the model a concrete understanding of its own nickname, even if it may be completely unrelated to Monika\n- Increases the risk of inconsistent or confused behavior"))
+                    unhovered SetField(_tooltip, "value", _tooltip.default)
+                    selected persistent.maica_advanced_setting_status.get('prompt_monika_nickname')
+                if persistent.maica_advanced_setting_status.get("prompt_monika_nickname", False):
+                    textbutton "[persistent.maica_advanced_setting.get('prompt_monika_nickname', False)]":
+                        action ToggleDict(persistent.maica_advanced_setting, "prompt_monika_nickname")
+            hbox:
+                spacing 5
                 textbutton "prompt_allow_nickname":
                     action ToggleDict(persistent.maica_advanced_setting_status, "prompt_allow_nickname")
-                    hovered SetField(_tooltip, "value", _("Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May cause unexpected issues"))
+                    hovered SetField(_tooltip, "value", _("Experimental: allow model to generate [[player_nickname] placeholder in prompts.\n+ Fits MAS-style better\n- Requires additional frontend handling\n- May affect behavior slightly"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('prompt_allow_nickname')
                 if persistent.maica_advanced_setting_status.get("prompt_allow_nickname", False):
@@ -419,7 +439,7 @@ screen maica_advance_setting():
                 spacing 5
                 textbutton "gen_enforce_lang":
                     action ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang")
-                    hovered SetField(_tooltip, "value", _("Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues"))
+                    hovered SetField(_tooltip, "value", _("Experimental: enforce the target output language through LLM guided decoding (guided_regex).\n* At the time of writing, this is only effective for target language en\n* Regex guidance support varies by decoding backend and may fail or behave incorrectly\n* Enabling this may affect model behavior or cause other unexpected issues\n- Temporarily withdrawn since backend v1.3.004.rc2 due to incompatibility with vLLM's default decoding backend (xgrammar)"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
                     selected persistent.maica_advanced_setting_status.get('gen_enforce_lang')
                 if persistent.maica_advanced_setting_status.get("gen_enforce_lang", False):
@@ -449,29 +469,49 @@ screen maica_advance_setting():
 
 
 screen maica_select_language():
+    $ current_target_lang = persistent.maica_setting_dict.get("target_lang")
+    $ default_target_lang = store.maica_get_default_target_lang()
+
     modal True
     zorder 92
 
-    use maica_setter_small_frame(ok_action=Hide("maica_select_language")):
+    use maica_setter_medium_frame(ok_action=Hide("maica_select_language")):
         style_prefix "generic_fancy_check"
         hbox:
+            textbutton _("Game language default"):
+                action Function(
+                    store.maica_select_target_lang,
+                    default_target_lang,
+                    "renpy"
+                )
+                selected persistent._maica_target_lang_mode == "renpy"
+
+        use divider_plain_small()
+
+        hbox:
             textbutton _("zh | Chinese simplified"):
-                action [
-                    SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.zh_cn),
-                    SetField(persistent, "_maica_target_lang_mode", "manual")
-                ]
+                action Function(
+                    store.maica_select_target_lang,
+                    store.maica.maica_instance.MaicaAiLang.zh_cn,
+                    "manual"
+                )
+                selected current_target_lang == store.maica.maica_instance.MaicaAiLang.zh_cn
         hbox:
             textbutton _("en | English"):
-                action [
-                    SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.en),
-                    SetField(persistent, "_maica_target_lang_mode", "manual")
-                ]
+                action Function(
+                    store.maica_select_target_lang,
+                    store.maica.maica_instance.MaicaAiLang.en,
+                    "manual"
+                )
+                selected current_target_lang == store.maica.maica_instance.MaicaAiLang.en
         hbox:
             textbutton _("auto | Auto"):
-                action [
-                    SetDict(persistent.maica_setting_dict, "target_lang", store.maica.maica_instance.MaicaAiLang.auto),
-                    SetField(persistent, "_maica_target_lang_mode", "manual")
-                ]
+                action Function(
+                    store.maica_select_target_lang,
+                    store.maica.maica_instance.MaicaAiLang.auto,
+                    "manual"
+                )
+                selected current_target_lang == store.maica.maica_instance.MaicaAiLang.auto
 
 
 screen maica_select_preset(preset_type):
@@ -519,7 +559,7 @@ screen maica_login():
                     action Show("maica_login_input",message = _("Enter DCC account username{#maica_login_prompt}") ,returnto = "_maica_LoginAcc")
 
         hbox:
-            style_prefix "maica_check"
+            style_prefix "small_expl"
             if use_email:
                 textbutton _("> Use username instead"):
                     text_size 15
@@ -681,7 +721,7 @@ screen maica_location_input(addition="", edittarget=None):
                 coordinate_text = renpy.substitute(_("Latitude: {0}\nLongitude: {1}")).format(latitude, longitude)
                 renpy.show_screen("maica_message", message=renpy.substitute(_("Verification passed")) + "\n" + coordinate_text)
             else:
-                reason = res.get("exception") or renpy.substitute(_("Coordinates unavailable"))
+                reason = u"{}".format(res.get("exception") or renpy.substitute(_("Coordinates unavailable")))
                 renpy.show_screen("maica_message", message=renpy.substitute(_("Verification failed")) + "\n" + renpy.substitute(_("Reason: ")) + reason)
 
 
@@ -714,6 +754,8 @@ screen maica_addition_setting():
             for index, item in enumerate(additions):
                 hbox:
                     textbutton maica_escape_display_text(item):
+                        yminimum 36
+                        ymaximum None
                         action ToggleSetMembership(selected_indices, index)
 
         hbox:
@@ -752,6 +794,8 @@ screen maica_mspire_category_setting():
             for index, item in enumerate(categories):
                 hbox:
                     textbutton maica_escape_display_text(item):
+                        yminimum 36
+                        ymaximum None
                         action ToggleSetMembership(selected_indices, index)
 
         hbox:
@@ -780,6 +824,12 @@ screen maica_mspire_category_setting():
 screen maica_node_setting():
     $ _tooltip = store._tooltip
     python:
+        ai = store.maica.maica_instance
+        provider_refresh_busy = (
+            ai.is_provider_refreshing()
+            or ai.is_checking_availability()
+        )
+
         def set_provider(id):
             persistent.maica_setting_dict["provider_id"] = id
 
@@ -789,15 +839,15 @@ screen maica_node_setting():
     use maica_common_outer_frame():
         use maica_common_inner_frame():
 
-            for provider in store.maica.maica_instance.provider_manager._servers:
+            for provider in ai.provider_manager.get_servers():
                 use maica_l2_subframe():
-                    text str(provider.get('id')) + ' | ' + provider.get('name')
+                    text maica_escape_display_text(provider.get('id')) + ' | ' + maica_escape_display_text(provider.get('name'))
 
 
                     hbox:
-                        text renpy.substitute(_("Intro: ")) + provider.get('description', 'Device not provided')
+                        text renpy.substitute(_("Intro: ")) + maica_escape_display_text(provider.get('description', 'Device not provided'))
                     hbox:
-                        text renpy.substitute(_("Model: ")) + provider.get('servingModel', 'No model provided')
+                        text renpy.substitute(_("Model: ")) + maica_escape_display_text(provider.get('servingModel', 'No model provided'))
 
 
                 hbox:
@@ -812,8 +862,8 @@ screen maica_node_setting():
                             selected persistent.maica_setting_dict["provider_id"] == provider.get('id')
                     hbox:
                         style_prefix "maica_check"
-                        textbutton renpy.substitute(_("> Go to portal page")) + "(" + provider.get('portalPage') + ")":
-                            action OpenURL(provider.get('portalPage'))
+                        textbutton renpy.substitute(_("> Go to portal page")) + "(" + maica_escape_display_text(provider.get('portalPage')) + ")":
+                            action OpenURL(provider.get('portalPage') or "")
 
                     if provider.get("isOfficial", False):
                         hbox:
@@ -824,13 +874,15 @@ screen maica_node_setting():
             xpos 10
             style_prefix "confirm"
             textbutton _("Refresh servers list"):
-                action Function(store.maica.maica_instance.provider_manager.get_provider)
+                action Function(maica_start_provider_task, store.maica.refresh_provider_list)
+                sensitive not provider_refresh_busy
 
             textbutton _("Close{#maica_host_close}"):
                 action Hide("maica_node_setting")
 
             textbutton _("Test current node avaliability"):
-                action Function(store.maica.maica_instance.accessable)
+                action Function(maica_start_provider_task, store.maica.check_accessibility)
+                sensitive not provider_refresh_busy
 
 screen maica_mspire_setting():
     $ _tooltip = store._tooltip
@@ -844,27 +896,27 @@ screen maica_mspire_setting():
             style_prefix "generic_fancy_check"
             textbutton "precise_page":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "precise_page")
-            text _("Select the single most related page, ignoring sample range. Relatively fast since no recursive search performed.\n"):
+            text _("Fetch a page directly by keyword, requiring exact match. Sample range is ignored and no recursive search is performed. Relatively fast.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "fuzzy_page":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "fuzzy_page")
-            text _("Select one random from multiple related pages. Relatively fast since no recursive search performed.\n"):
+            text _("Search multiple pages by keyword and randomly select one. No recursive search is performed. Relatively fast.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "in_precise_category":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_precise_category")
-            text _("Select the single most related category, then recursively search pages and subcategories. Relatively slow.\n"):
+            text _("Fetch a category directly by keyword, requiring exact match, then recursively select categories or pages until a page is reached. Decent speed.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "in_fuzzy_category":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_category")
-            text _("Select one random from multiple related categories, then recursively search pages and subcategories. Relatively slow.\n"):
+            text _("Search multiple categories by keyword, then recursively select categories or pages until a page is reached. Relatively slow.\n"):
                 style "small_expl_hw"
                 size 15
             textbutton "in_fuzzy_all":
                 action SetDict(persistent.maica_setting_dict, "mspire_search_type", "in_fuzzy_all")
-            text _("Select related pages, categories and subcategories recursively. Relatively slow.\n"):
+            text _("Starting from the keyword, recursively search and select categories or pages until a page is reached. Relatively slow.\n"):
                 style "small_expl_hw"
                 size 15
 
@@ -881,6 +933,8 @@ screen maica_triggers():
     $ _tooltip = store._tooltip
     python:
         maica_triggers = store.maica.maica_instance.mtrigger_manager
+        request_length = maica_triggers.get_length(0)
+        table_length = maica_triggers.get_length(1)
 
     modal True
     zorder 92
@@ -891,27 +945,29 @@ screen maica_triggers():
             style_prefix "generic_fancy_check"
             text _("MTrigger space usage: ")
 
-            if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75:
-                text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
+            if request_length > maica_triggers.MAX_LENGTH_REQUEST * 0.75:
+                text "request: " + str(request_length) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST):
                     color "#FF0000"
             else:
-                text "request: " + str(maica_triggers.get_length(0)) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST)
+                text "request: " + str(request_length) + " / " + str(maica_triggers.MAX_LENGTH_REQUEST)
 
-            if maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
-                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
+            if table_length > maica_triggers.MAX_LENGTH_TABLE * 0.9:
+                text "table: " + str(table_length) + " / " + str(maica_triggers.MAX_LENGTH_TABLE):
                     color "#FF0000"
             else:
-                text "table: " + str(maica_triggers.get_length(1)) + " / " + str(maica_triggers.MAX_LENGTH_TABLE)
+                text "table: " + str(table_length) + " / " + str(maica_triggers.MAX_LENGTH_TABLE)
 
-            if maica_triggers.get_length(0) > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or maica_triggers.get_length(1) > maica_triggers.MAX_LENGTH_TABLE * 0.9:
+            if request_length > maica_triggers.MAX_LENGTH_REQUEST * 0.75 or table_length > maica_triggers.MAX_LENGTH_TABLE * 0.9:
                 text _("> Notice: Some MTriggers will be disabled if content length exceeds!"):
                     color "#ff0000"
                     size 15
 
             for trigger in maica_triggers.triggers:
+                $ trigger_enabled, trigger_condition_met = maica_triggers.get_trigger_state(trigger)
+                $ trigger_active = trigger_enabled and trigger_condition_met
                 use maica_l2_subframe():
                     label trigger.name
-                    if not maica_triggers.trigger_status(trigger.name) or not trigger.condition():
+                    if not trigger_active:
                         hbox:
                             text _("Space used: -"):
                                 size 15
@@ -919,13 +975,13 @@ screen maica_triggers():
                         hbox:
                             text _("Space used: request"):
                                 size 15
-                            text str(len(trigger)):
+                            text str(maica_triggers.get_trigger_length(trigger, use_cached=True)):
                                 size 15
                     elif trigger.method == 1:
                         hbox:
                             text _("Space used: table"):
                                 size 15
-                            text str(len(trigger)):
+                            text str(maica_triggers.get_trigger_length(trigger, use_cached=True)):
                                 size 15
 
                     hbox:
@@ -952,39 +1008,27 @@ screen maica_triggers():
 
 
                     hbox:
-                        if trigger.condition():
-                            if maica_triggers.trigger_status(trigger.name):
+                        if trigger_condition_met:
+                            if trigger_enabled:
                                 textbutton _("Enabled"):
                                     action Function(maica_triggers.disable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
                             else:
                                 textbutton _("Disabled"):
                                     action Function(maica_triggers.enable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
 
-                        elif trigger.condition() == False:
-                            if maica_triggers.trigger_status(trigger.name):
+                        else:
+                            if trigger_enabled:
                                 textbutton _("Requirements not satisfied"):
                                     style "generic_fancy_check_button_disabled"
                                     action Function(maica_triggers.disable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
                             else:
                                 textbutton _("Requirements not satisfied"):
                                     style "generic_fancy_check_button_disabled"
                                     action Function(maica_triggers.enable_trigger, trigger.name)
-                                    selected maica_triggers.trigger_status(trigger.name)
-
-                        # elif trigger.condition() == None:
-                        #     if maica_triggers.trigger_status(trigger.name):
-                        #         textbutton _("Requirements not satisfied"):
-                        #             style "generic_fancy_check_button_disabled"
-                        #             action Function(maica_triggers.disable_trigger, trigger.name)
-                        #             selected maica_triggers.trigger_status(trigger.name)
-                        #     else:
-                        #         textbutton _("Requirements not satisfied"):
-                        #             style "generic_fancy_check_button_disabled"
-                        #             action Function(maica_triggers.enable_trigger, trigger.name)
-                        #             selected maica_triggers.trigger_status(trigger.name)
+                                    selected trigger_enabled
 
         hbox:
             xpos 10
@@ -998,11 +1042,11 @@ screen maica_mpostals():
         maica_triggers = store.maica.maica_instance.mtrigger_manager
         preview_len = 200
 
-        def _delect_portal(title):
-            for item in persistent._maica_send_or_received_mpostals:
-                if title == item["raw_title"]:
-                    store.maica.delete_mpostal_image(item)
-                    persistent._maica_send_or_received_mpostals.remove(item)
+        def _delete_postal(postal):
+            for index, item in enumerate(persistent._maica_send_or_received_mpostals):
+                if item is postal:
+                    persistent._maica_send_or_received_mpostals.pop(index)
+                    store.maica.delete_mpostal_record_files(postal)
                     break
 
     $ _tooltip = store._tooltip
@@ -1018,7 +1062,7 @@ screen maica_mpostals():
                 text ""
             for postal in persistent._maica_send_or_received_mpostals:
                 use maica_l2_subframe():
-                    label postal["raw_title"]:
+                    label maica_escape_display_text(postal.get("raw_title")):
                         style "maica_check_nohover_label"
                     text "":
                         style "small_link"
@@ -1028,23 +1072,18 @@ screen maica_mpostals():
                     text renpy.substitute(_("Last post sent at: ")) + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(postal["time"].split(".")[0]))):
                         xalign 0.0
                         style "small_link"
-                    text renpy.substitute(_("\n[player]: \n")) + postal["raw_content"][:preview_len].replace("\n", "") + ("..." if len(postal["raw_content"]) > preview_len else  ""):
+                    text renpy.substitute(_("\n[player]: \n")) + maica_build_display_preview(postal.get("raw_content"), preview_len):
                         xalign 0.0
                         style "small_expl_hw"
                     if postal["responsed_content"] != "":
-                        python:
-                            preview_text = postal["responsed_content"][:preview_len].replace("\n", "")
-                            for pair in [(r'[', r']'), (r'{', r'}')]:
-                                while preview_text.count(pair[0]) > preview_text.count(pair[1]):
-                                    preview_text = preview_text[:preview_text.rfind(pair[0])]
-                        text renpy.substitute(_("[m_name]: \n")) + preview_text  + ("..." if len(postal["responsed_content"]) > preview_len else  "") + "\n":
+                        text renpy.substitute(_("[m_name]: \n")) + maica_build_display_preview(postal.get("responsed_content"), preview_len) + "\n":
                             xalign 0.0
                             style "small_expl_hw"
                     python:
                         preview_info = None
                         for preview_source in (
-                            postal.get('vista_image_info'),
                             postal.get('raw_image_preview'),
+                            postal.get('vista_image_info'),
                         ):
                             preview_info = store.maica.maica_instance.vista_manager.get_thumbnail_info(preview_source)
                             if preview_info:
@@ -1068,12 +1107,12 @@ screen maica_mpostals():
                                         Function(_maica_call_in_new_context_preserve_layers, "maica_mpostal_show_backtoscreen", postal["responsed_content"])
                                 ]
 
-                        if postal["responsed_status"] in ("fatal"):
+                        if postal["responsed_status"] == "fatal":
                             textbutton _("Resend mail"):
-                                action SetDict(postal, "responsed_status", "delaying")
+                                action Function(maica_retry_mpostal, postal, reset_count=True)
                         hbox:
                             textbutton _("Delete"):
-                                action Function(_delect_portal, postal["raw_title"])
+                                action Function(_delete_postal, postal)
 
         hbox:
             xpos 10
@@ -1188,11 +1227,11 @@ screen maica_workload_stat():
 
             for server in stat:
 
-                use divider_small(server)
+                use divider_small(maica_escape_display_text(server))
 
                 for card in stat[server]:
                     hbox:
-                        text stat[server][card]["name"]:
+                        text maica_escape_display_text(stat[server][card]["name"]):
                             size 15
                         text store.maica.progress_bar(stat[server][card]["mean_utilization"], total=int(stat[server][card]["tflops"]), unit="TFlops"):
                             size 10
@@ -1279,7 +1318,10 @@ screen maica_statics():
                     size 20
             hbox:
                 $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
-                text _("Current user: [user_disp]"):
+                text maica_escape_display_text(renpy.substitute(
+                    _("Current user: [user_disp]"),
+                    scope={"user_disp": user_disp}
+                )):
                     size 20
 
             hbox:

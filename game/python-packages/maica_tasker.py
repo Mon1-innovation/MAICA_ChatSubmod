@@ -134,8 +134,7 @@ class MaicaTaskManager(object):
             error_type = type(e).__name__
             default_logger.error("[MaicaTaskManager] Error in _ws_onmessage [{}]: {}".format(
                 error_type, e
-            ))
-            default_logger.error(''.join(traceback.format_exc()))
+            ) + "\n" + "".join(traceback.format_exc()))
     
     def _ws_onclose(self, wsapp, close_status_code=None, close_msg=None):
         try:
@@ -156,8 +155,7 @@ class MaicaTaskManager(object):
             error_type = type(e).__name__
             default_logger.error("[MaicaTaskManager] Error in _ws_onclose [{}]: {}".format(
                 error_type, e
-            ))
-            default_logger.error(''.join(traceback.format_exc()))
+            ) + "\n" + "".join(traceback.format_exc()))
 
     def _ws_onerror(self, wsapp, error):
         try:
@@ -165,15 +163,17 @@ class MaicaTaskManager(object):
             context = "url={}".format(wsapp.url if wsapp else "unknown")
             default_logger.error("[MaicaTaskManager] WebSocket error [{}]: {} ({})".format(
                 error_type, error, context
+            ) + (
+                "\n" + "".join(
+                    traceback.format_exception(type(error), error, error.__traceback__)
+                )
+                if hasattr(error, '__traceback__') else ""
             ))
-            if hasattr(error, '__traceback__'):
-                default_logger.error(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
         except Exception as e:
             error_type = type(e).__name__
             default_logger.error("[MaicaTaskManager] Error in _ws_onerror [{}]: {}".format(
                 error_type, e
-            ))
-            default_logger.error(''.join(traceback.format_exc()))
+            ) + "\n" + "".join(traceback.format_exc()))
         finally:
             self.reset_all_task()
     def _on_event(self, event_object):
@@ -198,9 +198,13 @@ class MaicaTaskManager(object):
         self._on_event(event_object)
 
     def close_ws(self):
-        """关闭WebSocket连接。"""
-        default_logger.debug("manually closed websocket connection")
+        """Request that the current WebSocket connection close."""
+        if self.ws_client is None:
+            default_logger.debug("[MaicaTaskManager] close requested with no WebSocket")
+            return False
+        default_logger.debug("[MaicaTaskManager] requesting WebSocket close")
         self.ws_client.close()
+        return True
 
     def register_task(self, task):
         """

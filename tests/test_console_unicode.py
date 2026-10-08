@@ -7,16 +7,181 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[1] / "game" / "python-packages"
 if str(PACKAGE_ROOT) not in sys.path:
     sys.path.insert(0, str(PACKAGE_ROOT))
 
+MAICA_API_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "game"
+    / "Submods"
+    / "MAICA_ChatSubmod"
+    / "api.rpy"
+)
+
 import bot_interface
 import logger_manager
 import maica_provider_manager
 import maica
+import maica_tasker
 import maica_tasker_sub
+
+
+def _load_maica_input_value():
+    source = MAICA_API_PATH.read_text(encoding="utf-8")
+    start = source.index("    class MaicaInputValue(store.InputValue):")
+    end = source.index("\n    import store\n", start)
+    class_source = "\n".join(
+        line[4:] if line.startswith("    ") else line
+        for line in source[start:end].splitlines()
+    )
+    namespace = {
+        "store": type("Store", (), {"InputValue": object}),
+        "unicode": str,
+        "bot_interface": bot_interface,
+    }
+    exec(compile(class_source, str(MAICA_API_PATH), "exec"), namespace)
+    return namespace["MaicaInputValue"]
 
 
 def test_key_replace_preserves_unicode_text():
     assert bot_interface.to_unicode("错误".encode("utf-8")) == "错误"
     assert bot_interface.key_replace("状态: 中文", {"状态": "错误"}) == "错误: 中文"
+
+
+def test_maica_input_value_decodes_short_utf8_clipboard_text():
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text(b"Espa\xc3\xb1ol")
+    assert input_value.get_text() == "Espa\u00f1ol"
+
+    input_value.set_text("\u4e2d\u6587".encode("utf-8"))
+    assert input_value.get_text() == "\u4e2d\u6587"
+
+
+def test_maica_input_value_uses_local_encoding_fallback(monkeypatch):
+    monkeypatch.setattr(bot_interface.sys, "getfilesystemencoding", lambda: "gbk")
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text("\u4e2d\u6587".encode("gbk"))
+
+    assert input_value.get_text() == "\u4e2d\u6587"
+
+
+def test_maica_input_value_replaces_invalid_clipboard_bytes():
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text(b"\xff")
+
+    assert input_value.get_text() == "\ufffd"
+
+
+def test_maica_input_value_retains_375_character_limit():
+    input_value = _load_maica_input_value()()
+
+    input_value.set_text(b"x" * 376)
+
+    assert input_value.get_text() == "x" * 375
+
+
+def test_renpy_text_escape_handles_external_markup_and_none():
+    assert bot_interface.escape_renpy_text(None) == ""
+    assert bot_interface.escape_renpy_text("[field] {value}") == "[[field] {{value}"
+    assert bot_interface.escape_renpy_text(
+        '{"loc": ["x"]}'
+    ) == '{{"loc": [["x"]}'
+
+
+def test_screen_local_substitutions_pass_explicit_scope():
+    root = Path(__file__).resolve().parents[1]
+    header = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "header.rpy").read_text(
+        encoding="utf-8"
+    )
+    stats = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs.rpy").read_text(
+        encoding="utf-8"
+    )
+    vista = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "screen_subs_vista.rpy").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'scope={"user_disp": user_disp}' in header
+    assert 'scope={"user_disp": user_disp}' in stats
+    assert 'scope={"imageselector": imageselector}' in vista
+    assert 'renpy.substitute(_("Current user: [user_disp]")))' not in header
+    assert 'renpy.substitute(_("Current user: [user_disp]")))' not in stats
+    assert 'renpy.substitute(_("Image chosen: [imageselector.image_path]")))' not in vista
+
+
+def test_renpy_dialogue_escape_preserves_only_trusted_substitutions():
+    text = "[player] [m_name] [mas_get_player_nickname()] [unknown] {w=0.3}"
+    escaped = bot_interface.escape_renpy_text(
+        text,
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+    )
+
+    assert "[player]" in escaped
+    assert "[m_name]" in escaped
+    assert "[mas_get_player_nickname()]" in escaped
+    assert "[[unknown]" in escaped
+    assert "{{w=0.3}" in escaped
+
+
+def test_renpy_dialogue_escape_accounts_for_multiple_interpolation_passes():
+    escaped = bot_interface.escape_renpy_text(
+        "[player] [unknown] {w=0.3}",
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+        interpolation_passes=2,
+    )
+
+    assert escaped == "[[player] [[[[unknown] {{w=0.3}"
+
+
+def test_prepare_message_escapes_external_tags_before_adding_trusted_pauses():
+    class TalkSplitterStub(object):
+        def add_pauses(self, value):
+            assert value == "external {{w=9}"
+            return value + "{w=0.3}"
+
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.TalkSpilter = TalkSplitterStub()
+
+    assert ai.prepare_message_for_renpy("external {w=9}") == (
+        "external {{w=9}{w=0.3}"
+    )
+
+
+def test_prepare_message_replaces_unsupported_temperature_symbols_only_for_display():
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    message = "室温 21℃，体温 98.6℉"
+
+    assert ai.prepare_message_for_renpy(message, add_pause=False) == (
+        "室温 21°C，体温 98.6°F"
+    )
+    assert ai.prepare_message_for_renpy(
+        message,
+        escape_for_renpy=False,
+    ) == message
+
+
+def test_bot_interface_compiles_after_renpy_699_loader_encoding():
+    source_path = PACKAGE_ROOT / "bot_interface.py"
+    source = source_path.read_bytes().decode("utf-8")
+    transformed_source = source.encode("raw_unicode_escape")
+
+    compile(transformed_source, str(source_path), "exec")
+
+
+def test_renpy_preview_drops_only_partial_markers_before_escaping():
+    assert bot_interface.build_renpy_text_preview(
+        "prefix [player] suffix",
+        12,
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+    ) == "prefix ..."
+    assert bot_interface.build_renpy_text_preview(
+        "prefix [player] suffix",
+        200,
+        bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+    ) == "prefix [player] suffix"
+    assert bot_interface.build_renpy_text_preview(
+        '{"loc": ["x"]}',
+        200,
+    ) == '{{"loc": [["x"]}'
 
 
 def test_to_unicode_falls_back_to_renpy_local_encoding(monkeypatch):
@@ -195,7 +360,7 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     intro_end = chat_source.index('        "Better next time.":', intro_start)
     intro = chat_source[intro_start:intro_end]
     talking_start = main_source.index("label maica_talking")
-    talking_setup_end = main_source.index("    $ return_code = None", talking_start)
+    talking_setup_end = main_source.index("\n    python:", talking_start)
     talking_setup = main_source[talking_start:talking_setup_end]
     show_console_start = main_source.index("label maica_show_console:")
     show_console_end = main_source.index("\nlabel maica_hide_console:", show_console_start)
@@ -205,11 +370,21 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     hide_console = main_source[hide_console_start:hide_console_end]
 
     assert connect.count("ai.send_to_outside_func(ai.ascii_icon)") == 1
-    assert connect.count('write_command("Thank you for using MAICA Blessland!")') == 1
+    assert connect.count("store.mas_ptod.clear_console()") == 1
+    assert connect.index("store.mas_ptod.clear_console()") < connect.index(
+        "ai.send_to_outside_func(ai.ascii_icon)"
+    )
+    assert connect.count('write_command("Welcome to MAICA Blessland.")') == 1
     assert "persistent.maica_setting_dict['console']" in connect
     assert "and (force_welcome or should_connect)" in connect
     assert "if should_show_welcome:" in connect
     assert "renpy.pause(2.3)" in connect
+    assert connect.count("ai.KeepAliveTasker.ping()") == 1
+    ping_index = connect.index("ai.KeepAliveTasker.ping()")
+    assert connect.rindex("if should_show_welcome:", 0, ping_index) > connect.index(
+        "if ai.is_ready_to_input():"
+    )
+    assert ping_index < connect.index("ai.send_mtrigger()")
     assert "ai.console_logger.critical" not in connect
     assert "maica_connect_result = \"disconnected\"" in connect
     assert "maica_connect_result = \"success\"" in connect
@@ -237,9 +412,88 @@ def test_ascii_console_output_is_raw_and_welcome_flow_is_single_pass():
     assert intro.index("call maica_connection_failure_dialogue") < intro.index("call maica_hide_console")
 
     assert "label maica_talking(mspire = False, prepared = False):" in talking_setup
+    assert talking_setup.index("$ return_code = None") < talking_setup.index("if not prepared:")
     assert "if not prepared:" in talking_setup
     assert talking_setup.index("if not prepared:") < talking_setup.index("call maica_show_console")
     assert talking_setup.index("call maica_show_console") < talking_setup.index("call maica_init_connect")
+
+
+def test_disconnection_failure_dialogue_is_centralized_and_identifies_mspire_source():
+    root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
+    main_source = (root / "main.rpy").read_text(encoding="utf-8")
+    chat_source = (root / "chat.rpy").read_text(encoding="utf-8")
+
+    talking_start = main_source.index("label maica_talking(")
+    talking_setup_end = main_source.index("\n    python:", talking_start)
+    talking_setup = main_source[talking_start:talking_setup_end]
+    talking_end_start = main_source.index("label maica_talking.end:")
+    talking_end_end = main_source.index("\nlabel maica_talking.ask_mspire_continue:", talking_end_start)
+    talking = main_source[talking_start:talking_end_end]
+    talking_end = main_source[talking_end_start:talking_end_end]
+    failure_start = chat_source.index("label maica_connection_failure_dialogue(")
+    failure_end = chat_source.index("\n# Location topics", failure_start)
+    failure = chat_source[failure_start:failure_end]
+    caller_start = chat_source.index("label .talking_start:")
+    caller = chat_source[caller_start:failure_start]
+    mspire_start = chat_source.index("label maica_mspire:")
+    mspire_end = chat_source.index("\nlabel mspire_mods_preferences:", mspire_start)
+    mspire = chat_source[mspire_start:mspire_end]
+
+    disconnected = talking_setup.index('if _return == "disconnected":')
+    set_result = talking_setup.index('$ return_code = "disconnected"', disconnected)
+    cleanup_jump = talking_setup.index("jump maica_talking.end", set_result)
+    assert disconnected < set_result < cleanup_jump
+    assert 'return "disconnected"' not in talking_setup
+    assert "$ renpy.dynamic(\"maica_talking_from_mspire\")" in talking_setup
+    assert "$ maica_talking_from_mspire = mspire" in talking_setup
+    assert talking_setup.index("$ maica_talking_from_mspire = mspire") < talking_setup.index("if not prepared:")
+    assert "$ mspire = False" in talking
+    assert "call maica_hide_console" in talking_end
+    assert 'if return_code in ("disconnected", "operation_failed"):' in talking_end
+    failure_call = "call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)"
+    assert failure_call in talking_end
+    assert talking_end.index("call maica_hide_console") < talking_end.index(failure_call)
+    assert "label maica_connection_failure_dialogue(from_mspire = False, status_code = None, fallback_to_current = True):" in failure
+    assert "$ failure_status = ai.status if (status_code is None and fallback_to_current) else status_code" in failure
+    assert "failure_status == ai.MaicaAiStatus.SERVER_REJECTED" in failure
+    assert "ai.status == ai.MaicaAiStatus.SERVER_REJECTED" not in failure
+    assert "and from_mspire" in failure
+    assert "call maica_connection_failure_dialogue" not in caller
+    assert "call maica_talking(mspire=True)" in mspire
+
+
+def test_hide_console_uses_actual_screen_state_instead_of_current_setting():
+    root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
+    main_source = (root / "main.rpy").read_text(encoding="utf-8")
+
+    hide_start = main_source.index("label maica_hide_console:")
+    hide_end = main_source.index("\nlabel maica_pause_connection:", hide_start)
+    hide_console = main_source[hide_start:hide_end]
+
+    screen_check = 'renpy.get_screen("mas_py_console_teaching") is not None'
+    assert screen_check in hide_console
+    assert "persistent.maica_setting_dict['console']" not in hide_console
+    assert hide_console.index(screen_check) < hide_console.index("maica_disableWorkLoadScreen()")
+    assert hide_console.index("maica_disableWorkLoadScreen()") < hide_console.index("hide screen mas_py_console_teaching")
+
+
+def test_workload_screen_follows_the_console_context_instead_of_global_overlays():
+    root = Path(__file__).resolve().parents[1] / "game" / "Submods" / "MAICA_ChatSubmod"
+    main_source = (root / "main.rpy").read_text(encoding="utf-8")
+
+    workload_start = main_source.index("    def maica_enableWorkLoadScreen():")
+    workload_helpers = main_source[workload_start:]
+
+    assert 'renpy.show_screen("maica_workload_stat_lite")' in workload_helpers
+    assert 'renpy.hide_screen("maica_workload_stat_lite")' in workload_helpers
+    assert 'renpy.get_screen("maica_workload_stat_lite") is not None' in workload_helpers
+    assert "config.overlay_screens" not in main_source
+
+    hide_start = main_source.index("label maica_hide_console:")
+    hide_end = main_source.index("\nlabel maica_pause_connection:", hide_start)
+    hide_console = main_source[hide_start:hide_end]
+
+    assert "or maica_isWorkLoadScreenVisible()" in hide_console
 
 
 def test_python2_console_path_does_not_force_unicode_through_str():
@@ -261,3 +515,139 @@ def test_python2_dialogue_paths_do_not_force_unicode_through_str():
     assert "str(message)" not in append_block
     assert "str(message)" not in mpostal_block
     assert "message = bot_interface.to_unicode(message)" in append_block
+
+
+def test_write_unicode_command_uses_native_writer_on_python3(monkeypatch):
+    class FakePtod(object):
+        def __init__(self):
+            self.calls = []
+
+        def write_command(self, *args, **kwargs):
+            self.calls.append((args, kwargs))
+            return "native-result"
+
+    ptod = FakePtod()
+    monkeypatch.setattr(bot_interface, "PY2", False)
+
+    result = bot_interface.write_unicode_command(
+        ptod,
+        "中文",
+        source="test",
+    )
+
+    assert result == "native-result"
+    assert ptod.calls == [(
+        ("中文",),
+        {"source": "test"},
+    )]
+
+
+def test_write_unicode_command_matches_mas_state_flow_on_python2(monkeypatch):
+    class FakePtod(object):
+        STATE_SINGLE = 0
+        STATE_MULTI = 1
+        STATE_BLOCK = 2
+        STATE_BLOCK_MULTI = 3
+        STATE_OFF = 4
+        SYM = ">>> "
+        M_SYM = "... "
+
+        def __init__(self, line_max=6):
+            self.state = self.STATE_SINGLE
+            self.cn_cmd = ""
+            self.cn_line = ""
+            self.history = []
+            self.line_max = line_max
+
+        def _line_break(self, line):
+            if len(line) <= self.line_max:
+                return [line]
+            return [
+                line[index:index + self.line_max]
+                for index in range(0, len(line), self.line_max)
+            ]
+
+        def _update_console_history_list(self, lines):
+            self.history.extend(lines)
+
+        def write_command(self, *args, **kwargs):
+            raise AssertionError("Python 2 compatibility path should be used")
+
+    monkeypatch.setattr(bot_interface, "PY2", True)
+    monkeypatch.setattr(
+        bot_interface,
+        "to_unicode",
+        lambda value, preferred_encoding=None: value,
+    )
+
+    ptod = FakePtod()
+    bot_interface.write_unicode_command(ptod, u"中文命令扩展")
+
+    assert ptod.cn_cmd == u"中文命令扩展"
+    assert ptod.history == [u">>> 中文"]
+    assert ptod.cn_line == u"命令扩展"
+    assert ptod.state == ptod.STATE_MULTI
+
+    ptod.state = ptod.STATE_MULTI
+    ptod.cn_cmd = u"旧命令"
+    ptod.cn_line = u"旧行"
+    ptod.line_max = 10
+    bot_interface.write_unicode_command(ptod, u"新命令")
+    assert ptod.cn_cmd == u"新命令"
+    assert ptod.cn_line == u"新命令"
+    assert ptod.state == ptod.STATE_SINGLE
+
+    ptod.state = ptod.STATE_BLOCK_MULTI
+    ptod.cn_cmd = u"旧块命令"
+    ptod.cn_line = u"旧块行"
+    ptod.line_max = 6
+    bot_interface.write_unicode_command(ptod, u"块命令扩展")
+    assert ptod.cn_cmd == u"块命令扩展"
+    assert ptod.state == ptod.STATE_BLOCK_MULTI
+    assert ptod.history[-1] == u"... 块命"
+    assert ptod.cn_line == u"令扩展"
+
+
+def test_write_unicode_command_leaves_disabled_console_untouched(monkeypatch):
+    class FakePtod(object):
+        STATE_OFF = 4
+
+        def __init__(self):
+            self.state = self.STATE_OFF
+            self.cn_cmd = u"原命令"
+            self.cn_line = u"原行"
+
+        def write_command(self, cmd):
+            raise AssertionError("disabled console should return before native call")
+
+    monkeypatch.setattr(bot_interface, "PY2", True)
+
+    def fail_conversion(value, preferred_encoding=None):
+        raise AssertionError("disabled console should not convert the command")
+
+    monkeypatch.setattr(bot_interface, "to_unicode", fail_conversion)
+    ptod = FakePtod()
+
+    assert bot_interface.write_unicode_command(ptod, u"中文") is None
+    assert ptod.cn_cmd == u"原命令"
+    assert ptod.cn_line == u"原行"
+
+
+def test_unicode_greeting_uses_compatibility_writer_and_pong_language_is_initialized():
+    root = Path(__file__).resolve().parents[1]
+    main_source = (root / "game" / "Submods" / "MAICA_ChatSubmod" / "main.rpy").read_text(
+        encoding="utf-8"
+    )
+    maica_source = (PACKAGE_ROOT / "maica.py").read_text(encoding="utf-8")
+    tasker_source = (PACKAGE_ROOT / "maica_tasker_sub.py").read_text(encoding="utf-8")
+
+    assert "bot_interface.write_unicode_command(store.mas_ptod, greeting)" in main_source
+    assert "store.mas_ptod.write_command(greeting)" not in main_source
+    assert "self.KeepAliveTasker.ui_lang_zh = ui_lang_zh" in maica_source
+    assert "self.ui_lang_zh = False" in tasker_source
+
+    task = maica_tasker_sub.KeepWsAliveTasker(
+        maica_tasker.MaicaTask.MAICATASK_TYPE_WS,
+        "test_keep_alive",
+    )
+    assert task.ui_lang_zh is False

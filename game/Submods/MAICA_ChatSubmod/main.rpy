@@ -16,12 +16,15 @@ init python:
             self._history += text
 
 label maica_talking(mspire = False, prepared = False):
+    $ return_code = None
+    $ renpy.dynamic("maica_talking_from_mspire")
+    $ maica_talking_from_mspire = mspire
     if not prepared:
         call maica_show_console
         call maica_init_connect(use_pause_instand_wait = True)
         if _return == "disconnected":
-            return "disconnected"
-    $ return_code = None
+            $ return_code = "disconnected"
+            jump maica_talking.end
     python:
         import time
         import copy
@@ -31,7 +34,7 @@ label maica_talking(mspire = False, prepared = False):
         ai.content_func = store.mas_ptod._update_console_history
         store.action = {}
         if mspire:
-            ai.console_logger.info("<submod> MSpire init...")
+            ai.console_logger.info("<Function> MSpire init...")
             renpy.pause(2.3)
         printed = False
         is_retry_before_sendmessage = False
@@ -41,7 +44,6 @@ label maica_talking(mspire = False, prepared = False):
 
         extend_sayer = ExtendSayer()
 label maica_talking.asking:
-    $ store.mas_submod_utils.submod_log.debug("current triggers: {}".format(ai.mtrigger_manager.build_data()))
     python:
         while True:
             if is_retry_before_sendmessage:
@@ -109,7 +111,10 @@ label maica_talking.asking:
                     mspire_is_started = True
             else:
                 return_code = "disconnected"
-                store.mas_submod_utils.submod_log.warning("label maica_talking::disconnected maybe unexpected")
+                store.mas_submod_utils.submod_log.warning(
+                    "label maica_talking: input loop stopped because the connection is not ready "
+                    "(status={} / {})".format(ai.status, ai.get_status_description())
+                )
                 break
 
 
@@ -121,15 +126,19 @@ label maica_talking.asking:
                 if ai.gen_time > gen_time:
                     gen_time = ai.gen_time
 
-                store.mas_ptod.write_command("message_queue: {} | token: {} | time: {:.2f}".format(
+                store.mas_ptod.write_command("Queued: {} | Tokens: {} | Time: {:.2f}".format(
                     ai.len_message_queue(), ai.stat.get("received_token", 0) - start_token,
                     gen_time
                     ))
-                if ai.is_failed():
+                if ai.is_connection_interrupted():
                     if ai.len_message_queue() == 0:
-                        # This is already spoken at label .talking_start
+                        # This is already spoken by the common failure dialogue.
                         # renpy.say(m, _("Something may went wrong..."))
                         return_code = "disconnected"
+                        break
+                elif ai.is_failed():
+                    if ai.len_message_queue() == 0:
+                        return_code = "operation_failed"
                         break
                 if ai.len_message_queue() == 0:
                     #renpy.show(monika 1eua)
@@ -139,7 +148,6 @@ label maica_talking.asking:
                         _history_list.pop()
                     continue
                 message = ai.get_message()
-                store.mas_submod_utils.submod_log.debug("label maica_talking::message:'{}', '{}', extend={}".format(message[0], message[1], message[2] if len(message) >= 3 else False))
                 received_message += message[1]
                 renpy.show(u"monika {}".format(message[0]))
                 try:
@@ -147,16 +155,19 @@ label maica_talking.asking:
 
                     if not is_extend:
                         extend_sayer = ExtendSayer()
-                    extend_sayer.say(message[1])
+                    extend_sayer.say(ai.prepare_message_for_renpy(message[1]))
 
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("label maica_talking::renpy.say error:{}".format(traceback.format_exc()))
                     ai.console_logger.error("!!SUBMOD ERROR when chatting: {}".format(e))
             if ai.response_timed_out():
-                store.mas_submod_utils.submod_log.error("label maica_talking: response timed out")
                 # renpy.say(m, _("Something may went wrong..."))
                 return_code = "disconnected"
-            if return_code == "disconnected":
+            elif ai.is_connection_interrupted():
+                return_code = "disconnected"
+            elif ai.is_failed():
+                return_code = "operation_failed"
+            if return_code in ("disconnected", "operation_failed"):
                 break
             store.mas_submod_utils.submod_log.debug("label maica_talking::RESPONSE :'{}'".format(received_message))
             return_code = "mtrigger_triggering"
@@ -207,6 +218,8 @@ label maica_talking.end:
     call maica_hide_console
     if persistent.maica_setting_dict['console']:
         $ store.mas_ptod.clear_console()
+    if return_code in ("disconnected", "operation_failed"):
+        call maica_connection_failure_dialogue(from_mspire = maica_talking_from_mspire)
     # if mspire_user_responsed:
     #     $ maica_apply_setting(True)
     return return_code
@@ -236,8 +249,11 @@ label .next:
     if not mtrigger_manager.has_triggered():
         return mtrigger_action
     $ mtrigger_step_action = {"stop": False}
+    # renpy.call() resumes after run_trigger(), leaving its result unassigned.
+    # A confirmed label action can request a stop through Ren'Py's return value.
+    $ _return = None
     $ mtrigger_step_action = mtrigger_manager.run_trigger()
-    if mtrigger_step_action.get("stop"):
+    if mtrigger_step_action.get("stop") or _return == "stop":
         $ mtrigger_action["stop"] = True
         return mtrigger_action
     jump .next
@@ -249,7 +265,7 @@ label maica_show_console:
         show monika at t22
     return
 label maica_hide_console:
-    if persistent.maica_setting_dict['console']:
+    if renpy.get_screen("mas_py_console_teaching") is not None or maica_isWorkLoadScreenVisible():
         $ maica_disableWorkLoadScreen()
         hide screen mas_py_console_teaching
         if renpy.showing("monika"):
@@ -278,10 +294,15 @@ label maica_mpostal_load:
                     "raw_title": item["title"],
                     "raw_content": item["content"],
                     "raw_image": item.get("image"),
+                    "mpostal_attachment_path": item.get("attachment_path"),
                     "vista_image_info":None,
                     "time": str(time.time()),
                     "responsed_content": "",
                     "responsed_status":"delaying",
+                    "failure_status": None,
+                    "failure_protocol_status": None,
+                    "failure_protocol_code": None,
+                    "failure_message": None,
                     "failed_count":0,
                 }
                 store.maica.prepare_mpostal_preview(postal)
@@ -290,6 +311,8 @@ label maica_mpostal_load:
 
 label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
     python:
+        import bot_interface
+
         maica_connect_result = None
         ai = store.maica.maica_instance
         ai.content_func = store.mas_ptod._update_console_history
@@ -301,11 +324,19 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
         if should_connect:
             ai.init_connect()
         if should_show_welcome:
+            store.mas_ptod.clear_console()
             ai.send_to_outside_func(ai.ascii_icon)
-            store.mas_ptod.write_command("Thank you for using MAICA Blessland!")
+            store.mas_ptod.write_command("Welcome to MAICA Blessland.")
             renpy.pause(2.3)
+
         while True:
-            if ai.is_failed():
+            if ai.is_connection_interrupted() or (
+                ai.is_failed()
+                and (
+                    not ai.Loginer.success
+                    or (not ai.is_connected() and not ai.is_connecting())
+                )
+            ):
                 store.mas_submod_utils.submod_log.error(
                     "maica_init_connect failed: status={}, protocol_status={}, detail={}".format(
                         ai.status,
@@ -317,10 +348,11 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                 renpy.pause(2.0)
                 maica_connect_result = "disconnected"
                 break
+
             if not ai.is_connected() or not ai.is_ready_to_input():
                 if not ai.is_connected() and not ai.is_connecting():
                     ai.init_connect()
-                store.mas_ptod.write_command("Init Connecting...")
+                store.mas_ptod.write_command("Init connection...")
                 if use_pause_instand_wait:
                     renpy.pause(0.3, True)
                 else:
@@ -328,11 +360,19 @@ label maica_init_connect(use_pause_instand_wait = False, force_welcome = False):
                     if len(_history_list):
                         _history_list.pop()
                 continue
+
             if ai.is_ready_to_input():
-                maica_apply_setting(True)
-                store.mas_ptod.write_command("Login successful, ready to chat!")
+                if should_show_welcome:
+                    ai.KeepAliveTasker.ping()
+                ai.send_mtrigger()
+
+                pong_content = bot_interface.to_unicode(ai.KeepAliveTasker._pong_content)
+                greeting = u"Ready. [{}]".format(pong_content)
+
+                bot_interface.write_unicode_command(store.mas_ptod, greeting)
                 maica_connect_result = "success"
                 break
+
     call show_workload
     return maica_connect_result
 
@@ -345,102 +385,120 @@ label maica_connect_from_settings:
     return
 
 label maica_mpostal_read:
+    $ renpy.dynamic("mpostal_read_result")
+    $ mpostal_read_result = "success"
     $ mas_HKBRaiseShield()
     if persistent.maica_setting_dict.get("show_console_when_reply", False):
         call maica_show_console
     else:
         window hide
     call maica_mpostal_load
+    python:
+        ai = store.maica.maica_instance
+        import bot_interface
+        import traceback
+
+        def _save_mpostal_failure_snapshot(postal, error=None):
+            """Keep the request failure details with the postal that caused them."""
+            # Local setup errors do not update ai.status. Do not attribute them
+            # to an earlier request or to the current healthy connection.
+            postal["failure_status"] = getattr(ai, "status", None) if error is None else None
+            postal["failure_protocol_status"] = (
+                getattr(ai, "error_protocol_status", None) if error is None
+                else "client_mpostal_failed"
+            )
+            postal["failure_protocol_code"] = getattr(ai, "error_protocol_code", None) if error is None else None
+            failure_message = getattr(ai, "error_message", None) if error is None else error
+            postal["failure_message"] = (
+                None if failure_message is None else bot_interface.to_unicode(failure_message)
+            )
+
+        def _record_mpostal_failure(postal, error=None):
+            _save_mpostal_failure_snapshot(postal, error)
+            postal["responsed_status"] = "failed"
+            postal["failed_count"] = postal.get("failed_count", 0) + 1
+            if postal["failed_count"] >= 3:
+                postal["responsed_status"] = "newfatal"
+                postal["responsed_content"] = renpy.substitute(
+                    _("Failed replying mail. Not retrying because failure count limit reached")
+                ) + "\n" + (postal.get("responsed_content") or "")
+                store.mas_submod_utils.submod_log.error(
+                    "label maica_mpostal_read: retry limit reached for '{}'".format(
+                        postal["raw_title"]
+                    )
+                )
+
+        pending_postals = [
+            postal
+            for postal in persistent._maica_send_or_received_mpostals
+            if postal["responsed_status"] == "notupload"
+        ]
+
     call maica_init_connect(use_pause_instand_wait = True)
-    if _return == "disconnected":
+    if _return != "success":
+        python:
+            mpostal_read_result = "failed"
+            for cur_postal in pending_postals:
+                _record_mpostal_failure(cur_postal)
         jump maica_mpostal_read.failed
 
     python:
-        ai = store.maica.maica_instance
-        import time
-        import traceback
-        for cur_postal in persistent._maica_send_or_received_mpostals:
-            if cur_postal["responsed_status"] != "notupload":
-                continue
-            start_time = time.time()
+        total_pending = len(pending_postals)
+        for current_index, cur_postal in enumerate(pending_postals, 1):
             try:
-                uuid = None
-                if cur_postal.get("raw_image"):
-                    vista_info = cur_postal.get("vista_image_info") or {}
-                    uuid = vista_info.get("uuid")
+                vista_info = cur_postal.get("vista_image_info") or {}
+                uuid = vista_info.get("uuid")
+                image_source = cur_postal.get("mpostal_attachment_path") or cur_postal.get("raw_image")
+                if image_source:
                     if not uuid:
-                        uuid = ai.vista_manager.upload(cur_postal["raw_image"])
+                        uuid = store.maica.upload_vista_image(image_source)
                         cur_postal['vista_image_info'] = ai.vista_manager.get_info(uuid)
-                ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if cur_postal.get("raw_image") else None)
-            except Exception:
-                cur_postal["responsed_status"] = "failed"
-                cur_postal["failed_count"] = cur_postal.get("failed_count", 0) + 1
-                _return = "failed"
-                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: request send failed: {}".format(traceback.format_exc()))
-                if cur_postal["failed_count"] >= 3:
-                    cur_postal["responsed_status"] = "fatal"
-                    cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" + cur_postal["responsed_content"]
-                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
-                    break
+                ai.start_MPostal(cur_postal["raw_content"], title=cur_postal["raw_title"], visions = [ai.generate_vista_url(uuid)] if uuid else None)
+            except Exception as error:
+                _record_mpostal_failure(cur_postal, error)
+                mpostal_read_result = "failed"
+                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: request setup failed: {}".format(traceback.format_exc()))
                 continue
-            not_uploaded_count = sum(1 for postal in persistent._maica_send_or_received_mpostals if postal["responsed_status"] == "notupload")
-            current_index = persistent._maica_send_or_received_mpostals.index(cur_postal) + 1  # Convert to 1-based index
 
-            ai.console_logger.info("<submod> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, not_uploaded_count))
+            ai.console_logger.info("<Function> Processing mpostal {} ({}/{})".format(cur_postal["raw_title"], current_index, total_pending))
             cur_postal["responsed_status"] = "failed"
             gen_time = 0
             while ai.is_responding() or ai.len_message_queue() > 0 :
                 if ai.gen_time > gen_time:
                     gen_time = ai.gen_time
 
-                store.mas_ptod.write_command("time: {:.2f}".format(
+                store.mas_ptod.write_command("Time consumed: {:.2f}".format(
                     gen_time
                     ))
-                if ai.is_failed():
-                    if ai.len_message_queue() == 0:
-                        cur_postal["responsed_status"] = "failed"
-                        cur_postal["responsed_content"] = cur_postal["responsed_content"] + renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]" + "\nt{}".format(time.time()))) + ("\n" if len(cur_postal["responsed_content"]) else "")
-
-                        _return = "failed"
-                        store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed!")
-                        break
+                if ai.is_failed() and ai.len_message_queue() == 0:
+                    break
                 if ai.len_message_queue() == 0:
                     store.mas_ptod.write_command("Wait message...")
                     renpy.pause(1.0)
                     continue
-                message = ai.get_message(add_pause = False)
-                store.mas_submod_utils.submod_log.debug("label maica_mpostal_read::message:'{}', '{}'".format(message[0], message[1]))
-                cur_postal["responsed_content"] = store.maica.bot_interface.key_replace(message[1], store.maica.bot_interface.renpy_symbol_big_bracket_only)
+                message = ai.get_message()
+                cur_postal["responsed_content"] = message[1]
                 cur_postal["responsed_status"] = "received"
-                _return = "success"
 
-            if ai.response_timed_out():
-                cur_postal["responsed_status"] = "failed"
-                cur_postal["responsed_content"] += renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
-                _return = "failed"
-                store.mas_submod_utils.submod_log.error("label maica_mpostal_read: response timed out")
+            if ai.is_failed():
+                cur_postal["responsed_content"] = (cur_postal.get("responsed_content") or "") + renpy.substitute(_("Failed replying mail, check submod_log.log for details\nError code: [ai.status] | [ai.MaicaAiStatus.get_description(ai.status)]"))
+                _record_mpostal_failure(cur_postal)
+            elif cur_postal["responsed_status"] != "received":
+                _record_mpostal_failure(
+                    cur_postal, "MPostal request ended without a reply"
+                )
 
-            if _return == "success" and cur_postal["responsed_status"] == "received":
-                store.maica.cache_mpostal_image(cur_postal)
-
-            if _return != 'success':
-                if cur_postal.get("failed_count", 0) >= 3:
-                    cur_postal["responsed_status"] = "fatal"
-                    cur_postal["responsed_content"] = renpy.substitute(_("Failed replying mail. Not retrying because failure count limit reached")) + "\n" +cur_postal["responsed_content"]
-                    store.mas_submod_utils.submod_log.error("label maica_mpostal_read: failed after 3 times!!!")
-                    break
-                else:
-                    if "failed_count" not in cur_postal:
-                        cur_postal["failed_count"] = 0
-                    cur_postal["failed_count"] += 1
-
+            if cur_postal["responsed_status"] == "received":
+                store.maica.delete_mpostal_original(cur_postal)
+            else:
+                mpostal_read_result = "failed"
 
 label maica_mpostal_read.failed:
     call maica_hide_console
     if not persistent.maica_setting_dict.get("show_console_when_reply", False):
         window show
     $ mas_HKBRaiseShield()
-    return _return
+    return mpostal_read_result
 
 
 label maica_mpostal_show(content = "no content"):
@@ -450,7 +508,7 @@ label maica_mpostal_show(content = "no content"):
             poem_id = "mpostal_response_{}".format(time.time()),
             category = "mpostal",
             prompt = "mpostal",
-            text = content,
+            text = maica_escape_dialogue_text(content, interpolation_passes=2),
         )
     call mas_showpoem(store._MP, "mod_assets/poem_assets/mail_maica_bg.png")
     $ store.mas_poems.poem_map.pop(store._MP.poem_id, None)
@@ -519,16 +577,15 @@ label show_workload:
 
 init -1 python:
 
-    # quick functions to enable disable the mouse tracker
+    # Keep the workload screen in the same Ren'Py context as the MAICA console.
     def maica_enableWorkLoadScreen():
         if not maica_isWorkLoadScreenVisible():
-            config.overlay_screens.append("maica_workload_stat_lite")
+            renpy.show_screen("maica_workload_stat_lite")
 
 
     def maica_disableWorkLoadScreen():
         if maica_isWorkLoadScreenVisible():
-            config.overlay_screens.remove("maica_workload_stat_lite")
             renpy.hide_screen("maica_workload_stat_lite")
 
     def maica_isWorkLoadScreenVisible():
-        return "maica_workload_stat_lite" in config.overlay_screens
+        return renpy.get_screen("maica_workload_stat_lite") is not None

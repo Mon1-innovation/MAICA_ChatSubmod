@@ -1,5 +1,14 @@
 from __future__ import unicode_literals
 
+from maica_savefile import (
+    PLAYER_ADDITION_MAX_BYTES,
+    PLAYER_ADDITIONS_MAX_ITEMS,
+    TEXT_TYPES,
+    PlayerAdditionsValidationError,
+    utf8_byte_length,
+    validate_player_addition_item,
+)
+
 
 SETTING_RENAMES = {
     "sfe_aggressive": "prompt_pname_repl",
@@ -25,6 +34,7 @@ ADVANCED_SETTING_KEYS = (
     "frequency_penalty",
     "presence_penalty",
     "prompt_pname_repl",
+    "prompt_monika_nickname",
     "prompt_allow_nickname",
     "mf_llm_concl",
     "mf_sf_access_impl",
@@ -64,22 +74,9 @@ MSPIRE_SEARCH_TYPE_MIGRATIONS = {
 }
 
 try:
-    TEXT_TYPES = (basestring,)
-except NameError:
-    TEXT_TYPES = (str,)
-
-try:
     INTEGER_TYPES = (int, long)
 except NameError:
     INTEGER_TYPES = (int,)
-
-
-def utf8_byte_length(value):
-    if isinstance(value, bytes):
-        return len(value)
-    if isinstance(value, TEXT_TYPES):
-        return len(value.encode("utf-8"))
-    return len(str(value).encode("utf-8"))
 
 
 def _rename_values(values):
@@ -143,6 +140,16 @@ def normalize_tristate_values(values, warning_callback=None, fill_missing=True):
     return values
 
 
+def migrate_mspire_13004_search_type(values):
+    """Preserve pre-1.3.004 MSpire behavior across the backend algorithm change."""
+    if not isinstance(values, dict):
+        return False
+    if values.get("mspire_search_type") != "in_fuzzy_all":
+        return False
+    values["mspire_search_type"] = "in_precise_category"
+    return True
+
+
 def migrate_setting_values(
     values,
     status=None,
@@ -181,8 +188,8 @@ def migrate_setting_values(
 def backup_and_filter_player_additions(
     values,
     backup,
-    limit=512,
-    bytes_limit=1536,
+    limit=PLAYER_ADDITIONS_MAX_ITEMS,
+    bytes_limit=PLAYER_ADDITION_MAX_BYTES,
     backup_initialized=False,
 ):
     if not backup_initialized and not backup:
@@ -192,13 +199,9 @@ def backup_and_filter_player_additions(
     for value in values:
         if len(active) >= limit:
             break
-        if not isinstance(value, TEXT_TYPES):
-            continue
         try:
-            value_bytes = utf8_byte_length(value)
-        except UnicodeError:
-            continue
-        if value_bytes > bytes_limit:
+            validate_player_addition_item(value, bytes_limit=bytes_limit)
+        except PlayerAdditionsValidationError:
             continue
         active.append(value)
     return active

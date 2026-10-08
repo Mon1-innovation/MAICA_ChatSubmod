@@ -14,6 +14,8 @@ translate chinese strings:
     # game/Submods/MAICA_ChatSubmod/header.rpy:147
     old "> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"
     new "> MAICA通信状态: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"
+    old "> Provider list refresh failed: "
+    new "> 节点列表刷新失败: "
     # game/Submods/MAICA_ChatSubmod/header.rpy:151
     old "> Websocket: [stat]"
     new "> Websocket: [stat]"
@@ -482,11 +484,17 @@ translate chinese strings:
 
 translate chinese strings:
 
+    # game/Submods/MAICA_ChatSubmod/header.rpy:635
+    old "MAICA: Input contains invalid text"
+    new "MAICA: 输入包含无效文本"
+    # game/Submods/MAICA_ChatSubmod/header.rpy:703
+    old "MAICA: Savefile upload cancelled because MFocus information is invalid"
+    new "MAICA: MFocus补充信息无效, 已取消存档上传"
     # game/Submods/MAICA_ChatSubmod/header.rpy:141
     old "MAICA: Savefile uploaded successfully"
     new "MAICA: 存档上传成功"
     # game/Submods/MAICA_ChatSubmod/header.rpy:141
-    old "MAICA; Savefile failed to upload"
+    old "MAICA: Savefile failed to upload"
     new "MAICA: 存档上传失败"
     # game/Submods/MAICA_ChatSubmod/header.rpy:145
     old "MAICA: Chat session reset"
@@ -1031,8 +1039,8 @@ translate chinese strings:
     old "! Current main session is set to same as MSpire session which may cause unexpected issues.\n! Please avoid setting these the same value (except 0) unless you literally understand what you're doing."
     new "! 当前主会话与MSpire共用会话, 这可能导致行为和表现上的问题.\n! 如果你不清楚这意味着什么, 请不要将二者设为相同非0值."
     # game/Submods/MAICA_ChatSubmod/header.rpy:1069
-    old "Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Enforces default super params"
-    new "启用MSpire缓存.\n* MSpire会话不为0时不生效\n* 会强制使用默认高级参数"
+    old "Enable MSpire cache.\n* Only available when MSpire session is 0\n* When enabled, super params and user-level prompt modifications are muted, including prompt_pname_repl, prompt_monika_nickname, MFocus related, etc"
+    new "启用MSpire缓存.\n* 仅当MSpire会话为0时可以使用\n* 启用时, 基于超参数和用户级prompt修改的功能均不会生效, 例如prompt_pname_repl, prompt_monika_nickname, MFocus相关功能等"
     # game/Submods/MAICA_ChatSubmod/header.rpy:1076
     old "Enable MSpire cache.\n! MSpire session not 0, with which MSpire cache conflicts"
     new "启用MSpire缓存.\n! MSpire会话不为0, MSpire缓存不会生效"
@@ -1145,3 +1153,9 @@ translate chinese strings:
 
     old "Show maica_gen_quality_chk_notify 0.9"
     new "显示maica_gen_quality_chk_notify 0.9"
+
+translate chinese strings:
+
+    # game/Submods/MAICA_ChatSubmod/header.rpy:1181
+    old "> Warning: {color=#ff0000}certification corrupted{/color}, remove problematic extensions or clean install"
+    new "> 警告: {color=#ff0000}证书损坏{/color}, 删除有问题的子模组或干净安装"

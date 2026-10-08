@@ -1,6 +1,7 @@
 """Collectable static contracts for the backend-v1.3 release cut-over."""
 
 import ast
+import builtins
 import io
 import json
 import re
@@ -41,6 +42,7 @@ ADVANCED_SETTING_KEYS = (
     "frequency_penalty",
     "presence_penalty",
     "prompt_pname_repl",
+    "prompt_monika_nickname",
     "prompt_allow_nickname",
     "mf_llm_concl",
     "mf_sf_access_impl",
@@ -670,12 +672,25 @@ def test_a_frontend_version_declaration_is_authoritative():
     assert re.search(r"def\s+is_frontend_version_outdated\(version_info=None\)", api)
     assert 'get("fe_blessland_version")' in api
     assert "maica_version_parts(store.maica_ver)" in api
-    assert "maica_version_parts(minver)" in api
+    assert "maica_version_parts(min_version)" in api
+    assert "compare_maica_versions(" in api
     validate = function_body(api, "validate_version")
     assert "maica_version_parts(libv)" in validate
     assert "maica_version_parts(uiv)" in validate
-    assert "if is_frontend_version_outdated():" in api
+    assert "if accessible and is_frontend_version_outdated():" in api
     assert "elif maica.is_frontend_version_outdated():" in header
+
+
+def test_rss_setup_is_deferred_to_optional_update_initialization():
+    api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    early_init = api.split("default persistent._maica_updatelog_version_seen", 1)[0]
+    update_init = api.split("init 5 python in maica:", 1)[1].split("\ninit ", 1)[0]
+
+    assert "maica_rss_provider" not in early_init
+    assert "except:\n        pass" not in early_init
+    assert "maica_rss_provider.set_ua(store.maica_ver)" in update_init
+    assert "except Exception as e:" in update_init
+    assert update_init.index("    import bot_interface") < update_init.index("    try:")
 
 
 def test_a_frontend_version_comparison_uses_numeric_segments():
@@ -686,43 +701,55 @@ def test_a_frontend_version_comparison_uses_numeric_segments():
         for line in init_block.splitlines()
     )
     tree = ast.parse(python_source)
+    helper_names = {
+        "_maica_is_version_sequence",
+        "_maica_is_version_dict",
+        "maica_version_parts",
+        "compare_maica_versions",
+        "is_frontend_version_outdated",
+    }
     functions = [
         node for node in tree.body
         if isinstance(node, ast.FunctionDef)
-        and node.name in ("maica_version_parts", "is_frontend_version_outdated")
+        and node.name in helper_names
     ]
-    assert {node.name for node in functions} == {
-        "maica_version_parts",
-        "is_frontend_version_outdated",
-    }
-
-    comparisons = []
-
-    def compare_versions(current, minimum):
-        comparisons.append((current, minimum))
-        return (current > minimum) - (current < minimum)
-
-    class MasUtilsStub(object):
-        compareVersionLists = staticmethod(compare_versions)
+    assert {node.name for node in functions} == helper_names
 
     class StoreStub(object):
         maica_ver = "1.8.11"
-        mas_utils = MasUtilsStub()
 
-    namespace = {"store": StoreStub()}
+    namespace = {
+        "store": StoreStub(),
+        "_maica_version_builtin_types": builtins,
+    }
     module = ast.Module(body=functions, type_ignores=[])
     ast.fix_missing_locations(module)
     exec(compile(module, "api.rpy", "exec"), namespace)
 
+    assert namespace["maica_version_parts"](" 1.8.11\n") == [1, 8, 11]
+    assert namespace["maica_version_parts"](("1", 8, "11")) == [1, 8, 11]
+    assert namespace["maica_version_parts"]("1.8.x") is None
+    assert namespace["compare_maica_versions"]([1, 8], [1, 8, 0]) == 0
     assert namespace["is_frontend_version_outdated"]({
         "success": True,
         "content": {"fe_blessland_version": "1.8.5"},
     }) is False
-    assert comparisons[-1] == ([1, 8, 11], [1, 8, 5])
     assert namespace["is_frontend_version_outdated"]({
         "success": True,
         "content": {"fe_blessland_version": "1.8.12"},
     }) is True
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": {"fe_blessland_version": "1.8.11.0"},
+    }) is False
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": {"fe_blessland_version": "invalid"},
+    }) is False
+    assert namespace["is_frontend_version_outdated"]({
+        "success": True,
+        "content": [],
+    }) is False
 
 
 def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs():
@@ -737,8 +764,13 @@ def test_a_settings_connection_preserves_the_submods_screen_without_label_kwargs
     )
     assert "_clear_layers" not in pane
     assert "connection_busy = ai.is_connecting()" in pane
+    assert "availability_busy = ai.is_checking_availability()" in pane
+    assert "MaicaAiStatus.WAIT_AVAILABILITY" in pane
+    assert "get_provider_refresh_error()" in pane
+    assert "Provider list refresh failed" in pane
     assert "maica.maica_instance.is_connecting()" in pane
     assert "MaicaAiStatus.is_submod_exception" in pane
+    assert "MaicaAiStatus.CERTIFI_BROKEN" in pane
     assert "13400 <=" not in pane
     assert re.search(
         r"has_token\(\).*?is_accessable\(\).*?not\s+"
@@ -780,6 +812,8 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     main = source("game/Submods/MAICA_ChatSubmod/main.rpy")
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
+    screens = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    client = source("game/python-packages/maica.py")
 
     provider_sync = function_body(header, r"sync_provider_id")
     assert re.search(r"if\s+reconnect:\s*ai\.close_wss_session\(\)", provider_sync)
@@ -788,6 +822,25 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
     assert "ai.status" not in provider_sync
     assert "ai.wait_for_connection_shutdown(6.0)" in provider_sync
     assert "ai.multi_lock" not in provider_sync
+    assert "provider_manager.get_provider()" not in provider_sync
+    assert provider_sync.count("store.maica.check_accessibility()") == 1
+    assert "availability_ready = store.maica.check_accessibility()" in provider_sync
+
+    provider_screen = named_screen(screens, "maica_node_setting")
+    assert "provider_manager.get_provider" not in provider_screen
+    assert "refresh_provider_list" in provider_screen
+    assert "maica_start_provider_task" in provider_screen
+    assert "is_provider_refreshing()" in provider_screen
+
+    provider_task = function_body(header, r"maica_start_provider_task")
+    assert "renpy.invoke_in_thread(task)" in provider_task
+    assert "is_provider_refreshing()" in provider_task
+    assert "is_checking_availability()" in provider_task
+
+    assert "self._availability_check_lock = threading.Lock()" in client
+    accessibility = function_body(client, r"accessable")
+    assert "_availability_check_lock" in accessibility
+    assert "finally:" in accessibility
 
     token_change = function_body(api, r"change_token")
     assert re.search(
@@ -812,6 +865,8 @@ def test_a_certificate_repair_and_version_disable_are_sticky():
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
     repair = function_body(api, r"maica_download_certifi_files")
     startup = function_body(api, r"start_maica")
+    version_guard = function_body(api, r"check_accessibility")
+    provider_refresh = function_body(api, r"refresh_provider_list")
 
     assert "13408" not in api
     assert repair.count("CERTIFI_RESTART_REQUIRED") == 1
@@ -820,9 +875,16 @@ def test_a_certificate_repair_and_version_disable_are_sticky():
         repair,
         re.S,
     )
+    assert "check_accessibility()" in startup
     assert re.search(
         r"disable\(\s*.*?VERSION_OLD\s*,\s*sticky\s*=\s*True",
-        startup,
+        version_guard,
+        re.S,
+    )
+    assert "instance.refresh_provider_list()" in provider_refresh
+    assert re.search(
+        r"disable\(\s*.*?VERSION_OLD\s*,\s*sticky\s*=\s*True",
+        provider_refresh,
         re.S,
     )
 
@@ -1188,20 +1250,74 @@ def test_c_regular_settings_use_renpy_language_and_system_timezone_defaults():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
     target_default = function_body(header, r"maica_get_default_target_lang")
+    timezone_default = function_body(header, r"maica_get_language_default_timezone")
+    refresh_automatic = function_body(header, r"maica_refresh_automatic_settings")
     assert re.search(r"['\"]chinese['\"]\s*:\s*['\"]zh['\"]", target_default)
     assert re.search(r"['\"]english['\"]\s*:\s*['\"]en['\"]", target_default)
     assert re.search(r"\.get\s*\([^,]+,\s*['\"]auto['\"]\s*\)", target_default)
+    assert 'if target_lang == "zh"' in timezone_default
+    assert 'return "Asia/Shanghai"' in timezone_default
+    assert 'return "America/Indiana/Vincennes"' in timezone_default
     assert re.search(r"['\"]target_lang['\"]\s*:\s*maica_get_default_target_lang\s*\(\s*\)", header)
     assert re.search(r"['\"]tz['\"]\s*:\s*maica_get_system_timezone\s*\(\s*\)", header)
-    assert 'persistent._maica_target_lang_mode == "renpy"' in header
-    assert 'persistent._maica_tz_mode == "system"' in header
+    assert 'persistent._maica_target_lang_mode == "renpy"' in refresh_automatic
+    assert 'persistent._maica_tz_mode == "system"' in refresh_automatic
+    assert 'persistent._maica_tz_mode == "language"' in refresh_automatic
     assert "current_tz = store.maica_get_system_timezone()" in screen
+    assert "language_tz = store.maica_get_language_default_timezone(" in screen
+
+
+def test_c_language_and_timezone_selectors_use_explicit_two_level_highlights():
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    language = named_screen(screen, "maica_select_language")
+    timezone = named_screen(screen, "maica_tz_setting")
+
+    assert 'use maica_setter_medium_frame(' in language
+    assert language.count("use divider_plain_small()") == 1
+    assert timezone.count("use divider_plain_small()") == 1
+    assert 'style_prefix "maica_check"' not in language
+    assert 'style_prefix "maica_check"' not in timezone
+
+    assert 'selected persistent._maica_target_lang_mode == "renpy"' in language
+    assert language.count("selected current_target_lang ==") == 3
+    assert 'selected persistent._maica_tz_mode == "language"' in timezone
+    assert 'selected persistent._maica_tz_mode == "system"' in timezone
+    assert "selected selected_tz == timezone_dict[item]" in timezone
+
+    assert "SetField(persistent, \"_maica_target_lang_mode\"" not in language
+    assert "SetField(persistent, \"_maica_tz_mode\"" not in timezone
+
+
+def test_c_automatic_language_and_timezone_modes_sync_and_roll_back():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    target_select = function_body(header, r"maica_select_target_lang")
+    timezone_select = function_body(header, r"maica_select_timezone")
+    reset = function_body(header, r"maica_reset_setting")
+    discard = function_body(header, r"maica_discard_setting")
+    apply_setting = function_body(header, r"maica_apply_setting")
+    setting_screen = named_screen(header, "maica_setting")
+
+    assert 'persistent.maica_setting_dict["target_lang"] = target_lang' in target_select
+    assert "persistent._maica_target_lang_mode = mode" in target_select
+    assert 'persistent._maica_tz_mode == "language"' in target_select
+    assert "maica_get_language_default_timezone(target_lang)" in target_select
+    assert 'persistent.maica_setting_dict["tz"] = timezone' in timezone_select
+    assert "persistent._maica_tz_mode = mode" in timezone_select
+
+    assert 'persistent._maica_target_lang_mode = "renpy"' in reset
+    assert 'persistent._maica_tz_mode = "system"' in reset
+    assert "maica_refresh_automatic_settings(persistent.maica_setting_dict)" in reset
+    assert "maica_refresh_automatic_settings(persistent.maica_setting_dict)" in apply_setting
+
+    assert "persistent._maica_target_lang_mode = target_lang_mode" in discard
+    assert "persistent._maica_tz_mode = tz_mode" in discard
+    assert "default target_lang_mode_before_edit" in setting_screen
+    assert "default tz_mode_before_edit" in setting_screen
     assert re.search(
-        r"SetDict\s*\(\s*persistent\.maica_setting_dict\s*,\s*['\"]target_lang['\"]\s*,[^\n]*MaicaAiLang\.auto",
-        screen,
+        r"Function\s*\(\s*store\.maica_discard_setting\s*,\s*"
+        r"target_lang_mode_before_edit\s*,\s*tz_mode_before_edit",
+        setting_screen,
     )
-    assert re.search(r"SetField\s*\(\s*persistent\s*,\s*['\"]_maica_target_lang_mode['\"]\s*,\s*['\"]manual['\"]", screen)
-    assert re.search(r"SetField\s*\(\s*persistent\s*,\s*['\"]_maica_tz_mode['\"]\s*,\s*['\"]system['\"]", screen)
 
 
 def test_c_prompt_allow_nickname_uses_backend_default_true():
@@ -1276,8 +1392,7 @@ def test_c_each_outbound_builder_retires_mt_extraction(relative):
 
 
 def test_c_persistent_exports_retire_mas_sf_hcb():
-    assert "mas_sf_hcb" not in source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")
-    assert "mas_sf_hcb" not in source("game/python-packages/json_exporter.py")
+    assert "mas_sf_hcb" not in source("game/python-packages/maica_savefile.py")
 
 
 def test_d_login_and_generation_start_use_v13_protocol():
@@ -1362,6 +1477,55 @@ def test_e_advanced_setting_screen_matches_backend_document_order():
     assert "twk_super" not in ui
 
 
+def test_e_v13004_mspire_defaults_and_tooltips_match_backend_contract():
+    runtime = source("game/python-packages/maica.py")
+    sender = source("game/python-packages/maica_tasker_sub_sessionsender.py")
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    translations = source("game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy")
+    header_translations = source("game/Submods/MAICA_ChatSubmod/tl/header.rpy")
+
+    assert "self.MaicaMSpiretype.in_precise_category" in runtime
+    assert re.search(r"mspire_type\s*=\s*['\"]in_precise_category['\"]", sender)
+    assert re.search(
+        r"['\"]mspire_search_type['\"]\s*:\s*['\"]in_precise_category['\"]",
+        header,
+    )
+
+    for text in (
+        "Fetch a page directly by keyword, requiring exact match",
+        "Search multiple pages by keyword and randomly select one",
+        "Fetch a category directly by keyword, requiring exact match",
+        "Search multiple categories by keyword, then recursively select",
+        "Starting from the keyword, recursively search and select categories or pages",
+        "user-level prompt modifications are muted",
+    ):
+        assert text in screen + header
+
+    for text in (
+        "直接根据关键词拉取页面, 要求准确匹配",
+        "根据关键词搜索多个页面, 从中随机抽取一个页面",
+        "直接根据关键词拉取分类, 要求准确匹配",
+        "根据关键词搜索多个分类, 再从其中递归地随机抽取分类或页面",
+        "根据关键词直接开始递归地抽取分类或页面",
+        "基于超参数和用户级prompt修改的功能均不会生效",
+    ):
+        assert text in translations + header_translations
+
+
+def test_e_gen_enforce_lang_tooltip_keeps_logic_and_declares_backend_withdrawal():
+    screen = named_screen(
+        source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
+        "maica_advance_setting",
+    )
+    translations = source("game/Submods/MAICA_ChatSubmod/tl/screen_subs.rpy")
+
+    assert 'ToggleDict(persistent.maica_advanced_setting_status, "gen_enforce_lang")' in screen
+    assert 'ToggleDict(persistent.maica_advanced_setting, "gen_enforce_lang")' in screen
+    assert "Temporarily withdrawn since backend v1.3.004.rc2" in screen
+    assert "自后端v1.3.004.rc2后, 该功能被暂时撤销" in translations
+
+
 def test_e_advanced_setting_screen_supports_discard_and_independent_local_switches():
     screen = named_screen(
         source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy"),
@@ -1441,8 +1605,7 @@ def test_e_player_addition_ui_escapes_markup_without_changing_values():
     chat = source("game/Submods/MAICA_ChatSubmod/chat.rpy")
 
     escape_helper = function_body(header, r"maica_escape_display_text")
-    assert re.search(r"\.replace\(\s*['\"]\[['\"]\s*,\s*['\"]\[\[['\"]\s*\)", escape_helper)
-    assert re.search(r"\.replace\(\s*['\"]\{['\"]\s*,\s*['\"]\{\{['\"]\s*\)", escape_helper)
+    assert "bot_interface.escape_renpy_text(text)" in escape_helper
 
     addition_screen = named_screen(screen, "maica_addition_setting")
     assert re.search(r"textbutton\s+maica_escape_display_text\s*\(\s*item\s*\)", addition_screen)
@@ -1453,6 +1616,48 @@ def test_e_player_addition_ui_escapes_markup_without_changing_values():
         delete_label,
         re.S,
     )
+
+
+def test_e_dynamic_error_and_external_fields_use_display_escape_boundaries():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+    templates = source("game/Submods/MAICA_ChatSubmod/screen_templates.rpy")
+
+    location_screen = named_screen(screen, "maica_location_input")
+    provider_screen = named_screen(screen, "maica_node_setting")
+    log_screen = named_screen(screen, "maica_log")
+    message_screen = templates
+
+    assert "res.get(\"exception\")" in location_screen
+    assert 'renpy.show_screen("maica_message"' in location_screen
+    assert "screen maica_message" in message_screen
+    assert "label maica_escape_display_text(_(message))" in message_screen
+    assert "maica_escape_display_text(maica_log.get(\"title\"))" in log_screen
+    assert "maica_escape_display_text(content)" in log_screen
+    for field in ("name", "description", "servingModel", "portalPage"):
+        assert re.search(
+            r"maica_escape_display_text\(\s*provider\.get\(\s*['\"]{}['\"]".format(field),
+            provider_screen,
+        )
+
+    token_helper = function_body(header, r"_maica_verify_token")
+    assert "maica_escape_display_text(detail)" not in token_helper
+
+
+def test_e_chat_and_mpostal_escape_only_at_renpy_display_edges():
+    main = source("game/Submods/MAICA_ChatSubmod/main.rpy")
+    raw = source("game/Submods/MAICA_ChatSubmod/raw_session_example.rpy")
+    runtime = source("game/python-packages/maica.py")
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+
+    assert "ai.prepare_message_for_renpy(message[1])" in main
+    assert "ai.prepare_message_for_renpy(message[1])" in raw
+    assert "def prepare_message_for_renpy" in runtime
+    assert "RENPY_DIALOGUE_SUBSTITUTIONS" in runtime
+    assert 'cur_postal["responsed_content"] = message[1]' in main
+    assert "maica_escape_dialogue_text(content, interpolation_passes=2)" in main
+    assert "maica_build_display_preview" in screen
+    assert "preview_text.count" not in screen
 
 
 def test_e_list_setting_selection_is_screen_local_and_index_based():
@@ -1469,6 +1674,18 @@ def test_e_list_setting_selection_is_screen_local_and_index_based():
         assert re.search(r"for\s+index\s*,\s*item\s+in\s+enumerate\s*\(", setting_screen)
         assert re.search(r"ToggleSetMembership\s*\(\s*selected_indices\s*,\s*index\s*\)", setting_screen)
         assert re.search(r"Function\s*\(\s*maica_delete_selected_items\s*,", setting_screen)
+
+
+def test_e_editable_list_items_expand_for_wrapped_text():
+    screen = source("game/Submods/MAICA_ChatSubmod/screen_subs.rpy")
+
+    for name in ("maica_addition_setting", "maica_mspire_category_setting"):
+        setting_screen = named_screen(screen, name)
+        assert re.search(
+            r"textbutton\s+maica_escape_display_text\s*\(\s*item\s*\)\s*:\s*"
+            r"yminimum\s+36\s*ymaximum\s+None",
+            setting_screen,
+        )
 
 
 def test_f_vista_list_and_download_routes_are_distinct():
@@ -1519,13 +1736,15 @@ def test_f_legality_response_displays_distinct_latitude_and_longitude():
     assert 'old "Location geocode: "' not in translation
 
 
-def test_g_header_shared_additions_helper_enforces_both_byte_limits():
+def test_g_header_shared_additions_helper_uses_the_backend_limits():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     helper = function_body(header, r"_?maica_\w*addition\w*")
-    count_reject = conditional_body(helper, r"len\s*\(\s*\w*additions\w*\s*\)\s*(?:>=\s*512|>\s*511)")
-    byte_reject = conditional_body(helper, r"len\s*\([^\n]*\.encode\s*\(\s*['\"]utf-8['\"]\s*\)[^\n]*\)\s*(?:>\s*1536|>=\s*1537)")
-    for rejection in (count_reject, byte_reject):
-        assert re.search(r"\b(?:return|raise|notify|show_screen)\b", rejection), "limit branch does not reject or notify"
+    contract = source("game/python-packages/maica_savefile.py")
+
+    assert "maica_savefile.PLAYER_ADDITIONS_MAX_ITEMS" in helper
+    assert "maica_savefile.validate_player_addition_item" in helper
+    assert literal_assignment(contract, "PLAYER_ADDITIONS_MAX_ITEMS") == 512
+    assert literal_assignment(contract, "PLAYER_ADDITION_MAX_BYTES") == 1536
 
 
 def test_g_chat_and_screen_call_the_same_additions_helper():
@@ -1554,18 +1773,27 @@ def test_g_old_1000_character_preprocessor_is_retired(relative):
     assert not re.search(r"(?:maxlen\s*=\s*1000|\[:\s*1000\s*\]|len\s*\([^)]*\)\s*>\s*1000)", source(relative)), relative
 
 
-def test_g_persistent_upload_uses_the_player_addition_byte_limit():
+def test_g_persistent_upload_uses_the_field_specific_sanitizer():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     upload = function_body(header, r"_upload_persistent_dict")
-    assert re.search(r"max_bytes\s*=\s*1536\b", upload)
-    assert re.search(r"maica_v13_migration\.utf8_byte_length\s*\(", upload)
+
+    assert "maica_savefile.sanitize_persistent_dict(d)" in upload
+    assert "REMOVED|TOO_LONG" not in upload
+    assert upload.index("sanitize_persistent_dict") < upload.index("upload_save(d)")
+    invalid_branch = block_after(
+        upload,
+        r"except\s+maica_savefile\.PlayerAdditionsValidationError",
+        500,
+    )
+    assert re.search(r"\breturn\b", invalid_branch)
 
 
 def test_g_persistent_upload_includes_the_effective_target_language():
     header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
     upload = function_body(header, r"_upload_persistent_dict")
-    persistent_filter = json.loads(
-        source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")
+    upload_keys = literal_assignment(
+        source("game/python-packages/maica_savefile.py"),
+        "PERSISTENT_UPLOAD_KEYS",
     )
 
     assert re.search(
@@ -1573,7 +1801,21 @@ def test_g_persistent_upload_includes_the_effective_target_language():
         r"store\.maica\.maica_instance\.target_lang",
         upload,
     )
-    assert "target_lang" in persistent_filter
+    assert "target_lang" in upload_keys
+    assert "maica_savefile.sanitize_persistent_dict(d)" in upload
+
+
+def test_g_persistent_upload_includes_mas_monika_nickname_source():
+    header = source("game/Submods/MAICA_ChatSubmod/header.rpy")
+    upload = function_body(header, r"_upload_persistent_dict")
+    upload_keys = literal_assignment(
+        source("game/python-packages/maica_savefile.py"),
+        "PERSISTENT_UPLOAD_KEYS",
+    )
+
+    assert "mas_monikaname" in upload_keys
+    assert "_mas_monika_nickname" in upload
+    assert "select_monika_nickname" in upload
 
 
 def test_g_v18_migration_runs_before_persistent_upload():
@@ -1813,5 +2055,15 @@ def test_retired_ws_protocol_identifiers_are_not_registered():
     assert not found, "retired websocket identifiers remain: {}".format(found)
 
 
-def test_persistent_filter_is_valid_json():
-    assert isinstance(json.loads(source("game/Submods/MAICA_ChatSubmod/persistent_filter.json")), (list, dict))
+def test_persistent_upload_filter_has_one_unique_owner():
+    upload_keys = literal_assignment(
+        source("game/python-packages/maica_savefile.py"),
+        "PERSISTENT_UPLOAD_KEYS",
+    )
+
+    assert len(upload_keys) == len(set(upload_keys))
+    assert not (SUBMOD / "persistent_filter.json").exists()
+    assert not re.search(
+        r"(?m)^persistent_filter\s*=",
+        source("game/python-packages/json_exporter.py"),
+    )

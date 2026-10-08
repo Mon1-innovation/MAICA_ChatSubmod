@@ -404,9 +404,7 @@ class SessionSenderAndReceiver(MaicaWSTask):
         self._start_request_timeout()
         try:
             self.process_request(*args, **kwargs)
-        except Exception as e:
-            import traceback
-            self.logger.error("[SessionSenderAndReceiver] start_request error: {}".format(traceback.format_exc()))
+        except Exception:
             # 如果发生异常，立即释放锁
             self.processing = False
             self._cancel_request_timeout()
@@ -526,11 +524,11 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
     用于处理灵感相关的聊天请求，可以进行模糊搜索和缓存使用。
 
     Class Attributes:
-        mspire_type (str): MSpire类型，默认为"in_fuzzy_all"（模糊全文搜索）
+        mspire_type (str): MSpire类型，默认为"in_precise_category"（准确分类后递归搜索）
         use_cache (bool): 是否使用缓存结果，默认为False
     """
 
-    mspire_type = "in_fuzzy_all"
+    mspire_type = "in_precise_category"
     use_cache = False
     ctg_weight = 10
 
@@ -558,8 +556,9 @@ class MAICAMSpireProcessor(SessionSenderAndReceiver):
         if mspire_type is _UNSET:
             mspire_type = self.mspire_type
         search_type = normalize_mspire_type(mspire_type)
-        if cache_enabled and session != 0:
-            raise ValueError("use_cache is only available for session 0")
+        # The backend only supports MSpire caching for the default session.
+        if session != 0:
+            cache_enabled = False
 
         if flush and str(session) != '0':
             data = {

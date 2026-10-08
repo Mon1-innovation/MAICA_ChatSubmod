@@ -4,7 +4,7 @@ init python:
         image = file_selector.select_file()
         if image:
             try:
-                store.maica.maica_instance.vista_manager.upload(image)
+                store.maica.upload_vista_image(image)
             except Exception as e:
                 renpy.notify(_("MAICA: Upload failed"))
 
@@ -13,14 +13,14 @@ init python:
 
     def maica_reupload_image(uuid):
         try:
-            store.maica.maica_instance.vista_manager.reupload(uuid)
+            store.maica.reupload_vista_image(uuid)
             renpy.notify(_("MAICA: Re-upload success"))
         except Exception as e:
             renpy.notify(_("MAICA: Re-upload failed"))
 
     def maica_upload_image_android_submit(image_path):
         try:
-            store.maica.maica_instance.vista_manager.upload(image_path)
+            store.maica.upload_vista_image(image_path)
             renpy.notify(_("MAICA: Upload success"))
         except Exception as e:
             renpy.notify(_("MAICA: Upload failed"))
@@ -40,7 +40,10 @@ screen maica_upload_image_android():
                 text _("Selecting images...")
             else:
                 if imageselector.image_path:
-                    text _("Image chosen: [imageselector.image_path]")
+                    text maica_escape_display_text(renpy.substitute(
+                        _("Image chosen: [imageselector.image_path]"),
+                        scope={"imageselector": imageselector}
+                    ))
                 else:
                     text _("No image chosen")
         hbox:
@@ -106,7 +109,7 @@ screen maica_vista_filelist(selecting=False):
                     if store.maica.maica_instance.is_connected():
                         if selecting:
                             if not is_expired(item):
-                                if not persistent._maica_vista_enabled:
+                                if not store.maica_topic_ready("mvista"):
                                     textbutton _("! MVista not unlocked"):
                                         style "generic_fancy_check_button_disabled"
                                 elif selected_is_full():
@@ -129,10 +132,10 @@ screen maica_vista_filelist(selecting=False):
                             if not is_expired(item):
                                 textbutton _("Delete this image (local and remote)"):
                                     action [Function(remove_if_selected, item),
-                                        Function(store.maica.maica_instance.vista_manager.delete, item['uuid'])]
+                                        Function(store.maica.delete_vista_image, item['uuid'])]
                             else:
                                 textbutton _("Delete this image (local)"):
-                                    action Function(store.maica.maica_instance.vista_manager.remove, item['uuid'])
+                                    action Function(store.maica.remove_vista_image, item['uuid'])
                                 textbutton _("Re-upload this image"):
                                     action [Function(maica_reupload_image, item['uuid'])]
         hbox:

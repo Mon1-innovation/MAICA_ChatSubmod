@@ -18,7 +18,7 @@ init -989 python:
             attachment_id=0
         )
 
-default persistent.maica_setting_dict = {
+default -1499 persistent.maica_setting_dict = {
     "auto_reconnect":True,
     "auto_resume":True,
     "keep_alive":True,
@@ -31,18 +31,61 @@ default persistent.maica_setting_dict = {
     "input_lang_detect":True,
     "pprt":True
 }
-default persistent.maica_advanced_setting = {}
-default persistent.maica_advanced_setting_status = {}
-default persistent.mas_player_additions = []
+default -1499 persistent.maica_advanced_setting = {}
+default -1499 persistent.maica_advanced_setting_status = {}
+default -1499 persistent.mas_player_additions = []
 default persistent._maica_reseted = False
 default persistent._maica_target_lang_mode = None
 default persistent._maica_tz_mode = None
+
+init -1498 python:
+    try:
+        import __builtin__ as maica_builtins
+    except ImportError:
+        import builtins as maica_builtins
+
+    def maica_repair_persistent_containers():
+        repaired = []
+        container_types = (
+            ("maica_setting_dict", maica_builtins.dict, dict),
+            ("maica_advanced_setting", maica_builtins.dict, dict),
+            ("maica_advanced_setting_status", maica_builtins.dict, dict),
+            ("mas_player_additions", maica_builtins.list, list),
+            ("_maica_send_or_received_mpostals", maica_builtins.list, list),
+            ("_maica_visuals", maica_builtins.list, list),
+        )
+        for name, expected_type, factory in container_types:
+            value = getattr(persistent, name, None)
+            if not isinstance(value, expected_type):
+                setattr(persistent, name, factory())
+                repaired.append("{} ({})".format(name, type(value).__name__))
+
+        mspire_category = persistent.maica_setting_dict.get("mspire_category", [])
+        if not isinstance(mspire_category, maica_builtins.list):
+            persistent.maica_setting_dict.pop("mspire_category", None)
+            repaired.append(
+                "maica_setting_dict.mspire_category ({})".format(
+                    type(mspire_category).__name__
+                )
+            )
+        return repaired
+
+    _maica_repaired_persistent_containers = maica_repair_persistent_containers()
 
 define maica_confont = "mod_assets/font/SarasaMonoTC-SemiBold.ttf"
 #define "mod_assets/font/mplus-1mn-medium.ttf" # mas_ui.MONO_FONT
 init 10 python:
     import logging
+    import bot_interface
+    import maica_savefile
     import maica_v13_migration
+
+    if _maica_repaired_persistent_containers:
+        store.mas_submod_utils.submod_log.warning(
+            "MAICA: repaired invalid persistent containers: {}".format(
+                ", ".join(_maica_repaired_persistent_containers)
+            )
+        )
 
     maica_timezone_dict = {
         -12: "Etc/GMT+12",
@@ -79,6 +122,16 @@ init 10 python:
             "chinese": "zh",
             "english": "en",
         }.get(config.language, "auto")
+
+    def maica_get_language_default_timezone(target_lang=None):
+        if target_lang is None:
+            target_lang = persistent.maica_setting_dict.get(
+                "target_lang",
+                maica_get_default_target_lang()
+            )
+        if target_lang == "zh":
+            return "Asia/Shanghai"
+        return "America/Indiana/Vincennes"
 
     def maica_get_system_timezone():
         import os
@@ -139,6 +192,28 @@ init 10 python:
             "manual" if "tz" in persistent.maica_setting_dict else "system"
         )
 
+    def maica_refresh_automatic_settings(settings):
+        if persistent._maica_target_lang_mode == "renpy":
+            settings["target_lang"] = maica_get_default_target_lang()
+        if persistent._maica_tz_mode == "system":
+            settings["tz"] = maica_get_system_timezone()
+        elif persistent._maica_tz_mode == "language":
+            settings["tz"] = maica_get_language_default_timezone(
+                settings["target_lang"]
+            )
+
+    def maica_select_target_lang(target_lang, mode):
+        persistent.maica_setting_dict["target_lang"] = target_lang
+        persistent._maica_target_lang_mode = mode
+        if persistent._maica_tz_mode == "language":
+            persistent.maica_setting_dict["tz"] = (
+                maica_get_language_default_timezone(target_lang)
+            )
+
+    def maica_select_timezone(timezone, mode):
+        persistent.maica_setting_dict["tz"] = timezone
+        persistent._maica_tz_mode = mode
+
     maica_default_dict = {
         "auto_reconnect":True,
         "auto_resume":True,
@@ -154,7 +229,7 @@ init 10 python:
         "mspire_enable":True,
         "mspire_category":[],
         "mspire_interval":60,
-        "mspire_search_type":"in_fuzzy_all",
+        "mspire_search_type":"in_precise_category",
         "mspire_session":0,
         "mspire_use_cache":True,
         "log_level":logging.DEBUG,
@@ -182,11 +257,12 @@ init 10 python:
         "seed":0,
         "mf_llm_concl":False,
         "prompt_pname_repl":False,
+        "prompt_monika_nickname":False,
         "mf_const_tools":1,
         "esearch_llm_concl":True,
         "nsfw_acceptive":True,
-        "mf_context_rnds":1,
-        "mt_context_rnds":1,
+        "mf_context_rnds":0,
+        "mt_context_rnds":0,
         "mf_precheck_mt":True,
         "mf_disable_loop":True,
         "mt_disable_loop":True,
@@ -231,8 +307,8 @@ init 10 python:
         # "mf_const_tools":1,
         # "esearch_llm_concl":True,
         # "nsfw_acceptive":True,
-        # "mf_context_rnds":1,
-        # "mt_context_rnds":1,
+        # "mf_context_rnds":0,
+        # "mt_context_rnds":0,
         # "mf_precheck_mt":True,
         # "mf_disable_loop":True,
         # "mt_disable_loop":True,
@@ -274,10 +350,9 @@ init 10 python:
             "settings": {
                 "enable_mf": False,
                 "use_custom_model_config": True,
-                "mt_context_rnds": 0,
                 "mf_precheck_mt": False,
                 "mf_sf_access_impl": 2,
-                "mf_const_sf_access": 1,
+                "mf_const_sf_access": 2,
             },
         },
         {
@@ -308,6 +383,8 @@ init 10 python:
                 "mf_llm_concl": True,
                 "mf_disable_loop": False,
                 "mt_disable_loop": False,
+                "mf_context_rnds": 1,
+                "mt_context_rnds": 1,
                 "mf_const_sf_access": 1,
             },
         },
@@ -426,10 +503,7 @@ init 10 python:
     maica_default_dict.update(persistent.maica_setting_dict)
     maica_advanced_setting.update(persistent.maica_advanced_setting)
     maica_advanced_setting_status.update(persistent.maica_advanced_setting_status)
-    if persistent._maica_target_lang_mode == "renpy":
-        maica_default_dict["target_lang"] = maica_get_default_target_lang()
-    if persistent._maica_tz_mode == "system":
-        maica_default_dict["tz"] = maica_get_system_timezone()
+    maica_refresh_automatic_settings(maica_default_dict)
 
     persistent.maica_setting_dict = maica_default_dict.copy()
     persistent.maica_advanced_setting = maica_advanced_setting.copy()
@@ -488,6 +562,9 @@ init 10 python:
 
     def maica_reset_setting():
         persistent.maica_setting_dict = mdef_setting.copy()
+        persistent._maica_target_lang_mode = "renpy"
+        persistent._maica_tz_mode = "system"
+        maica_refresh_automatic_settings(persistent.maica_setting_dict)
         sync_provider_id(persistent.maica_setting_dict["provider_id"])
         persistent.mas_geolocation = ''
         persistent.mas_player_additions = []
@@ -516,7 +593,21 @@ init 10 python:
             persistent.maica_advanced_setting_status[key] = False
 
     def maica_escape_display_text(text):
-        return text.replace("[", "[[").replace("{", "{{")
+        return bot_interface.escape_renpy_text(text)
+
+    def maica_escape_dialogue_text(text, interpolation_passes=1):
+        return bot_interface.escape_renpy_text(
+            text,
+            bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS,
+            interpolation_passes
+        )
+
+    def maica_build_display_preview(text, limit):
+        return bot_interface.build_renpy_text_preview(
+            text,
+            limit,
+            bot_interface.RENPY_DIALOGUE_SUBSTITUTIONS
+        )
 
     def maica_selected_item(items, selected_indices):
         if len(selected_indices) != 1:
@@ -536,12 +627,17 @@ init 10 python:
             return None
         addition = ("{player_name}" + raw_addition.strip() if prefix_player else raw_addition.strip())
         replacing = edittarget in additions
-        if len(additions) >= 512:
+        if len(additions) >= maica_savefile.PLAYER_ADDITIONS_MAX_ITEMS:
             if not replacing:
                 renpy.notify(_("MAICA: Custom MFocus information has reached the 512-item limit"))
                 return None
-        if len(addition.encode("utf-8")) > 1536:
-            renpy.notify(_("MAICA: A custom MFocus information item cannot exceed 1536 bytes"))
+        try:
+            maica_savefile.validate_player_addition_item(addition)
+        except maica_savefile.PlayerAdditionsValidationError as error:
+            if error.code == "too_long":
+                renpy.notify(_("MAICA: A custom MFocus information item cannot exceed 1536 bytes"))
+            else:
+                renpy.notify(_("MAICA: Input contains invalid text"))
             return None
         if addition in additions and addition != edittarget:
             renpy.notify(_("MAICA: Identical content already exists"))
@@ -561,18 +657,17 @@ init 10 python:
             status_text = renpy.substitute(_("Authentication failed: ")) + ai.get_status_description()
             detail = u"{}".format(res.get("exception") or "")
             if detail:
-                status_text += "\n" + renpy.substitute(_("Reason: ")) + maica_escape_display_text(detail)
+                status_text += "\n" + renpy.substitute(_("Reason: ")) + detail
             renpy.show_screen("maica_message", message=status_text)
 
 
     @store.mas_submod_utils.functionplugin("ch30_preloop")
     def _upload_persistent_dict():
         if not store.maica.savefile_access_marker_exists():
-            store.mas_submod_utils.submod_log.info("MAICA: Skip savefile upload because savefile_access marker is missing")
+            store.mas_submod_utils.submod_log.debug("MAICA: Skip savefile upload because savefile_access marker is missing")
             return
 
-        max_bytes = 1536
-        import copy, maica_v13_migration
+        import copy
         d = copy.deepcopy(persistent.__dict__)
         d['_seen_ever'].clear()
         d['_mas_event_init_lockdb'].clear()
@@ -596,58 +691,28 @@ init 10 python:
         d['greeting_database'].clear()
         d['greeting_database'].clear()
         d['mas_playername'] = store.player
+        d.pop('mas_monikaname', None)
+        monika_nickname = maica_savefile.select_monika_nickname(
+            getattr(persistent, '_mas_monika_nickname', None),
+            getattr(store, 'm_name', None)
+        )
+        if monika_nickname is not None:
+            d['mas_monikaname'] = monika_nickname
         if persistent._mas_player_bday:
             d['mas_player_bday'] = [persistent._mas_player_bday.year, persistent._mas_player_bday.month, persistent._mas_player_bday.day]
         d['mas_affection'] = store._mas_getAffection()
         d['target_lang'] = store.maica.maica_instance.target_lang
         del d['_preferences']
-        import json_exporter
-        sentiment = json_exporter.persistent_filter
-
-        keys_to_remove = []
-
-        def process_value(value, depth=0):
-            # Prevent infinite recursion
-            if depth > 3:
-                return "REMOVED|TOO_DEEP"
-
-            # Handle None
-            if value is None:
-                return None
-
-            # Recursive processing for dictionaries
-            if isinstance(value, dict):
-                return {k: process_value(v, depth+1) for k, v in value.items() if k in sentiment}
-
-            # Recursive processing for lists/tuples
-            if isinstance(value, (list, tuple)):
-                return [process_value(item, depth+1) for item in value]
-
-            # check serialization and length
-            try:
-                if maica_v13_migration.utf8_byte_length(value) > max_bytes:
-                    return "REMOVED|TOO_LONG"
-
-                # Attempt JSON serialization
-                json.dumps(value)
-                return value
-            except:
-                return "REMOVED|UNSERIALIZABLE"
-
-        keys_to_remove = []
-        for i in list(d.keys()):  # Use list() for Python 2 & 3 compatibility
-            if i not in sentiment:
-                keys_to_remove.append(i)
-                continue
-
-            d[i] = process_value(d[i])
-
-        for key in keys_to_remove:
-            del d[key]
+        try:
+            d = maica_savefile.sanitize_persistent_dict(d)
+        except maica_savefile.PlayerAdditionsValidationError as error:
+            store.mas_submod_utils.submod_log.warning(
+                "MAICA: Savefile upload cancelled because MFocus information is invalid: {}".format(error)
+            )
+            renpy.notify(_("MAICA: Savefile upload cancelled because MFocus information is invalid"))
+            return
         res = store.maica.maica_instance.upload_save(d)
-        if not res.get("success", False):
-            store.mas_submod_utils.submod_log.error("ERROR: upload save failed: {}".format(res.get("exception", "unknown")))
-        renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA; Savefile failed to upload"))
+        renpy.notify(_("MAICA: Savefile uploaded successfully") if res.get("success", False) else _("MAICA: Savefile failed to upload"))
 
     def reset_session():
         store.maica.maica_instance.reset_chat_session()
@@ -663,17 +728,17 @@ init 10 python:
         if not os.path.exists(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt")):
             renpy.notify(_("MAICA: History not found at game/Submods/MAICA_ChatSubmod/chat_history.txt"))
             return
-        with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
-            #history = json.load(f)
-            try:
+        try:
+            with open(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "chat_history.txt"), 'r') as f:
                 history = json.load(f)
-                res = store.maica.maica_instance.upload_history(history)
-                if not res.get("success", False):
-                    raise Exception(str(res))
-            except Exception as e:
-                store.mas_submod_utils.submod_log.error("upload_chat_history failed: {}".format(e))
-                renpy.notify(_("MAICA: Failed to upload history, check submod_log.log for details."))
-                return
+        except Exception as e:
+            store.mas_submod_utils.submod_log.error("upload_chat_history: failed to read history file: {}".format(e))
+            renpy.notify(_("MAICA: Failed to read history, check submod_log.log for details."))
+            return
+        res = store.maica.maica_instance.upload_history(history)
+        if not res.get("success", False):
+            renpy.notify(_("MAICA: Failed to upload history, check submod_log.log for details."))
+            return
         renpy.notify(_("MAICA: History uploaded"))
 
     def run_migrations():
@@ -683,6 +748,11 @@ init 10 python:
     def maica_apply_setting(ininit=False):
         import copy
         run_migrations()
+        maica_refresh_automatic_settings(persistent.maica_setting_dict)
+
+        # Apply user-selected levels before initialization actions emit logs.
+        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
+        store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
 
         store.maica.maica_instance.auto_reconnect = persistent.maica_setting_dict["auto_reconnect"]
         if store.maica.maica_instance.auto_reconnect:
@@ -713,8 +783,6 @@ init 10 python:
         store.maica.maica_instance.target_lang = persistent.maica_setting_dict["target_lang"]
         store.maica.maica_instance.mspire_category = persistent.maica_setting_dict["mspire_category"]
         store.maica.maica_instance.mspire_type = persistent.maica_setting_dict["mspire_search_type"]
-        store.mas_submod_utils.submod_log.level = persistent.maica_setting_dict["log_level"]
-        store.maica.maica_instance.console_logger.level = persistent.maica_setting_dict["log_conlevel"]
         store.maica.maica_instance.mspire_session = persistent.maica_setting_dict["mspire_session"]
         store.maica.maica_instance.provider_id = persistent.maica_setting_dict["provider_id"]
         store.maica.maica_instance.max_history_token = min(persistent.maica_setting_dict["session_len_limit"], 28672)
@@ -731,11 +799,13 @@ init 10 python:
             store.maica.maica_instance.MoodStatus.emote_translate = json_exporter.emotion_etz
         if not persistent.maica_setting_dict.get('mspire_enable') and mas_inEVL("maica_mspire"):
             store.MASEventList.clean()
-        send_success = store.maica.maica_instance.send_settings()
+        send_success = False
+        if store.maica.maica_instance.is_ready_to_input():
+            send_success = bool(store.maica.maica_instance.send_settings())
         if not ininit:
             renpy.notify(_("MAICA: Settings uploaded") if send_success else _("MAICA: Do a manual upload after connection ready"))
 
-    def maica_discard_setting():
+    def maica_discard_setting(target_lang_mode=None, tz_mode=None):
         persistent.maica_setting_dict["auto_reconnect"] = store.maica.maica_instance.auto_reconnect
         persistent.maica_setting_dict["auto_resume"] = store.maica.maica_instance.auto_resume
         persistent.maica_setting_dict["keep_alive"] = store.maica.maica_instance.keep_alive
@@ -760,6 +830,11 @@ init 10 python:
         persistent.maica_setting_dict["pprt"] = store.maica.maica_instance.pprt
         store.maica.maica_instance.mtrigger_manager.enable_map = store.persistent.maica_mtrigger_status
 
+        if target_lang_mode is not None:
+            persistent._maica_target_lang_mode = target_lang_mode
+        if tz_mode is not None:
+            persistent._maica_tz_mode = tz_mode
+
         renpy.notify(_("MAICA: Settings discarded"))
 
 
@@ -769,7 +844,7 @@ init 10 python:
             persistent.maica_advanced_setting_status
         )
         store.maica.maica_instance.modelconfig = settings_dict
-        store.mas_submod_utils.submod_log.info("Applying advanced settings: {}".format(settings_dict))
+        store.mas_submod_utils.submod_log.debug("Applied custom advanced settings")
 
     def maica_discard_advanced_setting():
         settings_dict = maica_v13_migration.filter_advanced_settings(
@@ -804,9 +879,6 @@ init 10 python:
         ai.provider_id = pid
         # ai.provider_manager.set_provider_id(pid)
 
-        # 刷新 vista_manager 缓存的 base_url
-        ai.vista_manager.base_url = ai.provider_manager.get_api_url()
-
         # 断开旧连接，并取消可能仍在等待的自动重连
         if reconnect:
             ai.close_wss_session()
@@ -821,10 +893,9 @@ init 10 python:
                         "Failed to sync provider id: previous websocket did not stop"
                     )
                     return
-                ai.provider_manager.get_provider()
-                ai.accessable()
+                availability_ready = store.maica.check_accessibility()
 
-                if reconnect and ai.has_token():
+                if reconnect and availability_ready and ai.has_token():
                     ai.init_connect()
 
             except Exception as e:
@@ -941,15 +1012,15 @@ init 10 python:
                 except Exception as e:
                     store.mas_submod_utils.submod_log.error("Failed to get conditional: {}".format(e))
                     return None
-            store.mas_submod_utils.submod_log.info("maica_greeting.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_greeting')), renpy.seen_label('maica_greeting')))
-            store.mas_submod_utils.submod_log.info("maica_chr2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr2')), renpy.seen_label('maica_chr2')))
-            store.mas_submod_utils.submod_log.info("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_gone')), renpy.seen_label('maica_chr_gone')))
-            store.mas_submod_utils.submod_log.info("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_corrupted2')), renpy.seen_label('maica_chr_corrupted2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_preferences2')), renpy.seen_label('maica_wants_preferences2')))
-            store.mas_submod_utils.submod_log.info("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
-            store.mas_submod_utils.submod_log.info("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
-            store.mas_submod_utils.submod_log.info("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
-            store.mas_submod_utils.submod_log.info("maica_wants_mpostal.conditional:{}|seen: {}".format(try_eval(get_conditional('maica_wants_mpostal')), renpy.seen_label('maica_wants_mpostal')) )
+            store.mas_submod_utils.submod_log.debug("maica_greeting.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_greeting')), renpy.seen_label('maica_greeting')))
+            store.mas_submod_utils.submod_log.debug("maica_chr2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr2')), renpy.seen_label('maica_chr2')))
+            store.mas_submod_utils.submod_log.debug("maica_chr_gone.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_gone')), renpy.seen_label('maica_chr_gone')))
+            store.mas_submod_utils.submod_log.debug("maica_chr_corrupted2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_chr_corrupted2')), renpy.seen_label('maica_chr_corrupted2')))
+            store.mas_submod_utils.submod_log.debug("maica_wants_preferences2.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_preferences2')), renpy.seen_label('maica_wants_preferences2')))
+            store.mas_submod_utils.submod_log.debug("maica_wants_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_wants_mspire')), renpy.seen_label('maica_wants_mspire')))
+            store.mas_submod_utils.submod_log.debug("maica_mspire.conditional:{}|seen:{}".format(try_eval(get_conditional('maica_mspire')), renpy.seen_label('maica_mspire')))
+            store.mas_submod_utils.submod_log.debug("maica_mspire.last_seen:{}".format(evhand.event_database.get('maica_mspire',None).last_seen))
+            store.mas_submod_utils.submod_log.debug("maica_wants_mpostal.conditional:{}|seen: {}".format(try_eval(get_conditional('maica_wants_mpostal')), renpy.seen_label('maica_wants_mpostal')) )
 
 
 
@@ -1032,6 +1103,14 @@ init python:
     def scr_nullfunc():
         return
 
+    def maica_start_provider_task(task):
+        """Start one provider-related network task without blocking the UI."""
+        ai = store.maica.maica_instance
+        if ai.is_provider_refreshing() or ai.is_checking_availability():
+            return False
+        renpy.invoke_in_thread(task)
+        return True
+
 
 screen maica_setting_pane():
 
@@ -1042,7 +1121,15 @@ screen maica_setting_pane():
         pane_cache = maica.maica_setting_pane_cache
         ai = maica.maica_instance
         connection_busy = ai.is_connecting()
-        if connection_busy and not ai.is_failed():
+        availability_busy = ai.is_checking_availability()
+        provider_refresh_error = ai.get_provider_refresh_error()
+        provider_refresh_error_text = ""
+        if provider_refresh_error:
+            provider_refresh_error_text = maica_build_display_preview(
+                provider_refresh_error.get("exception") or "",
+                160,
+            )
+        if connection_busy and not ai.is_connection_interrupted():
             stat = ai.get_status_description()
         else:
             stat = _("Not connected") if not ai.wss_session else _("Connection established") if ai.is_connected() else _("Connection closed")
@@ -1087,6 +1174,12 @@ screen maica_setting_pane():
                     text _("> Warning: {color=#ff0000}no certification found{/color}, check datapack installation"):
                         style "main_menu_version_l"
 
+            if ai.status == ai.MaicaAiStatus.CERTIFI_BROKEN:
+                hbox:
+
+                    text _("> Warning: {color=#ff0000}certification corrupted{/color}, remove problematic extensions or clean install"):
+                        style "main_menu_version_l"
+
             if pane_cache.get("better_loading_installed", False):
                 hbox:
 
@@ -1118,9 +1211,14 @@ screen maica_setting_pane():
                     text _("> Warning: current system 'non-unicode language' is not Chinese, expect possible encoding issues"):
                         style "main_menu_version_l"
 
-            if maica.maica_instance.is_connecting() or maica.maica_instance.MaicaAiStatus.is_submod_exception(maica.maica_instance.status):
+            if availability_busy or maica.maica_instance.status == maica.maica_instance.MaicaAiStatus.WAIT_AVAILABILITY or maica.maica_instance.is_connecting() or maica.maica_instance.MaicaAiStatus.is_submod_exception(maica.maica_instance.status):
                 hbox:
                     text _("> MAICA connection status: [maica.maica_instance.status]|[maica.maica_instance.MaicaAiStatus.get_description(maica.maica_instance.status)]"):
+                        style "main_menu_version_l"
+
+            if provider_refresh_error and ai.status not in (ai.MaicaAiStatus.FAILED_GET_NODE, ai.MaicaAiStatus.NO_INTERNET):
+                hbox:
+                    text renpy.substitute(_("> Provider list refresh failed: ")) + provider_refresh_error_text:
                         style "main_menu_version_l"
 
             hbox:
@@ -1201,6 +1299,8 @@ screen maica_setting():
 
 
     default tooltip = Tooltip("")
+    default target_lang_mode_before_edit = persistent._maica_target_lang_mode
+    default tz_mode_before_edit = persistent._maica_tz_mode
 
     on "show" action Show("maica_setting_tooltip", tooltip=tooltip)
     on "hide" action Hide("maica_setting_tooltip")
@@ -1254,7 +1354,7 @@ screen maica_setting():
 
                 text "push_mspire_want: [renpy.seen_label('maica_greeting') and not renpy.seen_label('maica_wants_mspire') and renpy.seen_label('mas_random_ask')]"
 
-                $ triggered_list = str(store.maica.maica_instance.mtrigger_manager.triggered_list).replace("[", "[[").replace("{", "{{").replace("【", "【【")
+                $ triggered_list = maica_escape_display_text(store.maica.maica_instance.mtrigger_manager.triggered_list)
                 text "triggered_list: [triggered_list]"
 
                 textbutton _("Write Event information to the log"):
@@ -1312,14 +1412,17 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("Current provider: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"):
+                textbutton maica_escape_display_text(renpy.substitute(_("Current provider: [store.maica.maica_instance.provider_manager.get_server_info().get('name', 'Unknown')]"))):
                     action Show("maica_node_setting")
                     hovered SetField(_tooltip, "value", _("Choose provider"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
             hbox:
                 style_prefix "maica_check_nohover"
                 $ user_disp = store.maica.maica_instance.user_acc or renpy.substitute(_("Not logged in"))
-                textbutton _("Current user: [user_disp]"):
+                textbutton maica_escape_display_text(renpy.substitute(
+                    _("Current user: [user_disp]"),
+                    scope={"user_disp": user_disp}
+                )):
                     action NullAction()
                     hovered SetField(_tooltip, "value", _("To change account or logout, navigate to Submods menu.\n* To change account properties or password, navigate to registration site"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
@@ -1467,7 +1570,7 @@ screen maica_setting():
 
             hbox:
                 style_prefix "maica_check"
-                textbutton _("Geolocation: [persistent.mas_geolocation]"):
+                textbutton maica_escape_display_text(renpy.substitute(_("Geolocation: [persistent.mas_geolocation]"))):
                     action Show("maica_location_input", addition = persistent.mas_geolocation)
 
             hbox:
@@ -1549,7 +1652,7 @@ screen maica_setting():
                             style_prefix "generic_fancy_check"
                             textbutton _("Use cache for MSpire"):
                                 action ToggleDict(persistent.maica_setting_dict, "mspire_use_cache", True, False)
-                                hovered SetField(_tooltip, "value", _("Enable MSpire cache.\n* Does not take effect if MSpire session not 0\n* Enforces default super params"))
+                                hovered SetField(_tooltip, "value", _("Enable MSpire cache.\n* Only available when MSpire session is 0\n* When enabled, super params and user-level prompt modifications are muted, including prompt_pname_repl, prompt_monika_nickname, MFocus related, etc"))
                                 unhovered SetField(_tooltip, "value", _tooltip.default)
                     else:
                         hbox:
@@ -1576,7 +1679,7 @@ screen maica_setting():
                     hovered SetField(_tooltip, "value", _("Configure MTrigger triggers"))
                     unhovered SetField(_tooltip, "value", _tooltip.default)
 
-            if persistent._maica_vista_enabled:
+            if maica_topic_ready("mvista"):
                 hbox:
                     style_prefix "maica_check"
                     textbutton _("MVista images"):
@@ -1704,7 +1807,11 @@ screen maica_setting():
                         ]
             textbutton _("Discard modifications"):
                 action [
-                        Function(store.maica_discard_setting),
+                        Function(
+                            store.maica_discard_setting,
+                            target_lang_mode_before_edit,
+                            tz_mode_before_edit
+                        ),
                         Hide("maica_setting")
                         ]
             textbutton _("Reset defaults"):
@@ -1747,7 +1854,7 @@ screen maica_input_screen(prompt):
             textbutton _("Paste{#maica_host_paste}"):
                 selected False
                 action [Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip()),Function(maica_input.set_text, pygame.scrap.get(pygame.SCRAP_TEXT).strip())]
-            if persistent._maica_vista_enabled:
+            if maica_topic_ready("mvista"):
                 textbutton renpy.substitute(_("Choose images | ")) + str(len(store._maica_selected_visuals)) + renpy.substitute(_(" chosen")):
                     selected False
                     action [Show("maica_vista_filelist", selecting=True), NullAction()]

@@ -170,10 +170,6 @@ label maica_raw_session(context, visions=None):
             #   - 是否续接: 布尔值，表示这条消息是否应该续接到上一条后面
             message = ai.get_message()
 
-            # 调试日志: 记录收到的消息详情
-            store.mas_submod_utils.submod_log.debug("label maica_raw_session::message:'{}', '{}', extend={}".format(message[0], message[1], message[2] if len(message) >= 3 else False))
-
-
             # 切换 Monika 的表情
             # renpy.show() 显示指定表情的 Monika 立绘
             # message[0] 是表情代码，如 "1eua"
@@ -193,7 +189,7 @@ label maica_raw_session(context, visions=None):
 
                 # 使用 ExtendSayer 输出消息
                 # extend_sayer.say() 会根据上下文决定是续接还是新建对话
-                extend_sayer.say(message[1])
+                extend_sayer.say(ai.prepare_message_for_renpy(message[1]))
 
             except Exception as e:
                 # 错误处理: 记录异常信息
@@ -201,8 +197,8 @@ label maica_raw_session(context, visions=None):
                 store.mas_submod_utils.submod_log.error("label maica_raw_session::renpy.say error:{}".format(traceback.format_exc()))
 
         if ai.response_timed_out():
-            store.mas_submod_utils.submod_log.error("label maica_raw_session: response timed out")
             # renpy.say(m, _("好像出了什么问题..."))
+            pass
 
     # 执行结束
     return
