@@ -126,7 +126,6 @@ class MaicaAi(ChatBotInterface):
         FAILED_GET_NODE = 13415
         VERSION_OLD = 13416
         NO_INTERNET = 13417
-        CERTIFI_RESTART_REQUIRED = 13418
 
         @classmethod
         def is_submod_exception(cls, code):
@@ -191,7 +190,6 @@ class MaicaAi(ChatBotInterface):
             FAILED_GET_NODE:u"Failed to retrieve an available service provider",
             VERSION_OLD:u"Submod version outdated, update required",
             NO_INTERNET:u"No internet connection available",
-            CERTIFI_RESTART_REQUIRED:u"A certificate fix was applied; restart the game to apply it",
         }
 
         @classmethod
@@ -891,7 +889,6 @@ class MaicaAi(ChatBotInterface):
             self.MaicaAiStatus.VERSION_OLD,
             self.MaicaAiStatus.NO_INTERNET,
             self.MaicaAiStatus.CONNECT_PROBLEM,
-            self.MaicaAiStatus.CERTIFI_RESTART_REQUIRED,
         )
         if self.status not in availability_failures:
             self.set_error(

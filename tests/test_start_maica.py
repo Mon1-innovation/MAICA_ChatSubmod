@@ -20,6 +20,7 @@ def test_start_maica_rechecks_certifi_after_fixer_then_falls_back_on_failure():
     assert "if not store.mas_can_import.certifi():\n            maica_set_plain_provider()" in start_maica
     assert "maica_start_certifi_download_in_background" not in source
     assert "maica_download_certifi_files" not in source
+    assert "maica_certifi_download_thread_running" not in source
     assert "maica_can_update_cacert" not in source
 
 

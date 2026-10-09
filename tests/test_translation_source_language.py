@@ -211,7 +211,7 @@ def test_maica_description_status_and_event_overrides_are_chinese():
         'MaicaAiStatus.TOKEN_INVALID: u"账号或密码无效"',
         'MaicaAiStatus.VERSION_OLD: u"检测到安装版本过旧, 请更新到最新版"',
         'MaicaAiStatus.NO_INTERNET: u"检测到子模组离线',
-        'MaicaAiStatus.CERTIFI_RESTART_REQUIRED: u"执行了证书修复, 请重启以生效"',
+        'MaicaAiStatus.CERTIFI_BROKEN: u"SSL/TLS已损坏, 可能由其他子模组导致. 需要完全重新安装MAS"',
         'prompt="我们去天堂树林吧", category=["你", "我们", "模组", "MAICA"]',
         'prompt="关于\'MVista\'", category=["你", "我们", "模组", "MAICA"]',
     ]

@@ -507,8 +507,8 @@ def test_maica_status_inventory_excludes_retired_state_machine_codes():
     assert status.WAIT_AVAILABILITY == 10010
     assert status.WEBSOCKET_CONNECTING == 10020
     assert status.CONNECTED == 10302
-    assert status.CERTIFI_RESTART_REQUIRED == 13418
-    assert status.CERTIFI_RESTART_REQUIRED != status.SERVER_REJECTED
+    assert status.CERTIFI_BROKEN == 13414
+    assert 13418 not in status._descriptions
 
     retired_names = (
         "WAIT_AUTH",
@@ -529,6 +529,7 @@ def test_maica_status_inventory_excludes_retired_state_machine_codes():
         "WAIT_SETTING_RESPONSE",
         "TOKEN_MAX_EXCEEDED",
         "TOKEN_WARN_EXCEEDED",
+        "CERTIFI_RESTART_REQUIRED",
     )
     assert not [name for name in retired_names if hasattr(status, name)]
     assert not hasattr(status, "MAIKA_PREFIX")

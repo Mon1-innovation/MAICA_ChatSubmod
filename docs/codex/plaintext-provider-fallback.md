@@ -3,7 +3,7 @@
 ## 位置
 
 - `game/Submods/MAICA_ChatSubmod/header.rpy`：默认 `provider_id` 在 Windows 为 1，其他平台为 2。
-- `game/Submods/MAICA_ChatSubmod/api.rpy`：Android 迁移、certifi 检测失败或 certifi 下载失败时将 `provider_id` 设为 2。
+- `game/Submods/MAICA_ChatSubmod/api.rpy`：Android 迁移或启动时重新检查 certifi 导入失败时将 `provider_id` 设为 2。
 - `game/python-packages/maica_provider_manager.py`：节点列表提供 `wsInterface`/`httpInterface`，实际协议由节点数据决定。
 
 ## 原因与行为
@@ -18,4 +18,4 @@
 
 ## 本次处理边界
 
-本次保留明文 fallback 及其安全风险，但修复了 fallback 只写入 persistent、未同步运行中 provider 实例的问题；证书后台修复完成后也会重新触发可用性检查。后续若要收紧安全策略，应先提供设备信任根或用户明确确认机制，并单独评审可用性影响。
+fallback 会同时更新 persistent 和运行中的 provider 实例。证书修复已交由随包的 CertifiFixer 依赖处理；MAICA 不再后台下载修复文件，而是在启动时重新检查 certifi 导入，随后执行服务可用性检查。切换 provider 不会跳过 MAICA 的本地证书检查，导入或 CA bundle 仍不可用时会报告 `CERTIFI_BROKEN`。后续若要收紧安全策略，应先提供设备信任根或用户明确确认机制，并单独评审可用性影响。
