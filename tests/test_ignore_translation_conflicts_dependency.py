@@ -23,7 +23,7 @@ def test_release_stages_dependency_before_creating_package():
     dependency_block = workflow[download_step:package_step]
 
     assert DEPENDENCY_URL in dependency_block
-    assert "if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'" in dependency_block
+    assert "if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'" not in dependency_block
     assert "curl" in dependency_block
     assert "--fail" in dependency_block
     assert "--location" in dependency_block

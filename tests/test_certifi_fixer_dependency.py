@@ -26,7 +26,7 @@ def test_release_stages_certifi_fixer_before_creating_package():
     assert DEPENDENCY_REPO in dependency_block
     assert 'gh release download' in dependency_block
     assert '--pattern "CertifiFixer-*.zip"' in dependency_block
-    assert "if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'" in dependency_block
+    assert "if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'" not in dependency_block
     assert "unzip -q" in dependency_block
     assert "game/Submods/CertifiFixer" in dependency_block
     for filename in ("certifi_fixer.rpy", "core.py", "__init__.py", "cacert.pem"):
