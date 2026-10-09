@@ -861,20 +861,14 @@ def test_a_connection_entrypoints_wait_for_shutdown_and_block_mutation():
     )
 
 
-def test_a_certificate_repair_and_version_disable_are_sticky():
+def test_version_disable_is_sticky_and_certifi_fallback_is_conditional():
     api = source("game/Submods/MAICA_ChatSubmod/api.rpy")
-    repair = function_body(api, r"maica_download_certifi_files")
     startup = function_body(api, r"start_maica")
     version_guard = function_body(api, r"check_accessibility")
     provider_refresh = function_body(api, r"refresh_provider_list")
 
     assert "13408" not in api
-    assert repair.count("CERTIFI_RESTART_REQUIRED") == 1
-    assert re.search(
-        r"disable\(\s*.*?CERTIFI_RESTART_REQUIRED\s*,\s*sticky\s*=\s*True",
-        repair,
-        re.S,
-    )
+    assert re.search(r"if not store\.mas_can_import\.certifi\(\):\s*maica_set_plain_provider\(\)", startup)
     assert "check_accessibility()" in startup
     assert re.search(
         r"disable\(\s*.*?VERSION_OLD\s*,\s*sticky\s*=\s*True",

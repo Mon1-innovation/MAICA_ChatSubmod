@@ -102,6 +102,34 @@ jobs:
         mkdir -p game/Submods
         cp -R "$dependency_source" game/Submods/
 
+    - name: Download CertifiFixer dependency
+      if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        dependency_tmp_dir="$(mktemp -d)"
+        trap 'rm -rf "$dependency_tmp_dir"' EXIT
+
+        gh release download --repo MAS-Submod-MoyuTeam/mas_certifi_fixer \
+          --pattern "CertifiFixer-*.zip" --dir "$dependency_tmp_dir"
+        dependency_archive="$(find "$dependency_tmp_dir" -maxdepth 1 -type f -name 'CertifiFixer-*.zip' -print -quit)"
+        if [ -z "$dependency_archive" ]; then
+          echo "CertifiFixer release archive was not found" >&2
+          exit 1
+        fi
+
+        mkdir -p "$dependency_tmp_dir/extracted"
+        unzip -q "$dependency_archive" -d "$dependency_tmp_dir/extracted"
+        dependency_source="$dependency_tmp_dir/extracted/game/Submods/CertifiFixer"
+        for filename in certifi_fixer.rpy certifi/core.py certifi/__init__.py certifi/cacert.pem; do
+          if [ ! -f "$dependency_source/$filename" ]; then
+            echo "CertifiFixer release is missing $filename" >&2
+            exit 1
+          fi
+        done
+
+        cp -R "$dependency_source" game/Submods/
+
     - name: Copy documentation into submod package
       if: steps.get_version.outputs.is_development == 'false' && steps.check_release.outputs.create_release == 'true'
       run: |

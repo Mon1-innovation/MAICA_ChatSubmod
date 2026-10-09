@@ -13,7 +13,7 @@ DEPENDENCY_URL = (
 def test_maica_declares_unrestricted_translation_conflicts_dependency():
     header = HEADER.read_text(encoding="utf-8")
 
-    assert 'dependencies={"Ignore Translation Conflicts": (None, None)},' in header
+    assert '"Ignore Translation Conflicts": (None, None)' in header
 
 
 def test_release_stages_dependency_before_creating_package():

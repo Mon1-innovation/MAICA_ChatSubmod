@@ -612,89 +612,12 @@ init 5 python in maica:
 
         return maica_setting_pane_cache
 
-    maica_certifi_download_thread_running = False
-
     def maica_set_plain_provider():
         store.persistent.maica_setting_dict['provider_id'] = 2
         try:
             store.maica.maica_instance.provider_id = 2
         except Exception as e:
             store.mas_submod_utils.submod_log.error("MAICA: failed to apply fallback provider: {}".format(e))
-
-    def maica_download_certifi_files(fix_certifi, basedir, android, android_masbase):
-        global maica_certifi_download_thread_running
-        try:
-            import requests
-            failed = False
-            if fix_certifi:
-                try:
-                    store.mas_submod_utils.submod_log.warning("Certifi broken, try to fix it")
-                    try:
-                        res = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/core.py", verify=False, timeout=5)
-                        res2 = requests.get("https://raw.githubusercontent.com/Monika-After-Story/MonikaModDev/master/Monika%20After%20Story/game/python-packages/certifi/__init__.py", verify=False, timeout=5)
-                    except:
-                        store.mas_submod_utils.submod_log.warning("Download from github mirror failed, try to download from 0721play")
-                        res = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/core.py", verify=False, timeout=5)
-                        res2 = requests.get("http://sp2.0721play.icu/d/MAS/%E6%89%A9%E5%B1%95%E5%86%85%E5%AE%B9/%E5%AD%90%E6%A8%A1%E7%BB%84/0.12/Github%E5%AD%90%E6%A8%A1%E7%BB%84/MAICA%20%E5%85%89%E8%80%80%E4%B9%8B%E5%9C%B0/__init__.py", verify=False, timeout=5)
-
-                    if res.status_code == 200 and res2.status_code == 200:
-                        with open(os.path.normpath(os.path.join(basedir, "game", "python-packages", "certifi","core.py")), "wb") as file:
-                            file.write(res.content)
-                            store.mas_submod_utils.submod_log.info("MAICA: certifi core.py fixed")
-
-                        with open(os.path.normpath(os.path.join(basedir, "game", "python-packages", "certifi", "__init__.py")), "wb") as file:
-                            file.write(res2.content)
-                            store.mas_submod_utils.submod_log.info("MAICA: certifi __init__.py fixed")
-                        store.maica.maica_instance.disable(
-                            store.maica.maica_instance.MaicaAiStatus.CERTIFI_RESTART_REQUIRED,
-                            sticky=True,
-                        )
-
-                    else:
-                        store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed, HTTP code：core{} init{}".format(res.status_code, res2.status_code))
-                        failed = True
-                except Exception as e:
-                    store.mas_submod_utils.submod_log.error("MAICA: certifi core.py download failed: {}".format(e))
-                    failed = True
-
-            url = "https://gitee.com/mirrors/python-certifi/raw/master/certifi/cacert.pem"
-            try:
-                response = requests.get(url, verify=False, timeout=5)
-                if response.status_code == 200:
-                    path = os.path.join(basedir, "game", "python-packages", "certifi", "cacert.pem") if not android else os.path.join(android_masbase, "game", "python-packages", "certifi", "cacert.pem")
-                    with open(path, "wb") as file:
-                        file.write(response.content)
-                    store.mas_submod_utils.submod_log.info("MAICA: cacert.pem downloaded use gitee mirror")
-                else:
-                    store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror, HTTP code：{}".format(response.status_code))
-                    failed = True
-            except Exception as e:
-                store.mas_submod_utils.submod_log.error("MAICA: cacert download failed with gitee mirror: {}".format(e))
-                failed = True
-
-            if failed:
-                maica_set_plain_provider()
-            else:
-                check_accessibility()
-        finally:
-            maica_certifi_download_thread_running = False
-
-    def maica_start_certifi_download_in_background(fix_certifi):
-        global maica_certifi_download_thread_running
-        if maica_certifi_download_thread_running:
-            store.mas_submod_utils.submod_log.info("MAICA: certifi download already running")
-            return
-
-        maica_certifi_download_thread_running = True
-        basedir = renpy.config.basedir
-        android = renpy.android
-        android_masbase = store.ANDROID_MASBASE if android else None
-        store.mas_submod_utils.submod_log.info("MAICA: certifi download started in background")
-        try:
-            renpy.invoke_in_thread(lambda: maica_download_certifi_files(fix_certifi, basedir, android, android_masbase))
-        except Exception as e:
-            maica_certifi_download_thread_running = False
-            store.mas_submod_utils.submod_log.error("MAICA: certifi background download failed to start: {}".format(e))
 
     @store.mas_submod_utils.functionplugin("ch30_preloop", priority=-100)
     def start_maica():
@@ -716,12 +639,9 @@ init 5 python in maica:
         if store.mas_getAPIKey("Maica_Token") != "":
             store.maica.maica_instance.ciphertext = store.mas_getAPIKey("Maica_Token")
 
-        # certifi修复，仅在MAS原生导入失败时启动
-        certifi_broken = not store.mas_can_import.certifi()
-        if certifi_broken:
+        # CertifiFixer runs during init; retry the MAS import check after it.
+        if not store.mas_can_import.certifi():
             maica_set_plain_provider()
-        if certifi_broken or store.maica_can_update_cacert:
-            maica_start_certifi_download_in_background(certifi_broken)
 
         refresh_setting_pane_cache(force_version=True)
 
@@ -754,18 +674,6 @@ init 5 python in maica:
 
 
 init -700 python:
-    maica_can_update_cacert = False
-    try:
-        import os
-        if not os.path.exists(os.path.normpath(os.path.join(renpy.config.basedir, "game", "python-packages", "certifi", "cacert.pem"))):
-            res = mas_can_import.certifi._update_cert(force=True)
-            if res is None or res < 0:
-                raise RuntimeError("MAS native certifi update failed")
-    except Exception:
-        maica_can_update_cacert = True
-        store.mas_submod_utils.submod_log.warning("MAS native function update cacert failed")
-
-
     import hashlib
 
     def calculate_sha256(file_path):

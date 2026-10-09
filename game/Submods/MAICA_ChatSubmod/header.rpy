@@ -5,7 +5,7 @@ init -990 python:
         name="MAICA Blessland",
         description=_("MAICA Official Submod Frontend"),
         version=maica_ver,
-        dependencies={"Ignore Translation Conflicts": (None, None)},
+        dependencies={"Ignore Translation Conflicts": (None, None), "CertifiFixer": (None, None)},
         settings_pane="maica_setting_pane"
     )
 init -989 python:

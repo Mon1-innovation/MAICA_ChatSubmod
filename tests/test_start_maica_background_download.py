@@ -13,11 +13,14 @@ def _extract_function(source, function_name):
     return source[start:next_def]
 
 
-def test_start_maica_schedules_certifi_download_without_direct_network_io():
-    start_maica = _extract_function(API_RPY.read_text(encoding="utf-8"), "start_maica")
+def test_start_maica_rechecks_certifi_after_fixer_then_falls_back_on_failure():
+    source = API_RPY.read_text(encoding="utf-8")
+    start_maica = _extract_function(source, "start_maica")
 
-    assert "requests.get(" not in start_maica
-    assert "maica_start_certifi_download_in_background(" in start_maica
+    assert "if not store.mas_can_import.certifi():\n            maica_set_plain_provider()" in start_maica
+    assert "maica_start_certifi_download_in_background" not in source
+    assert "maica_download_certifi_files" not in source
+    assert "maica_can_update_cacert" not in source
 
 
 def test_start_maica_leaves_topic_reconciliation_to_the_post_migration_hook():

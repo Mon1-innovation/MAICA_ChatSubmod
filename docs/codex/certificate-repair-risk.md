@@ -1,23 +1,17 @@
-# Certifi 修复流程风险记录
+# Certifi 修复流程
 
-## 位置
+MAICA 声明 `CertifiFixer` 为模组依赖，并在发布构建时获取它的最新 Release，
+加入发布包的 `game/Submods/CertifiFixer/`；本仓库不保存其源码。其 `init -100` 脚本在 MAS
+无法导入 `certifi` 时，将随包的 `core.py`、`__init__.py` 和 `cacert.pem` 复制到
+`game/python-packages/certifi/`。文件在游戏启动阶段被直接覆盖，修复后可能需要
+重启游戏，让 MAS 重新加载模块。
 
-- `game/Submods/MAICA_ChatSubmod/api.rpy`：`maica_download_certifi_files`（约 259-305 行）及其后台启动函数。
-- `game/Submods/MAICA_ChatSubmod/api.rpy`：`start_maica` 对 `mas_can_import.certifi()` 的检测和触发逻辑。
+MAICA 在 `game/Submods/MAICA_ChatSubmod/api.rpy` 的 `start_maica()` 中重新调用
+`store.mas_can_import.certifi()`；只有仍无法导入时才切换到 provider 2。MAICA
+不再通过后台线程从网络下载修复文件。
 
-## 原因
-
-部分设备，尤其是某些 Ren'Py/Android 运行环境，Ren'Py 内置 Python 无法正确读取设备根证书或 MAS 提供的 certifi 包。没有可信根证书时，客户端无法同时做到“从网络获取修复材料”和“验证修复材料来源”这两个条件；因此不存在在当前运行环境内完全安全的自修复方案。
-
-当前流程在证书异常时使用 `verify=False` 下载 Python 源码和 CA bundle，先尝试 GitHub raw，再 fallback 到明文 HTTP 镜像，并直接覆盖本地 `certifi` 文件。该流程属于兼容性兜底，不是可信供应链更新机制。
-
-## 影响范围
-
-- **供应链完整性**：TLS 验证被禁用，镜像或链路被篡改可能导致任意 Python 代码或证书内容写入游戏目录。
-- **运行时稳定性**：下载到错误版本或截断文件会使后续 HTTPS、导入或启动失败。
-- **凭据与隐私**：修复失败后可能继续切换到普通连接节点，风险见 [`plaintext-provider-fallback.md`](plaintext-provider-fallback.md)。
-- **更新一致性**：文件来自 moving `master`/镜像，不与当前子模组版本绑定。
-
-## 本次处理边界
-
-本次仍不替换下载源、不改变 `verify=False` 行为，仅补齐 fallback provider 的运行时同步，并在后台修复完成后重新检查可用性。任何进一步整改都应先确定设备信任根、签名/哈希校验、原子替换和回滚方案，再单独评审。
+随包文件需要与受支持的 MAS / Ren'Py Python 版本保持兼容。复制过程没有备份或
+回滚；若依赖复制后导入仍失败，MAICA 会切换 provider 2。目标目录不可写等
+未被 CertifiFixer 捕获的复制异常可能中断游戏初始化。
+该节点的传输方式取决于远端节点列表，详见
+[`plaintext-provider-fallback.md`](plaintext-provider-fallback.md)。
