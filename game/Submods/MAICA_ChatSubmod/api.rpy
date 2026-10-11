@@ -164,7 +164,41 @@ init 5 python in maica:
     if renpy.windows:
         maica_instance.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick.exe"))
     elif renpy.linux:
-        maica_instance.vista_manager.magick_path = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
+        linux_magick = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
+        if os.path.isfile(linux_magick) and not os.access(linux_magick, os.X_OK):
+            try:
+                os.chmod(linux_magick, 0o755)
+            except Exception:
+                pass
+        maica_instance.vista_manager.magick_path = linux_magick
+    elif getattr(renpy, "macintosh", False) or getattr(renpy, "mac", False):
+        mac_bundled = os.path.normpath(os.path.join(renpy.config.basedir, "game", "Submods", "MAICA_ChatSubmod", "magick"))
+        if os.path.isfile(mac_bundled) and not os.access(mac_bundled, os.X_OK):
+            try:
+                os.chmod(mac_bundled, 0o755)
+            except Exception:
+                pass
+        candidate_paths = [
+            mac_bundled,
+            "/opt/homebrew/bin/magick",
+            "/usr/local/bin/magick",
+            "/opt/local/bin/magick",
+        ]
+        chosen_magick = None
+        for candidate in candidate_paths:
+            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+                chosen_magick = candidate
+                break
+        if not chosen_magick:
+            try:
+                from distutils.spawn import find_executable
+                found = find_executable("magick")
+                if found and os.path.isfile(found) and os.access(found, os.X_OK):
+                    chosen_magick = found
+            except Exception:
+                pass
+        if chosen_magick:
+            maica_instance.vista_manager.magick_path = chosen_magick
     elif renpy.android:
         try:
             maica_instance.vista_manager.magick_path = store.ANDROID_MAGICK_BINPATH
