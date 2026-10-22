@@ -3736,6 +3736,78 @@ def test_accessable_keeps_version_failure_separate_and_clears_stale_cache(
     assert ai.status == ai.MaicaAiStatus.SERVER_MAINTAIN
 
 
+@pytest.mark.parametrize(
+    "probe_outcomes, expected_status, expected_probe_count",
+    [
+        ((200, None), 13415, 1),
+        ((302, None), 13415, 1),
+        ((503, None), 13415, 1),
+        (("ssl_error", 200), 13415, 2),
+        (("ssl_error", "timeout"), 13417, 2),
+        (("timeout", "connection_error"), 13417, 2),
+    ],
+)
+def test_provider_failure_classification_uses_verified_https_probes(
+    monkeypatch, probe_outcomes, expected_status, expected_probe_count
+):
+    import requests
+
+    ai = maica.MaicaAi.__new__(maica.MaicaAi)
+    ai.in_mas = False
+    ai.status = None
+    ai._MaicaAi__accessable = False
+    ai.provider_manager = maica.maica_provider_manager.MaicaProviderManager(pid=1)
+    calls = []
+    responses = []
+    outcomes = iter(probe_outcomes)
+    failures = {
+        "ssl_error": requests.exceptions.SSLError,
+        "timeout": requests.exceptions.Timeout,
+        "connection_error": requests.exceptions.ConnectionError,
+    }
+
+    class Response:
+        def __init__(self, status_code):
+            self.status_code = status_code
+            self.closed = False
+
+        def close(self):
+            self.closed = True
+
+    def fake_get(url, **kwargs):
+        calls.append((url, kwargs))
+        if url == ai.provider_manager._provider_list:
+            raise requests.exceptions.SSLError("provider TLS connection failed")
+        outcome = next(outcomes)
+        if outcome in failures:
+            raise failures[outcome]("external HTTPS connection failed")
+        assert isinstance(outcome, int)
+        response = Response(outcome)
+        responses.append(response)
+        return response
+
+    monkeypatch.setattr(requests, "get", fake_get)
+
+    assert ai.accessable() is False
+    assert ai.status == expected_status
+    assert ai.error_protocol_status == (
+        "client_no_internet" if expected_status == 13417
+        else "client_provider_unavailable"
+    )
+    assert calls[0][0] == ai.provider_manager._provider_list
+    assert [url for url, _ in calls[1:]] == [
+        "https://www.baidu.com", "https://www.google.com"
+    ][:expected_probe_count]
+    for _, kwargs in calls[1:]:
+        assert kwargs == {
+            "timeout": (2.0, 2.0),
+            "verify": True,
+            "allow_redirects": False,
+            "stream": True,
+        }
+    assert all(response.closed for response in responses)
+
+
 def test_accessable_checks_backend_before_external_network(monkeypatch):
     ai = maica.MaicaAi.__new__(maica.MaicaAi)
     ai.in_mas = False

@@ -189,7 +189,7 @@ class MaicaAi(ChatBotInterface):
             CERTIFI_BROKEN:u"SSL/TLS support is not working correctly",
             FAILED_GET_NODE:u"Failed to retrieve an available service provider",
             VERSION_OLD:u"Submod version outdated, update required",
-            NO_INTERNET:u"No internet connection available",
+            NO_INTERNET:u"Cannot establish HTTPS connection, check environment",
         }
 
         @classmethod
@@ -2297,14 +2297,23 @@ class MaicaAi(ChatBotInterface):
             return False
 
     def can_access_internet(self):
-        """
-        Check if either Baidu or Google is reachable.
-        Returns True if at least one is reachable, False otherwise.
-        """
-        baidu_reachable = self.ping("www.baidu.com", 80)
-        google_reachable = self.ping("www.google.com", 80)
-            
-        return baidu_reachable or google_reachable
+        """Check whether either external site responds over verified HTTPS."""
+        import requests
+
+        for url in ("https://www.baidu.com", "https://www.google.com"):
+            try:
+                response = requests.get(
+                    url,
+                    timeout=(2.0, 2.0),
+                    verify=True,
+                    allow_redirects=False,
+                    stream=True,
+                )
+                response.close()
+                return True
+            except requests.exceptions.RequestException:
+                continue
+        return False
     
     def check_certifi(self):
         try:
