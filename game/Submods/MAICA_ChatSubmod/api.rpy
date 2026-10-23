@@ -1,5 +1,17 @@
 init -1500 python:
-    
+    import os as _maica_os
+    import sys as _maica_sys
+
+    # macOS DDLC does not search the stdlib fallback directories shipped beside game/.
+    # Keep native modules first and avoid loading Python 2 shims on Python 3.
+    if _maica_sys.platform == "darwin" and _maica_sys.version_info[0] == 2:
+        for _maica_platform in ("darwin-x86_64", "osx-x86_64"):
+            _maica_stdlib = _maica_os.path.join(
+                config.basedir, "lib", _maica_platform, "lib", "python2.7"
+            )
+            if _maica_os.path.isdir(_maica_stdlib) and _maica_stdlib not in _maica_sys.path:
+                _maica_sys.path.append(_maica_stdlib)
+
     if _preferences.language:
         config.language = _preferences.language
     elif not config.language:

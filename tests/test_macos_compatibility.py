@@ -1,6 +1,9 @@
 import os
 import sys
+import textwrap
+from importlib.machinery import PathFinder
 from pathlib import Path
+from types import SimpleNamespace
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,6 +91,53 @@ def test_macos_lib_directories_exist_and_contain_stdlib_shims():
         assert target_dir.is_dir()
         actual_files = {f.name for f in target_dir.glob("*.py")}
         assert expected_files.issubset(actual_files)
+
+
+def run_early_api_init(monkeypatch, basedir, search_path, platform="darwin", major=2):
+    source = (ROOT / "game" / "Submods" / "MAICA_ChatSubmod" / "api.rpy").read_text(encoding="utf-8")
+    body = source.split("init -1500 python:\n", 1)[1].split("\ndefault ", 1)[0]
+    runtime_sys = SimpleNamespace(platform=platform, version_info=(major, 7, 10), path=search_path)
+    renpy_exports = SimpleNamespace(Displayable=object(), save_persistent=object())
+    namespace = {
+        "config": SimpleNamespace(basedir=str(basedir), language="english"),
+        "_preferences": SimpleNamespace(language=None),
+        "renpy": renpy_exports,
+    }
+    with monkeypatch.context() as context:
+        context.setitem(sys.modules, "sys", runtime_sys)
+        context.setitem(sys.modules, "renpy", SimpleNamespace())
+        exec(textwrap.dedent(body), namespace)
+    assert namespace["renpy"] is renpy_exports
+    return search_path
+
+
+def test_macos_python2_can_find_packaged_hmac_without_native_copy(monkeypatch, tmp_path):
+    search_path = run_early_api_init(monkeypatch, ROOT, [str(tmp_path)])
+    spec = PathFinder.find_spec("hmac", search_path)
+    assert Path(spec.origin) == ROOT / "lib/darwin-x86_64/lib/python2.7/hmac.py"
+    assert run_early_api_init(monkeypatch, ROOT, search_path) == search_path
+    assert len(search_path) == len(set(search_path))
+
+
+def test_macos_stdlib_fallback_preserves_native_module_priority(monkeypatch, tmp_path):
+    native_hmac = tmp_path / "hmac.py"
+    native_hmac.write_text("native = True\n", encoding="utf-8")
+    search_path = run_early_api_init(monkeypatch, ROOT, [str(tmp_path)])
+    assert Path(PathFinder.find_spec("hmac", search_path).origin) == native_hmac
+
+
+def test_macos_stdlib_fallback_supports_osx_directory_only(monkeypatch, tmp_path):
+    fallback = tmp_path / "lib/osx-x86_64/lib/python2.7"
+    fallback.mkdir(parents=True)
+    (fallback / "hmac.py").write_text("fallback = True\n", encoding="utf-8")
+    search_path = run_early_api_init(monkeypatch, tmp_path, [])
+    assert Path(PathFinder.find_spec("hmac", search_path).origin) == fallback / "hmac.py"
+
+
+@pytest.mark.parametrize("platform,major", [("darwin", 3), ("win32", 2), ("linux", 2)])
+def test_stdlib_fallback_does_not_affect_other_runtimes(monkeypatch, tmp_path, platform, major):
+    original = [str(tmp_path)]
+    assert run_early_api_init(monkeypatch, ROOT, original[:], platform, major) == original
 
 
 def test_linux_and_mac_bundled_magick_has_executable_permission():
