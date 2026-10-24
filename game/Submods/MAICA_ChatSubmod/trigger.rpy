@@ -609,7 +609,7 @@ init 999 python in maica:
 #################################################################################
 
     def mtrigger_location_condition():
-        return store.mas_isMoniEnamored(True)
+        return store.mas_isMoniEnamored(higher=True)
 
     def mtrigger_location_callback(arg):
         store.renpy.call("mtrigger_location")

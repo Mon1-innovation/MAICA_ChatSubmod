@@ -236,6 +236,46 @@ def test_new_confirmations_still_run_the_requested_action(label, effect):
     assert flow.console_visible
 
 
+@pytest.mark.parametrize(
+    "affection, expected",
+    [
+        pytest.param(1, False, id="broken"),
+        pytest.param(2, False, id="distressed"),
+        pytest.param(3, False, id="upset"),
+        pytest.param(4, False, id="normal"),
+        pytest.param(5, False, id="happy"),
+        pytest.param(6, False, id="affectionate"),
+        pytest.param(7, True, id="enamored"),
+        pytest.param(8, True, id="love"),
+    ],
+)
+def test_location_availability_matches_the_dialogue_affection_gate(affection, expected):
+    def mas_isMoniEnamored(lower=False, higher=False):
+        # MAS takes lower first; an unnamed True includes lower affection.
+        if affection == 7:
+            return True
+        if lower:
+            return affection < 7
+        if higher:
+            return affection > 7
+        return False
+
+    source = _source("trigger.rpy")
+    start = source.index("    def mtrigger_location_condition():")
+    end = source.index("    def mtrigger_location_callback(arg):", start)
+    namespace = {
+        "store": SimpleNamespace(mas_isMoniEnamored=mas_isMoniEnamored),
+    }
+    exec(textwrap.dedent(source[start:end]), namespace)
+    assert namespace["mtrigger_location_condition"]() is expected
+
+    flow = Flow("Okay")
+    flow.namespace["mas_isMoniEnamored"] = mas_isMoniEnamored
+    assert flow.run("mtrigger_location") is None
+    assert ("monika_change_background" in flow.calls) is expected
+    assert flow.console_visible
+
+
 def _manager(callbacks):
     manager = maica_mtrigger.MTriggerManager()
     for index, callback in enumerate(callbacks):
